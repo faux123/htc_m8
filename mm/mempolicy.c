@@ -1339,8 +1339,22 @@ static unsigned interleave_nodes(struct mempolicy *policy)
 	return nid;
 }
 
-unsigned slab_node(struct mempolicy *policy)
+/*
+ * Depending on the memory policy provide a node from which to allocate the
+ * next slab entry.
+ * @policy must be protected by freeing by the caller.  If @policy is
+ * the current task's mempolicy, this protection is implicit, as only the
+ * task can change it's policy.  The system default policy requires no
+ * such protection.
+ */
+unsigned slab_node(void)
 {
+	struct mempolicy *policy;
+
+	if (in_interrupt())
+		return numa_node_id();
+
+	policy = current->mempolicy;
 	if (!policy || policy->flags & MPOL_F_LOCAL)
 		return numa_node_id();
 
