@@ -13,7 +13,7 @@ struct kmem_cache {
 	unsigned int limit;
 	unsigned int shared;
 
-	unsigned int buffer_size;
+	unsigned int size;
 	u32 reciprocal_buffer_size;
 
 	unsigned int flags;		
@@ -35,7 +35,10 @@ struct kmem_cache {
 	void (*ctor)(void *obj);
 
 	const char *name;
-	struct list_head next;
+	struct list_head list;
+	int refcount;
+	int object_size;
+	int align;
 
 #ifdef CONFIG_DEBUG_SLAB
 	unsigned long num_active;
@@ -53,10 +56,23 @@ struct kmem_cache {
 	atomic_t freehit;
 	atomic_t freemiss;
 
+	/*
+	 * If debugging is enabled, then the allocator can add additional
+	 * fields and/or padding to every object. size contains the total
+	 * object size including these internal fields, the following two
+	 * variables contain the offset to the user object and its size.
+	 */
 	int obj_offset;
-	int obj_size;
-#endif 
+#endif /* CONFIG_DEBUG_SLAB */
 
+/* 6) per-cpu/per-node data, touched during every alloc/free */
+	/*
+	 * We put array[] at the end of kmem_cache, because we want to size
+	 * this array to nr_cpu_ids slots instead of NR_CPUS
+	 * (see kmem_cache_init())
+	 * We still use [NR_CPUS] and not [1] or [0] because cache_cache
+	 * is statically defined, so we reserve the max number of cpus.
+	 */
 	struct kmem_list3 **nodelists;
 	struct array_cache *array[NR_CPUS];
 };

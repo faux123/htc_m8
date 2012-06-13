@@ -432,13 +432,6 @@ size_t ksize(const void *block)
 }
 EXPORT_SYMBOL(ksize);
 
-struct kmem_cache {
-	unsigned int size, align;
-	unsigned long flags;
-	const char *name;
-	void (*ctor)(void *);
-};
-
 struct kmem_cache *kmem_cache_create(const char *name, size_t size,
 	size_t align, unsigned long flags, void (*ctor)(void *))
 {
@@ -449,7 +442,7 @@ struct kmem_cache *kmem_cache_create(const char *name, size_t size,
 
 	if (c) {
 		c->name = name;
-		c->size = size;
+		c->size = c->object_size;
 		if (flags & SLAB_DESTROY_BY_RCU) {
 			
 			c->size += sizeof(struct slob_rcu);
