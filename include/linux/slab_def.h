@@ -22,8 +22,8 @@ struct kmem_cache {
 	
 	unsigned int gfporder;
 
-	
-	gfp_t gfpflags;
+	/* force GFP flags, e.g. GFP_DMA */
+	gfp_t allocflags;
 
 	size_t colour;			
 	unsigned int colour_off;	
