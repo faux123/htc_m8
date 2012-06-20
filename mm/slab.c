@@ -1354,9 +1354,10 @@ void __init kmem_cache_init_late(void)
 			BUG();
 	mutex_unlock(&cache_chain_mutex);
 
-	
-	g_cpucache_up = FULL;
-
+	/*
+	 * Register a cpu startup notifier callback that initializes
+	 * cpu_cache_get for all new cpus
+	 */
 	register_cpu_notifier(&cpucache_notifier);
 
 #ifdef CONFIG_NUMA
@@ -1371,6 +1372,9 @@ static int __init cpucache_init(void)
 
 	for_each_online_cpu(cpu)
 		start_cpu_timer(cpu);
+
+	/* Done! */
+	g_cpucache_up = FULL;
 	return 0;
 }
 __initcall(cpucache_init);
@@ -1782,7 +1786,7 @@ static size_t calculate_slab_order(struct kmem_cache *cachep,
 
 static int __init_refok setup_cpu_cache(struct kmem_cache *cachep, gfp_t gfp)
 {
-	if (g_cpucache_up == FULL)
+	if (g_cpucache_up >= LATE)
 		return enable_cpucache(cachep, gfp);
 
 	if (g_cpucache_up == NONE) {
