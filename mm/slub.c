@@ -6,6 +6,7 @@
 #include <linux/interrupt.h>
 #include <linux/bitops.h>
 #include <linux/slab.h>
+#include "slab.h"
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/kmemcheck.h>
@@ -76,13 +77,7 @@ static int kmem_size = sizeof(struct kmem_cache);
 static struct notifier_block slab_notifier;
 #endif
 
-static enum {
-	DOWN,		
-	PARTIAL,	
-	UP,		
-	SYSFS		
-} slab_state = DOWN;
-
+/* A list of all slab caches on the system */
 static DECLARE_RWSEM(slub_lock);
 static LIST_HEAD(slab_caches);
 
@@ -129,11 +124,6 @@ static inline void stat(const struct kmem_cache *s, enum stat_item si)
 #endif
 }
 
-
-int slab_is_available(void)
-{
-	return slab_state >= UP;
-}
 
 static inline struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
 {
@@ -4584,8 +4574,8 @@ static int sysfs_slab_add(struct kmem_cache *s)
 	const char *name;
 	int unmergeable;
 
-	if (slab_state < SYSFS)
-		
+	if (slab_state < FULL)
+		/* Defer until later */
 		return 0;
 
 	unmergeable = slab_unmergeable(s);
@@ -4620,7 +4610,11 @@ static int sysfs_slab_add(struct kmem_cache *s)
 
 static void sysfs_slab_remove(struct kmem_cache *s)
 {
-	if (slab_state < SYSFS)
+	if (slab_state < FULL)
+		/*
+		 * Sysfs has not been setup yet so no need to remove the
+		 * cache from sysfs.
+		 */
 		return;
 
 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
@@ -4640,7 +4634,10 @@ static int sysfs_slab_alias(struct kmem_cache *s, const char *name)
 {
 	struct saved_alias *al;
 
-	if (slab_state == SYSFS) {
+	if (slab_state == FULL) {
+		/*
+		 * If we have a leftover link then remove it.
+		 */
 		sysfs_remove_link(&slab_kset->kobj, name);
 		return sysfs_create_link(&slab_kset->kobj, &s->kobj, name);
 	}
@@ -4670,7 +4667,7 @@ static int __init slab_sysfs_init(void)
 		return -ENOSYS;
 	}
 
-	slab_state = SYSFS;
+	slab_state = FULL;
 
 	list_for_each_entry(s, &slab_caches, list) {
 		err = sysfs_slab_add(s);
