@@ -856,9 +856,6 @@ static int __devinit ab3100_probe(struct i2c_client *client,
 
 	err = request_threaded_irq(client->irq, NULL, ab3100_irq_handler,
 				IRQF_ONESHOT, "ab3100-core", ab3100);
-	
-	rand_initialize_irq(client->irq);
-
 	if (err)
 		goto exit_no_irq;
 
