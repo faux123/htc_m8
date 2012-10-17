@@ -161,23 +161,24 @@
  */
 static bool pfmemalloc_active __read_mostly;
 
-/* Legal flag mask for kmem_cache_create(). */
-#if DEBUG
-# define CREATE_MASK	(SLAB_RED_ZONE | \
-			 SLAB_POISON | SLAB_HWCACHE_ALIGN | \
-			 SLAB_CACHE_DMA | \
-			 SLAB_STORE_USER | \
-			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
-			 SLAB_DEBUG_OBJECTS | SLAB_NOLEAKTRACE | SLAB_NOTRACK)
-#else
-# define CREATE_MASK	(SLAB_HWCACHE_ALIGN | \
-			 SLAB_CACHE_DMA | \
-			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
-			 SLAB_DEBUG_OBJECTS | SLAB_NOLEAKTRACE | SLAB_NOTRACK)
-#endif
-
+/*
+ * kmem_bufctl_t:
+ *
+ * Bufctl's are used for linking objs within a slab
+ * linked offsets.
+ *
+ * This implementation relies on "struct page" for locating the cache &
+ * slab an object belongs to.
+ * This allows the bufctl structure to be small (one int), but limits
+ * the number of objects a slab (not a cache) can contain when off-slab
+ * bufctls are used. The limit is the size of the largest general cache
+ * that does not use off-slab slabs.
+ * For 32bit archs with 4 kB pages, is this 56.
+ * This is not serious, as it is only for large objects, when it is unwise
+ * to have too many per slab.
+ * Note: This limit can be raised by introducing a general cache whose size
+ * is less than 512 (PAGE_SIZE<<3), but greater than 256.
+ */
 
 typedef unsigned int kmem_bufctl_t;
 #define BUFCTL_END	(((kmem_bufctl_t)(~0U))-0)
@@ -2084,7 +2085,6 @@ __kmem_cache_create (struct kmem_cache *cachep, unsigned long flags)
 	if (flags & SLAB_DESTROY_BY_RCU)
 		BUG_ON(flags & SLAB_POISON);
 #endif
-	BUG_ON(flags & ~CREATE_MASK);
 
 	if (size & (BYTES_PER_WORD - 1)) {
 		size += (BYTES_PER_WORD - 1);
