@@ -81,10 +81,7 @@ struct page {
 		};
 
 		struct list_head list;	/* slobs list of pages */
-		struct {		/* slab fields */
-			struct kmem_cache *slab_cache;
-			struct slab *slab_page;
-		};
+		struct slab *slab_page; /* slab fields */
 	};
 
 	
@@ -93,8 +90,8 @@ struct page {
 #if USE_SPLIT_PTLOCKS
 		spinlock_t ptl;
 #endif
-		struct kmem_cache *slab;	
-		struct page *first_page;	
+		struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
+		struct page *first_page;	/* Compound tail pages */
 	};
 
 #if defined(WANT_PAGE_VIRTUAL)
