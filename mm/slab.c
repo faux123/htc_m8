@@ -2072,17 +2072,11 @@ __kmem_cache_create (struct kmem_cache *cachep, unsigned long flags)
 		size &= ~(BYTES_PER_WORD - 1);
 	}
 
-	
-
-	
-	if (flags & SLAB_HWCACHE_ALIGN) {
-		ralign = cache_line_size();
-		while (size <= ralign / 2)
-			ralign /= 2;
-	} else {
-		ralign = BYTES_PER_WORD;
-	}
-
+	/*
+	 * Redzoning and user store require word alignment or possibly larger.
+	 * Note this will be overridden by architecture or caller mandated
+	 * alignment if either is greater than BYTES_PER_WORD.
+	 */
 	if (flags & SLAB_STORE_USER)
 		ralign = BYTES_PER_WORD;
 
@@ -2092,10 +2086,6 @@ __kmem_cache_create (struct kmem_cache *cachep, unsigned long flags)
 		size &= ~(REDZONE_ALIGN - 1);
 	}
 
-	
-	if (ralign < ARCH_SLAB_MINALIGN) {
-		ralign = ARCH_SLAB_MINALIGN;
-	}
 	/* 3) caller mandated alignment */
 	if (ralign < cachep->align) {
 		ralign = cachep->align;
