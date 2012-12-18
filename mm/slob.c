@@ -58,7 +58,6 @@
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
-#include "slab.h"
 
 #include <linux/mm.h>
 #include <linux/swap.h> 
@@ -73,6 +72,15 @@
 
 #include <linux/atomic.h>
 
+#include "slab.h"
+/*
+ * slob_block has a field 'units', which indicates size of block if +ve,
+ * or offset of next block if -ve (in SLOB_UNITs).
+ *
+ * Free blocks of size 1 unit simply contain the offset of the next block.
+ * Those with larger size contain their size in the first SLOB_UNIT of
+ * memory, and the offset of the next free block in the second SLOB_UNIT.
+ */
 #if PAGE_SIZE <= (32767 * 2)
 typedef s16 slobidx_t;
 #else
