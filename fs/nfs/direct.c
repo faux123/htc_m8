@@ -99,11 +99,25 @@ static inline int put_dreq(struct nfs_direct_req *dreq)
 	return atomic_dec_and_test(&dreq->io_count);
 }
 
-ssize_t nfs_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov, loff_t pos, unsigned long nr_segs)
+/**
+ * nfs_direct_IO - NFS address space operation for direct I/O
+ * @rw: direction (read or write)
+ * @iocb: target I/O control block
+ * @iter: array of vectors that define I/O buffer
+ * @pos: offset in file to begin the operation
+ * @nr_segs: size of iovec array
+ *
+ * The presence of this routine in the address space ops vector means
+ * the NFS client supports direct I/O.  However, we shunt off direct
+ * read and write requests before the VFS gets them, so this method
+ * should never be called.
+ */
+ssize_t nfs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+		      loff_t pos)
 {
 	dprintk("NFS: nfs_direct_IO (%s) off/no(%Ld/%lu) EINVAL\n",
 			iocb->ki_filp->f_path.dentry->d_name.name,
-			(long long) pos, nr_segs);
+			(long long) pos, iter->nr_segs);
 
 	return -EINVAL;
 }
