@@ -276,7 +276,11 @@ do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	if (interrupts_enabled(regs))
 		local_irq_enable();
 
-	if (in_atomic() || !mm)
+	/*
+	 * If we're in an interrupt, or have no irqs, or have no user
+	 * context, we must not take the fault..
+	 */
+	if (in_atomic() || irqs_disabled() || !mm)
 		goto no_context;
 
 	if (!down_read_trylock(&mm->mmap_sem)) {
