@@ -1879,43 +1879,10 @@ __kmem_cache_create (const char *name, size_t size, size_t align,
 	unsigned long flags, void (*ctor)(void *))
 {
 	size_t left_over, slab_size, ralign;
-	struct kmem_cache *cachep = NULL, *pc;
+	struct kmem_cache *cachep = NULL;
 	gfp_t gfp;
 
-	if (!name || in_interrupt() || (size < BYTES_PER_WORD) ||
-	    size > KMALLOC_MAX_SIZE) {
-		printk(KERN_ERR "%s: Early error in slab %s\n", __func__,
-				name);
-		BUG();
-	}
-
-	if (slab_is_available()) {
-		get_online_cpus();
-		mutex_lock(&slab_mutex);
-	}
-
-	list_for_each_entry(pc, &slab_caches, list) {
-		char tmp;
-		int res;
-
-		res = probe_kernel_address(pc->name, tmp);
-		if (res) {
-			printk(KERN_ERR
-			       "SLAB: cache with size %d has lost its name\n",
-			       pc->size);
-			continue;
-		}
-
-		if (!strcmp(pc->name, name)) {
-			printk(KERN_ERR
-			       "kmem_cache_create: duplicate cache %s\n", name);
-			dump_stack();
-			goto oops;
-		}
-	}
-
 #if DEBUG
-	WARN_ON(strchr(name, ' '));	
 #if FORCED_DEBUG
 	if (size < 4096 || fls(size - 1) == fls(size-1 + REDZONE_ALIGN +
 						2 * sizeof(unsigned long long)))
@@ -2067,11 +2034,6 @@ __kmem_cache_create (const char *name, size_t size, size_t align,
 
 	/* cache setup completed, link it into the list */
 	list_add(&cachep->list, &slab_caches);
-oops:
-	if (slab_is_available()) {
-		mutex_unlock(&slab_mutex);
-		put_online_cpus();
-	}
 	return cachep;
 }
 
