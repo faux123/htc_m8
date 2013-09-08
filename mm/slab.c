@@ -68,7 +68,7 @@
  * Further notes from the original documentation:
  *
  * 11 April '97.  Started multi-threading - markhe
- *	The global cache-chain is protected by the mutex 'cache_chain_mutex'.
+ *	The global cache-chain is protected by the mutex 'slab_mutex'.
  *	The sem is only needed when accessing/extending the cache-chain, which
  *	can never happen inside an interrupt (kmem_cache_create(),
  *	kmem_cache_shrink() and kmem_cache_reap()).
@@ -557,9 +557,6 @@ static void slab_set_debugobj_lock_classes(struct kmem_cache *cachep)
 }
 #endif
 
-static DEFINE_MUTEX(cache_chain_mutex);
-static struct list_head cache_chain;
-
 static DEFINE_PER_CPU(struct delayed_work, slab_reap_work);
 
 static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
@@ -887,13 +884,22 @@ static inline int cache_free_alien(struct kmem_cache *cachep, void *objp)
 }
 #endif
 
+/*
+ * Allocates and initializes nodelists for a node on each slab cache, used for
+ * either memory or cpu hotplug.  If memory is being hot-added, the kmem_list3
+ * will be allocated off-node since memory is not yet online for the new node.
+ * When hotplugging memory or a cpu, existing nodelists are not replaced if
+ * already in use.
+ *
+ * Must hold slab_mutex.
+ */
 static int init_cache_nodelists_node(int node)
 {
 	struct kmem_cache *cachep;
 	struct kmem_list3 *l3;
 	const int memsize = sizeof(struct kmem_list3);
 
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		/*
 		 * Set up the size64 kmemlist for cpu before we can
 		 * begin anything. Make sure some other cpu on this
@@ -907,6 +913,11 @@ static int init_cache_nodelists_node(int node)
 			l3->next_reap = jiffies + REAPTIMEOUT_LIST3 +
 			    ((unsigned long)cachep) % REAPTIMEOUT_LIST3;
 
+			/*
+			 * The l3s don't come and go as CPUs come and
+			 * go.  slab_mutex is sufficient
+			 * protection here.
+			 */
 			cachep->nodelists[node] = l3;
 		}
 
@@ -926,7 +937,7 @@ static void __cpuinit cpuup_canceled(long cpu)
 	int node = cpu_to_mem(cpu);
 	const struct cpumask *mask = cpumask_of_node(node);
 
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		struct array_cache *nc;
 		struct array_cache *shared;
 		struct array_cache **alien;
@@ -976,7 +987,7 @@ free_array_cache:
 	 * the respective cache's slabs,  now we can go ahead and
 	 * shrink each nodelist to its limit.
 	 */
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		l3 = cachep->nodelists[node];
 		if (!l3)
 			continue;
@@ -999,7 +1010,7 @@ static int __cpuinit cpuup_prepare(long cpu)
 	 * Now we can go ahead with allocating the shared arrays and
 	 * array caches
 	 */
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		struct array_cache *nc;
 		struct array_cache *shared = NULL;
 		struct array_cache **alien = NULL;
@@ -1063,9 +1074,9 @@ static int __cpuinit cpuup_callback(struct notifier_block *nfb,
 	switch (action) {
 	case CPU_UP_PREPARE:
 	case CPU_UP_PREPARE_FROZEN:
-		mutex_lock(&cache_chain_mutex);
+		mutex_lock(&slab_mutex);
 		err = cpuup_prepare(cpu);
-		mutex_unlock(&cache_chain_mutex);
+		mutex_unlock(&slab_mutex);
 		break;
 	case CPU_ONLINE:
 	case CPU_ONLINE_FROZEN:
@@ -1074,6 +1085,12 @@ static int __cpuinit cpuup_callback(struct notifier_block *nfb,
 #ifdef CONFIG_HOTPLUG_CPU
   	case CPU_DOWN_PREPARE:
   	case CPU_DOWN_PREPARE_FROZEN:
+		/*
+		 * Shutdown cache reaper. Note that the slab_mutex is
+		 * held so that if cache_reap() is invoked it cannot do
+		 * anything expensive but will only modify reap_work
+		 * and reschedule the timer.
+		*/
 		cancel_delayed_work_sync(&per_cpu(slab_reap_work, cpu));
 		
 		per_cpu(slab_reap_work, cpu).work.func = NULL;
@@ -1088,9 +1105,9 @@ static int __cpuinit cpuup_callback(struct notifier_block *nfb,
 #endif
 	case CPU_UP_CANCELED:
 	case CPU_UP_CANCELED_FROZEN:
-		mutex_lock(&cache_chain_mutex);
+		mutex_lock(&slab_mutex);
 		cpuup_canceled(cpu);
-		mutex_unlock(&cache_chain_mutex);
+		mutex_unlock(&slab_mutex);
 		break;
 	}
 	return notifier_from_errno(err);
@@ -1101,12 +1118,19 @@ static struct notifier_block __cpuinitdata cpucache_notifier = {
 };
 
 #if defined(CONFIG_NUMA) && defined(CONFIG_MEMORY_HOTPLUG)
+/*
+ * Drains freelist for a node on each slab cache, used for memory hot-remove.
+ * Returns -EBUSY if all objects cannot be drained so that the node is not
+ * removed.
+ *
+ * Must hold slab_mutex.
+ */
 static int __meminit drain_cache_nodelists_node(int node)
 {
 	struct kmem_cache *cachep;
 	int ret = 0;
 
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		struct kmem_list3 *l3;
 
 		l3 = cachep->nodelists[node];
@@ -1137,14 +1161,14 @@ static int __meminit slab_memory_callback(struct notifier_block *self,
 
 	switch (action) {
 	case MEM_GOING_ONLINE:
-		mutex_lock(&cache_chain_mutex);
+		mutex_lock(&slab_mutex);
 		ret = init_cache_nodelists_node(nid);
-		mutex_unlock(&cache_chain_mutex);
+		mutex_unlock(&slab_mutex);
 		break;
 	case MEM_GOING_OFFLINE:
-		mutex_lock(&cache_chain_mutex);
+		mutex_lock(&slab_mutex);
 		ret = drain_cache_nodelists_node(nid);
-		mutex_unlock(&cache_chain_mutex);
+		mutex_unlock(&slab_mutex);
 		break;
 	case MEM_ONLINE:
 	case MEM_OFFLINE:
@@ -1209,9 +1233,9 @@ void __init kmem_cache_init(void)
 
 	node = numa_mem_id();
 
-	
-	INIT_LIST_HEAD(&cache_chain);
-	list_add(&cache_cache.list, &cache_chain);
+	/* 1) create the cache_cache */
+	INIT_LIST_HEAD(&slab_caches);
+	list_add(&cache_cache.list, &slab_caches);
 	cache_cache.colour_off = cache_line_size();
 	cache_cache.array[smp_processor_id()] = &initarray_cache.cache;
 	cache_cache.nodelists[node] = &initkmem_list3[CACHE_CACHE + node];
@@ -1334,12 +1358,12 @@ void __init kmem_cache_init_late(void)
 	
 	init_lock_keys();
 
-	
-	mutex_lock(&cache_chain_mutex);
-	list_for_each_entry(cachep, &cache_chain, list)
+	/* 6) resize the head arrays to their final sizes */
+	mutex_lock(&slab_mutex);
+	list_for_each_entry(cachep, &slab_caches, list)
 		if (enable_cpucache(cachep, GFP_NOWAIT))
 			BUG();
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 
 	/* Done! */
 	slab_state = FULL;
@@ -1867,10 +1891,10 @@ __kmem_cache_create (const char *name, size_t size, size_t align,
 
 	if (slab_is_available()) {
 		get_online_cpus();
-		mutex_lock(&cache_chain_mutex);
+		mutex_lock(&slab_mutex);
 	}
 
-	list_for_each_entry(pc, &cache_chain, list) {
+	list_for_each_entry(pc, &slab_caches, list) {
 		char tmp;
 		int res;
 
@@ -2042,10 +2066,10 @@ __kmem_cache_create (const char *name, size_t size, size_t align,
 	}
 
 	/* cache setup completed, link it into the list */
-	list_add(&cachep->list, &cache_chain);
+	list_add(&cachep->list, &slab_caches);
 oops:
 	if (slab_is_available()) {
-		mutex_unlock(&cache_chain_mutex);
+		mutex_unlock(&slab_mutex);
 		put_online_cpus();
 	}
 	return cachep;
@@ -2154,6 +2178,7 @@ out:
 	return nr_freed;
 }
 
+/* Called with slab_mutex held to protect against cpu hotplug */
 static int __cache_shrink(struct kmem_cache *cachep)
 {
 	int ret = 0, i = 0;
@@ -2181,9 +2206,9 @@ int kmem_cache_shrink(struct kmem_cache *cachep)
 	BUG_ON(!cachep || in_interrupt());
 
 	get_online_cpus();
-	mutex_lock(&cache_chain_mutex);
+	mutex_lock(&slab_mutex);
 	ret = __cache_shrink(cachep);
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 	put_online_cpus();
 	return ret;
 }
@@ -2195,15 +2220,15 @@ void kmem_cache_destroy(struct kmem_cache *cachep)
 
 	
 	get_online_cpus();
-	mutex_lock(&cache_chain_mutex);
+	mutex_lock(&slab_mutex);
 	/*
 	 * the chain is never empty, cache_cache is never destroyed
 	 */
 	list_del(&cachep->list);
 	if (__cache_shrink(cachep)) {
 		slab_error(cachep, "Can't free all objects");
-		list_add(&cachep->list, &cache_chain);
-		mutex_unlock(&cache_chain_mutex);
+		list_add(&cachep->list, &slab_caches);
+		mutex_unlock(&slab_mutex);
 		put_online_cpus();
 		return;
 	}
@@ -2212,7 +2237,7 @@ void kmem_cache_destroy(struct kmem_cache *cachep)
 		rcu_barrier();
 
 	__kmem_cache_destroy(cachep);
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 	put_online_cpus();
 }
 EXPORT_SYMBOL(kmem_cache_destroy);
@@ -3333,6 +3358,7 @@ static void do_ccupdate_local(void *info)
 	new->new[smp_processor_id()] = old;
 }
 
+/* Always called with the slab_mutex held */
 static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
 				int batchcount, int shared, gfp_t gfp)
 {
@@ -3376,6 +3402,7 @@ static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
 	return alloc_kmemlist(cachep, gfp);
 }
 
+/* Called with slab_mutex held always */
 static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
 {
 	int err;
@@ -3447,11 +3474,11 @@ static void cache_reap(struct work_struct *w)
 	int node = numa_mem_id();
 	struct delayed_work *work = to_delayed_work(w);
 
-	if (!mutex_trylock(&cache_chain_mutex))
-		
+	if (!mutex_trylock(&slab_mutex))
+		/* Give up. Setup the next iteration. */
 		goto out;
 
-	list_for_each_entry(searchp, &cache_chain, list) {
+	list_for_each_entry(searchp, &slab_caches, list) {
 		check_irq_on();
 
 		l3 = searchp->nodelists[node];
@@ -3480,7 +3507,7 @@ next:
 		cond_resched();
 	}
 	check_irq_on();
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 	next_reap_node();
 out:
 	
@@ -3512,21 +3539,21 @@ static void *s_start(struct seq_file *m, loff_t *pos)
 {
 	loff_t n = *pos;
 
-	mutex_lock(&cache_chain_mutex);
+	mutex_lock(&slab_mutex);
 	if (!n)
 		print_slabinfo_header(m);
 
-	return seq_list_start(&cache_chain, *pos);
+	return seq_list_start(&slab_caches, *pos);
 }
 
 static void *s_next(struct seq_file *m, void *p, loff_t *pos)
 {
-	return seq_list_next(p, &cache_chain, pos);
+	return seq_list_next(p, &slab_caches, pos);
 }
 
 static void s_stop(struct seq_file *m, void *p)
 {
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 }
 
 static int s_show(struct seq_file *m, void *p)
@@ -3656,10 +3683,10 @@ static ssize_t slabinfo_write(struct file *file, const char __user *buffer,
 	if (sscanf(tmp, " %d %d %d", &limit, &batchcount, &shared) != 3)
 		return -EINVAL;
 
-	
-	mutex_lock(&cache_chain_mutex);
+	/* Find the cache in the chain of caches. */
+	mutex_lock(&slab_mutex);
 	res = -EINVAL;
-	list_for_each_entry(cachep, &cache_chain, list) {
+	list_for_each_entry(cachep, &slab_caches, list) {
 		if (!strcmp(cachep->name, kbuf)) {
 			if (limit < 1 || batchcount < 1 ||
 					batchcount > limit || shared < 0) {
@@ -3672,7 +3699,7 @@ static ssize_t slabinfo_write(struct file *file, const char __user *buffer,
 			break;
 		}
 	}
-	mutex_unlock(&cache_chain_mutex);
+	mutex_unlock(&slab_mutex);
 	if (res >= 0)
 		res = count;
 	return res;
@@ -3695,8 +3722,8 @@ static const struct file_operations proc_slabinfo_operations = {
 
 static void *leaks_start(struct seq_file *m, loff_t *pos)
 {
-	mutex_lock(&cache_chain_mutex);
-	return seq_list_start(&cache_chain, *pos);
+	mutex_lock(&slab_mutex);
+	return seq_list_start(&slab_caches, *pos);
 }
 
 static inline int add_caller(unsigned long *n, unsigned long v)
@@ -3794,19 +3821,19 @@ static int leaks_show(struct seq_file *m, void *p)
 	}
 	name = cachep->name;
 	if (n[0] == n[1]) {
-		
-		mutex_unlock(&cache_chain_mutex);
+		/* Increase the buffer size */
+		mutex_unlock(&slab_mutex);
 		m->private = kzalloc(n[0] * 4 * sizeof(unsigned long), GFP_KERNEL);
 		if (!m->private) {
 			
 			m->private = n;
-			mutex_lock(&cache_chain_mutex);
+			mutex_lock(&slab_mutex);
 			return -ENOMEM;
 		}
 		*(unsigned long *)m->private = n[0] * 2;
 		kfree(n);
-		mutex_lock(&cache_chain_mutex);
-		
+		mutex_lock(&slab_mutex);
+		/* Now make sure this entry will be retried */
 		m->count = m->size;
 		return 0;
 	}

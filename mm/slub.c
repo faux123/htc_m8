@@ -26,6 +26,81 @@
 #include <htc_debug/stability/htc_report_meminfo.h>
 
 
+/*
+ * Lock order:
+ *   1. slab_mutex (Global Mutex)
+ *   2. node->list_lock
+ *   3. slab_lock(page) (Only on some arches and for debugging)
+ *
+ *   slab_mutex
+ *
+ *   The role of the slab_mutex is to protect the list of all the slabs
+ *   and to synchronize major metadata changes to slab cache structures.
+ *
+ *   The slab_lock is only used for debugging and on arches that do not
+ *   have the ability to do a cmpxchg_double. It only protects the second
+ *   double word in the page struct. Meaning
+ *	A. page->freelist	-> List of object free in a page
+ *	B. page->counters	-> Counters of objects
+ *	C. page->frozen		-> frozen state
+ *
+ *   If a slab is frozen then it is exempt from list management. It is not
+ *   on any list. The processor that froze the slab is the one who can
+ *   perform list operations on the page. Other processors may put objects
+ *   onto the freelist but the processor that froze the slab is the only
+ *   one that can retrieve the objects from the page's freelist.
+ *
+ *   The list_lock protects the partial and full list on each node and
+ *   the partial slab counter. If taken then no new slabs may be added or
+ *   removed from the lists nor make the number of partial slabs be modified.
+ *   (Note that the total number of slabs is an atomic value that may be
+ *   modified without taking the list lock).
+ *
+ *   The list_lock is a centralized lock and thus we avoid taking it as
+ *   much as possible. As long as SLUB does not have to handle partial
+ *   slabs, operations can continue without any centralized lock. F.e.
+ *   allocating a long series of objects that fill up slabs does not require
+ *   the list lock.
+ *   Interrupts are disabled during allocation and deallocation in order to
+ *   make the slab allocator safe to use in the context of an irq. In addition
+ *   interrupts are disabled to ensure that the processor does not change
+ *   while handling per_cpu slabs, due to kernel preemption.
+ *
+ * SLUB assigns one slab for allocation to each processor.
+ * Allocations only occur from these slabs called cpu slabs.
+ *
+ * Slabs with free elements are kept on a partial list and during regular
+ * operations no list for full slabs is used. If an object in a full slab is
+ * freed then the slab will show up again on the partial lists.
+ * We track full slabs for debugging purposes though because otherwise we
+ * cannot scan all objects.
+ *
+ * Slabs are freed when they become empty. Teardown and setup is
+ * minimal so we rely on the page allocators per cpu caches for
+ * fast frees and allocs.
+ *
+ * Overloading of page flags that are otherwise used for LRU management.
+ *
+ * PageActive 		The slab is frozen and exempt from list processing.
+ * 			This means that the slab is dedicated to a purpose
+ * 			such as satisfying allocations for a specific
+ * 			processor. Objects may be freed in the slab while
+ * 			it is frozen but slab_free will then skip the usual
+ * 			list operations. It is up to the processor holding
+ * 			the slab to integrate the slab into the slab lists
+ * 			when the slab is no longer needed.
+ *
+ * 			One use of this flag is to mark slabs that are
+ * 			used for allocations. Then such a slab becomes a cpu
+ * 			slab. The cpu slab may be equipped with an additional
+ * 			freelist that allows lockless access to
+ * 			free objects in addition to the regular freelist
+ * 			that requires the slab lock.
+ *
+ * PageError		Slab requires special handling due to debug
+ * 			options set. This moves	slab handling out of
+ * 			the fast path and disables lockless freelists.
+ */
 
 #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
 		SLAB_TRACE | SLAB_DEBUG_FREE)
@@ -77,11 +152,10 @@ static int kmem_size = sizeof(struct kmem_cache);
 static struct notifier_block slab_notifier;
 #endif
 
-/* A list of all slab caches on the system */
-static DECLARE_RWSEM(slub_lock);
-static LIST_HEAD(slab_caches);
-
 #ifndef CONFIG_SLUB_LIGHT_WEIGHT_DEBUG_ON
+/*
+ * Tracking user of a slab.
+ */
 #define TRACK_ADDRS_COUNT 16
 struct track {
 	unsigned long addr;	
@@ -2612,11 +2686,11 @@ static inline int kmem_cache_close(struct kmem_cache *s)
 
 void kmem_cache_destroy(struct kmem_cache *s)
 {
-	down_write(&slub_lock);
+	mutex_lock(&slab_mutex);
 	s->refcount--;
 	if (!s->refcount) {
 		list_del(&s->list);
-		up_write(&slub_lock);
+		mutex_unlock(&slab_mutex);
 		if (kmem_cache_close(s)) {
 			printk(KERN_ERR "SLUB %s: %s called for cache that "
 				"still has objects.\n", s->name, __func__);
@@ -2626,7 +2700,7 @@ void kmem_cache_destroy(struct kmem_cache *s)
 			rcu_barrier();
 		sysfs_slab_remove(s);
 	} else
-		up_write(&slub_lock);
+		mutex_unlock(&slab_mutex);
 }
 EXPORT_SYMBOL(kmem_cache_destroy);
 
@@ -2683,6 +2757,10 @@ static struct kmem_cache *__init create_kmalloc_cache(const char *name,
 
 	s = kmem_cache_alloc(kmem_cache, GFP_NOWAIT);
 
+	/*
+	 * This function is called with IRQs disabled during early-boot on
+	 * single CPU so there's no need to take slab_mutex here.
+	 */
 	if (!kmem_cache_open(s, name, size, ARCH_KMALLOC_MINALIGN,
 								flags, NULL))
 		goto panic;
@@ -2940,10 +3018,10 @@ static int slab_mem_going_offline_callback(void *arg)
 {
 	struct kmem_cache *s;
 
-	down_read(&slub_lock);
+	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list)
 		kmem_cache_shrink(s);
-	up_read(&slub_lock);
+	mutex_unlock(&slab_mutex);
 
 	return 0;
 }
@@ -2960,7 +3038,7 @@ static void slab_mem_offline_callback(void *arg)
 	if (offline_node < 0)
 		return;
 
-	down_read(&slub_lock);
+	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list) {
 		n = get_node(s, offline_node);
 		if (n) {
@@ -2970,7 +3048,7 @@ static void slab_mem_offline_callback(void *arg)
 			kmem_cache_free(kmem_cache_node, n);
 		}
 	}
-	up_read(&slub_lock);
+	mutex_unlock(&slab_mutex);
 }
 
 static int slab_mem_going_online_callback(void *arg)
@@ -2984,7 +3062,12 @@ static int slab_mem_going_online_callback(void *arg)
 	if (nid < 0)
 		return 0;
 
-	down_read(&slub_lock);
+	/*
+	 * We are bringing a node online. No memory is available yet. We must
+	 * allocate a kmem_cache_node structure in order to bring the node
+	 * online.
+	 */
+	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list) {
 		n = kmem_cache_alloc(kmem_cache_node, GFP_KERNEL);
 		if (!n) {
@@ -2995,7 +3078,7 @@ static int slab_mem_going_online_callback(void *arg)
 		s->node[nid] = n;
 	}
 out:
-	up_read(&slub_lock);
+	mutex_unlock(&slab_mutex);
 	return ret;
 }
 
@@ -3246,7 +3329,7 @@ struct kmem_cache *__kmem_cache_create(const char *name, size_t size,
 	struct kmem_cache *s;
 	char *n;
 
-	down_write(&slub_lock);
+	mutex_lock(&slab_mutex);
 	s = find_mergeable(size, align, flags, name, ctor);
 	if (s) {
 		s->refcount++;
@@ -3261,7 +3344,7 @@ struct kmem_cache *__kmem_cache_create(const char *name, size_t size,
 			s->refcount--;
 			goto err;
 		}
-		up_write(&slub_lock);
+		mutex_unlock(&slab_mutex);
 		return s;
 	}
 
@@ -3274,9 +3357,9 @@ struct kmem_cache *__kmem_cache_create(const char *name, size_t size,
 		if (kmem_cache_open(s, n,
 				size, align, flags, ctor)) {
 			list_add(&s->list, &slab_caches);
-			up_write(&slub_lock);
+			mutex_unlock(&slab_mutex);
 			if (sysfs_slab_add(s)) {
-				down_write(&slub_lock);
+				mutex_lock(&slab_mutex);
 				list_del(&s->list);
 				kfree(n);
 				kfree(s);
@@ -3288,7 +3371,7 @@ struct kmem_cache *__kmem_cache_create(const char *name, size_t size,
 		kfree(s);
 	}
 err:
-	up_write(&slub_lock);
+	mutex_unlock(&slab_mutex);
 	return s;
 }
 
@@ -3305,13 +3388,13 @@ static int __cpuinit slab_cpuup_callback(struct notifier_block *nfb,
 	case CPU_UP_CANCELED_FROZEN:
 	case CPU_DEAD:
 	case CPU_DEAD_FROZEN:
-		down_read(&slub_lock);
+		mutex_lock(&slab_mutex);
 		list_for_each_entry(s, &slab_caches, list) {
 			local_irq_save(flags);
 			__flush_cpu_slab(s, cpu);
 			local_irq_restore(flags);
 		}
-		up_read(&slub_lock);
+		mutex_unlock(&slab_mutex);
 		break;
 	default:
 		break;
@@ -4658,11 +4741,11 @@ static int __init slab_sysfs_init(void)
 	struct kmem_cache *s;
 	int err;
 
-	down_write(&slub_lock);
+	mutex_lock(&slab_mutex);
 
 	slab_kset = kset_create_and_add("slab", &slab_uevent_ops, kernel_kobj);
 	if (!slab_kset) {
-		up_write(&slub_lock);
+		mutex_unlock(&slab_mutex);
 		printk(KERN_ERR "Cannot register slab subsystem.\n");
 		return -ENOSYS;
 	}
@@ -4687,7 +4770,7 @@ static int __init slab_sysfs_init(void)
 		kfree(al);
 	}
 
-	up_write(&slub_lock);
+	mutex_unlock(&slab_mutex);
 	resiliency_test();
 	return 0;
 }
@@ -4710,7 +4793,7 @@ static void *s_start(struct seq_file *m, loff_t *pos)
 {
 	loff_t n = *pos;
 
-	down_read(&slub_lock);
+	mutex_lock(&slab_mutex);
 	if (!n)
 		print_slabinfo_header(m);
 
@@ -4724,7 +4807,7 @@ static void *s_next(struct seq_file *m, void *p, loff_t *pos)
 
 static void s_stop(struct seq_file *m, void *p)
 {
-	up_read(&slub_lock);
+	mutex_unlock(&slab_mutex);
 }
 
 static int s_show(struct seq_file *m, void *p)
