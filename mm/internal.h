@@ -192,6 +192,10 @@ static inline struct page *mem_map_next(struct page *iter,
 #define __paginginit __init
 #endif
 
+/* Returns true if the gfp_mask allows use of ALLOC_NO_WATERMARK */
+bool gfp_pfmemalloc_allowed(gfp_t gfp_mask);
+
+/* Memory initialisation debug and verification */
 enum mminit_level {
 	MMINIT_WARNING,
 	MMINIT_VERIFY,
@@ -268,10 +272,10 @@ extern u32 hwpoison_filter_enable;
 
 #define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
 
-#define ALLOC_HARDER		0x10 
-#define ALLOC_HIGH		0x20 
-#define ALLOC_CPUSET		0x40 
-#define ALLOC_CMA		0x80 
-
 unsigned long reclaim_clean_pages_from_list(struct zone *zone,
 					    struct list_head *page_list);
+#define ALLOC_HARDER		0x10 /* try to alloc harder */
+#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
+#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+#define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
+#define ALLOC_PFMEMALLOC       0x100 /* Caller has PF_MEMALLOC set */
