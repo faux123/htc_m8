@@ -474,3 +474,4 @@ obj-$(CONFIG_PERFLOCK) += perflock.o
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_HTC_RPM_CMD) += rpm_htc_cmd.o
 obj-$(CONFIG_HTC_MONITOR) += htc_monitor.o
+obj-$(CONFIG_MSM_CPUFREQ_LIMITER) += cpufreq_limit.o
