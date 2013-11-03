@@ -29,6 +29,7 @@ struct vm_area_struct;
 #define ___GFP_HARDWALL		0x20000u
 #define ___GFP_THISNODE		0x40000u
 #define ___GFP_RECLAIMABLE	0x80000u
+#define ___GFP_MEMALLOC		0x100000u
 #ifdef CONFIG_KMEMCHECK
 #define ___GFP_NOTRACK		0x200000u
 #else
@@ -45,22 +46,42 @@ struct vm_area_struct;
 #define __GFP_CMA	((__force gfp_t)___GFP_CMA)
 #define GFP_ZONEMASK	(__GFP_DMA|__GFP_HIGHMEM|__GFP_DMA32|__GFP_MOVABLE| \
 			__GFP_CMA)
-#define __GFP_WAIT	((__force gfp_t)___GFP_WAIT)	
-#define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)	
-#define __GFP_IO	((__force gfp_t)___GFP_IO)	
-#define __GFP_FS	((__force gfp_t)___GFP_FS)	
-#define __GFP_COLD	((__force gfp_t)___GFP_COLD)	
-#define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)	
-#define __GFP_REPEAT	((__force gfp_t)___GFP_REPEAT)	
-#define __GFP_NOFAIL	((__force gfp_t)___GFP_NOFAIL)	
-#define __GFP_NORETRY	((__force gfp_t)___GFP_NORETRY) 
-#define __GFP_COMP	((__force gfp_t)___GFP_COMP)	
-#define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)	
-#define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC) 
-#define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) 
-#define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)
-#define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) 
-#define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  
+/*
+ * Action modifiers - doesn't change the zoning
+ *
+ * __GFP_REPEAT: Try hard to allocate the memory, but the allocation attempt
+ * _might_ fail.  This depends upon the particular VM implementation.
+ *
+ * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
+ * cannot handle allocation failures.  This modifier is deprecated and no new
+ * users should be added.
+ *
+ * __GFP_NORETRY: The VM implementation must not retry indefinitely.
+ *
+ * __GFP_MOVABLE: Flag that this page will be movable by the page migration
+ * mechanism or reclaimed
+ */
+#define __GFP_WAIT	((__force gfp_t)___GFP_WAIT)	/* Can wait and reschedule? */
+#define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)	/* Should access emergency pools? */
+#define __GFP_IO	((__force gfp_t)___GFP_IO)	/* Can start physical IO? */
+#define __GFP_FS	((__force gfp_t)___GFP_FS)	/* Can call down to low-level FS? */
+#define __GFP_COLD	((__force gfp_t)___GFP_COLD)	/* Cache-cold page required */
+#define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)	/* Suppress page allocation failure warning */
+#define __GFP_REPEAT	((__force gfp_t)___GFP_REPEAT)	/* See above */
+#define __GFP_NOFAIL	((__force gfp_t)___GFP_NOFAIL)	/* See above */
+#define __GFP_NORETRY	((__force gfp_t)___GFP_NORETRY) /* See above */
+#define __GFP_MEMALLOC	((__force gfp_t)___GFP_MEMALLOC)/* Allow access to emergency reserves */
+#define __GFP_COMP	((__force gfp_t)___GFP_COMP)	/* Add compound page metadata */
+#define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)	/* Return zeroed page on success */
+#define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC) /* Don't use emergency reserves.
+							 * This takes precedence over the
+							 * __GFP_MEMALLOC flag if both are
+							 * set
+							 */
+#define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) /* Enforce hardwall cpuset memory allocs */
+#define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)/* No fallback, no policies */
+#define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
+#define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
 
 #define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
 #define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE) 
@@ -99,7 +120,7 @@ struct vm_area_struct;
 
 #define GFP_RECLAIM_MASK (__GFP_WAIT|__GFP_HIGH|__GFP_IO|__GFP_FS|\
 			__GFP_NOWARN|__GFP_REPEAT|__GFP_NOFAIL|\
-			__GFP_NORETRY|__GFP_NOMEMALLOC)
+			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC)
 
 #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_WAIT|__GFP_IO|__GFP_FS))
 
