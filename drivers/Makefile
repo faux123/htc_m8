@@ -150,3 +150,6 @@ obj-$(CONFIG_SENSORS)		+= sensors/
 
 # htc stability files
 obj-y += htc_debug/stability/
+ifeq (1, $(shell if [ -d drivers/exfat ] ; then echo 1 ; fi))
+obj-y   += exfat/
+endif
