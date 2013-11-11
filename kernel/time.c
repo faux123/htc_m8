@@ -154,37 +154,20 @@ struct timespec current_fs_time(struct super_block *sb)
 }
 EXPORT_SYMBOL(current_fs_time);
 
-inline unsigned int jiffies_to_msecs(const unsigned long j)
+/*
+ * Convert jiffies to milliseconds and back.
+ */
+unsigned int __jiffies_to_msecs(const unsigned long j)
 {
-#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-	return (MSEC_PER_SEC / HZ) * j;
-#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
-#else
-# if BITS_PER_LONG == 32
-	return (HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
-# else
-	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
-# endif
-#endif
+	return __inline_jiffies_to_msecs(j);
 }
-EXPORT_SYMBOL(jiffies_to_msecs);
+EXPORT_SYMBOL(__jiffies_to_msecs);
 
-inline unsigned int jiffies_to_usecs(const unsigned long j)
+unsigned int __jiffies_to_usecs(const unsigned long j)
 {
-#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-	return (USEC_PER_SEC / HZ) * j;
-#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
-#else
-# if BITS_PER_LONG == 32
-	return (HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
-# else
-	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
-# endif
-#endif
+	return __inline_jiffies_to_usecs(j);
 }
-EXPORT_SYMBOL(jiffies_to_usecs);
+EXPORT_SYMBOL(__jiffies_to_usecs);
 
 struct timespec timespec_trunc(struct timespec t, unsigned gran)
 {
@@ -270,42 +253,17 @@ struct timeval ns_to_timeval(const s64 nsec)
 }
 EXPORT_SYMBOL(ns_to_timeval);
 
-unsigned long msecs_to_jiffies(const unsigned int m)
+unsigned long __msecs_to_jiffies(const unsigned int m)
 {
-	if ((int)m < 0)
-		return MAX_JIFFY_OFFSET;
-
-#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
-#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-		return MAX_JIFFY_OFFSET;
-
-	return m * (HZ / MSEC_PER_SEC);
-#else
-	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-		return MAX_JIFFY_OFFSET;
-
-	return (MSEC_TO_HZ_MUL32 * m + MSEC_TO_HZ_ADJ32)
-		>> MSEC_TO_HZ_SHR32;
-#endif
+	return __inline_msecs_to_jiffies(m);
 }
-EXPORT_SYMBOL(msecs_to_jiffies);
+EXPORT_SYMBOL(__msecs_to_jiffies);
 
-unsigned long usecs_to_jiffies(const unsigned int u)
+unsigned long __usecs_to_jiffies(const unsigned int u)
 {
-	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
-		return MAX_JIFFY_OFFSET;
-#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-	return (u + (USEC_PER_SEC / HZ) - 1) / (USEC_PER_SEC / HZ);
-#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-	return u * (HZ / USEC_PER_SEC);
-#else
-	return (USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
-		>> USEC_TO_HZ_SHR32;
-#endif
+	return __inline_usecs_to_jiffies(u);
 }
-EXPORT_SYMBOL(usecs_to_jiffies);
+EXPORT_SYMBOL(__usecs_to_jiffies);
 
 unsigned long
 timespec_to_jiffies(const struct timespec *value)
