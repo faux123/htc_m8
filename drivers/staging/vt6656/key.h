@@ -34,7 +34,6 @@
 #include "tether.h"
 #include "80211mgr.h"
 
-/*---------------------  Export Definitions -------------------------*/
 #define MAX_GROUP_KEY       4
 #define MAX_KEY_TABLE       11
 #define MAX_KEY_LEN         32
@@ -67,35 +66,30 @@ typedef struct tagSKeyItem
     BYTE        byReserved0;
     DWORD       dwKeyIndex;
     void *pvKeyTable;
-} SKeyItem, *PSKeyItem; //64
+} SKeyItem, *PSKeyItem; 
 
 typedef struct tagSKeyTable
 {
-    BYTE        abyBSSID[ETH_ALEN];  /* 6 */
-    BYTE        byReserved0[2];              //8
+    BYTE        abyBSSID[ETH_ALEN];  
+    BYTE        byReserved0[2];              
     SKeyItem    PairwiseKey;
-    SKeyItem    GroupKey[MAX_GROUP_KEY]; //64*5 = 320, 320+8=328
-    DWORD       dwGTKeyIndex;            // GroupTransmitKey Index
+    SKeyItem    GroupKey[MAX_GROUP_KEY]; 
+    DWORD       dwGTKeyIndex;            
     BOOL        bInUse;
     WORD        wKeyCtl;
     BOOL        bSoftWEP;
     BYTE        byReserved1[6];
-} SKeyTable, *PSKeyTable; //352
+} SKeyTable, *PSKeyTable; 
 
 typedef struct tagSKeyManagement
 {
     SKeyTable   KeyTable[MAX_KEY_TABLE];
 } SKeyManagement, *PSKeyManagement;
 
-/*---------------------  Export Types  ------------------------------*/
 
-/*---------------------  Export Macros ------------------------------*/
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
 
 void KeyvInitTable(void *pDeviceHandler, PSKeyManagement pTable);
 
@@ -162,4 +156,4 @@ BOOL KeybSetAllGroupKey(
     BYTE            byKeyDecMode
     );
 
-#endif /* __KEY_H__ */
+#endif 

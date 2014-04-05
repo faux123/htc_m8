@@ -20,9 +20,6 @@
 
 static DEFINE_PER_CPU(struct cpuid, cpu_id);
 
-/*
- * cpu_init - initializes state that is per-CPU.
- */
 void __cpuinit cpu_init(void)
 {
 	struct cpuid *id = &per_cpu(cpu_id, smp_processor_id());
@@ -34,9 +31,6 @@ void __cpuinit cpu_init(void)
 	enter_lazy_tlb(&init_mm, current);
 }
 
-/*
- * show_cpuinfo - Get information on one CPU for use by procfs.
- */
 static int show_cpuinfo(struct seq_file *m, void *v)
 {
 	static const char *hwcap_str[10] = {

@@ -18,12 +18,6 @@
 #ifndef __BFA_DEFS_STATUS_H__
 #define __BFA_DEFS_STATUS_H__
 
-/**
- * API status return values
- *
- * NOTE: The error msgs are auto generated from the comments. Only singe line
- * comments are supported
- */
 enum bfa_status {
 	BFA_STATUS_OK = 0,
 	BFA_STATUS_FAILED = 1,
@@ -213,4 +207,4 @@ enum bfa_eproto_status {
 	BFA_EPROTO_UNKNOWN_RSP = 1
 };
 
-#endif /* __BFA_DEFS_STATUS_H__ */
+#endif 

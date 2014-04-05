@@ -16,10 +16,6 @@
 
 struct dccp6_sock {
 	struct dccp_sock  dccp;
-	/*
-	 * ipv6_pinfo has to be the last member of dccp6_sock,
-	 * see inet6_sk_generic.
-	 */
 	struct ipv6_pinfo inet6;
 };
 
@@ -33,4 +29,4 @@ struct dccp6_timewait_sock {
 	struct inet6_timewait_sock  tw6;
 };
 
-#endif /* _DCCP_IPV6_H */
+#endif 

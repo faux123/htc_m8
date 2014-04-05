@@ -17,9 +17,8 @@
 #include "stdio.h"
 #include "io.h"
 
-#define MPC8XX_PLPRCR (0x284/4) /* PLL and Reset Control Register */
+#define MPC8XX_PLPRCR (0x284/4) 
 
-/* Return system clock from crystal frequency */
 u32 mpc885_get_clock(u32 crystal)
 {
 	u32 *immr;
@@ -55,7 +54,6 @@ u32 mpc885_get_clock(u32 crystal)
 	return ret / (pdf + 1);
 }
 
-/* Set common device tree fields based on the given clock frequencies. */
 void mpc8xx_set_clocks(u32 sysclk)
 {
 	void *node;

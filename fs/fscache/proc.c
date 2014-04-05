@@ -15,9 +15,6 @@
 #include <linux/seq_file.h>
 #include "internal.h"
 
-/*
- * initialise the /proc/fs/fscache/ directory
- */
 int __init fscache_proc_init(void)
 {
 	_enter("");
@@ -63,9 +60,6 @@ error_dir:
 	return -ENOMEM;
 }
 
-/*
- * clean up the /proc/fs/fscache/ directory
- */
 void fscache_proc_cleanup(void)
 {
 #ifdef CONFIG_FSCACHE_OBJECT_LIST

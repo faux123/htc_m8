@@ -42,10 +42,6 @@ static inline int __attribute__ ((format (printf, 1, 2))) DBG(
 
 BSS_STACK(4096);
 
-/* A buffer that may be edited by tools operating on a zImage binary so as to
- * edit the command line passed to vmlinux (by setting /chosen/bootargs).
- * The buffer is put in it's own section so that tools may locate it easier.
- */
 
 static char cmdline[COMMAND_LINE_SIZE]
 	__attribute__((__section__("__builtin_cmdline")));
@@ -68,9 +64,9 @@ static void ps3_exit(void)
 {
 	printf("ps3_exit\n");
 
-	/* lv1_panic will shutdown the lpar. */
+	
 
-	lv1_panic(0); /* zero = do not reboot */
+	lv1_panic(0); 
 	while (1);
 }
 
@@ -91,12 +87,6 @@ static int ps3_repository_read_rm_size(u64 *rm_size)
 	if (result)
 		return -1;
 
-	/*
-	 * n1: 0000000062690000 : ....bi..
-	 * n2: 7075000000000000 : pu......
-	 * n3: 0000000000000001 : ........
-	 * n4: 726d5f73697a6500 : rm_size.
-	*/
 
 	result = lv1_get_repository_node_value(lpar_id, 0x0000000062690000ULL,
 		0x7075000000000000ULL, ppe_id, 0x726d5f73697a6500ULL, rm_size,
@@ -121,7 +111,7 @@ void ps3_copy_vectors(void)
 
 void platform_init(unsigned long null_check)
 {
-	const u32 heapsize = 0x1000000 - (u32)_end; /* 16MiB */
+	const u32 heapsize = 0x1000000 - (u32)_end; 
 	void *chosen;
 	unsigned long ft_addr;
 	u64 rm_size;

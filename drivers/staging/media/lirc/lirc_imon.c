@@ -43,51 +43,43 @@
 #define BUF_CHUNK_SIZE	4
 #define BUF_SIZE	128
 
-#define BIT_DURATION	250	/* each bit received is 250us */
+#define BIT_DURATION	250	
 
-/*** P R O T O T Y P E S ***/
 
-/* USB Callback prototypes */
 static int imon_probe(struct usb_interface *interface,
 		      const struct usb_device_id *id);
 static void imon_disconnect(struct usb_interface *interface);
 static void usb_rx_callback(struct urb *urb);
 static void usb_tx_callback(struct urb *urb);
 
-/* suspend/resume support */
 static int imon_resume(struct usb_interface *intf);
 static int imon_suspend(struct usb_interface *intf, pm_message_t message);
 
-/* Display file_operations function prototypes */
 static int display_open(struct inode *inode, struct file *file);
 static int display_close(struct inode *inode, struct file *file);
 
-/* VFD write operation */
 static ssize_t vfd_write(struct file *file, const char __user *buf,
 			 size_t n_bytes, loff_t *pos);
 
-/* LIRC driver function prototypes */
 static int ir_open(void *data);
 static void ir_close(void *data);
 
-/* Driver init/exit prototypes */
 static int __init imon_init(void);
 static void __exit imon_exit(void);
 
-/*** G L O B A L S ***/
 #define IMON_DATA_BUF_SZ	35
 
 struct imon_context {
 	struct usb_device *usbdev;
-	/* Newer devices have two interfaces */
-	int display;			/* not all controllers do */
-	int display_isopen;		/* display port has been opened */
-	int ir_isopen;			/* IR port open	*/
-	int dev_present;		/* USB device presence */
-	struct mutex ctx_lock;		/* to lock this object */
-	wait_queue_head_t remove_ok;	/* For unexpected USB disconnects */
+	
+	int display;			
+	int display_isopen;		
+	int ir_isopen;			
+	int dev_present;		
+	struct mutex ctx_lock;		
+	wait_queue_head_t remove_ok;	
 
-	int vfd_proto_6p;		/* some VFD require a 6th packet */
+	int vfd_proto_6p;		
 
 	struct lirc_driver *driver;
 	struct usb_endpoint_descriptor *rx_endpoint;
@@ -98,16 +90,16 @@ struct imon_context {
 	unsigned char usb_tx_buf[8];
 
 	struct rx_data {
-		int count;		/* length of 0 or 1 sequence */
-		int prev_bit;		/* logic level of sequence */
-		int initial_space;	/* initial space flag */
+		int count;		
+		int prev_bit;		
+		int initial_space;	
 	} rx;
 
 	struct tx_t {
-		unsigned char data_buf[IMON_DATA_BUF_SZ]; /* user data buffer */
-		struct completion finished;	/* wait for write to finish */
-		atomic_t busy;			/* write in progress */
-		int status;			/* status of tx completion */
+		unsigned char data_buf[IMON_DATA_BUF_SZ]; 
+		struct completion finished;	
+		atomic_t busy;			
+		int status;			
 	} tx;
 };
 
@@ -119,46 +111,33 @@ static const struct file_operations display_fops = {
 	.llseek		= noop_llseek,
 };
 
-/*
- * USB Device ID for iMON USB Control Boards
- *
- * The Windows drivers contain 6 different inf files, more or less one for
- * each new device until the 0x0034-0x0046 devices, which all use the same
- * driver. Some of the devices in the 34-46 range haven't been definitively
- * identified yet. Early devices have either a TriGem Computer, Inc. or a
- * Samsung vendor ID (0x0aa8 and 0x04e8 respectively), while all later
- * devices use the SoundGraph vendor ID (0x15c2).
- */
 static struct usb_device_id imon_usb_id_table[] = {
-	/* TriGem iMON (IR only) -- TG_iMON.inf */
+	
 	{ USB_DEVICE(0x0aa8, 0x8001) },
 
-	/* SoundGraph iMON (IR only) -- sg_imon.inf */
+	
 	{ USB_DEVICE(0x04e8, 0xff30) },
 
-	/* SoundGraph iMON VFD (IR & VFD) -- iMON_VFD.inf */
+	
 	{ USB_DEVICE(0x0aa8, 0xffda) },
 
-	/* SoundGraph iMON SS (IR & VFD) -- iMON_SS.inf */
+	
 	{ USB_DEVICE(0x15c2, 0xffda) },
 
 	{}
 };
 
-/* Some iMON VFD models requires a 6th packet for VFD writes */
 static struct usb_device_id vfd_proto_6p_list[] = {
 	{ USB_DEVICE(0x15c2, 0xffda) },
 	{}
 };
 
-/* Some iMON devices have no lcd/vfd, don't set one up */
 static struct usb_device_id ir_only_list[] = {
 	{ USB_DEVICE(0x0aa8, 0x8001) },
 	{ USB_DEVICE(0x04e8, 0xff30) },
 	{}
 };
 
-/* USB Device data */
 static struct usb_driver imon_driver = {
 	.name		= MOD_NAME,
 	.probe		= imon_probe,
@@ -174,12 +153,10 @@ static struct usb_class_driver imon_class = {
 	.minor_base	= DISPLAY_MINOR_BASE,
 };
 
-/* to prevent races between open() and disconnect(), probing, etc */
 static DEFINE_MUTEX(driver_lock);
 
 static int debug;
 
-/***  M O D U L E   C O D E ***/
 
 MODULE_AUTHOR(MOD_AUTHOR);
 MODULE_DESCRIPTION(MOD_DESC);
@@ -217,10 +194,6 @@ static void deregister_from_lirc(struct imon_context *context)
 
 }
 
-/**
- * Called when the Display device (e.g. /dev/lcd0)
- * is opened by the application.
- */
 static int display_open(struct inode *inode, struct file *file)
 {
 	struct usb_interface *interface;
@@ -228,7 +201,7 @@ static int display_open(struct inode *inode, struct file *file)
 	int subminor;
 	int retval = 0;
 
-	/* prevent races with disconnect */
+	
 	mutex_lock(&driver_lock);
 
 	subminor = iminor(inode);
@@ -269,10 +242,6 @@ exit:
 	return retval;
 }
 
-/**
- * Called when the display device (e.g. /dev/lcd0)
- * is closed by the application.
- */
 static int display_close(struct inode *inode, struct file *file)
 {
 	struct imon_context *context = NULL;
@@ -297,11 +266,6 @@ static int display_close(struct inode *inode, struct file *file)
 		context->display_isopen = 0;
 		dev_info(context->driver->dev, "display port closed\n");
 		if (!context->dev_present && !context->ir_isopen) {
-			/*
-			 * Device disconnected before close and IR port is not
-			 * open. If IR port is open, context will be deleted by
-			 * ir_close.
-			 */
 			mutex_unlock(&context->ctx_lock);
 			free_imon_context(context);
 			return retval;
@@ -312,17 +276,13 @@ static int display_close(struct inode *inode, struct file *file)
 	return retval;
 }
 
-/**
- * Sends a packet to the device -- this function must be called
- * with context->ctx_lock held.
- */
 static int send_packet(struct imon_context *context)
 {
 	unsigned int pipe;
 	int interval = 0;
 	int retval = 0;
 
-	/* Check if we need to use control or interrupt urb */
+	
 	pipe = usb_sndintpipe(context->usbdev,
 			      context->tx_endpoint->bEndpointAddress);
 	interval = context->tx_endpoint->bInterval;
@@ -342,7 +302,7 @@ static int send_packet(struct imon_context *context)
 		atomic_set(&(context->tx.busy), 0);
 		err("%s: error submitting urb(%d)", __func__, retval);
 	} else {
-		/* Wait for transmission to complete (or abort) */
+		
 		mutex_unlock(&context->ctx_lock);
 		retval = wait_for_completion_interruptible(
 				&context->tx.finished);
@@ -358,17 +318,6 @@ static int send_packet(struct imon_context *context)
 	return retval;
 }
 
-/**
- * Writes data to the VFD.  The iMON VFD is 2x16 characters
- * and requires data in 5 consecutive USB interrupt packets,
- * each packet but the last carrying 7 bytes.
- *
- * I don't know if the VFD board supports features such as
- * scrolling, clearing rows, blanking, etc. so at
- * the caller must provide a full screen of data.  If fewer
- * than 32 bytes are provided spaces will be appended to
- * generate a full screen.
- */
 static ssize_t vfd_write(struct file *file, const char __user *buf,
 			 size_t n_bytes, loff_t *pos)
 {
@@ -409,7 +358,7 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
 
 	memcpy(context->tx.data_buf, data_buf, n_bytes);
 
-	/* Pad with spaces */
+	
 	for (i = n_bytes; i < IMON_DATA_BUF_SZ - 3; ++i)
 		context->tx.data_buf[i] = ' ';
 
@@ -436,7 +385,7 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
 	} while (offset < IMON_DATA_BUF_SZ);
 
 	if (context->vfd_proto_6p) {
-		/* Send packet #6 */
+		
 		memcpy(context->usb_tx_buf, &vfd_packet6, sizeof(vfd_packet6));
 		context->usb_tx_buf[7] = (unsigned char) seq;
 		retval = send_packet(context);
@@ -452,9 +401,6 @@ exit:
 	return (!retval) ? n_bytes : retval;
 }
 
-/**
- * Callback function for USB core API: transmit data
- */
 static void usb_tx_callback(struct urb *urb)
 {
 	struct imon_context *context;
@@ -467,27 +413,24 @@ static void usb_tx_callback(struct urb *urb)
 
 	context->tx.status = urb->status;
 
-	/* notify waiters that write has finished */
+	
 	atomic_set(&context->tx.busy, 0);
 	complete(&context->tx.finished);
 
 	return;
 }
 
-/**
- * Called by lirc_dev when the application opens /dev/lirc
- */
 static int ir_open(void *data)
 {
 	int retval = 0;
 	struct imon_context *context;
 
-	/* prevent races with disconnect */
+	
 	mutex_lock(&driver_lock);
 
 	context = (struct imon_context *)data;
 
-	/* initial IR protocol decode variables */
+	
 	context->rx.count = 0;
 	context->rx.initial_space = 1;
 	context->rx.prev_bit = 0;
@@ -499,9 +442,6 @@ static int ir_open(void *data)
 	return retval;
 }
 
-/**
- * Called by lirc_dev when the application closes /dev/lirc
- */
 static void ir_close(void *data)
 {
 	struct imon_context *context;
@@ -518,10 +458,6 @@ static void ir_close(void *data)
 	dev_info(context->driver->dev, "IR port closed\n");
 
 	if (!context->dev_present) {
-		/*
-		 * Device disconnected while IR port was still open. Driver
-		 * was not deregistered at disconnect time, so do it now.
-		 */
 		deregister_from_lirc(context);
 
 		if (!context->display_isopen) {
@@ -529,20 +465,12 @@ static void ir_close(void *data)
 			free_imon_context(context);
 			return;
 		}
-		/*
-		 * If display port is open, context will be deleted by
-		 * display_close
-		 */
 	}
 
 	mutex_unlock(&context->ctx_lock);
 	return;
 }
 
-/**
- * Convert bit count to time duration (in us) and submit
- * the value to lirc_dev.
- */
 static void submit_data(struct imon_context *context)
 {
 	unsigned char buf[4];
@@ -587,9 +515,6 @@ static inline int tv2int(const struct timeval *a, const struct timeval *b)
 	return sec;
 }
 
-/**
- * Process the incoming packet
- */
 static void imon_incoming_packet(struct imon_context *context,
 				 struct urb *urb, int intf)
 {
@@ -600,9 +525,6 @@ static void imon_incoming_packet(struct imon_context *context,
 	unsigned char mask;
 	int i;
 
-	/*
-	 * just bail out if no listening IR client
-	 */
 	if (!context->ir_isopen)
 		return;
 
@@ -619,22 +541,9 @@ static void imon_incoming_packet(struct imon_context *context,
 		printk("\n");
 	}
 
-	/*
-	 * Translate received data to pulse and space lengths.
-	 * Received data is active low, i.e. pulses are 0 and
-	 * spaces are 1.
-	 *
-	 * My original algorithm was essentially similar to
-	 * Changwoo Ryu's with the exception that he switched
-	 * the incoming bits to active high and also fed an
-	 * initial space to LIRC at the start of a new sequence
-	 * if the previous bit was a pulse.
-	 *
-	 * I've decided to adopt his algorithm.
-	 */
 
 	if (buf[7] == 1 && context->rx.initial_space) {
-		/* LIRC requires a leading space */
+		
 		context->rx.prev_bit = 0;
 		context->rx.count = 4;
 		submit_data(context);
@@ -666,9 +575,6 @@ static void imon_incoming_packet(struct imon_context *context,
 	}
 }
 
-/**
- * Callback function for USB core API: receive data
- */
 static void usb_rx_callback(struct urb *urb)
 {
 	struct imon_context *context;
@@ -682,7 +588,7 @@ static void usb_rx_callback(struct urb *urb)
 		return;
 
 	switch (urb->status) {
-	case -ENOENT:		/* usbcore unlink successful! */
+	case -ENOENT:		
 		return;
 
 	case 0:
@@ -700,9 +606,6 @@ static void usb_rx_callback(struct urb *urb)
 	return;
 }
 
-/**
- * Callback function for USB core API: Probe
- */
 static int imon_probe(struct usb_interface *interface,
 		      const struct usb_device_id *id)
 {
@@ -727,7 +630,7 @@ static int imon_probe(struct usb_interface *interface,
 	int i;
 	u16 vendor, product;
 
-	/* prevent races probing devices w/multiple interfaces */
+	
 	mutex_lock(&driver_lock);
 
 	context = kzalloc(sizeof(struct imon_context), GFP_KERNEL);
@@ -737,10 +640,6 @@ static int imon_probe(struct usb_interface *interface,
 		goto alloc_status_switch;
 	}
 
-	/*
-	 * Try to auto-detect the type of display if the user hasn't set
-	 * it by hand via the display_type modparam. Default is VFD.
-	 */
 	if (usb_match_id(interface, ir_only_list))
 		context->display = 0;
 	else
@@ -756,11 +655,6 @@ static int imon_probe(struct usb_interface *interface,
 	dev_dbg(dev, "%s: found iMON device (%04x:%04x, intf%d)\n",
 		__func__, vendor, product, ifnum);
 
-	/*
-	 * Scan the endpoint list and set:
-	 *	first input endpoint = IR endpoint
-	 *	first output endpoint = display endpoint
-	 */
 	for (i = 0; i < num_endpts && !(ir_ep_found && display_ep_found); ++i) {
 		struct usb_endpoint_descriptor *ep;
 		int ep_dir;
@@ -785,17 +679,12 @@ static int imon_probe(struct usb_interface *interface,
 		}
 	}
 
-	/*
-	 * Some iMON receivers have no display. Unfortunately, it seems
-	 * that SoundGraph recycles device IDs between devices both with
-	 * and without... :\
-	 */
 	if (context->display == 0) {
 		display_ep_found = 0;
 		dev_dbg(dev, "%s: device has no display\n", __func__);
 	}
 
-	/* Input endpoint is mandatory */
+	
 	if (!ir_ep_found) {
 		err("%s: no valid input (IR) endpoint found.", __func__);
 		retval = -ENODEV;
@@ -803,7 +692,7 @@ static int imon_probe(struct usb_interface *interface,
 		goto alloc_status_switch;
 	}
 
-	/* Determine if display requires 6 packets */
+	
 	if (display_ep_found) {
 		if (usb_match_id(interface, vfd_proto_6p_list))
 			vfd_proto_6p = 1;
@@ -861,7 +750,7 @@ static int imon_probe(struct usb_interface *interface,
 	mutex_lock(&context->ctx_lock);
 
 	context->driver = driver;
-	/* start out in keyboard mode */
+	
 
 	lirc_minor = lirc_register_driver(driver);
 	if (lirc_minor < 0) {
@@ -872,7 +761,7 @@ static int imon_probe(struct usb_interface *interface,
 		dev_info(dev, "Registered iMON driver "
 			 "(lirc minor: %d)\n", lirc_minor);
 
-	/* Needed while unregistering! */
+	
 	driver->minor = lirc_minor;
 
 	context->usbdev = usbdev;
@@ -880,10 +769,6 @@ static int imon_probe(struct usb_interface *interface,
 	context->rx_endpoint = rx_endpoint;
 	context->rx_urb = rx_urb;
 
-	/*
-	 * tx is used to send characters to lcd/vfd, associate RF
-	 * remotes, set IR protocol, and maybe more...
-	 */
 	context->tx_endpoint = tx_endpoint;
 	context->tx_urb = tx_urb;
 
@@ -913,7 +798,7 @@ static int imon_probe(struct usb_interface *interface,
 			__func__);
 
 		if (usb_register_dev(interface, &imon_class)) {
-			/* Not a fatal error, so ignore */
+			
 			dev_info(dev, "%s: could not get a minor number for "
 				 "display\n", __func__);
 		}
@@ -956,15 +841,12 @@ exit:
 	return retval;
 }
 
-/**
- * Callback function for USB core API: disconnect
- */
 static void imon_disconnect(struct usb_interface *interface)
 {
 	struct imon_context *context;
 	int ifnum;
 
-	/* prevent races with ir_open()/display_open() */
+	
 	mutex_lock(&driver_lock);
 
 	context = usb_get_intfdata(interface);
@@ -974,7 +856,7 @@ static void imon_disconnect(struct usb_interface *interface)
 
 	usb_set_intfdata(interface, NULL);
 
-	/* Abort ongoing write */
+	
 	if (atomic_read(&context->tx.busy)) {
 		usb_kill_urb(context->tx_urb);
 		complete_all(&context->tx.finished);

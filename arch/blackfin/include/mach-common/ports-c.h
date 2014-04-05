@@ -1,6 +1,3 @@
-/*
- * Port C Masks
- */
 
 #ifndef __BFIN_PERIPHERAL_PORT_C__
 #define __BFIN_PERIPHERAL_PORT_C__

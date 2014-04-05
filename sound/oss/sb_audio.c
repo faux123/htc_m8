@@ -69,18 +69,14 @@ int sb_audio_open(int dev, int mode)
 		((mode & OPEN_READ) && (mode & OPEN_WRITE));
 	sb_dsp_reset(devc);
 
-	/* At first glance this check isn't enough, some ESS chips might not 
-	 * have a RECLEV. However if they don't common_mixer_set will refuse 
-	 * cause devc->iomap has no register mapping for RECLEV
-	 */
 	if (devc->model == MDL_ESS) ess_mixer_reload (devc, SOUND_MIXER_RECLEV);
 
-	/* The ALS007 seems to require that the DSP be removed from the output */
-	/* in order for recording to be activated properly.  This is done by   */
-	/* setting the appropriate bits of the output control register 4ch to  */
-	/* zero.  This code assumes that the output control registers are not  */
-	/* used anywhere else and therefore the DSP bits are *always* ON for   */
-	/* output and OFF for sampling.                                        */
+	
+	
+	
+	
+	
+	
 
 	if (devc->submodel == SUBMDL_ALS007) 
 	{
@@ -98,7 +94,7 @@ void sb_audio_close(int dev)
 {
 	sb_devc *devc = audio_devs[dev]->devc;
 
-	/* fix things if mmap turned off fullduplex */
+	
 	if(devc->duplex
 	   && !devc->fullduplex
 	   && (devc->opened & OPEN_READ) && (devc->opened & OPEN_WRITE))
@@ -115,7 +111,7 @@ void sb_audio_close(int dev)
 	if (devc->dma16 != -1 && devc->dma16 != devc->dma8 && !devc->duplex)
 		sound_close_dma(devc->dma16);
 
-	/* For ALS007, turn DSP output back on if closing the device for read */
+	
 	
 	if ((devc->submodel == SUBMDL_ALS007) && (devc->opened & OPEN_READ)) 
 	{
@@ -166,9 +162,6 @@ static void sb_set_input_parms(int dev, unsigned long buf, int count, int intrfl
 	}
 }
 
-/*
- * SB1.x compatible routines 
- */
 
 static void sb1_audio_output_block(int dev, unsigned long buf, int nr_bytes, int intrflag)
 {
@@ -176,7 +169,7 @@ static void sb1_audio_output_block(int dev, unsigned long buf, int nr_bytes, int
 	int count = nr_bytes;
 	sb_devc *devc = audio_devs[dev]->devc;
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_WRITE); */
+	
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
 		count >>= 1;
@@ -185,7 +178,7 @@ static void sb1_audio_output_block(int dev, unsigned long buf, int nr_bytes, int
 	devc->irq_mode = IMODE_OUTPUT;
 
 	spin_lock_irqsave(&devc->lock, flags);
-	if (sb_dsp_command(devc, 0x14))		/* 8 bit DAC using DMA */
+	if (sb_dsp_command(devc, 0x14))		
 	{
 		sb_dsp_command(devc, (unsigned char) (count & 0xff));
 		sb_dsp_command(devc, (unsigned char) ((count >> 8) & 0xff));
@@ -202,11 +195,8 @@ static void sb1_audio_start_input(int dev, unsigned long buf, int nr_bytes, int 
 	int count = nr_bytes;
 	sb_devc *devc = audio_devs[dev]->devc;
 
-	/*
-	 * Start a DMA input to the buffer pointed by dmaqtail
-	 */
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_READ); */
+	
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
 		count >>= 1;
@@ -215,7 +205,7 @@ static void sb1_audio_start_input(int dev, unsigned long buf, int nr_bytes, int 
 	devc->irq_mode = IMODE_INPUT;
 
 	spin_lock_irqsave(&devc->lock, flags);
-	if (sb_dsp_command(devc, 0x24))		/* 8 bit ADC using DMA */
+	if (sb_dsp_command(devc, 0x24))		
 	{
 		sb_dsp_command(devc, (unsigned char) (count & 0xff));
 		sb_dsp_command(devc, (unsigned char) ((count >> 8) & 0xff));
@@ -234,7 +224,7 @@ static void sb1_audio_trigger(int dev, int bits)
 	bits &= devc->irq_mode;
 
 	if (!bits)
-		sb_dsp_command(devc, 0xd0);	/* Halt DMA */
+		sb_dsp_command(devc, 0xd0);	
 	else
 	{
 		switch (devc->irq_mode)
@@ -330,9 +320,6 @@ static void sb1_audio_halt_xfer(int dev)
 	spin_unlock_irqrestore(&devc->lock, flags);
 }
 
-/*
- * SB 2.0 and SB 2.01 compatible routines
- */
 
 static void sb20_audio_output_block(int dev, unsigned long buf, int nr_bytes,
 			int intrflag)
@@ -342,7 +329,7 @@ static void sb20_audio_output_block(int dev, unsigned long buf, int nr_bytes,
 	sb_devc *devc = audio_devs[dev]->devc;
 	unsigned char cmd;
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_WRITE); */
+	
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
 		count >>= 1;
@@ -351,15 +338,15 @@ static void sb20_audio_output_block(int dev, unsigned long buf, int nr_bytes,
 	devc->irq_mode = IMODE_OUTPUT;
 
 	spin_lock_irqsave(&devc->lock, flags);
-	if (sb_dsp_command(devc, 0x48))		/* DSP Block size */
+	if (sb_dsp_command(devc, 0x48))		
 	{
 		sb_dsp_command(devc, (unsigned char) (count & 0xff));
 		sb_dsp_command(devc, (unsigned char) ((count >> 8) & 0xff));
 
 		if (devc->speed * devc->channels <= 23000)
-			cmd = 0x1c;	/* 8 bit PCM output */
+			cmd = 0x1c;	
 		else
-			cmd = 0x90;	/* 8 bit high speed PCM output (SB2.01/Pro) */
+			cmd = 0x90;	
 
 		if (!sb_dsp_command(devc, cmd))
 			printk(KERN_ERR "Sound Blaster:  unable to start DAC.\n");
@@ -377,11 +364,8 @@ static void sb20_audio_start_input(int dev, unsigned long buf, int nr_bytes, int
 	sb_devc *devc = audio_devs[dev]->devc;
 	unsigned char cmd;
 
-	/*
-	 * Start a DMA input to the buffer pointed by dmaqtail
-	 */
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_READ); */
+	
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
 		count >>= 1;
@@ -390,15 +374,15 @@ static void sb20_audio_start_input(int dev, unsigned long buf, int nr_bytes, int
 	devc->irq_mode = IMODE_INPUT;
 
 	spin_lock_irqsave(&devc->lock, flags);
-	if (sb_dsp_command(devc, 0x48))		/* DSP Block size */
+	if (sb_dsp_command(devc, 0x48))		
 	{
 		sb_dsp_command(devc, (unsigned char) (count & 0xff));
 		sb_dsp_command(devc, (unsigned char) ((count >> 8) & 0xff));
 
 		if (devc->speed * devc->channels <= (devc->major == 3 ? 23000 : 13000))
-			cmd = 0x2c;	/* 8 bit PCM input */
+			cmd = 0x2c;	
 		else
-			cmd = 0x98;	/* 8 bit high speed PCM input (SB2.01/Pro) */
+			cmd = 0x98;	
 
 		if (!sb_dsp_command(devc, cmd))
 			printk(KERN_ERR "Sound Blaster:  unable to start ADC.\n");
@@ -415,7 +399,7 @@ static void sb20_audio_trigger(int dev, int bits)
 	bits &= devc->irq_mode;
 
 	if (!bits)
-		sb_dsp_command(devc, 0xd0);	/* Halt DMA */
+		sb_dsp_command(devc, 0xd0);	
 	else
 	{
 		switch (devc->irq_mode)
@@ -434,9 +418,6 @@ static void sb20_audio_trigger(int dev, int bits)
 	devc->trigger_bits = bits;
 }
 
-/*
- * SB2.01 specific speed setup
- */
 
 static int sb201_audio_set_speed(int dev, int speed)
 {
@@ -461,12 +442,9 @@ static int sb201_audio_set_speed(int dev, int speed)
 	return devc->speed;
 }
 
-/*
- * SB Pro specific routines
- */
 
 static int sbpro_audio_prepare_for_input(int dev, int bsize, int bcount)
-{				/* For SB Pro and Jazz16 */
+{				
 	sb_devc *devc = audio_devs[dev]->devc;
 	unsigned long flags;
 	unsigned char bits = 0;
@@ -477,16 +455,16 @@ static int sbpro_audio_prepare_for_input(int dev, int bsize, int bcount)
 
 	if (devc->model == MDL_JAZZ || devc->model == MDL_SMW)
 		if (devc->bits == AFMT_S16_LE)
-			bits = 0x04;	/* 16 bit mode */
+			bits = 0x04;	
 
 	spin_lock_irqsave(&devc->lock, flags);
 	if (sb_dsp_command(devc, 0x40))
 		sb_dsp_command(devc, devc->tconst);
 	sb_dsp_command(devc, DSP_CMD_SPKOFF);
 	if (devc->channels == 1)
-		sb_dsp_command(devc, 0xa0 | bits);	/* Mono input */
+		sb_dsp_command(devc, 0xa0 | bits);	
 	else
-		sb_dsp_command(devc, 0xa8 | bits);	/* Stereo input */
+		sb_dsp_command(devc, 0xa8 | bits);	
 	spin_unlock_irqrestore(&devc->lock, flags);
 
 	devc->trigger_bits = 0;
@@ -494,7 +472,7 @@ static int sbpro_audio_prepare_for_input(int dev, int bsize, int bcount)
 }
 
 static int sbpro_audio_prepare_for_output(int dev, int bsize, int bcount)
-{				/* For SB Pro and Jazz16 */
+{				
 	sb_devc *devc = audio_devs[dev]->devc;
 	unsigned long flags;
 	unsigned char tmp;
@@ -513,12 +491,12 @@ static int sbpro_audio_prepare_for_output(int dev, int bsize, int bcount)
 	if (devc->model == MDL_JAZZ || devc->model == MDL_SMW)
 	{
 		if (devc->bits == AFMT_S16_LE)
-			bits = 0x04;	/* 16 bit mode */
+			bits = 0x04;	
 
 		if (devc->channels == 1)
-			sb_dsp_command(devc, 0xa0 | bits);	/* Mono output */
+			sb_dsp_command(devc, 0xa0 | bits);	
 		else
-			sb_dsp_command(devc, 0xa8 | bits);	/* Stereo output */
+			sb_dsp_command(devc, 0xa8 | bits);	
 		spin_unlock_irqrestore(&devc->lock, flags);
 	}
 	else
@@ -592,9 +570,6 @@ static int jazz16_audio_set_speed(int dev, int speed)
 	return devc->speed;
 }
 
-/*
- * SB16 specific routines
- */
 
 static int sb16_audio_set_speed(int dev, int speed)
 {
@@ -699,7 +674,7 @@ static void sb16_audio_output_block(int dev, unsigned long buf, int count,
 		devc->intr_active_16 = 1;
 	}
 
-	/* save value */
+	
 	spin_lock_irqsave(&devc->lock, flags);
 	bits = devc->bits;
 	if (devc->fullduplex)
@@ -714,7 +689,7 @@ static void sb16_audio_output_block(int dev, unsigned long buf, int count,
 
 	spin_lock_irqsave(&devc->lock, flags);
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_WRITE); */
+	
 
 	sb_dsp_command(devc, 0x41);
 	sb_dsp_command(devc, (unsigned char) ((devc->speed >> 8) & 0xff));
@@ -726,18 +701,12 @@ static void sb16_audio_output_block(int dev, unsigned long buf, int count,
 	sb_dsp_command(devc, (unsigned char) (cnt & 0xff));
 	sb_dsp_command(devc, (unsigned char) (cnt >> 8));
 
-	/* restore real value after all programming */
+	
 	devc->bits = bits;
 	spin_unlock_irqrestore(&devc->lock, flags);
 }
 
 
-/*
- *	This fails on the Cyrix MediaGX. If you don't have the DMA enabled
- *	before the first sample arrives it locks up. However even if you
- *	do enable the DMA in time you just get DMA timeouts and missing
- *	interrupts and stuff, so for now I've not bothered fixing this either.
- */
  
 static void sb16_audio_start_input(int dev, unsigned long buf, int count, int intrflag)
 {
@@ -762,7 +731,7 @@ static void sb16_audio_start_input(int dev, unsigned long buf, int count, int in
 
 	spin_lock_irqsave(&devc->lock, flags);
 
-	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_READ); */
+	
 
 	sb_dsp_command(devc, 0x42);
 	sb_dsp_command(devc, (unsigned char) ((devc->speed >> 8) & 0xff));
@@ -785,7 +754,7 @@ static void sb16_audio_trigger(int dev, int bits)
 	bits &= devc->irq_mode;
 
 	if (!bits && !bits_16)
-		sb_dsp_command(devc, 0xd0);	/* Halt DMA */
+		sb_dsp_command(devc, 0xd0);	
 	else
 	{
 		if (bits)
@@ -847,7 +816,7 @@ sb16_copy_from_user(int dev,
 	unsigned char *buf8;
 	signed short  *buf16;
 
-	/* if not duplex no conversion */
+	
 	if (!devc->fullduplex)
 	{
 		if (copy_from_user(localbuf + localoffs,
@@ -858,12 +827,12 @@ sb16_copy_from_user(int dev,
 	}
 	else if (devc->bits == AFMT_S16_LE)
 	{
-		/* 16 -> 8 */
-		/* max_in >> 1, max number of samples in ( 16 bits ) */
-		/* max_out, max number of samples out ( 8 bits ) */
-		/* len, number of samples that will be taken ( 16 bits )*/
-		/* c, count of samples remaining in buffer ( 16 bits )*/
-		/* p, count of samples already processed ( 16 bits )*/
+		
+		
+		
+		
+		
+		
 		len = ( (max_in >> 1) > max_out) ? max_out : (max_in >> 1);
 		c = len;
 		p = 0;
@@ -871,7 +840,7 @@ sb16_copy_from_user(int dev,
 		while (c)
 		{
 			locallen = (c >= LBUFCOPYSIZE ? LBUFCOPYSIZE : c);
-			/* << 1 in order to get 16 bit samples */
+			
 			if (copy_from_user(lbuf16,
 					   userbuf + useroffs + (p << 1),
 					   locallen << 1))
@@ -882,19 +851,19 @@ sb16_copy_from_user(int dev,
 			}
 			c -= locallen; p += locallen;
 		}
-		/* used = ( samples * 16 bits size ) */
+		
 		*used =  max_in  > ( max_out << 1) ? (max_out << 1) : max_in;
-		/* returned = ( samples * 8 bits size ) */
+		
 		*returned = len;
 	}
 	else
 	{
-		/* 8 -> 16 */
-		/* max_in, max number of samples in ( 8 bits ) */
-		/* max_out >> 1, max number of samples out ( 16 bits ) */
-		/* len, number of samples that will be taken ( 8 bits )*/
-		/* c, count of samples remaining in buffer ( 8 bits )*/
-		/* p, count of samples already processed ( 8 bits )*/
+		
+		
+		
+		
+		
+		
 		len = max_in > (max_out >> 1) ? (max_out >> 1) : max_in;
 		c = len;
 		p = 0;
@@ -912,9 +881,9 @@ sb16_copy_from_user(int dev,
 			}
 	      		c -= locallen; p += locallen;
 		}
-		/* used = ( samples * 8 bits size ) */
+		
 		*used = len;
-		/* returned = ( samples * 16 bits size ) */
+		
 		*returned = len << 1;
 	}
 }
@@ -926,7 +895,7 @@ sb16_audio_mmap(int dev)
 	devc->fullduplex = 0;
 }
 
-static struct audio_driver sb1_audio_driver =	/* SB1.x */
+static struct audio_driver sb1_audio_driver =	
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -942,7 +911,7 @@ static struct audio_driver sb1_audio_driver =	/* SB1.x */
 	.set_channels		= sb1_audio_set_channels
 };
 
-static struct audio_driver sb20_audio_driver =	/* SB2.0 */
+static struct audio_driver sb20_audio_driver =	
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -958,7 +927,7 @@ static struct audio_driver sb20_audio_driver =	/* SB2.0 */
 	.set_channels		= sb1_audio_set_channels
 };
 
-static struct audio_driver sb201_audio_driver =		/* SB2.01 */
+static struct audio_driver sb201_audio_driver =		
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -974,7 +943,7 @@ static struct audio_driver sb201_audio_driver =		/* SB2.01 */
 	.set_channels		= sb1_audio_set_channels
 };
 
-static struct audio_driver sbpro_audio_driver =		/* SB Pro */
+static struct audio_driver sbpro_audio_driver =		
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -990,7 +959,7 @@ static struct audio_driver sbpro_audio_driver =		/* SB Pro */
 	.set_channels		= sbpro_audio_set_channels
 };
 
-static struct audio_driver jazz16_audio_driver =	/* Jazz16 and SM Wave */
+static struct audio_driver jazz16_audio_driver =	
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -1006,7 +975,7 @@ static struct audio_driver jazz16_audio_driver =	/* Jazz16 and SM Wave */
 	.set_channels		= sbpro_audio_set_channels
 };
 
-static struct audio_driver sb16_audio_driver =	/* SB16 */
+static struct audio_driver sb16_audio_driver =	
 {
 	.owner			= THIS_MODULE,
 	.open			= sb_audio_open,
@@ -1033,7 +1002,7 @@ void sb_audio_init(sb_devc * devc, char *name, struct module *owner)
 
 	switch (devc->model)
 	{
-		case MDL_SB1:	/* SB1.0 or SB 1.5 */
+		case MDL_SB1:	
 			DDB(printk("Will use standard SB1.x driver\n"));
 			audio_flags = DMA_HARDSTOP;
 			break;

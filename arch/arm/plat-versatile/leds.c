@@ -27,10 +27,6 @@ struct versatile_led {
 	u8			mask;
 };
 
-/*
- * The triggers lines up below will only be used if the
- * LED triggers are compiled in.
- */
 static const struct {
 	const char *name;
 	const char *trigger;
@@ -72,7 +68,7 @@ static int __init versatile_leds_init(void)
 {
 	int i;
 
-	/* All ON */
+	
 	writel(0xff, LEDREG);
 	for (i = 0; i < ARRAY_SIZE(versatile_leds); i++) {
 		struct versatile_led *led;
@@ -96,8 +92,4 @@ static int __init versatile_leds_init(void)
 	return 0;
 }
 
-/*
- * Since we may have triggers on any subsystem, defer registration
- * until after subsystem_init.
- */
 fs_initcall(versatile_leds_init);

@@ -62,7 +62,7 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
-#include <linux/delay.h>	/* MSch: for IRQ probe */
+#include <linux/delay.h>	
 #include <linux/console.h>
 #include <linux/string.h>
 #include <linux/kd.h>
@@ -74,7 +74,7 @@
 #include <linux/smp.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
-#include <linux/crc32.h> /* For counting font checksums */
+#include <linux/crc32.h> 
 #include <asm/fb.h>
 #include <asm/irq.h>
 
@@ -87,9 +87,9 @@
 #endif
 
 enum {
-	FBCON_LOGO_CANSHOW	= -1,	/* the logo can be shown */
-	FBCON_LOGO_DRAW		= -2,	/* draw the logo to a console */
-	FBCON_LOGO_DONTSHOW	= -3	/* do not show the logo */
+	FBCON_LOGO_CANSHOW	= -1,	
+	FBCON_LOGO_DRAW		= -2,	
+	FBCON_LOGO_DONTSHOW	= -3	
 };
 
 static struct display fb_display[MAX_NR_CONSOLES];
@@ -98,16 +98,12 @@ static signed char con2fb_map[MAX_NR_CONSOLES];
 static signed char con2fb_map_boot[MAX_NR_CONSOLES];
 
 static int logo_lines;
-/* logo_shown is an index to vc_cons when >= 0; otherwise follows FBCON_LOGO
-   enums.  */
 static int logo_shown = FBCON_LOGO_CANSHOW;
-/* Software scrollback */
 static int fbcon_softback_size = 32768;
 static unsigned long softback_buf, softback_curr;
 static unsigned long softback_in;
 static unsigned long softback_top, softback_end;
 static int softback_lines;
-/* console mappings */
 static int first_fb_vc;
 static int last_fb_vc = MAX_NR_CONSOLES - 1;
 static int fbcon_is_default = 1; 
@@ -126,15 +122,12 @@ static inline void fbcon_map_override(void)
 static inline void fbcon_map_override(void)
 {
 }
-#endif /* CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY */
+#endif 
 
-/* font data */
 static char fontname[40];
 
-/* current fb_info */
 static int info_idx = -1;
 
-/* console rotation */
 static int initial_rotation;
 static int fbcon_has_sysfs;
 
@@ -153,9 +146,6 @@ static int fbcon_cursor_noblink;
 
 #define divides(a, b)	((!(a) || (b)%(a)) ? 0 : 1)
 
-/*
- *  Interface used by the world
- */
 
 static const char *fbcon_startup(void);
 static void fbcon_init(struct vc_data *vc, int init);
@@ -176,9 +166,6 @@ static int fbcon_blank(struct vc_data *vc, int blank, int mode_switch);
 static int fbcon_set_palette(struct vc_data *vc, unsigned char *table);
 static int fbcon_scrolldelta(struct vc_data *vc, int lines);
 
-/*
- *  Internal routines
- */
 static __inline__ void ywrap_up(struct vc_data *vc, int count);
 static __inline__ void ywrap_down(struct vc_data *vc, int count);
 static __inline__ void ypan_up(struct vc_data *vc, int count);
@@ -268,7 +255,7 @@ static void fbcon_rotate_all(struct fb_info *info, u32 rotate)
 {
 	return;
 }
-#endif /* CONFIG_FRAMEBUFFER_CONSOLE_ROTATION */
+#endif 
 
 static int fbcon_get_rotate(struct fb_info *info)
 {
@@ -306,7 +293,7 @@ static int get_color(struct vc_data *vc, struct fb_info *info,
 	case 1:
 	{
 		int col = mono_col(info);
-		/* 0 or 1 */
+		
 		int fg = (info->fix.visual != FB_VISUAL_MONO01) ? col : 0;
 		int bg = (info->fix.visual != FB_VISUAL_MONO01) ? 0 : col;
 
@@ -317,34 +304,22 @@ static int get_color(struct vc_data *vc, struct fb_info *info,
 		break;
 	}
 	case 2:
-		/*
-		 * Scale down 16-colors to 4 colors. Default 4-color palette
-		 * is grayscale. However, simply dividing the values by 4
-		 * will not work, as colors 1, 2 and 3 will be scaled-down
-		 * to zero rendering them invisible.  So empirically convert
-		 * colors to a sane 4-level grayscale.
-		 */
 		switch (color) {
 		case 0:
-			color = 0; /* black */
+			color = 0; 
 			break;
 		case 1 ... 6:
-			color = 2; /* white */
+			color = 2; 
 			break;
 		case 7 ... 8:
-			color = 1; /* gray */
+			color = 1; 
 			break;
 		default:
-			color = 3; /* intense white */
+			color = 3; 
 			break;
 		}
 		break;
 	case 3:
-		/*
-		 * Last 8 entries of default 16-color palette is a more intense
-		 * version of the first 8 (i.e., same chrominance, different
-		 * luminance).
-		 */
 		color &= 7;
 		break;
 	}
@@ -360,8 +335,6 @@ static void fbcon_update_softback(struct vc_data *vc)
 	if (l > 5)
 		softback_end = softback_buf + l * vc->vc_size_row;
 	else
-		/* Smaller scrollback makes no sense, and 0 would screw
-		   the operation totally */
 		softback_top = 0;
 }
 
@@ -560,7 +533,7 @@ static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 			       int cols, int rows, int new_cols, int new_rows)
 {
-	/* Need to make room for the logo */
+	
 	struct fbcon_ops *ops = info->fbcon_par;
 	int cnt, erase = vc->vc_video_erase_char, step;
 	unsigned short *save = NULL, *r, *q;
@@ -571,10 +544,6 @@ static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 		return;
 	}
 
-	/*
-	 * remove underline attribute from erase character
-	 * if black and white framebuffer.
-	 */
 	if (fb_get_color_depth(&info->var, &info->fix) == 1)
 		erase &= ~0x400;
 	logo_height = fb_prepare_logo(info, ops->rotate);
@@ -597,7 +566,7 @@ static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 		}
 	}
 	if (r == q) {
-		/* We can scroll screen down */
+		
 		r = q - step - cols;
 		for (cnt = rows - logo_lines; cnt > 0; cnt--) {
 			scr_memcpyw(r + step, r, vc->vc_size_row);
@@ -641,7 +610,7 @@ static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 		vc->vc_top = logo_lines;
 	}
 }
-#endif /* MODULE */
+#endif 
 
 #ifdef CONFIG_FB_TILEBLITTING
 static void set_blitting_type(struct vc_data *vc, struct fb_info *info)
@@ -684,7 +653,7 @@ static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
 	return 0;
 }
 
-#endif /* CONFIG_MISC_TILEBLITTING */
+#endif 
 
 
 static int con2fb_acquire_newinfo(struct vc_data *vc, struct fb_info *info,
@@ -746,13 +715,6 @@ static int con2fb_release_oldinfo(struct vc_data *vc, struct fb_info *oldinfo,
 		kfree(oldinfo->fbcon_par);
 		oldinfo->fbcon_par = NULL;
 		module_put(oldinfo->fbops->owner);
-		/*
-		  If oldinfo and newinfo are driving the same hardware,
-		  the fb_release() method of oldinfo may attempt to
-		  restore the hardware state.  This will leave the
-		  newinfo in an undefined state. Thus, a call to
-		  fb_set_par() may be needed for the newinfo.
-		*/
 		if (newinfo->fbops->fb_set_par) {
 			ret = newinfo->fbops->fb_set_par(newinfo);
 
@@ -800,15 +762,6 @@ static void con2fb_init_display(struct vc_data *vc, struct fb_info *info,
 	update_screen(vc_cons[fg_console].d);
 }
 
-/**
- *	set_con2fb_map - map console to frame buffer device
- *	@unit: virtual console number to map
- *	@newidx: frame buffer index to map virtual console to
- *      @user: user request
- *
- *	Maps a virtual console @unit to a frame buffer device
- *	@newidx.
- */
 static int set_con2fb_map(int unit, int newidx, int user)
 {
 	struct vc_data *vc = vc_cons[unit].d;
@@ -839,10 +792,6 @@ static int set_con2fb_map(int unit, int newidx, int user)
  		err = con2fb_acquire_newinfo(vc, info, unit, oldidx);
 
 
-	/*
-	 * If old fb is not mapped to any of the consoles,
-	 * fbcon should release it.
-	 */
  	if (!err && oldinfo && !search_fb_in_map(oldidx))
  		err = con2fb_release_oldinfo(vc, oldinfo, info, unit, oldidx,
  					     found);
@@ -864,10 +813,6 @@ static int set_con2fb_map(int unit, int newidx, int user)
  	return err;
 }
 
-/*
- *  Low Level Operations
- */
-/* NOTE: fbcon cannot be __init: it may be called from take_over_console later */
 static int var_to_display(struct display *disp,
 			  struct fb_var_screeninfo *var,
 			  struct fb_info *info)
@@ -887,7 +832,7 @@ static int var_to_display(struct display *disp,
 	disp->rotate = var->rotate;
 	disp->mode = fb_match_mode(var, &info->modelist);
 	if (disp->mode == NULL)
-		/* This should not happen */
+		
 		return -EINVAL;
 	return 0;
 }
@@ -922,16 +867,8 @@ static const char *fbcon_startup(void)
 	struct fbcon_ops *ops;
 	int rows, cols;
 
-	/*
-	 *  If num_registered_fb is zero, this is a call for the dummy part.
-	 *  The frame buffer devices weren't initialized yet.
-	 */
 	if (!num_registered_fb || info_idx == -1)
 		return display_desc;
-	/*
-	 * Instead of blindly using registered_fb[0], we use info_idx, set by
-	 * fb_console_init();
-	 */
 	info = registered_fb[info_idx];
 	if (!info)
 		return NULL;
@@ -982,7 +919,7 @@ static const char *fbcon_startup(void)
 		softback_lines = 0;
 	}
 
-	/* Setup default font */
+	
 	if (!p->fontdata) {
 		if (!fontname[0] || !(font = find_font(fontname)))
 			font = get_default_font(info->var.xres,
@@ -992,7 +929,7 @@ static const char *fbcon_startup(void)
 		vc->vc_font.width = font->width;
 		vc->vc_font.height = font->height;
 		vc->vc_font.data = (void *)(p->fontdata = font->data);
-		vc->vc_font.charcount = 256; /* FIXME  Need to support more fonts */
+		vc->vc_font.charcount = 256; 
 	}
 
 	cols = FBCON_SWAP(ops->rotate, info->var.xres, info->var.yres);
@@ -1037,8 +974,6 @@ static void fbcon_init(struct vc_data *vc, int init)
 	if (!info->fbcon_par)
 		con2fb_acquire_newinfo(vc, info, vc->vc_num, -1);
 
-	/* If we are not the first console on this
-	   fb, copy the font from that console */
 	t = &fb_display[fg_console];
 	if (!p->fontdata) {
 		if (t->fontdata) {
@@ -1063,8 +998,7 @@ static void fbcon_init(struct vc_data *vc, int init)
 			vc->vc_font.width = font->width;
 			vc->vc_font.height = font->height;
 			vc->vc_font.data = (void *)(p->fontdata = font->data);
-			vc->vc_font.charcount = 256; /* FIXME  Need to
-							support more fonts */
+			vc->vc_font.charcount = 256; 
 		}
 	}
 
@@ -1098,13 +1032,6 @@ static void fbcon_init(struct vc_data *vc, int init)
 	new_cols /= vc->vc_font.width;
 	new_rows /= vc->vc_font.height;
 
-	/*
-	 * We must always set the mode. The mode of the previous console
-	 * driver could be in the same resolution but we are using different
-	 * hardware so we have to initialize the hardware.
-	 *
-	 * We need to do it in fbcon_init() to prevent screen corruption.
-	 */
 	if (CON_IS_VISIBLE(vc) && vc->vc_mode == KD_TEXT) {
 		if (info->fbops->fb_set_par &&
 		    !(ops->flags & FBCON_FLAGS_INIT)) {
@@ -1124,14 +1051,9 @@ static void fbcon_init(struct vc_data *vc, int init)
 	if ((cap & FBINFO_HWACCEL_COPYAREA) &&
 	    !(cap & FBINFO_HWACCEL_DISABLED))
 		p->scrollmode = SCROLL_MOVE;
-	else /* default to something safe */
+	else 
 		p->scrollmode = SCROLL_REDRAW;
 
-	/*
-	 *  ++guenther: console.c:vc_allocate() relies on initializing
-	 *  vc_{cols,rows}, but we must not set those if we are only
-	 *  resizing the console.
-	 */
 	if (init) {
 		vc->vc_cols = new_cols;
 		vc->vc_rows = new_rows;
@@ -1195,30 +1117,7 @@ finished:
 	return;
 }
 
-/* ====================================================================== */
 
-/*  fbcon_XXX routines - interface used by the world
- *
- *  This system is now divided into two levels because of complications
- *  caused by hardware scrolling. Top level functions:
- *
- *	fbcon_bmove(), fbcon_clear(), fbcon_putc(), fbcon_clear_margins()
- *
- *  handles y values in range [0, scr_height-1] that correspond to real
- *  screen positions. y_wrap shift means that first line of bitmap may be
- *  anywhere on this display. These functions convert lineoffsets to
- *  bitmap offsets and deal with the wrap-around case by splitting blits.
- *
- *	fbcon_bmove_physical_8()    -- These functions fast implementations
- *	fbcon_clear_physical_8()    -- of original fbcon_XXX fns.
- *	fbcon_putc_physical_8()	    -- (font width != 8) may be added later
- *
- *  WARNING:
- *
- *  At the moment fbcon_putc() cannot blit across vertical wrap boundary
- *  Implies should only really hardware scroll in rows. Only reason for
- *  restriction is simplicity & efficiency at the moment.
- */
 
 static void fbcon_clear(struct vc_data *vc, int sy, int sx, int height,
 			int width)
@@ -1238,7 +1137,7 @@ static void fbcon_clear(struct vc_data *vc, int sy, int sx, int height,
 	if (sy < vc->vc_top && vc->vc_top == logo_lines)
 		vc->vc_top = 0;
 
-	/* Split blits that cross physical y_wrap boundary */
+	
 
 	y_break = p->vrows - p->yscroll;
 	if (sy < y_break && sy + height - 1 >= y_break) {
@@ -1389,7 +1288,7 @@ static __inline__ void ywrap_up(struct vc_data *vc, int count)
 	struct display *p = &fb_display[vc->vc_num];
 	
 	p->yscroll += count;
-	if (p->yscroll >= p->vrows)	/* Deal with wrap */
+	if (p->yscroll >= p->vrows)	
 		p->yscroll -= p->vrows;
 	ops->var.xoffset = 0;
 	ops->var.yoffset = p->yscroll * vc->vc_font.height;
@@ -1408,7 +1307,7 @@ static __inline__ void ywrap_down(struct vc_data *vc, int count)
 	struct display *p = &fb_display[vc->vc_num];
 	
 	p->yscroll -= count;
-	if (p->yscroll < 0)	/* Deal with wrap */
+	if (p->yscroll < 0)	
 		p->yscroll += p->vrows;
 	ops->var.xoffset = 0;
 	ops->var.yoffset = p->yscroll * vc->vc_font.height;
@@ -1686,7 +1585,7 @@ static void fbcon_redraw_blit(struct vc_data *vc, struct fb_info *info,
 			line++;
 		else {
 			line--;
-			/* NOTE: We subtract two lines from these pointers */
+			
 			s -= vc->vc_size_row;
 			d -= vc->vc_size_row;
 		}
@@ -1741,7 +1640,7 @@ static void fbcon_redraw(struct vc_data *vc, struct display *p,
 			line++;
 		else {
 			line--;
-			/* NOTE: We subtract two lines from these pointers */
+			
 			s -= vc->vc_size_row;
 			d -= vc->vc_size_row;
 		}
@@ -1785,15 +1684,10 @@ static int fbcon_scroll(struct vc_data *vc, int t, int b, int dir,
 
 	fbcon_cursor(vc, CM_ERASE);
 
-	/*
-	 * ++Geert: Only use ywrap/ypan if the console is in text mode
-	 * ++Andrew: Only use ypan on hardware text mode when scrolling the
-	 *           whole screen (prevents flicker).
-	 */
 
 	switch (dir) {
 	case SM_UP:
-		if (count > vc->vc_rows)	/* Maximum realistic size */
+		if (count > vc->vc_rows)	
 			count = vc->vc_rows;
 		if (softback_top)
 			fbcon_softback_note(vc, t, count);
@@ -1886,7 +1780,7 @@ static int fbcon_scroll(struct vc_data *vc, int t, int b, int dir,
 		break;
 
 	case SM_DOWN:
-		if (count > vc->vc_rows)	/* Maximum realistic size */
+		if (count > vc->vc_rows)	
 			count = vc->vc_rows;
 		if (logo_shown >= 0)
 			goto redraw_down;
@@ -1989,13 +1883,6 @@ static void fbcon_bmove(struct vc_data *vc, int sy, int sx, int dy, int dx,
 	if (!width || !height)
 		return;
 
-	/*  Split blits that cross physical y_wrap case.
-	 *  Pathological case involves 4 blits, better to use recursive
-	 *  code rather than unrolled case
-	 *
-	 *  Recursive invocations don't need to erase the cursor over and
-	 *  over again, so we use fbcon_bmove_rec()
-	 */
 	fbcon_bmove_rec(vc, p, sy, sx, dy, dx, height, width,
 			p->vrows - p->yscroll);
 }
@@ -2009,7 +1896,7 @@ static void fbcon_bmove_rec(struct vc_data *vc, struct display *p, int sy, int s
 
 	if (sy < y_break && sy + height > y_break) {
 		b = y_break - sy;
-		if (dy < sy) {	/* Avoid trashing self */
+		if (dy < sy) {	
 			fbcon_bmove_rec(vc, p, sy, sx, dy, dx, b, width,
 					y_break);
 			fbcon_bmove_rec(vc, p, sy + b, sx, dy + b, dx,
@@ -2025,7 +1912,7 @@ static void fbcon_bmove_rec(struct vc_data *vc, struct display *p, int sy, int s
 
 	if (dy < y_break && dy + height > y_break) {
 		b = y_break - dy;
-		if (dy < sy) {	/* Avoid trashing self */
+		if (dy < sy) {	
 			fbcon_bmove_rec(vc, p, sy, sx, dy, dx, b, width,
 					y_break);
 			fbcon_bmove_rec(vc, p, sy + b, sx, dy + b, dx,
@@ -2166,14 +2053,6 @@ static int fbcon_switch(struct vc_data *vc)
 	prev_console = ops->currcon;
 	if (prev_console != -1)
 		old_info = registered_fb[con2fb_map[prev_console]];
-	/*
-	 * FIXME: If we have multiple fbdev's loaded, we need to
-	 * update all info->currcon.  Perhaps, we can place this
-	 * in a centralized structure, but this might break some
-	 * drivers.
-	 *
-	 * info->currcon = vc->vc_num;
-	 */
 	for (i = 0; i < FB_MAX; i++) {
 		if (registered_fb[i] != NULL && registered_fb[i]->fbcon_par) {
 			struct fbcon_ops *o = registered_fb[i]->fbcon_par;
@@ -2185,10 +2064,6 @@ static int fbcon_switch(struct vc_data *vc)
 	display_to_var(&var, p);
 	var.activate = FB_ACTIVATE_NOW;
 
-	/*
-	 * make sure we don't unnecessarily trip the memcmp()
-	 * in fb_set_var()
-	 */
 	info->var.activate = var.activate;
 	var.vmode |= info->var.vmode & ~FB_VMODE_MASK;
 	fb_set_var(info, &var);
@@ -2263,7 +2138,7 @@ static int fbcon_switch(struct vc_data *vc)
 	if (logo_shown == FBCON_LOGO_DRAW) {
 
 		logo_shown = fg_console;
-		/* This is protected above by initmem_freed */
+		
 		fb_show_logo(info, ops->rotate);
 		update_region(vc,
 			      vc->vc_origin + vc->vc_size_row * vc->vc_top,
@@ -2448,7 +2323,7 @@ static int fbcon_do_set_font(struct vc_data *vc, int w, int h,
 			vc->vc_s_complement_mask >>= 1;
 		}
 			
-		/* ++Edmund: reorder the attribute bits */
+		
 		if (vc->vc_can_do_color) {
 			unsigned short *cp =
 			    (unsigned short *) vc->vc_origin;
@@ -2471,7 +2346,7 @@ static int fbcon_do_set_font(struct vc_data *vc, int w, int h,
 			vc->vc_s_complement_mask <<= 1;
 		}
 			
-		/* ++Edmund: reorder the attribute bits */
+		
 		{
 			unsigned short *cp =
 			    (unsigned short *) vc->vc_origin;
@@ -2526,21 +2401,10 @@ static int fbcon_copy_font(struct vc_data *vc, int con)
 	struct console_font *f = &vc->vc_font;
 
 	if (od->fontdata == f->data)
-		return 0;	/* already the same font... */
+		return 0;	
 	return fbcon_do_set_font(vc, f->width, f->height, od->fontdata, od->userfont);
 }
 
-/*
- *  User asked to set font; we are guaranteed that
- *	a) width and height are in range 1..32
- *	b) charcount does not exceed 512
- *  but lets not assume that, since someone might someday want to use larger
- *  fonts. And charcount of 512 is small for unicode support.
- *
- *  However, user space gives the font in 32 rows , regardless of
- *  actual font height. So a new API is needed if support for larger fonts
- *  is ever implemented.
- */
 
 static int fbcon_set_font(struct vc_data *vc, struct console_font *font, unsigned flags)
 {
@@ -2553,17 +2417,15 @@ static int fbcon_set_font(struct vc_data *vc, struct console_font *font, unsigne
 	u8 *new_data, *data = font->data;
 	int pitch = (font->width+7) >> 3;
 
-	/* Is there a reason why fbconsole couldn't handle any charcount >256?
-	 * If not this check should be changed to charcount < 256 */
 	if (charcount != 256 && charcount != 512)
 		return -EINVAL;
 
-	/* Make sure drawing engine can handle the font */
+	
 	if (!(info->pixmap.blit_x & (1 << (font->width - 1))) ||
 	    !(info->pixmap.blit_y & (1 << (font->height - 1))))
 		return -EINVAL;
 
-	/* Make sure driver can handle the font length */
+	
 	if (fbcon_invalid_charcount(info, charcount))
 		return -EINVAL;
 
@@ -2577,17 +2439,15 @@ static int fbcon_set_font(struct vc_data *vc, struct console_font *font, unsigne
 	new_data += FONT_EXTRA_WORDS * sizeof(int);
 	FNTSIZE(new_data) = size;
 	FNTCHARCNT(new_data) = charcount;
-	REFCOUNT(new_data) = 0;	/* usage counter */
+	REFCOUNT(new_data) = 0;	
 	for (i=0; i< charcount; i++) {
 		memcpy(new_data + i*h*pitch, data +  i*32*pitch, h*pitch);
 	}
 
-	/* Since linux has a nice crc32 function use it for counting font
-	 * checksums. */
 	csum = crc32(0, new_data, size);
 
 	FNTSUM(new_data) = csum;
-	/* Check if the same font is on some other console already */
+	
 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
 		struct vc_data *tmp = vc_cons[i].d;
 		
@@ -2654,10 +2514,6 @@ static int fbcon_set_palette(struct vc_data *vc, unsigned char *table)
 		}
 		palette_cmap.len = 16;
 		palette_cmap.start = 0;
-	/*
-	 * If framebuffer is capable of less than 16 colors,
-	 * use default palette of fbcon.
-	 */
 	} else
 		fb_copy_cmap(fb_default_cmap(1 << depth), &palette_cmap);
 
@@ -2709,7 +2565,7 @@ static unsigned long fbcon_getxy(struct vc_data *vc, unsigned long pos,
 		if (ret == softback_in)
 			ret = vc->vc_origin;
 	} else {
-		/* Should not happen */
+		
 		x = y = 0;
 		ret = vc->vc_origin;
 	}
@@ -2720,8 +2576,6 @@ static unsigned long fbcon_getxy(struct vc_data *vc, unsigned long pos,
 	return ret;
 }
 
-/* As we might be inside of softback, we may work with non-contiguous buffer,
-   that's why we have to use a separate routine. */
 static void fbcon_invert_region(struct vc_data *vc, u16 * p, int cnt)
 {
 	while (cnt--) {
@@ -2848,7 +2702,7 @@ static void fbcon_suspended(struct fb_info *info)
 		return;
 	vc = vc_cons[ops->currcon].d;
 
-	/* Clear cursor, restore saved data */
+	
 	fbcon_cursor(vc, CM_ERASE);
 }
 
@@ -2946,7 +2800,7 @@ static int fbcon_mode_deleted(struct fb_info *info,
 	struct display *p;
 	int i, j, found = 0;
 
-	/* before deletion, ensure that mode is not in use */
+	
 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
 		j = con2fb_map[i];
 		if (j == -1)
@@ -2983,7 +2837,7 @@ static inline int fbcon_unbind(void)
 {
 	return -EINVAL;
 }
-#endif /* CONFIG_VT_HW_CONSOLE_BINDING */
+#endif 
 
 static int fbcon_fb_unbind(int idx)
 {
@@ -3090,7 +2944,7 @@ static inline void fbcon_select_primary(struct fb_info *info)
 {
 	return;
 }
-#endif /* CONFIG_FRAMEBUFFER_DETECT_PRIMARY */
+#endif 
 
 static int fbcon_fb_registered(struct fb_info *info)
 {
@@ -3208,10 +3062,6 @@ static int fbcon_event_notify(struct notifier_block *self,
 	struct fb_blit_caps *caps;
 	int idx, ret = 0;
 
-	/*
-	 * ignore all events except driver registration and deregistration
-	 * if fbcon is not active
-	 */
 	if (fbcon_has_exited && !(action == FB_EVENT_FB_REGISTERED ||
 				  action == FB_EVENT_FB_UNREGISTERED))
 		goto done;
@@ -3271,9 +3121,6 @@ done:
 	return ret;
 }
 
-/*
- *  The console `switch' structure for the frame buffer based console
- */
 
 static const struct consw fb_con = {
 	.owner			= THIS_MODULE,

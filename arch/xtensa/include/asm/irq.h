@@ -44,4 +44,4 @@ static __inline__ int irq_canonicalize(int irq)
 
 struct irqaction;
 
-#endif	/* _XTENSA_IRQ_H */
+#endif	

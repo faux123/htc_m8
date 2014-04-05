@@ -1,10 +1,6 @@
 #ifndef _ASM_IA64_SWAB_H
 #define _ASM_IA64_SWAB_H
 
-/*
- * Modified 1998, 1999
- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co.
- */
 
 #include <linux/types.h>
 #include <asm/intrinsics.h>
@@ -31,4 +27,4 @@ static __inline__ __attribute_const__ __u16 __arch_swab16(__u16 x)
 }
 #define __arch_swab16 __arch_swab16
 
-#endif /* _ASM_IA64_SWAB_H */
+#endif 

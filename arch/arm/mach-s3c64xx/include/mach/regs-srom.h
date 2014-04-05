@@ -22,9 +22,6 @@
 #define S3C64XX_SROM_BC4	S3C64XX_SROMREG(0x14)
 #define S3C64XX_SROM_BC5	S3C64XX_SROMREG(0x18)
 
-/*
- * one register BW holds 5 x 4-bit packed settings for NCS0 - NCS4
- */
 
 #define S3C64XX_SROM_BW__DATAWIDTH__SHIFT	0
 #define S3C64XX_SROM_BW__WAITENABLE__SHIFT	2
@@ -37,9 +34,6 @@
 #define S3C64XX_SROM_BW__NCS3__SHIFT	0xc
 #define S3C64XX_SROM_BW__NCS4__SHIFT	0x10
 
-/*
- * applies to same to BCS0 - BCS4
- */
 
 #define S3C64XX_SROM_BCX__PMC__SHIFT	0
 #define S3C64XX_SROM_BCX__PMC__MASK	3
@@ -56,4 +50,4 @@
 #define S3C64XX_SROM_BCX__TACS__SHIFT	28
 #define S3C64XX_SROM_BCX__TACS__MASK	0xf
 
-#endif /* _PLAT_REGS_SROM_H */
+#endif 

@@ -74,7 +74,6 @@
 #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
 
-/* fixed regulator for ads7846 */
 static struct regulator_consumer_supply ads7846_supply[] = {
 	REGULATOR_SUPPLY("vcc", "spi1.0"),
 };
@@ -89,7 +88,7 @@ static struct regulator_init_data vads7846_regulator = {
 
 static struct fixed_voltage_config vads7846 = {
 	.supply_name		= "vads7846",
-	.microvolts		= 3300000, /* 3.3V */
+	.microvolts		= 3300000, 
 	.gpio			= -EINVAL,
 	.startup_delay		= 0,
 	.init_data		= &vads7846_regulator,
@@ -144,7 +143,6 @@ static void __init overo_init_smsc911x(void)
 static inline void __init overo_init_smsc911x(void) { return; }
 #endif
 
-/* DSS */
 static int lcd_enabled;
 static int dvi_enabled;
 
@@ -269,28 +267,28 @@ static struct omap_dss_board_info overo_dss_data = {
 static struct mtd_partition overo_nand_partitions[] = {
 	{
 		.name           = "xloader",
-		.offset         = 0,			/* Offset = 0x00000 */
+		.offset         = 0,			
 		.size           = 4 * NAND_BLOCK_SIZE,
 		.mask_flags     = MTD_WRITEABLE
 	},
 	{
 		.name           = "uboot",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 14 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "uboot environment",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 2 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "linux",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 32 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "rootfs",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = MTDPART_SIZ_FULL,
 	},
 };
@@ -308,9 +306,9 @@ static struct omap2_hsmmc_info mmc[] = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= -EINVAL,
 		.transceiver	= true,
-		.ocr_mask	= 0x00100000,	/* 3.3V */
+		.ocr_mask	= 0x00100000,	
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct regulator_consumer_supply overo_vmmc1_supply[] = {
@@ -336,7 +334,7 @@ static struct gpio_led gpio_leds[] = {
 	{
 		.name			= "overo:blue:COM",
 		.default_trigger	= "mmc0",
-		.gpio			= -EINVAL,	/* gets replaced */
+		.gpio			= -EINVAL,	
 		.active_low		= true,
 	},
 };
@@ -408,7 +406,7 @@ static int overo_twl_gpio_setup(struct device *dev,
 		unsigned gpio, unsigned ngpio)
 {
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+	
 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
 #endif
 
@@ -451,7 +449,7 @@ static int __init overo_i2c_init(void)
 	overo_twldata.vpll2->constraints.name = "VDVI";
 
 	omap3_pmic_init("tps65950", &overo_twldata);
-	/* i2c2 pins are used for gpio */
+	
 	omap_register_i2c_bus(3, 400, NULL, 0);
 	return 0;
 }
@@ -527,7 +525,7 @@ static void __init overo_init(void)
 	overo_init_led();
 	overo_init_keys();
 
-	/* Ensure SDRC pins are mux'd for self-refresh */
+	
 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 

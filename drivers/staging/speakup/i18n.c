@@ -1,7 +1,5 @@
-/* Internationalization implementation.  Includes definitions of English
- * string arrays, and the i18n pointer. */
 
-#include <linux/slab.h>		/* For kmalloc. */
+#include <linux/slab.h>		
 #include <linux/ctype.h>
 #include <linux/module.h>
 #include <linux/string.h>
@@ -55,7 +53,6 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_CTRL] = "control-",
 	[MSG_DISJUNCTION] = "or",
 
-/* Messages with embedded format specifiers. */
 	[MSG_POS_INFO] = "line %ld, col %ld, t t y %d",
 	[MSG_CHAR_INFO] = "hex %02x, decimal %d",
 	[MSG_REPEAT_DESC] = "times %d .",
@@ -66,8 +63,8 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_NO_COMMAND] = "no commands for %c",
 	[MSG_KEYDESC] = "is %s",
 
-	/* Control keys. */
-	/* Most of these duplicate the entries in state names. */
+	
+	
 	[MSG_CTL_SHIFT] = "shift",
 	[MSG_CTL_ALTGR] = "altgr",
 	[MSG_CTL_CONTROL] = "control",
@@ -78,7 +75,7 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_CTL_RCONTROL] = "r control",
 	[MSG_CTL_CAPSSHIFT] = "caps shift",
 
-	/* Color names. */
+	
 	[MSG_COLOR_BLACK] = "black",
 	[MSG_COLOR_BLUE] = "blue",
 	[MSG_COLOR_GREEN] = "green",
@@ -89,7 +86,7 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_COLOR_WHITE] = "white",
 	[MSG_COLOR_GREY] = "grey",
 
-	/* Names of key states. */
+	
 	[MSG_STATE_DOUBLE] = "double",
 	[MSG_STATE_SPEAKUP] = "speakup",
 	[MSG_STATE_ALT] = "alt",
@@ -97,7 +94,7 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_STATE_ALTGR] = "altgr",
 	[MSG_STATE_SHIFT] = "shift",
 
-	/* Key names. */
+	
 	[MSG_KEYNAME_ESC] = "escape",
 	[MSG_KEYNAME_1] = "1",
 	[MSG_KEYNAME_2] = "2",
@@ -279,7 +276,7 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_KEYNAME_KPLEFTPAR] = "keypad left paren",
 	[MSG_KEYNAME_KPRIGHTPAR] = "keypad right paren",
 
-	/* Function names. */
+	
 	[MSG_FUNCNAME_ATTRIB_BLEEP_DEC] = "attribute bleep decrement",
 	[MSG_FUNCNAME_ATTRIB_BLEEP_INC] = "attribute bleep increment",
 	[MSG_FUNCNAME_BLEEPS_DEC] = "bleeps decrement",
@@ -398,12 +395,6 @@ char *msg_get(enum msg_index_t index)
 	return ch;
 }
 
-/*
- * Function: next_specifier
- * Finds the start of the next format specifier in the argument string.
- * Return value: pointer to start of format
- * specifier, or NULL if no specifier exists.
-*/
 static char *next_specifier(char *input)
 {
 	int found = 0;
@@ -412,7 +403,7 @@ static char *next_specifier(char *input)
 	while ((next_percent != NULL) && !found) {
 		next_percent = strchr(next_percent, '%');
 		if (next_percent != NULL) {
-			/* skip over doubled percent signs */
+			
 			while ((next_percent[0] == '%')
 			       && (next_percent[1] == '%'))
 				next_percent += 2;
@@ -426,7 +417,6 @@ static char *next_specifier(char *input)
 	return next_percent;
 }
 
-/* Skip over 0 or more flags. */
 static char *skip_flags(char *input)
 {
 	while ((*input != '\0') && strchr(" 0+-#", *input))
@@ -434,7 +424,6 @@ static char *skip_flags(char *input)
 	return input;
 }
 
-/* Skip over width.precision, if it exists. */
 static char *skip_width(char *input)
 {
 	while (isdigit(*input))
@@ -447,12 +436,6 @@ static char *skip_width(char *input)
 	return input;
 }
 
-/*
- * Skip past the end of the conversion part.
- * Note that this code only accepts a handful of conversion specifiers:
- * c d s x and ld.  Not accidental; these are exactly the ones used in
- * the default group of formatted messages.
-*/
 static char *skip_conversion(char *input)
 {
 	if ((input[0] == 'l') && (input[1] == 'd'))
@@ -462,25 +445,15 @@ static char *skip_conversion(char *input)
 	return input;
 }
 
-/*
- * Function: find_specifier_end
- * Return a pointer to the end of the format specifier.
-*/
 static char *find_specifier_end(char *input)
 {
-	input++;		/* Advance over %. */
+	input++;		
 	input = skip_flags(input);
 	input = skip_width(input);
 	input = skip_conversion(input);
 	return input;
 }
 
-/*
- * Function: compare_specifiers
- * Compare the format specifiers pointed to by *input1 and *input2.
- * Return 1 if they are the same, 0 otherwise.  Advance *input1 and *input2
- * so that they point to the character following the end of the specifier.
-*/
 static int compare_specifiers(char **input1, char **input2)
 {
 	int same = 0;
@@ -497,12 +470,6 @@ static int compare_specifiers(char **input1, char **input2)
 	return same;
 }
 
-/*
- * Function: fmt_validate
- * Check that two format strings contain the same number of format specifiers,
- * and that the order of specifiers is the same in both strings.
- * Return 1 if the condition holds, 0 if it doesn't.
-*/
 static int fmt_validate(char *template, char *user)
 {
 	int valid = 1;
@@ -514,12 +481,12 @@ static int fmt_validate(char *template, char *user)
 		template_ptr = next_specifier(template_ptr);
 		user_ptr = next_specifier(user_ptr);
 		if (template_ptr && user_ptr) {
-			/* Both have at least one more specifier. */
+			
 			valid = compare_specifiers(&template_ptr, &user_ptr);
 		} else {
-			/* No more format specifiers in one or both strings. */
+			
 			still_comparing = 0;
-			/* See if one has more specifiers than the other. */
+			
 			if (template_ptr || user_ptr)
 				valid = 0;
 		}
@@ -527,19 +494,6 @@ static int fmt_validate(char *template, char *user)
 	return valid;
 }
 
-/*
- * Function: msg_set
- * Description: Add a user-supplied message to the user_messages array.
- * The message text is copied to a memory area allocated with kmalloc.
- * If the function fails, then user_messages is untouched.
- * Arguments:
- * - index: a message number, as found in i18n.h.
- * - text:  text of message.  Not NUL-terminated.
- * - length: number of bytes in text.
- * Failure conditions:
- * -EINVAL -  Invalid format specifiers in formatted message or illegal index.
- * -ENOMEM -  Unable to allocate memory.
-*/
 ssize_t msg_set(enum msg_index_t index, char *text, size_t length)
 {
 	int rc = 0;
@@ -571,10 +525,6 @@ ssize_t msg_set(enum msg_index_t index, char *text, size_t length)
 	return rc;
 }
 
-/*
- * Find a message group, given its name.  Return a pointer to the structure
- * if found, or NULL otherwise.
-*/
 struct msg_group_t *find_msg_group(const char *group_name)
 {
 	struct msg_group_t *group = NULL;
@@ -604,14 +554,12 @@ void reset_msg_group(struct msg_group_t *group)
 	spk_unlock(flags);
 }
 
-/* Called at initialization time, to establish default messages. */
 void initialize_msgs(void)
 {
 	memcpy(speakup_msgs, speakup_default_msgs,
 		sizeof(speakup_default_msgs));
 }
 
-/* Free user-supplied strings when module is unloaded: */
 void free_user_msgs(void)
 {
 	enum msg_index_t index;

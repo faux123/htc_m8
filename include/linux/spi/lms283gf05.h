@@ -25,4 +25,4 @@ struct lms283gf05_pdata {
 	bool		reset_inverted;
 };
 
-#endif /* _INCLUDE_LINUX_SPI_LMS283GF05_H_ */
+#endif 

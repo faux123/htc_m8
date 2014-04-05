@@ -25,7 +25,6 @@
 #include <sound/memalloc.h>
 
 
-/* table entries are align to 32 */
 #define SGBUF_TBL_ALIGN		32
 #define sgbuf_align_table(tbl)	ALIGN((tbl), SGBUF_TBL_ALIGN)
 
@@ -46,7 +45,7 @@ int snd_free_sgbuf_pages(struct snd_dma_buffer *dmab)
 	tmpb.dev.dev = sgbuf->dev;
 	for (i = 0; i < sgbuf->pages; i++) {
 		if (!(sgbuf->table[i].addr & ~PAGE_MASK))
-			continue; /* continuous pages */
+			continue; 
 		tmpb.area = sgbuf->table[i].buf;
 		tmpb.addr = sgbuf->table[i].addr & PAGE_MASK;
 		tmpb.bytes = (sgbuf->table[i].addr & ~PAGE_MASK) << PAGE_SHIFT;
@@ -90,11 +89,11 @@ void *snd_malloc_sgbuf_pages(struct device *device,
 		goto _failed;
 	sgbuf->page_table = pgtable;
 
-	/* allocate pages */
+	
 	maxpages = MAX_ALLOC_PAGES;
 	while (pages > 0) {
 		chunk = pages;
-		/* don't be too eager to take a huge chunk */
+		
 		if (chunk > maxpages)
 			chunk = maxpages;
 		chunk <<= PAGE_SHIFT;
@@ -112,7 +111,7 @@ void *snd_malloc_sgbuf_pages(struct device *device,
 			table->buf = tmpb.area;
 			table->addr = tmpb.addr;
 			if (!i)
-				table->addr |= chunk; /* mark head */
+				table->addr |= chunk; 
 			table++;
 			*pgtable++ = virt_to_page(tmpb.area);
 			tmpb.area += PAGE_SIZE;
@@ -133,6 +132,6 @@ void *snd_malloc_sgbuf_pages(struct device *device,
 	return dmab->area;
 
  _failed:
-	snd_free_sgbuf_pages(dmab); /* free the table */
+	snd_free_sgbuf_pages(dmab); 
 	return NULL;
 }

@@ -44,12 +44,8 @@
  * from this source.  -- Jeff Garzik <jgarzik@pobox.com>, 01/Nov/99 
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/drivers/nv/riva_tbl.h,v 1.9 2002/01/30 01:35:03 mvojkovi Exp $ */
 
 
-/*
- * RIVA Fixed Functionality Init Tables.
- */
 static unsigned RivaTablePMC[][2] =
 {
     {0x00000050, 0x00000000},
@@ -222,8 +218,8 @@ static unsigned nv3TablePRAMIN[][2] =
 };
 static unsigned nv3TablePRAMIN_8BPP[][2] =
 {
-    /*           0xXXXXX3XX For  MSB mono format */
-    /*           0xXXXXX2XX For  LSB mono format */
+    
+    
     {0x00000D04, 0x10110203},
     {0x00000D08, 0x10110203},
     {0x00000D0C, 0x1011020B},
@@ -235,8 +231,8 @@ static unsigned nv3TablePRAMIN_8BPP[][2] =
 };
 static unsigned nv3TablePRAMIN_15BPP[][2] =
 {
-    /*           0xXXXXX2XX For  MSB mono format */
-    /*           0xXXXXX3XX For  LSB mono format */
+    
+    
     {0x00000D04, 0x10110200},
     {0x00000D08, 0x10110200},
     {0x00000D0C, 0x10110208},
@@ -248,8 +244,8 @@ static unsigned nv3TablePRAMIN_15BPP[][2] =
 };
 static unsigned nv3TablePRAMIN_32BPP[][2] =
 {
-    /*           0xXXXXX3XX For  MSB mono format */
-    /*           0xXXXXX2XX For  LSB mono format */
+    
+    
     {0x00000D04, 0x10110201},
     {0x00000D08, 0x10110201},
     {0x00000D0C, 0x10110209},
@@ -457,8 +453,8 @@ static unsigned nv4TablePRAMIN[][2] =
 };
 static unsigned nv4TablePRAMIN_8BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000302},
     {0x0000050D, 0x00000302},
     {0x00000511, 0x00000202},
@@ -473,8 +469,8 @@ static unsigned nv4TablePRAMIN_8BPP[][2] =
 };
 static unsigned nv4TablePRAMIN_15BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000902},
     {0x0000050D, 0x00000902},
     {0x00000511, 0x00000802},
@@ -489,8 +485,8 @@ static unsigned nv4TablePRAMIN_15BPP[][2] =
 };
 static unsigned nv4TablePRAMIN_16BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000C02},
     {0x0000050D, 0x00000C02},
     {0x00000511, 0x00000B02},
@@ -505,8 +501,8 @@ static unsigned nv4TablePRAMIN_16BPP[][2] =
 };
 static unsigned nv4TablePRAMIN_32BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000E02},
     {0x0000050D, 0x00000E02},
     {0x00000511, 0x00000D02},
@@ -939,8 +935,8 @@ static unsigned nv10TablePRAMIN[][2] =
 };
 static unsigned nv10TablePRAMIN_8BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000302},
     {0x0000050D, 0x00000302},
     {0x00000511, 0x00000202},
@@ -956,8 +952,8 @@ static unsigned nv10TablePRAMIN_8BPP[][2] =
 };
 static unsigned nv10TablePRAMIN_15BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000902},
     {0x0000050D, 0x00000902},
     {0x00000511, 0x00000802},
@@ -973,8 +969,8 @@ static unsigned nv10TablePRAMIN_15BPP[][2] =
 };
 static unsigned nv10TablePRAMIN_16BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000C02},
     {0x0000050D, 0x00000C02},
     {0x00000511, 0x00000B02},
@@ -990,8 +986,8 @@ static unsigned nv10TablePRAMIN_16BPP[][2] =
 };
 static unsigned nv10TablePRAMIN_32BPP[][2] =
 {
-    /*           0xXXXXXX01 For  MSB mono format */
-    /*           0xXXXXXX02 For  LSB mono format */
+    
+    
     {0x00000509, 0x00000E02},
     {0x0000050D, 0x00000E02},
     {0x00000511, 0x00000D02},

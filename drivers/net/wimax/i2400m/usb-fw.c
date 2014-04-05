@@ -81,11 +81,6 @@
 #include "usb-debug-levels.h"
 
 
-/*
- * Synchronous write to the device
- *
- * Takes care of updating EDC counts and thus, handle device errors.
- */
 static
 ssize_t i2400mu_tx_bulk_out(struct i2400mu *i2400mu, void *buf, size_t buf_size)
 {
@@ -115,37 +110,27 @@ retry:
 		result = len;
 		break;
 	case -EPIPE:
-		/*
-		 * Stall -- maybe the device is choking with our
-		 * requests. Clear it and give it some time. If they
-		 * happen to often, it might be another symptom, so we
-		 * reset.
-		 *
-		 * No error handling for usb_clear_halt(0; if it
-		 * works, the retry works; if it fails, this switch
-		 * does the error handling for us.
-		 */
 		if (edc_inc(&i2400mu->urb_edc,
 			    10 * EDC_MAX_ERRORS, EDC_ERROR_TIMEFRAME)) {
 			dev_err(dev, "BM-CMD: too many stalls in "
 				"URB; resetting device\n");
 			usb_queue_reset_device(i2400mu->usb_iface);
-			/* fallthrough */
+			
 		} else {
 			usb_clear_halt(i2400mu->usb_dev, pipe);
-			msleep(10);	/* give the device some time */
+			msleep(10);	
 			goto retry;
 		}
-	case -EINVAL:			/* while removing driver */
-	case -ENODEV:			/* dev disconnect ... */
-	case -ENOENT:			/* just ignore it */
-	case -ESHUTDOWN:		/* and exit */
+	case -EINVAL:			
+	case -ENODEV:			
+	case -ENOENT:			
+	case -ESHUTDOWN:		
 	case -ECONNRESET:
 		result = -ESHUTDOWN;
 		break;
-	case -ETIMEDOUT:			/* bah... */
+	case -ETIMEDOUT:			
 		break;
-	default:				/* any other? */
+	default:				
 		if (edc_inc(&i2400mu->urb_edc,
 			    EDC_MAX_ERRORS, EDC_ERROR_TIMEFRAME)) {
 				dev_err(dev, "BM-CMD: maximum errors in "
@@ -164,20 +149,6 @@ retry:
 }
 
 
-/*
- * Send a boot-mode command over the bulk-out pipe
- *
- * Command can be a raw command, which requires no preparation (and
- * which might not even be following the command format). Checks that
- * the right amount of data was transferred.
- *
- * To satisfy USB requirements (no onstack, vmalloc or in data segment
- * buffers), we copy the command to i2400m->bm_cmd_buf and send it from
- * there.
- *
- * @flags: pass thru from i2400m_bm_cmd()
- * @return: cmd_size if ok, < 0 errno code on error.
- */
 ssize_t i2400mu_bus_bm_cmd_send(struct i2400m *i2400m,
 				const struct i2400m_bootrom_header *_cmd,
 				size_t cmd_size, int flags)
@@ -187,7 +158,7 @@ ssize_t i2400mu_bus_bm_cmd_send(struct i2400m *i2400m,
 	struct i2400mu *i2400mu = container_of(i2400m, struct i2400mu, i2400m);
 	int opcode = _cmd == NULL ? -1 : i2400m_brh_get_opcode(_cmd);
 	struct i2400m_bootrom_header *cmd;
-	size_t cmd_size_a = ALIGN(cmd_size, 16);	/* USB restriction */
+	size_t cmd_size_a = ALIGN(cmd_size, 16);	
 
 	d_fnstart(8, dev, "(i2400m %p cmd %p size %zu)\n",
 		  i2400m, _cmd, cmd_size);
@@ -197,7 +168,7 @@ ssize_t i2400mu_bus_bm_cmd_send(struct i2400m *i2400m,
 	if (_cmd != i2400m->bm_cmd_buf)
 		memmove(i2400m->bm_cmd_buf, _cmd, cmd_size);
 	cmd = i2400m->bm_cmd_buf;
-	if (cmd_size_a > cmd_size)			/* Zero pad space */
+	if (cmd_size_a > cmd_size)			
 		memset(i2400m->bm_cmd_buf + cmd_size, 0, cmd_size_a - cmd_size);
 	if ((flags & I2400M_BM_CMD_RAW) == 0) {
 		if (WARN_ON(i2400m_brh_get_response_required(cmd) == 0))
@@ -210,7 +181,7 @@ ssize_t i2400mu_bus_bm_cmd_send(struct i2400m *i2400m,
 			opcode, result);
 		goto error_cmd_send;
 	}
-	if (result != cmd_size) {		/* all was transferred? */
+	if (result != cmd_size) {		
 		dev_err(dev, "boot-mode cmd %d: incomplete transfer "
 			"(%zu vs %zu submitted)\n",  opcode, result, cmd_size);
 		result = -EIO;
@@ -232,15 +203,6 @@ void __i2400mu_bm_notif_cb(struct urb *urb)
 }
 
 
-/*
- * submit a read to the notification endpoint
- *
- * @i2400m: device descriptor
- * @urb: urb to use
- * @completion: completion varible to complete when done
- *
- * Data is always read to i2400m->bm_ack_buf
- */
 static
 int i2400mu_notif_submit(struct i2400mu *i2400mu, struct urb *urb,
 			 struct completion *completion)
@@ -260,19 +222,6 @@ int i2400mu_notif_submit(struct i2400mu *i2400mu, struct urb *urb,
 }
 
 
-/*
- * Read an ack from  the notification endpoint
- *
- * @i2400m:
- * @_ack: pointer to where to store the read data
- * @ack_size: how many bytes we should read
- *
- * Returns: < 0 errno code on error; otherwise, amount of received bytes.
- *
- * Submits a notification read, appends the read data to the given ack
- * buffer and then repeats (until @ack_size bytes have been
- * received).
- */
 ssize_t i2400mu_bus_bm_wait_for_ack(struct i2400m *i2400m,
 				    struct i2400m_bootrom_header *_ack,
 				    size_t ack_size)
@@ -295,7 +244,7 @@ ssize_t i2400mu_bus_bm_wait_for_ack(struct i2400m *i2400m,
 		dev_err(dev, "BM-ACK: can't get autopm: %d\n", (int) result);
 		do_autopm = 0;
 	}
-	usb_init_urb(&notif_urb);	/* ready notifications */
+	usb_init_urb(&notif_urb);	
 	usb_get_urb(&notif_urb);
 	offset = 0;
 	while (offset < ack_size) {
@@ -308,39 +257,39 @@ ssize_t i2400mu_bus_bm_wait_for_ack(struct i2400m *i2400m,
 			&notif_completion, HZ);
 		if (val == 0) {
 			result = -ETIMEDOUT;
-			usb_kill_urb(&notif_urb);	/* Timedout */
+			usb_kill_urb(&notif_urb);	
 			goto error_notif_wait;
 		}
 		if (val == -ERESTARTSYS) {
-			result = -EINTR;		/* Interrupted */
+			result = -EINTR;		
 			usb_kill_urb(&notif_urb);
 			goto error_notif_wait;
 		}
-		result = notif_urb.status;		/* How was the ack? */
+		result = notif_urb.status;		
 		switch (result) {
 		case 0:
 			break;
-		case -EINVAL:			/* while removing driver */
-		case -ENODEV:			/* dev disconnect ... */
-		case -ENOENT:			/* just ignore it */
-		case -ESHUTDOWN:		/* and exit */
+		case -EINVAL:			
+		case -ENODEV:			
+		case -ENOENT:			
+		case -ESHUTDOWN:		
 		case -ECONNRESET:
 			result = -ESHUTDOWN;
 			goto error_dev_gone;
-		default:				/* any other? */
-			usb_kill_urb(&notif_urb);	/* Timedout */
+		default:				
+			usb_kill_urb(&notif_urb);	
 			if (edc_inc(&i2400mu->urb_edc,
 				    EDC_MAX_ERRORS, EDC_ERROR_TIMEFRAME))
 				goto error_exceeded;
 			dev_err(dev, "BM-ACK: URB error %d, "
 				"retrying\n", notif_urb.status);
-			continue;	/* retry */
+			continue;	
 		}
 		if (notif_urb.actual_length == 0) {
 			d_printf(6, dev, "ZLP received, retrying\n");
 			continue;
 		}
-		/* Got data, append it to the buffer */
+		
 		len = min(ack_size - offset, (size_t) notif_urb.actual_length);
 		memcpy(ack + offset, i2400m->bm_ack_buf, len);
 		offset += len;

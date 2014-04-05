@@ -24,9 +24,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
 
 #define pr_fmt(fmt) "[TTM] " fmt
 
@@ -45,9 +42,6 @@
 #include "ttm/ttm_placement.h"
 #include "ttm/ttm_page_alloc.h"
 
-/**
- * Allocates storage for pointers to the pages that back the ttm.
- */
 static void ttm_tt_alloc_page_directory(struct ttm_tt *ttm)
 {
 	ttm->pages = drm_calloc_large(ttm->num_pages, sizeof(void*));
@@ -71,8 +65,6 @@ static inline int ttm_tt_set_page_caching(struct page *p,
 		return 0;
 
 	if (c_old != tt_cached) {
-		/* p isn't in the default caching state, set it to
-		 * writeback first to free its current memtype. */
 
 		ret = set_pages_wb(p, 1);
 		if (ret)
@@ -86,19 +78,15 @@ static inline int ttm_tt_set_page_caching(struct page *p,
 
 	return ret;
 }
-#else /* CONFIG_X86 */
+#else 
 static inline int ttm_tt_set_page_caching(struct page *p,
 					  enum ttm_caching_state c_old,
 					  enum ttm_caching_state c_new)
 {
 	return 0;
 }
-#endif /* CONFIG_X86 */
+#endif 
 
-/*
- * Change caching policy for the linear kernel map
- * for range of pages in a ttm.
- */
 
 static int ttm_tt_set_caching(struct ttm_tt *ttm,
 			      enum ttm_caching_state c_state)
@@ -111,7 +99,7 @@ static int ttm_tt_set_caching(struct ttm_tt *ttm,
 		return 0;
 
 	if (ttm->state == tt_unpopulated) {
-		/* Change caching but don't populate */
+		
 		ttm->caching_state = c_state;
 		return 0;
 	}

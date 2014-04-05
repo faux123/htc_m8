@@ -15,7 +15,6 @@
 #ifndef _ASM_TILE_MMU_H
 #define _ASM_TILE_MMU_H
 
-/* Capture any arch- and mm-specific information. */
 struct mm_context {
 	/*
 	 * Written under the mmap_sem semaphore; read without the
@@ -28,4 +27,4 @@ typedef struct mm_context mm_context_t;
 
 void leave_mm(int cpu);
 
-#endif /* _ASM_TILE_MMU_H */
+#endif 

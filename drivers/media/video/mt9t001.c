@@ -159,9 +159,6 @@ static int mt9t001_set_output_control(struct mt9t001 *mt9t001, u16 clear,
 	return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * V4L2 subdev video operations
- */
 
 static struct v4l2_mbus_framefmt *
 __mt9t001_get_pad_format(struct mt9t001 *mt9t001, struct v4l2_subdev_fh *fh,
@@ -205,7 +202,7 @@ static int mt9t001_s_stream(struct v4l2_subdev *subdev, int enable)
 	if (!enable)
 		return mt9t001_set_output_control(mt9t001, mode, 0);
 
-	/* Configure the window size and row/column bin */
+	
 	hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
 	vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
 
@@ -233,7 +230,7 @@ static int mt9t001_s_stream(struct v4l2_subdev *subdev, int enable)
 	if (ret < 0)
 		return ret;
 
-	/* Switch to master "normal" mode */
+	
 	return mt9t001_set_output_control(mt9t001, 0, mode);
 }
 
@@ -289,7 +286,7 @@ static int mt9t001_set_format(struct v4l2_subdev *subdev,
 	__crop = __mt9t001_get_pad_crop(mt9t001, fh, format->pad,
 					format->which);
 
-	/* Clamp the width and height to avoid dividing by zero. */
+	
 	width = clamp_t(unsigned int, ALIGN(format->format.width, 2),
 			max(__crop->width / 8, MT9T001_WINDOW_HEIGHT_MIN + 1),
 			__crop->width);
@@ -330,9 +327,6 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
 	struct v4l2_rect *__crop;
 	struct v4l2_rect rect;
 
-	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
-	 * pixels.
-	 */
 	rect.left = clamp(ALIGN(crop->rect.left, 2),
 			  MT9T001_COLUMN_START_MIN,
 			  MT9T001_COLUMN_START_MAX);
@@ -352,9 +346,6 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
 	__crop = __mt9t001_get_pad_crop(mt9t001, fh, crop->pad, crop->which);
 
 	if (rect.width != __crop->width || rect.height != __crop->height) {
-		/* Reset the output image size if the crop rectangle size has
-		 * been modified.
-		 */
 		__format = __mt9t001_get_pad_format(mt9t001, fh, crop->pad,
 						    crop->which);
 		__format->width = rect.width;
@@ -367,9 +358,6 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * V4L2 subdev control operations
- */
 
 #define V4L2_CID_TEST_PATTERN		(V4L2_CID_USER_BASE | 0x1001)
 #define V4L2_CID_BLACK_LEVEL_AUTO	(V4L2_CID_USER_BASE | 0x1002)
@@ -383,20 +371,6 @@ static int mt9t001_set_crop(struct v4l2_subdev *subdev,
 
 static u16 mt9t001_gain_value(s32 *gain)
 {
-	/* Gain is controlled by 2 analog stages and a digital stage. Valid
-	 * values for the 3 stages are
-	 *
-	 * Stage		Min	Max	Step
-	 * ------------------------------------------
-	 * First analog stage	x1	x2	1
-	 * Second analog stage	x1	x4	0.125
-	 * Digital stage	x1	x16	0.125
-	 *
-	 * To minimize noise, the gain stages should be used in the second
-	 * analog stage, first analog stage, digital stage order. Gain from a
-	 * previous stage should be pushed to its maximum value before the next
-	 * stage is used.
-	 */
 	if (*gain <= 32)
 		return *gain;
 
@@ -437,9 +411,6 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_GAIN_GREEN_BLUE:
 	case V4L2_CID_GAIN_BLUE:
 
-		/* Disable control updates if more than one control has changed
-		 * in the cluster.
-		 */
 		for (i = 0, count = 0; i < 4; ++i) {
 			struct v4l2_ctrl *gain = mt9t001->gains[i];
 
@@ -453,7 +424,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
 				return ret;
 		}
 
-		/* Update the gain controls. */
+		
 		for (i = 0; i < 4; ++i) {
 			struct v4l2_ctrl *gain = mt9t001->gains[i];
 
@@ -468,7 +439,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
 			}
 		}
 
-		/* Enable control updates. */
+		
 		if (count > 1) {
 			ret = mt9t001_ctrl_freeze(mt9t001, false);
 			if (ret < 0)
@@ -621,9 +592,6 @@ static const struct v4l2_ctrl_config mt9t001_gains[] = {
 	},
 };
 
-/* -----------------------------------------------------------------------------
- * V4L2 subdev internal operations
- */
 
 static int mt9t001_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
 {
@@ -677,7 +645,7 @@ static int mt9t001_video_probe(struct i2c_client *client)
 	dev_info(&client->dev, "Probing MT9T001 at address 0x%02x\n",
 		 client->addr);
 
-	/* Reset the chip and stop data read out */
+	
 	ret = mt9t001_write(client, MT9T001_RESET, 1);
 	if (ret < 0)
 		return ret;
@@ -690,7 +658,7 @@ static int mt9t001_video_probe(struct i2c_client *client)
 	if (ret < 0)
 		return ret;
 
-	/* Configure the pixel clock polarity */
+	
 	if (pdata && pdata->clk_pol) {
 		ret  = mt9t001_write(client, MT9T001_PIXEL_CLOCK,
 				     MT9T001_PIXEL_CLOCK_INVERT);
@@ -698,7 +666,7 @@ static int mt9t001_video_probe(struct i2c_client *client)
 			return ret;
 	}
 
-	/* Read and check the sensor version */
+	
 	data = mt9t001_read(client, MT9T001_CHIP_VERSION);
 	if (data != MT9T001_CHIP_ID) {
 		dev_err(&client->dev, "MT9T001 not detected, wrong version "

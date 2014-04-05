@@ -77,5 +77,5 @@ static inline void dlm_destroy_debugfs_root(void)
 {
 }
 
-#endif	/* CONFIG_DEBUG_FS */
-#endif	/* DLMDEBUG_H */
+#endif	
+#endif	

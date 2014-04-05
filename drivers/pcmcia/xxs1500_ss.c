@@ -27,18 +27,6 @@
 #define IO_MAP_SIZE	0x1000
 
 
-/*
- * 3.3V cards only; all interfacing is done via gpios:
- *
- * 0/1:  carddetect (00 = card present, xx = huh)
- * 4:	 card irq
- * 204:  reset (high-act)
- * 205:  buffer enable (low-act)
- * 208/209: card voltage key (00,01,10,11)
- * 210:  battwarn
- * 211:  batdead
- * 214:  power (low-act)
- */
 #define GPIO_CDA	0
 #define GPIO_CDB	1
 #define GPIO_CARDIRQ	4
@@ -58,7 +46,7 @@ struct xxs1500_pcmcia_sock {
 	phys_addr_t	phys_attr;
 	phys_addr_t	phys_mem;
 
-	/* previous flags for set_socket() */
+	
 	unsigned int old_flags;
 };
 
@@ -79,13 +67,13 @@ static int xxs1500_pcmcia_configure(struct pcmcia_socket *skt,
 	struct xxs1500_pcmcia_sock *sock = to_xxs_socket(skt);
 	unsigned int changed;
 
-	/* power control */
+	
 	switch (state->Vcc) {
 	case 0:
-		gpio_set_value(GPIO_POWER, 1);	/* power off */
+		gpio_set_value(GPIO_POWER, 1);	
 		break;
 	case 33:
-		gpio_set_value(GPIO_POWER, 0);	/* power on */
+		gpio_set_value(GPIO_POWER, 0);	
 		break;
 	case 50:
 	default:
@@ -96,11 +84,11 @@ static int xxs1500_pcmcia_configure(struct pcmcia_socket *skt,
 
 	if (changed & SS_RESET) {
 		if (state->flags & SS_RESET) {
-			gpio_set_value(GPIO_RESET, 1);	/* assert reset */
-			gpio_set_value(GPIO_OUTEN, 1);	/* buffers off */
+			gpio_set_value(GPIO_RESET, 1);	
+			gpio_set_value(GPIO_OUTEN, 1);	
 		} else {
-			gpio_set_value(GPIO_RESET, 0);	/* deassert reset */
-			gpio_set_value(GPIO_OUTEN, 0);	/* buffers on */
+			gpio_set_value(GPIO_RESET, 0);	
+			gpio_set_value(GPIO_OUTEN, 0);	
 			msleep(500);
 		}
 	}
@@ -118,31 +106,31 @@ static int xxs1500_pcmcia_get_status(struct pcmcia_socket *skt,
 
 	status = 0;
 
-	/* check carddetects: GPIO[0:1] must both be low */
+	
 	if (!gpio_get_value(GPIO_CDA) && !gpio_get_value(GPIO_CDB))
 		status |= SS_DETECT;
 
-	/* determine card voltage: GPIO[208:209] binary value */
+	
 	i = (!!gpio_get_value(GPIO_VSL)) | ((!!gpio_get_value(GPIO_VSH)) << 1);
 
 	switch (i) {
 	case 0:
 	case 1:
 	case 2:
-		status |= SS_3VCARD;	/* 3V card */
+		status |= SS_3VCARD;	
 		break;
-	case 3:				/* 5V card, unsupported */
+	case 3:				
 	default:
-		status |= SS_XVCARD;	/* treated as unsupported in core */
+		status |= SS_XVCARD;	
 	}
 
-	/* GPIO214: low active power switch */
+	
 	status |= gpio_get_value(GPIO_POWER) ? 0 : SS_POWERON;
 
-	/* GPIO204: high-active reset line */
+	
 	status |= gpio_get_value(GPIO_RESET) ? SS_RESET : SS_READY;
 
-	/* other stuff */
+	
 	status |= gpio_get_value(GPIO_BATTDEAD) ? 0 : SS_BATDEAD;
 	status |= gpio_get_value(GPIO_BATTWARN) ? 0 : SS_BATWARN;
 
@@ -159,9 +147,9 @@ static int xxs1500_pcmcia_sock_init(struct pcmcia_socket *skt)
 	gpio_direction_input(GPIO_VSH);
 	gpio_direction_input(GPIO_BATTDEAD);
 	gpio_direction_input(GPIO_BATTWARN);
-	gpio_direction_output(GPIO_RESET, 1);	/* assert reset */
-	gpio_direction_output(GPIO_OUTEN, 1);	/* disable buffers */
-	gpio_direction_output(GPIO_POWER, 1);	/* power off */
+	gpio_direction_output(GPIO_RESET, 1);	
+	gpio_direction_output(GPIO_OUTEN, 1);	
+	gpio_direction_output(GPIO_POWER, 1);	
 
 	return 0;
 }
@@ -216,7 +204,7 @@ static int __devinit xxs1500_pcmcia_probe(struct platform_device *pdev)
 
 	ret = -ENODEV;
 
-	/* 36bit PCMCIA Attribute area address */
+	
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-attr");
 	if (!r) {
 		dev_err(&pdev->dev, "missing 'pcmcia-attr' resource!\n");
@@ -224,7 +212,7 @@ static int __devinit xxs1500_pcmcia_probe(struct platform_device *pdev)
 	}
 	sock->phys_attr = r->start;
 
-	/* 36bit PCMCIA Memory area address */
+	
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-mem");
 	if (!r) {
 		dev_err(&pdev->dev, "missing 'pcmcia-mem' resource!\n");
@@ -232,7 +220,7 @@ static int __devinit xxs1500_pcmcia_probe(struct platform_device *pdev)
 	}
 	sock->phys_mem = r->start;
 
-	/* 36bit PCMCIA IO area address */
+	
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-io");
 	if (!r) {
 		dev_err(&pdev->dev, "missing 'pcmcia-io' resource!\n");
@@ -241,14 +229,6 @@ static int __devinit xxs1500_pcmcia_probe(struct platform_device *pdev)
 	sock->phys_io = r->start;
 
 
-	/*
-	 * PCMCIA client drivers use the inb/outb macros to access
-	 * the IO registers.  Since mips_io_port_base is added
-	 * to the access address of the mips implementation of
-	 * inb/outb, we need to subtract it here because we want
-	 * to access the I/O or MEM address directly, without
-	 * going through this "mips_io_port_base" mechanism.
-	 */
 	sock->virt_io = (void *)(ioremap(sock->phys_io, IO_MAP_SIZE) -
 				 mips_io_port_base);
 
@@ -269,9 +249,6 @@ static int __devinit xxs1500_pcmcia_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, sock);
 
-	/* setup carddetect irq: use one of the 2 GPIOs as an
-	 * edge detector.
-	 */
 	irq = gpio_to_irq(GPIO_CDA);
 	irq_set_irq_type(irq, IRQ_TYPE_EDGE_BOTH);
 	ret = request_irq(irq, cdirq, 0, "pcmcia_carddetect", sock);

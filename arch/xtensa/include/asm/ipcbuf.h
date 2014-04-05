@@ -34,4 +34,4 @@ struct ipc64_perm
 	unsigned long		__unused2;
 };
 
-#endif /* _XTENSA_IPCBUF_H */
+#endif 

@@ -39,10 +39,6 @@
 
 #include "ipath_verbs.h"
 
-/**
- * ipath_release_mmap_info - free mmap info structure
- * @ref: a pointer to the kref within struct ipath_mmap_info
- */
 void ipath_release_mmap_info(struct kref *ref)
 {
 	struct ipath_mmap_info *ip =
@@ -57,10 +53,6 @@ void ipath_release_mmap_info(struct kref *ref)
 	kfree(ip);
 }
 
-/*
- * open and close keep track of how many times the CQ is mapped,
- * to avoid releasing it.
- */
 static void ipath_vma_open(struct vm_area_struct *vma)
 {
 	struct ipath_mmap_info *ip = vma->vm_private_data;
@@ -80,12 +72,6 @@ static const struct vm_operations_struct ipath_vm_ops = {
 	.close =    ipath_vma_close,
 };
 
-/**
- * ipath_mmap - create a new mmap region
- * @context: the IB user context of the process making the mmap() call
- * @vma: the VMA to be initialized
- * Return zero if the mmap is OK. Otherwise, return an errno.
- */
 int ipath_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 {
 	struct ipath_ibdev *dev = to_idev(context->device);
@@ -94,18 +80,13 @@ int ipath_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 	struct ipath_mmap_info *ip, *pp;
 	int ret = -EINVAL;
 
-	/*
-	 * Search the device's list of objects waiting for a mmap call.
-	 * Normally, this list is very short since a call to create a
-	 * CQ, QP, or SRQ is soon followed by a call to mmap().
-	 */
 	spin_lock_irq(&dev->pending_lock);
 	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
 				 pending_mmaps) {
-		/* Only the creator is allowed to mmap the object */
+		
 		if (context != ip->context || (__u64) offset != ip->offset)
 			continue;
-		/* Don't allow a mmap larger than the object. */
+		
 		if (size > ip->size)
 			break;
 
@@ -125,9 +106,6 @@ done:
 	return ret;
 }
 
-/*
- * Allocate information for ipath_mmap
- */
 struct ipath_mmap_info *ipath_create_mmap_info(struct ipath_ibdev *dev,
 					       u32 size,
 					       struct ib_ucontext *context,

@@ -50,7 +50,7 @@ struct pnp_dev *pnp_find_dev(struct pnp_card *card, unsigned short vendor,
 
 	pnp_convert_id(id, vendor, function);
 	pnp_convert_id(any, ISAPNP_ANY_ID, ISAPNP_ANY_ID);
-	if (card == NULL) {	/* look for a logical device from all cards */
+	if (card == NULL) {	
 		struct list_head *list;
 
 		list = pnp_global.next;
@@ -71,7 +71,7 @@ struct pnp_dev *pnp_find_dev(struct pnp_card *card, unsigned short vendor,
 		list = card->devices.next;
 		if (from) {
 			list = from->card_list.next;
-			if (from->card != card)	/* something is wrong */
+			if (from->card != card)	
 				return NULL;
 		}
 		while (list != &card->devices) {

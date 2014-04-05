@@ -27,14 +27,11 @@
 
 #define MEMCONF __SYSREGC(0xdf800400, u32)
 
-/*
- * initialise the on-silicon processor peripherals
- */
 asmlinkage void __init processor_init(void)
 {
 	int loop;
 
-	/* set up the exception table first */
+	
 	for (loop = 0x000; loop < 0x400; loop += 8)
 		__set_intr_stub(loop, __common_exception);
 
@@ -70,16 +67,16 @@ asmlinkage void __init processor_init(void)
 	mn10300_icache_inv();
 #endif
 
-	/* disable all interrupts and set to priority 6 (lowest) */
+	
 #ifdef	CONFIG_SMP
 	for (loop = 0; loop < GxICR_NUM_IRQS; loop++)
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
-#else	/* !CONFIG_SMP */
+#else	
 	for (loop = 0; loop < NR_IRQS; loop++)
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
-#endif	/* !CONFIG_SMP */
+#endif	
 
-	/* clear the timers */
+	
 	TM0MD	= 0;
 	TM1MD	= 0;
 	TM2MD	= 0;
@@ -102,25 +99,22 @@ asmlinkage void __init processor_init(void)
 	calibrate_clock();
 }
 
-/*
- * determine the memory size and base from the memory controller regs
- */
 void __init get_mem_info(unsigned long *mem_base, unsigned long *mem_size)
 {
 	unsigned long memconf = MEMCONF;
-	unsigned long size = 0; /* order: MByte */
+	unsigned long size = 0; 
 
-	*mem_base = 0x90000000; /* fixed address */
+	*mem_base = 0x90000000; 
 
 	switch (memconf & 0x00000003) {
 	case 0x01:
-		size = 256 / 8;		/* 256 Mbit per chip */
+		size = 256 / 8;		
 		break;
 	case 0x02:
-		size = 512 / 8;		/* 512 Mbit per chip */
+		size = 512 / 8;		
 		break;
 	case 0x03:
-		size = 1024 / 8;	/*   1 Gbit per chip */
+		size = 1024 / 8;	
 		break;
 	default:
 		panic("Invalid SDRAM size");

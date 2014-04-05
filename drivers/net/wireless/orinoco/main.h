@@ -8,23 +8,16 @@
 #include <linux/ieee80211.h>
 #include "orinoco.h"
 
-/********************************************************************/
-/* Compile time configuration and compatibility stuff               */
-/********************************************************************/
 
-/* We do this this way to avoid ifdefs in the actual code */
 #ifdef WIRELESS_SPY
 #define SPY_NUMBER(priv)	(priv->spy_data.spy_number)
 #else
 #define SPY_NUMBER(priv)	0
-#endif /* WIRELESS_SPY */
+#endif 
 
-/********************************************************************/
 
-/* Export module parameter */
 extern int force_monitor;
 
-/* Forward declarations */
 struct net_device;
 struct work_struct;
 
@@ -32,7 +25,6 @@ void set_port_type(struct orinoco_private *priv);
 int orinoco_commit(struct orinoco_private *priv);
 void orinoco_reset(struct work_struct *work);
 
-/* Information element helpers - find a home for these... */
 #define WPA_OUI_TYPE	"\x00\x50\xF2\x01"
 #define WPA_SELECTOR_LEN 4
 static inline u8 *orinoco_get_wpa_ie(u8 *data, size_t len)
@@ -47,4 +39,4 @@ static inline u8 *orinoco_get_wpa_ie(u8 *data, size_t len)
 	return NULL;
 }
 
-#endif /* _ORINOCO_MAIN_H_ */
+#endif 

@@ -18,11 +18,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/*
- * Authors:
- *	Noriaki TAKAMIYA @USAGI
- *	Masahide NAKAMURA @USAGI
- */
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -34,11 +29,6 @@
 #include <net/ipv6.h>
 #include <net/xfrm.h>
 
-/* Add route optimization header space.
- *
- * The IP header and mutable extension headers will be moved forward to make
- * space for the route optimization header.
- */
 static int xfrm6_ro_output(struct xfrm_state *x, struct sk_buff *skb)
 {
 	struct ipv6hdr *iph;

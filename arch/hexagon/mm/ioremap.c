@@ -1,7 +1,7 @@
 /*
  * I/O remap functions for Hexagon
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -32,11 +32,11 @@ void __iomem *ioremap_nocache(unsigned long phys_addr, unsigned long size)
 
 	last_addr = phys_addr + size - 1;
 
-	/*  Wrapping not allowed  */
+	
 	if (!size || (last_addr < phys_addr))
 		return NULL;
 
-	/*  Rounds up to next page size, including whole-page offset */
+	
 	size = PAGE_ALIGN(offset + size);
 
 	area = get_vm_area(size, VM_IOREMAP);

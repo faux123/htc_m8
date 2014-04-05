@@ -40,19 +40,8 @@
 #include "xfs_error.h"
 #include "xfs_trace.h"
 
-/*
- * xfs_da_btree.c
- *
- * Routines to implement directories as Btrees of hashed names.
- */
 
-/*========================================================================
- * Function prototypes for the kernel.
- *========================================================================*/
 
-/*
- * Routines used for growing the Btree.
- */
 STATIC int xfs_da_root_split(xfs_da_state_t *state,
 					    xfs_da_state_blk_t *existing_root,
 					    xfs_da_state_blk_t *new_child);
@@ -69,9 +58,6 @@ STATIC void xfs_da_node_add(xfs_da_state_t *state,
 				   xfs_da_state_blk_t *old_node_blk,
 				   xfs_da_state_blk_t *new_node_blk);
 
-/*
- * Routines used for shrinking the Btree.
- */
 STATIC int xfs_da_root_join(xfs_da_state_t *state,
 					   xfs_da_state_blk_t *root_blk);
 STATIC int xfs_da_node_toosmall(xfs_da_state_t *state, int *retval);
@@ -81,9 +67,6 @@ STATIC void xfs_da_node_unbalance(xfs_da_state_t *state,
 					 xfs_da_state_blk_t *src_node_blk,
 					 xfs_da_state_blk_t *dst_node_blk);
 
-/*
- * Utility routines.
- */
 STATIC uint	xfs_da_node_lasthash(xfs_dabuf_t *bp, int *count);
 STATIC int	xfs_da_node_order(xfs_dabuf_t *node1_bp, xfs_dabuf_t *node2_bp);
 STATIC xfs_dabuf_t *xfs_da_buf_make(int nbuf, xfs_buf_t **bps);
@@ -92,13 +75,7 @@ STATIC int	xfs_da_blk_unlink(xfs_da_state_t *state,
 				  xfs_da_state_blk_t *save_blk);
 STATIC void	xfs_da_state_kill_altpath(xfs_da_state_t *state);
 
-/*========================================================================
- * Routines used for growing the Btree.
- *========================================================================*/
 
-/*
- * Create the initial contents of an intermediate node.
- */
 int
 xfs_da_node_create(xfs_da_args_t *args, xfs_dablk_t blkno, int level,
 				 xfs_dabuf_t **bpp, int whichfork)
@@ -130,11 +107,7 @@ xfs_da_node_create(xfs_da_args_t *args, xfs_dablk_t blkno, int level,
 	return(0);
 }
 
-/*
- * Split a leaf node, rebalance, then possibly split
- * intermediate nodes, rebalance, etc.
- */
-int							/* error */
+int							
 xfs_da_split(xfs_da_state_t *state)
 {
 	xfs_da_state_blk_t *oldblk, *newblk, *addblk;
@@ -144,55 +117,40 @@ xfs_da_split(xfs_da_state_t *state)
 
 	trace_xfs_da_split(state->args);
 
-	/*
-	 * Walk back up the tree splitting/inserting/adjusting as necessary.
-	 * If we need to insert and there isn't room, split the node, then
-	 * decide which fragment to insert the new block from below into.
-	 * Note that we may split the root this way, but we need more fixup.
-	 */
 	max = state->path.active - 1;
 	ASSERT((max >= 0) && (max < XFS_DA_NODE_MAXDEPTH));
 	ASSERT(state->path.blk[max].magic == XFS_ATTR_LEAF_MAGIC ||
 	       state->path.blk[max].magic == XFS_DIR2_LEAFN_MAGIC);
 
-	addblk = &state->path.blk[max];		/* initial dummy value */
+	addblk = &state->path.blk[max];		
 	for (i = max; (i >= 0) && addblk; state->path.active--, i--) {
 		oldblk = &state->path.blk[i];
 		newblk = &state->altpath.blk[i];
 
-		/*
-		 * If a leaf node then
-		 *     Allocate a new leaf node, then rebalance across them.
-		 * else if an intermediate node then
-		 *     We split on the last layer, must we split the node?
-		 */
 		switch (oldblk->magic) {
 		case XFS_ATTR_LEAF_MAGIC:
 			error = xfs_attr_leaf_split(state, oldblk, newblk);
 			if ((error != 0) && (error != ENOSPC)) {
-				return(error);	/* GROT: attr is inconsistent */
+				return(error);	
 			}
 			if (!error) {
 				addblk = newblk;
 				break;
 			}
-			/*
-			 * Entry wouldn't fit, split the leaf again.
-			 */
 			state->extravalid = 1;
 			if (state->inleaf) {
-				state->extraafter = 0;	/* before newblk */
+				state->extraafter = 0;	
 				trace_xfs_attr_leaf_split_before(state->args);
 				error = xfs_attr_leaf_split(state, oldblk,
 							    &state->extrablk);
 			} else {
-				state->extraafter = 1;	/* after newblk */
+				state->extraafter = 1;	
 				trace_xfs_attr_leaf_split_after(state->args);
 				error = xfs_attr_leaf_split(state, newblk,
 							    &state->extrablk);
 			}
 			if (error)
-				return(error);	/* GROT: attr inconsistent */
+				return(error);	
 			addblk = newblk;
 			break;
 		case XFS_DIR2_LEAFN_MAGIC:
@@ -207,10 +165,7 @@ xfs_da_split(xfs_da_state_t *state)
 			xfs_da_buf_done(addblk->bp);
 			addblk->bp = NULL;
 			if (error)
-				return(error);	/* GROT: dir is inconsistent */
-			/*
-			 * Record the newly split block for the next time thru?
-			 */
+				return(error);	
 			if (action)
 				addblk = newblk;
 			else
@@ -218,24 +173,13 @@ xfs_da_split(xfs_da_state_t *state)
 			break;
 		}
 
-		/*
-		 * Update the btree to show the new hashval for this child.
-		 */
 		xfs_da_fixhashpath(state, &state->path);
-		/*
-		 * If we won't need this block again, it's getting dropped
-		 * from the active path by the loop control, so we need
-		 * to mark it done now.
-		 */
 		if (i > 0 || !addblk)
 			xfs_da_buf_done(oldblk->bp);
 	}
 	if (!addblk)
 		return(0);
 
-	/*
-	 * Split the root node.
-	 */
 	ASSERT(state->path.active == 0);
 	oldblk = &state->path.blk[0];
 	error = xfs_da_root_split(state, oldblk, addblk);
@@ -243,15 +187,9 @@ xfs_da_split(xfs_da_state_t *state)
 		xfs_da_buf_done(oldblk->bp);
 		xfs_da_buf_done(addblk->bp);
 		addblk->bp = NULL;
-		return(error);	/* GROT: dir is inconsistent */
+		return(error);	
 	}
 
-	/*
-	 * Update pointers to the node which used to be block 0 and
-	 * just got bumped because of the addition of a new root node.
-	 * There might be three blocks involved if a double split occurred,
-	 * and the original block 0 could be at any position in the list.
-	 */
 
 	node = oldblk->bp->data;
 	if (node->hdr.info.forw) {
@@ -287,12 +225,7 @@ xfs_da_split(xfs_da_state_t *state)
 	return(0);
 }
 
-/*
- * Split the root.  We have to create a new root and point to the two
- * parts (the split old root) that we just created.  Copy block zero to
- * the EOF, extending the inode in process.
- */
-STATIC int						/* error */
+STATIC int						
 xfs_da_root_split(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 				 xfs_da_state_blk_t *blk2)
 {
@@ -308,10 +241,6 @@ xfs_da_root_split(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 
 	trace_xfs_da_root_split(state->args);
 
-	/*
-	 * Copy the existing (incorrect) block from the root node position
-	 * to a free space somewhere.
-	 */
 	args = state->args;
 	ASSERT(args != NULL);
 	error = xfs_da_grow_inode(args, &blkno);
@@ -341,9 +270,6 @@ xfs_da_root_split(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 	blk1->bp = bp;
 	blk1->blkno = blkno;
 
-	/*
-	 * Set up the new root node.
-	 */
 	error = xfs_da_node_create(args,
 		(args->whichfork == XFS_DATA_FORK) ? mp->m_dirleafblk : 0,
 		be16_to_cpu(node->hdr.level) + 1, &bp, args->whichfork);
@@ -365,7 +291,7 @@ xfs_da_root_split(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 	}
 #endif
 
-	/* Header is already logged by xfs_da_node_create */
+	
 	xfs_da_log_buf(tp, bp,
 		XFS_DA_LOGRANGE(node, node->btree,
 			sizeof(xfs_da_node_entry_t) * 2));
@@ -374,10 +300,7 @@ xfs_da_root_split(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 	return(0);
 }
 
-/*
- * Split the node, rebalance, then add the new entry.
- */
-STATIC int						/* error */
+STATIC int						
 xfs_da_node_split(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 				 xfs_da_state_blk_t *newblk,
 				 xfs_da_state_blk_t *addblk,
@@ -393,27 +316,17 @@ xfs_da_node_split(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 	node = oldblk->bp->data;
 	ASSERT(node->hdr.info.magic == cpu_to_be16(XFS_DA_NODE_MAGIC));
 
-	/*
-	 * With V2 dirs the extra block is data or freespace.
-	 */
 	useextra = state->extravalid && state->args->whichfork == XFS_ATTR_FORK;
 	newcount = 1 + useextra;
-	/*
-	 * Do we have to split the node?
-	 */
 	if ((be16_to_cpu(node->hdr.count) + newcount) > state->node_ents) {
-		/*
-		 * Allocate a new node, add to the doubly linked chain of
-		 * nodes, then move some of our excess entries into it.
-		 */
 		error = xfs_da_grow_inode(state->args, &blkno);
 		if (error)
-			return(error);	/* GROT: dir is inconsistent */
+			return(error);	
 
 		error = xfs_da_node_create(state->args, blkno, treelevel,
 					   &newblk->bp, state->args->whichfork);
 		if (error)
-			return(error);	/* GROT: dir is inconsistent */
+			return(error);	
 		newblk->blkno = blkno;
 		newblk->magic = XFS_DA_NODE_MAGIC;
 		xfs_da_node_rebalance(state, oldblk, newblk);
@@ -425,18 +338,6 @@ xfs_da_node_split(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 		*result = 0;
 	}
 
-	/*
-	 * Insert the new entry(s) into the correct block
-	 * (updating last hashval in the process).
-	 *
-	 * xfs_da_node_add() inserts BEFORE the given index,
-	 * and as a result of using node_lookup_int() we always
-	 * point to a valid entry (not after one), but a split
-	 * operation always results in a new block whose hashvals
-	 * FOLLOW the current block.
-	 *
-	 * If we had double-split op below us, then add the extra block too.
-	 */
 	node = oldblk->bp->data;
 	if (oldblk->index <= be16_to_cpu(node->hdr.count)) {
 		oldblk->index++;
@@ -461,12 +362,6 @@ xfs_da_node_split(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 	return(0);
 }
 
-/*
- * Balance the btree elements between two intermediate nodes,
- * usually one full and one empty.
- *
- * NOTE: if blk2 is empty, then it will get the upper half of blk1.
- */
 STATIC void
 xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 				     xfs_da_state_blk_t *blk2)
@@ -480,10 +375,6 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 
 	node1 = blk1->bp->data;
 	node2 = blk2->bp->data;
-	/*
-	 * Figure out how many entries need to move, and in which direction.
-	 * Swap the nodes around if that makes it simpler.
-	 */
 	if ((be16_to_cpu(node1->hdr.count) > 0) && (be16_to_cpu(node2->hdr.count) > 0) &&
 	    ((be32_to_cpu(node2->btree[0].hashval) < be32_to_cpu(node1->btree[0].hashval)) ||
 	     (be32_to_cpu(node2->btree[be16_to_cpu(node2->hdr.count)-1].hashval) <
@@ -498,13 +389,7 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 	if (count == 0)
 		return;
 	tp = state->args->trans;
-	/*
-	 * Two cases: high-to-low and low-to-high.
-	 */
 	if (count > 0) {
-		/*
-		 * Move elements in node2 up to make a hole.
-		 */
 		if ((tmp = be16_to_cpu(node2->hdr.count)) > 0) {
 			tmp *= (uint)sizeof(xfs_da_node_entry_t);
 			btree_s = &node2->btree[0];
@@ -512,10 +397,6 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 			memmove(btree_d, btree_s, tmp);
 		}
 
-		/*
-		 * Move the req'd B-tree elements from high in node1 to
-		 * low in node2.
-		 */
 		be16_add_cpu(&node2->hdr.count, count);
 		tmp = count * (uint)sizeof(xfs_da_node_entry_t);
 		btree_s = &node1->btree[be16_to_cpu(node1->hdr.count) - count];
@@ -523,10 +404,6 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 		memcpy(btree_d, btree_s, tmp);
 		be16_add_cpu(&node1->hdr.count, -count);
 	} else {
-		/*
-		 * Move the req'd B-tree elements from low in node2 to
-		 * high in node1.
-		 */
 		count = -count;
 		tmp = count * (uint)sizeof(xfs_da_node_entry_t);
 		btree_s = &node2->btree[0];
@@ -536,9 +413,6 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 		xfs_da_log_buf(tp, blk1->bp,
 			XFS_DA_LOGRANGE(node1, btree_d, tmp));
 
-		/*
-		 * Move elements in node2 down to fill the hole.
-		 */
 		tmp  = be16_to_cpu(node2->hdr.count) - count;
 		tmp *= (uint)sizeof(xfs_da_node_entry_t);
 		btree_s = &node2->btree[count];
@@ -547,9 +421,6 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 		be16_add_cpu(&node2->hdr.count, -count);
 	}
 
-	/*
-	 * Log header of node 1 and all current bits of node 2.
-	 */
 	xfs_da_log_buf(tp, blk1->bp,
 		XFS_DA_LOGRANGE(node1, &node1->hdr, sizeof(node1->hdr)));
 	xfs_da_log_buf(tp, blk2->bp,
@@ -557,27 +428,17 @@ xfs_da_node_rebalance(xfs_da_state_t *state, xfs_da_state_blk_t *blk1,
 			sizeof(node2->hdr) +
 			sizeof(node2->btree[0]) * be16_to_cpu(node2->hdr.count)));
 
-	/*
-	 * Record the last hashval from each block for upward propagation.
-	 * (note: don't use the swapped node pointers)
-	 */
 	node1 = blk1->bp->data;
 	node2 = blk2->bp->data;
 	blk1->hashval = be32_to_cpu(node1->btree[be16_to_cpu(node1->hdr.count)-1].hashval);
 	blk2->hashval = be32_to_cpu(node2->btree[be16_to_cpu(node2->hdr.count)-1].hashval);
 
-	/*
-	 * Adjust the expected index for insertion.
-	 */
 	if (blk1->index >= be16_to_cpu(node1->hdr.count)) {
 		blk2->index = blk1->index - be16_to_cpu(node1->hdr.count);
-		blk1->index = be16_to_cpu(node1->hdr.count) + 1;	/* make it invalid */
+		blk1->index = be16_to_cpu(node1->hdr.count) + 1;	
 	}
 }
 
-/*
- * Add a new entry to an intermediate node.
- */
 STATIC void
 xfs_da_node_add(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 			       xfs_da_state_blk_t *newblk)
@@ -596,9 +457,6 @@ xfs_da_node_add(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 		ASSERT(newblk->blkno >= state->mp->m_dirleafblk &&
 		       newblk->blkno < state->mp->m_dirfreeblk);
 
-	/*
-	 * We may need to make some room before we insert the new node.
-	 */
 	tmp = 0;
 	btree = &node->btree[ oldblk->index ];
 	if (oldblk->index < be16_to_cpu(node->hdr.count)) {
@@ -613,20 +471,10 @@ xfs_da_node_add(xfs_da_state_t *state, xfs_da_state_blk_t *oldblk,
 	xfs_da_log_buf(state->args->trans, oldblk->bp,
 		XFS_DA_LOGRANGE(node, &node->hdr, sizeof(node->hdr)));
 
-	/*
-	 * Copy the last hash value from the oldblk to propagate upwards.
-	 */
 	oldblk->hashval = be32_to_cpu(node->btree[be16_to_cpu(node->hdr.count)-1 ].hashval);
 }
 
-/*========================================================================
- * Routines used for shrinking the Btree.
- *========================================================================*/
 
-/*
- * Deallocate an empty leaf node, remove it from its parent,
- * possibly deallocating that block, etc...
- */
 int
 xfs_da_join(xfs_da_state_t *state)
 {
@@ -642,18 +490,8 @@ xfs_da_join(xfs_da_state_t *state)
 	ASSERT(drop_blk->magic == XFS_ATTR_LEAF_MAGIC ||
 	       drop_blk->magic == XFS_DIR2_LEAFN_MAGIC);
 
-	/*
-	 * Walk back up the tree joining/deallocating as necessary.
-	 * When we stop dropping blocks, break out.
-	 */
 	for (  ; state->path.active >= 2; drop_blk--, save_blk--,
 		 state->path.active--) {
-		/*
-		 * See if we can combine the block with a neighbor.
-		 *   (action == 0) => no options, just leave
-		 *   (action == 1) => coalesce, then unlink
-		 *   (action == 2) => block empty, unlink it
-		 */
 		switch (drop_blk->magic) {
 		case XFS_ATTR_LEAF_MAGIC:
 			error = xfs_attr_leaf_toosmall(state, &action);
@@ -672,10 +510,6 @@ xfs_da_join(xfs_da_state_t *state)
 			xfs_dir2_leafn_unbalance(state, drop_blk, save_blk);
 			break;
 		case XFS_DA_NODE_MAGIC:
-			/*
-			 * Remove the offending node, fixup hashvals,
-			 * check for a toosmall neighbor.
-			 */
 			xfs_da_node_remove(state, drop_blk);
 			xfs_da_fixhashpath(state, &state->path);
 			error = xfs_da_node_toosmall(state, &action);
@@ -697,11 +531,6 @@ xfs_da_join(xfs_da_state_t *state)
 		if (error)
 			return(error);
 	}
-	/*
-	 * We joined all the way to the top.  If it turns out that
-	 * we only have one entry in the root, make the child block
-	 * the new root.
-	 */
 	xfs_da_node_remove(state, drop_blk);
 	xfs_da_fixhashpath(state, &state->path);
 	error = xfs_da_root_join(state, &state->path.blk[0]);
@@ -722,14 +551,10 @@ xfs_da_blkinfo_onlychild_validate(struct xfs_da_blkinfo *blkinfo, __u16 level)
 	ASSERT(!blkinfo->forw);
 	ASSERT(!blkinfo->back);
 }
-#else	/* !DEBUG */
+#else	
 #define	xfs_da_blkinfo_onlychild_validate(blkinfo, level)
-#endif	/* !DEBUG */
+#endif	
 
-/*
- * We have only one entry in the root.  Copy the only remaining child of
- * the old root to block 0 as the new root node.
- */
 STATIC int
 xfs_da_root_join(xfs_da_state_t *state, xfs_da_state_blk_t *root_blk)
 {
@@ -749,16 +574,9 @@ xfs_da_root_join(xfs_da_state_t *state, xfs_da_state_blk_t *root_blk)
 	ASSERT(!oldroot->hdr.info.forw);
 	ASSERT(!oldroot->hdr.info.back);
 
-	/*
-	 * If the root has more than one child, then don't do anything.
-	 */
 	if (be16_to_cpu(oldroot->hdr.count) > 1)
 		return(0);
 
-	/*
-	 * Read in the (only) child block, then copy those bytes into
-	 * the root block's buffer and free the original child block.
-	 */
 	child = be32_to_cpu(oldroot->btree[0].before);
 	ASSERT(child != 0);
 	error = xfs_da_read_buf(args->trans, args->dp, child, -1, &bp,
@@ -775,15 +593,6 @@ xfs_da_root_join(xfs_da_state_t *state, xfs_da_state_blk_t *root_blk)
 	return(error);
 }
 
-/*
- * Check a node block and its neighbors to see if the block should be
- * collapsed into one or the other neighbor.  Always keep the block
- * with the smaller block number.
- * If the current block is over 50% full, don't try to join it, return 0.
- * If the block is empty, fill in the state structure and return 2.
- * If it can be collapsed, fill in the state structure and return 1.
- * If nothing can be done, return 0.
- */
 STATIC int
 xfs_da_node_toosmall(xfs_da_state_t *state, int *action)
 {
@@ -794,32 +603,17 @@ xfs_da_node_toosmall(xfs_da_state_t *state, int *action)
 	xfs_dablk_t blkno;
 	xfs_dabuf_t *bp;
 
-	/*
-	 * Check for the degenerate case of the block being over 50% full.
-	 * If so, it's not worth even looking to see if we might be able
-	 * to coalesce with a sibling.
-	 */
 	blk = &state->path.blk[ state->path.active-1 ];
 	info = blk->bp->data;
 	ASSERT(info->magic == cpu_to_be16(XFS_DA_NODE_MAGIC));
 	node = (xfs_da_intnode_t *)info;
 	count = be16_to_cpu(node->hdr.count);
 	if (count > (state->node_ents >> 1)) {
-		*action = 0;	/* blk over 50%, don't try to join */
-		return(0);	/* blk over 50%, don't try to join */
+		*action = 0;	
+		return(0);	
 	}
 
-	/*
-	 * Check for the degenerate case of the block being empty.
-	 * If the block is empty, we'll simply delete it, no need to
-	 * coalesce it with a sibling block.  We choose (arbitrarily)
-	 * to merge with the forward block unless it is NULL.
-	 */
 	if (count == 0) {
-		/*
-		 * Make altpath point to the block we want to keep and
-		 * path point to the block we want to drop (this one).
-		 */
 		forward = (info->forw != 0);
 		memcpy(&state->altpath, &state->path, sizeof(state->path));
 		error = xfs_da_path_shift(state, &state->altpath, forward,
@@ -834,14 +628,7 @@ xfs_da_node_toosmall(xfs_da_state_t *state, int *action)
 		return(0);
 	}
 
-	/*
-	 * Examine each sibling block to see if we can coalesce with
-	 * at least 25% free space to spare.  We need to figure out
-	 * whether to merge with the forward or the backward block.
-	 * We prefer coalescing with the lower numbered sibling so as
-	 * to shrink a directory over time.
-	 */
-	/* start with smaller blk num */
+	
 	forward = (be32_to_cpu(info->forw) < be32_to_cpu(info->back));
 	for (i = 0; i < 2; forward = !forward, i++) {
 		if (forward)
@@ -865,17 +652,13 @@ xfs_da_node_toosmall(xfs_da_state_t *state, int *action)
 		count -= be16_to_cpu(node->hdr.count);
 		xfs_da_brelse(state->args->trans, bp);
 		if (count >= 0)
-			break;	/* fits with at least 25% to spare */
+			break;	
 	}
 	if (i >= 2) {
 		*action = 0;
 		return(0);
 	}
 
-	/*
-	 * Make altpath point to the block we want to keep (the lower
-	 * numbered block) and path point to the block we want to drop.
-	 */
 	memcpy(&state->altpath, &state->path, sizeof(state->path));
 	if (blkno < blk->blkno) {
 		error = xfs_da_path_shift(state, &state->altpath, forward,
@@ -902,10 +685,6 @@ xfs_da_node_toosmall(xfs_da_state_t *state, int *action)
 	return(0);
 }
 
-/*
- * Walk back up the tree adjusting hash values as necessary,
- * when we stop making changes, return.
- */
 void
 xfs_da_fixhashpath(xfs_da_state_t *state, xfs_da_state_path_t *path)
 {
@@ -949,9 +728,6 @@ xfs_da_fixhashpath(xfs_da_state_t *state, xfs_da_state_path_t *path)
 	}
 }
 
-/*
- * Remove an entry from an intermediate node.
- */
 STATIC void
 xfs_da_node_remove(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk)
 {
@@ -965,9 +741,6 @@ xfs_da_node_remove(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk)
 	ASSERT(drop_blk->index < be16_to_cpu(node->hdr.count));
 	ASSERT(drop_blk->index >= 0);
 
-	/*
-	 * Copy over the offending entry, or just zero it out.
-	 */
 	btree = &node->btree[drop_blk->index];
 	if (drop_blk->index < (be16_to_cpu(node->hdr.count)-1)) {
 		tmp  = be16_to_cpu(node->hdr.count) - drop_blk->index - 1;
@@ -984,17 +757,10 @@ xfs_da_node_remove(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk)
 	xfs_da_log_buf(state->args->trans, drop_blk->bp,
 	    XFS_DA_LOGRANGE(node, &node->hdr, sizeof(node->hdr)));
 
-	/*
-	 * Copy the last hash value from the block to propagate upwards.
-	 */
 	btree--;
 	drop_blk->hashval = be32_to_cpu(btree->hashval);
 }
 
-/*
- * Unbalance the btree elements between two intermediate nodes,
- * move all Btree elements from one node into another.
- */
 STATIC void
 xfs_da_node_unbalance(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 				     xfs_da_state_blk_t *save_blk)
@@ -1012,10 +778,6 @@ xfs_da_node_unbalance(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 	ASSERT(save_node->hdr.info.magic == cpu_to_be16(XFS_DA_NODE_MAGIC));
 	tp = state->args->trans;
 
-	/*
-	 * If the dying block has lower hashvals, then move all the
-	 * elements in the remaining block up to make a hole.
-	 */
 	if ((be32_to_cpu(drop_node->btree[0].hashval) < be32_to_cpu(save_node->btree[ 0 ].hashval)) ||
 	    (be32_to_cpu(drop_node->btree[be16_to_cpu(drop_node->hdr.count)-1].hashval) <
 	     be32_to_cpu(save_node->btree[be16_to_cpu(save_node->hdr.count)-1].hashval)))
@@ -1036,9 +798,6 @@ xfs_da_node_unbalance(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 				sizeof(xfs_da_node_entry_t)));
 	}
 
-	/*
-	 * Move all the B-tree elements from drop_blk to save_blk.
-	 */
 	tmp = be16_to_cpu(drop_node->hdr.count) * (uint)sizeof(xfs_da_node_entry_t);
 	memcpy(btree, &drop_node->btree[0], tmp);
 	be16_add_cpu(&save_node->hdr.count, be16_to_cpu(drop_node->hdr.count));
@@ -1047,28 +806,11 @@ xfs_da_node_unbalance(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 		XFS_DA_LOGRANGE(save_node, &save_node->hdr,
 			sizeof(save_node->hdr)));
 
-	/*
-	 * Save the last hashval in the remaining block for upward propagation.
-	 */
 	save_blk->hashval = be32_to_cpu(save_node->btree[be16_to_cpu(save_node->hdr.count)-1].hashval);
 }
 
-/*========================================================================
- * Routines used for finding things in the Btree.
- *========================================================================*/
 
-/*
- * Walk down the Btree looking for a particular filename, filling
- * in the state structure as we go.
- *
- * We will set the state structure to point to each of the elements
- * in each of the nodes where either the hashval is or should be.
- *
- * We support duplicate hashval's so for each entry in the current
- * node that could contain the desired hashval, descend.  This is a
- * pruned depth-first tree search.
- */
-int							/* error */
+int							
 xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 {
 	xfs_da_state_blk_t *blk;
@@ -1082,17 +824,10 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 
 	args = state->args;
 
-	/*
-	 * Descend thru the B-tree searching each level for the right
-	 * node to use, until the right hashval is found.
-	 */
 	blkno = (args->whichfork == XFS_DATA_FORK)? state->mp->m_dirleafblk : 0;
 	for (blk = &state->path.blk[0], state->path.active = 1;
 			 state->path.active <= XFS_DA_NODE_MAXDEPTH;
 			 blk++, state->path.active++) {
-		/*
-		 * Read the next node down in the tree.
-		 */
 		blk->blkno = blkno;
 		error = xfs_da_read_buf(args->trans, args->dp, blkno,
 					-1, &blk->bp, args->whichfork);
@@ -1107,17 +842,11 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 		       blk->magic == XFS_DIR2_LEAFN_MAGIC ||
 		       blk->magic == XFS_ATTR_LEAF_MAGIC);
 
-		/*
-		 * Search an intermediate node for a match.
-		 */
 		if (blk->magic == XFS_DA_NODE_MAGIC) {
 			node = blk->bp->data;
 			max = be16_to_cpu(node->hdr.count);
 			blk->hashval = be32_to_cpu(node->btree[max-1].hashval);
 
-			/*
-			 * Binary search.  (note: small blocks will skip loop)
-			 */
 			probe = span = max / 2;
 			hashval = args->hashval;
 			for (btree = &node->btree[probe]; span > 4;
@@ -1134,10 +863,6 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 			ASSERT((probe >= 0) && (probe < max));
 			ASSERT((span <= 4) || (be32_to_cpu(btree->hashval) == hashval));
 
-			/*
-			 * Since we may have duplicate hashval's, find the first
-			 * matching hashval in the node.
-			 */
 			while ((probe > 0) && (be32_to_cpu(btree->hashval) >= hashval)) {
 				btree--;
 				probe--;
@@ -1147,9 +872,6 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 				probe++;
 			}
 
-			/*
-			 * Pick the right block to descend on.
-			 */
 			if (probe == max) {
 				blk->index = max-1;
 				blkno = be32_to_cpu(node->btree[max-1].before);
@@ -1166,12 +888,6 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 		}
 	}
 
-	/*
-	 * A leaf block that ends in the hashval that we are interested in
-	 * (final hashval == search hashval) means that the next block may
-	 * contain more entries with the same hashval, shift upward to the
-	 * next leaf and keep searching.
-	 */
 	for (;;) {
 		if (blk->magic == XFS_DIR2_LEAFN_MAGIC) {
 			retval = xfs_dir2_leafn_lookup_int(blk->bp, args,
@@ -1193,7 +909,7 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 			if (retval == 0) {
 				continue;
 			} else if (blk->magic == XFS_ATTR_LEAF_MAGIC) {
-				/* path_shift() gives ENOENT */
+				
 				retval = XFS_ERROR(ENOATTR);
 			}
 		}
@@ -1203,14 +919,8 @@ xfs_da_node_lookup_int(xfs_da_state_t *state, int *result)
 	return(0);
 }
 
-/*========================================================================
- * Utility routines.
- *========================================================================*/
 
-/*
- * Link a new block into a doubly linked list of blocks (of whatever type).
- */
-int							/* error */
+int							
 xfs_da_blk_link(xfs_da_state_t *state, xfs_da_state_blk_t *old_blk,
 			       xfs_da_state_blk_t *new_blk)
 {
@@ -1219,9 +929,6 @@ xfs_da_blk_link(xfs_da_state_t *state, xfs_da_state_blk_t *old_blk,
 	int before=0, error;
 	xfs_dabuf_t *bp;
 
-	/*
-	 * Set up environment.
-	 */
 	args = state->args;
 	ASSERT(args != NULL);
 	old_info = old_blk->bp->data;
@@ -1245,13 +952,7 @@ xfs_da_blk_link(xfs_da_state_t *state, xfs_da_state_blk_t *old_blk,
 		break;
 	}
 
-	/*
-	 * Link blocks in appropriate order.
-	 */
 	if (before) {
-		/*
-		 * Link new block in before existing block.
-		 */
 		trace_xfs_da_link_before(args);
 		new_info->forw = cpu_to_be32(old_blk->blkno);
 		new_info->back = old_info->back;
@@ -1271,9 +972,6 @@ xfs_da_blk_link(xfs_da_state_t *state, xfs_da_state_blk_t *old_blk,
 		}
 		old_info->back = cpu_to_be32(new_blk->blkno);
 	} else {
-		/*
-		 * Link new block in after existing block.
-		 */
 		trace_xfs_da_link_after(args);
 		new_info->forw = old_info->forw;
 		new_info->back = cpu_to_be32(old_blk->blkno);
@@ -1299,9 +997,6 @@ xfs_da_blk_link(xfs_da_state_t *state, xfs_da_state_blk_t *old_blk,
 	return(0);
 }
 
-/*
- * Compare two intermediate nodes for "order".
- */
 STATIC int
 xfs_da_node_order(xfs_dabuf_t *node1_bp, xfs_dabuf_t *node2_bp)
 {
@@ -1321,9 +1016,6 @@ xfs_da_node_order(xfs_dabuf_t *node1_bp, xfs_dabuf_t *node2_bp)
 	return(0);
 }
 
-/*
- * Pick up the last hashvalue from an intermediate node.
- */
 STATIC uint
 xfs_da_node_lasthash(xfs_dabuf_t *bp, int *count)
 {
@@ -1338,10 +1030,7 @@ xfs_da_node_lasthash(xfs_dabuf_t *bp, int *count)
 	return be32_to_cpu(node->btree[be16_to_cpu(node->hdr.count)-1].hashval);
 }
 
-/*
- * Unlink a block from a doubly linked list of blocks.
- */
-STATIC int						/* error */
+STATIC int						
 xfs_da_blk_unlink(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 				 xfs_da_state_blk_t *save_blk)
 {
@@ -1350,9 +1039,6 @@ xfs_da_blk_unlink(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 	xfs_dabuf_t *bp;
 	int error;
 
-	/*
-	 * Set up environment.
-	 */
 	args = state->args;
 	ASSERT(args != NULL);
 	save_info = save_blk->bp->data;
@@ -1368,9 +1054,6 @@ xfs_da_blk_unlink(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 	ASSERT((be32_to_cpu(drop_info->forw) == save_blk->blkno) ||
 	       (be32_to_cpu(drop_info->back) == save_blk->blkno));
 
-	/*
-	 * Unlink the leaf block from the doubly linked chain of leaves.
-	 */
 	if (be32_to_cpu(save_info->back) == drop_blk->blkno) {
 		trace_xfs_da_unlink_back(args);
 		save_info->back = drop_info->back;
@@ -1413,15 +1096,7 @@ xfs_da_blk_unlink(xfs_da_state_t *state, xfs_da_state_blk_t *drop_blk,
 	return(0);
 }
 
-/*
- * Move a path "forward" or "!forward" one block at the current level.
- *
- * This routine will adjust a "path" to point to the next block
- * "forward" (higher hashvalues) or "!forward" (lower hashvals) in the
- * Btree, including updating pointers to the intermediate nodes between
- * the new bottom and the root.
- */
-int							/* error */
+int							
 xfs_da_path_shift(xfs_da_state_t *state, xfs_da_state_path_t *path,
 				 int forward, int release, int *result)
 {
@@ -1432,16 +1107,11 @@ xfs_da_path_shift(xfs_da_state_t *state, xfs_da_state_path_t *path,
 	xfs_dablk_t blkno=0;
 	int level, error;
 
-	/*
-	 * Roll up the Btree looking for the first block where our
-	 * current index is not at the edge of the block.  Note that
-	 * we skip the bottom layer because we want the sibling block.
-	 */
 	args = state->args;
 	ASSERT(args != NULL);
 	ASSERT(path != NULL);
 	ASSERT((path->active > 0) && (path->active < XFS_DA_NODE_MAXDEPTH));
-	level = (path->active-1) - 1;	/* skip bottom layer in path */
+	level = (path->active-1) - 1;	
 	for (blk = &path->blk[level]; level >= 0; blk--, level--) {
 		ASSERT(blk->bp != NULL);
 		node = blk->bp->data;
@@ -1457,26 +1127,15 @@ xfs_da_path_shift(xfs_da_state_t *state, xfs_da_state_path_t *path,
 		}
 	}
 	if (level < 0) {
-		*result = XFS_ERROR(ENOENT);	/* we're out of our tree */
+		*result = XFS_ERROR(ENOENT);	
 		ASSERT(args->op_flags & XFS_DA_OP_OKNOENT);
 		return(0);
 	}
 
-	/*
-	 * Roll down the edge of the subtree until we reach the
-	 * same depth we were at originally.
-	 */
 	for (blk++, level++; level < path->active; blk++, level++) {
-		/*
-		 * Release the old block.
-		 * (if it's dirty, trans won't actually let go)
-		 */
 		if (release)
 			xfs_da_brelse(args->trans, blk->bp);
 
-		/*
-		 * Read the next child block.
-		 */
 		blk->blkno = blkno;
 		error = xfs_da_read_buf(args->trans, args->dp, blkno, -1,
 						     &blk->bp, args->whichfork);
@@ -1520,30 +1179,16 @@ xfs_da_path_shift(xfs_da_state_t *state, xfs_da_state_path_t *path,
 }
 
 
-/*========================================================================
- * Utility routines.
- *========================================================================*/
 
-/*
- * Implement a simple hash on a character string.
- * Rotate the hash value by 7 bits, then XOR each character in.
- * This is implemented with some source-level loop unrolling.
- */
 xfs_dahash_t
 xfs_da_hashname(const __uint8_t *name, int namelen)
 {
 	xfs_dahash_t hash;
 
-	/*
-	 * Do four characters at a time as long as we can.
-	 */
 	for (hash = 0; namelen >= 4; namelen -= 4, name += 4)
 		hash = (name[0] << 21) ^ (name[1] << 14) ^ (name[2] << 7) ^
 		       (name[3] << 0) ^ rol32(hash, 7 * 4);
 
-	/*
-	 * Now do the rest of the characters.
-	 */
 	switch (namelen) {
 	case 3:
 		return (name[0] << 14) ^ (name[1] << 7) ^ (name[2] << 0) ^
@@ -1552,7 +1197,7 @@ xfs_da_hashname(const __uint8_t *name, int namelen)
 		return (name[0] << 7) ^ (name[1] << 0) ^ rol32(hash, 7 * 2);
 	case 1:
 		return (name[0] << 0) ^ rol32(hash, 7 * 1);
-	default: /* case 0: */
+	default: 
 		return hash;
 	}
 }
@@ -1592,16 +1237,10 @@ xfs_da_grow_inode_int(
 	struct xfs_bmbt_irec	map, *mapp;
 	int			nmap, error, got, i, mapi;
 
-	/*
-	 * Find a spot in the file space to put the new block.
-	 */
 	error = xfs_bmap_first_unused(tp, dp, count, bno, w);
 	if (error)
 		return error;
 
-	/*
-	 * Try mapping it in one filesystem block.
-	 */
 	nmap = 1;
 	ASSERT(args->firstblock != NULL);
 	error = xfs_bmapi_write(tp, dp, *bno, count,
@@ -1619,10 +1258,6 @@ xfs_da_grow_inode_int(
 		xfs_fileoff_t		b;
 		int			c;
 
-		/*
-		 * If we didn't get it and the block might work if fragmented,
-		 * try without the CONTIG flag.  Loop until we get it all.
-		 */
 		mapp = kmem_alloc(sizeof(*mapp) * count, KM_SLEEP);
 		for (b = *bno, mapi = 0; b < *bno + count; ) {
 			nmap = MIN(XFS_BMAP_MAX_NMAP, count);
@@ -1644,9 +1279,6 @@ xfs_da_grow_inode_int(
 		mapp = NULL;
 	}
 
-	/*
-	 * Count the blocks we got, make sure it matches the total.
-	 */
 	for (i = 0, got = 0; i < mapi; i++)
 		got += mapp[i].br_blockcount;
 	if (got != count || mapp[0].br_startoff != *bno ||
@@ -1656,7 +1288,7 @@ xfs_da_grow_inode_int(
 		goto out_free_map;
 	}
 
-	/* account for newly allocated blocks in reserved blocks total */
+	
 	args->total -= dp->i_d.di_nblocks - nblks;
 
 out_free_map:
@@ -1665,10 +1297,6 @@ out_free_map:
 	return error;
 }
 
-/*
- * Add a block to the btree ahead of the file.
- * Return the new block number to the caller.
- */
 int
 xfs_da_grow_inode(
 	struct xfs_da_args	*args,
@@ -1694,14 +1322,6 @@ xfs_da_grow_inode(
 	return error;
 }
 
-/*
- * Ick.  We need to always be able to remove a btree block, even
- * if there's no space reservation because the filesystem is full.
- * This is called if xfs_bunmapi on a btree block fails due to ENOSPC.
- * It swaps the target block with the last block in the file.  The
- * last block in the file can always be removed since it can't cause
- * a bmap btree split to do that.
- */
 STATIC int
 xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 		      xfs_dabuf_t **dead_bufp)
@@ -1736,21 +1356,12 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 				 mp);
 		return XFS_ERROR(EFSCORRUPTED);
 	}
-	/*
-	 * Read the last block in the btree space.
-	 */
 	last_blkno = (xfs_dablk_t)lastoff - mp->m_dirblkfsbs;
 	if ((error = xfs_da_read_buf(tp, ip, last_blkno, -1, &last_buf, w)))
 		return error;
-	/*
-	 * Copy the last block into the dead buffer and log it.
-	 */
 	memcpy(dead_buf->data, last_buf->data, mp->m_dirblksize);
 	xfs_da_log_buf(tp, dead_buf, 0, mp->m_dirblksize - 1);
 	dead_info = dead_buf->data;
-	/*
-	 * Get values from the moved block.
-	 */
 	if (dead_info->magic == cpu_to_be16(XFS_DIR2_LEAFN_MAGIC)) {
 		dead_leaf2 = (xfs_dir2_leaf_t *)dead_info;
 		dead_level = 0;
@@ -1762,9 +1373,6 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 		dead_hash = be32_to_cpu(dead_node->btree[be16_to_cpu(dead_node->hdr.count) - 1].hashval);
 	}
 	sib_buf = par_buf = NULL;
-	/*
-	 * If the moved block has a left sibling, fix up the pointers.
-	 */
 	if ((sib_blkno = be32_to_cpu(dead_info->back))) {
 		if ((error = xfs_da_read_buf(tp, ip, sib_blkno, -1, &sib_buf, w)))
 			goto done;
@@ -1784,9 +1392,6 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 		xfs_da_buf_done(sib_buf);
 		sib_buf = NULL;
 	}
-	/*
-	 * If the moved block has a right sibling, fix up the pointers.
-	 */
 	if ((sib_blkno = be32_to_cpu(dead_info->forw))) {
 		if ((error = xfs_da_read_buf(tp, ip, sib_blkno, -1, &sib_buf, w)))
 			goto done;
@@ -1808,9 +1413,6 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 	}
 	par_blkno = mp->m_dirleafblk;
 	level = -1;
-	/*
-	 * Walk down the tree looking for the parent of the moved block.
-	 */
 	for (;;) {
 		if ((error = xfs_da_read_buf(tp, ip, par_blkno, -1, &par_buf, w)))
 			goto done;
@@ -1841,10 +1443,6 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 		xfs_da_brelse(tp, par_buf);
 		par_buf = NULL;
 	}
-	/*
-	 * We're in the right parent block.
-	 * Look for the right entry.
-	 */
 	for (;;) {
 		for (;
 		     entno < be16_to_cpu(par_node->hdr.count) &&
@@ -1875,9 +1473,6 @@ xfs_da_swap_lastblock(xfs_da_args_t *args, xfs_dablk_t *dead_blknop,
 		}
 		entno = 0;
 	}
-	/*
-	 * Update the parent entry pointing to the moved block.
-	 */
 	par_node->btree[entno].before = cpu_to_be32(dead_blkno);
 	xfs_da_log_buf(tp, par_buf,
 		XFS_DA_LOGRANGE(par_node, &par_node->btree[entno].before,
@@ -1896,9 +1491,6 @@ done:
 	return error;
 }
 
-/*
- * Remove a btree block from a directory or attribute.
- */
 int
 xfs_da_shrink_inode(xfs_da_args_t *args, xfs_dablk_t dead_blkno,
 		    xfs_dabuf_t *dead_buf)
@@ -1919,10 +1511,6 @@ xfs_da_shrink_inode(xfs_da_args_t *args, xfs_dablk_t dead_blkno,
 	else
 		count = 1;
 	for (;;) {
-		/*
-		 * Remove extents.  If we get ENOSPC for a dir we have to move
-		 * the last block to the place we want to kill.
-		 */
 		if ((error = xfs_bunmapi(tp, dp, dead_blkno, count,
 				xfs_bmapi_aflag(w)|XFS_BMAPI_METADATA,
 				0, args->firstblock, args->flist,
@@ -1940,10 +1528,6 @@ xfs_da_shrink_inode(xfs_da_args_t *args, xfs_dablk_t dead_blkno,
 	return error;
 }
 
-/*
- * See if the mapping(s) for this btree block are valid, i.e.
- * don't contain holes, are logically contiguous, and cover the whole range.
- */
 STATIC int
 xfs_da_map_covers_blocks(
 	int		nmap,
@@ -1967,10 +1551,6 @@ xfs_da_map_covers_blocks(
 	return off == bno + count;
 }
 
-/*
- * Make a dabuf.
- * Used for get_buf, read_buf, read_bufr, and reada_buf.
- */
 STATIC int
 xfs_da_do_buf(
 	xfs_trans_t	*trans,
@@ -1997,14 +1577,7 @@ xfs_da_do_buf(
 	mp = dp->i_mount;
 	nfsb = (whichfork == XFS_DATA_FORK) ? mp->m_dirblkfsbs : 1;
 	mappedbno = *mappedbnop;
-	/*
-	 * Caller doesn't have a mapping.  -2 means don't complain
-	 * if we land in a hole.
-	 */
 	if (mappedbno == -1 || mappedbno == -2) {
-		/*
-		 * Optimize the one-block case.
-		 */
 		if (nfsb == 1)
 			mapp = &map;
 		else
@@ -2049,9 +1622,6 @@ xfs_da_do_buf(
 		nbplist = 0;
 	} else
 		bplist = NULL;
-	/*
-	 * Turn the mapping(s) into buffer(s).
-	 */
 	for (i = 0; i < nmap; i++) {
 		int	nmapped;
 
@@ -2094,18 +1664,12 @@ xfs_da_do_buf(
 			bplist[nbplist++] = bp;
 		}
 	}
-	/*
-	 * Build a dabuf structure.
-	 */
 	if (bplist) {
 		rbp = xfs_da_buf_make(nbplist, bplist);
 	} else if (bp)
 		rbp = xfs_da_buf_make(1, &bp);
 	else
 		rbp = NULL;
-	/*
-	 * For read_buf, check the magic number.
-	 */
 	if (caller == 1) {
 		xfs_dir2_data_hdr_t	*hdr = rbp->data;
 		xfs_dir2_free_t		*free = rbp->data;
@@ -2156,9 +1720,6 @@ exit0:
 	return error;
 }
 
-/*
- * Get a buffer for the dir/attr block.
- */
 int
 xfs_da_get_buf(
 	xfs_trans_t	*trans,
@@ -2171,9 +1732,6 @@ xfs_da_get_buf(
 	return xfs_da_do_buf(trans, dp, bno, &mappedbno, bpp, whichfork, 0);
 }
 
-/*
- * Get a buffer for the dir/attr block, fill in the contents.
- */
 int
 xfs_da_read_buf(
 	xfs_trans_t	*trans,
@@ -2186,9 +1744,6 @@ xfs_da_read_buf(
 	return xfs_da_do_buf(trans, dp, bno, &mappedbno, bpp, whichfork, 1);
 }
 
-/*
- * Readahead the dir/attr block.
- */
 xfs_daddr_t
 xfs_da_reada_buf(
 	xfs_trans_t	*trans,
@@ -2205,22 +1760,15 @@ xfs_da_reada_buf(
 		return rval;
 }
 
-kmem_zone_t *xfs_da_state_zone;	/* anchor for state struct zone */
-kmem_zone_t *xfs_dabuf_zone;		/* dabuf zone */
+kmem_zone_t *xfs_da_state_zone;	
+kmem_zone_t *xfs_dabuf_zone;		
 
-/*
- * Allocate a dir-state structure.
- * We don't put them on the stack since they're large.
- */
 xfs_da_state_t *
 xfs_da_state_alloc(void)
 {
 	return kmem_zone_zalloc(xfs_da_state_zone, KM_NOFS);
 }
 
-/*
- * Kill the altpath contents of a da-state structure.
- */
 STATIC void
 xfs_da_state_kill_altpath(xfs_da_state_t *state)
 {
@@ -2236,9 +1784,6 @@ xfs_da_state_kill_altpath(xfs_da_state_t *state)
 	state->altpath.active = 0;
 }
 
-/*
- * Free a da-state structure.
- */
 void
 xfs_da_state_free(xfs_da_state_t *state)
 {
@@ -2253,14 +1798,10 @@ xfs_da_state_free(xfs_da_state_t *state)
 		xfs_da_buf_done(state->extrablk.bp);
 #ifdef DEBUG
 	memset((char *)state, 0, sizeof(*state));
-#endif /* DEBUG */
+#endif 
 	kmem_zone_free(xfs_da_state_zone, state);
 }
 
-/*
- * Create a dabuf.
- */
-/* ARGSUSED */
 STATIC xfs_dabuf_t *
 xfs_da_buf_make(int nbuf, xfs_buf_t **bps)
 {
@@ -2296,9 +1837,6 @@ xfs_da_buf_make(int nbuf, xfs_buf_t **bps)
 	return dabuf;
 }
 
-/*
- * Un-dirty a dabuf.
- */
 STATIC void
 xfs_da_buf_clean(xfs_dabuf_t *dabuf)
 {
@@ -2318,9 +1856,6 @@ xfs_da_buf_clean(xfs_dabuf_t *dabuf)
 	}
 }
 
-/*
- * Release a dabuf.
- */
 void
 xfs_da_buf_done(xfs_dabuf_t *dabuf)
 {
@@ -2336,9 +1871,6 @@ xfs_da_buf_done(xfs_dabuf_t *dabuf)
 	}
 }
 
-/*
- * Log transaction from a dabuf.
- */
 void
 xfs_da_log_buf(xfs_trans_t *tp, xfs_dabuf_t *dabuf, uint first, uint last)
 {
@@ -2366,24 +1898,12 @@ xfs_da_log_buf(xfs_trans_t *tp, xfs_dabuf_t *dabuf, uint first, uint last)
 			l = last;
 		if (f <= l)
 			xfs_trans_log_buf(tp, bp, f - off, l - off);
-		/*
-		 * B_DONE is set by xfs_trans_log buf.
-		 * If we don't set it on a new buffer (get not read)
-		 * then if we don't put anything in the buffer it won't
-		 * be set, and at commit it it released into the cache,
-		 * and then a read will fail.
-		 */
 		else if (!(XFS_BUF_ISDONE(bp)))
 		  XFS_BUF_DONE(bp);
 	}
 	ASSERT(last < off);
 }
 
-/*
- * Release dabuf from a transaction.
- * Have to free up the dabuf before the buffers are released,
- * since the synchronization on the dabuf is really the lock on the buffer.
- */
 void
 xfs_da_brelse(xfs_trans_t *tp, xfs_dabuf_t *dabuf)
 {
@@ -2407,9 +1927,6 @@ xfs_da_brelse(xfs_trans_t *tp, xfs_dabuf_t *dabuf)
 		kmem_free(bplist);
 }
 
-/*
- * Invalidate dabuf from a transaction.
- */
 void
 xfs_da_binval(xfs_trans_t *tp, xfs_dabuf_t *dabuf)
 {
@@ -2433,9 +1950,6 @@ xfs_da_binval(xfs_trans_t *tp, xfs_dabuf_t *dabuf)
 		kmem_free(bplist);
 }
 
-/*
- * Get the first daddr from a dabuf.
- */
 xfs_daddr_t
 xfs_da_blkno(xfs_dabuf_t *dabuf)
 {

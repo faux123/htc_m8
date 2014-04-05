@@ -52,29 +52,26 @@
 
 #define NO_BL_SUPPORT
 
-#define LCD_X_RES		320	/* Horizontal Resolution */
-#define LCD_Y_RES		240	/* Vertical Resolution */
-#define LCD_BPP			24	/* Bit Per Pixel */
+#define LCD_X_RES		320	
+#define LCD_Y_RES		240	
+#define LCD_BPP			24	
 
 #define	DMA_BUS_SIZE		16
-#define	LCD_CLK         	(12*1000*1000)	/* 12MHz */
+#define	LCD_CLK         	(12*1000*1000)	
 
 #define CLOCKS_PER_PIX		3
 
-	/*
-	 * HS and VS timing parameters (all in number of PPI clk ticks)
-	 */
 
-#define U_LINE		1				/* Blanking Lines */
+#define U_LINE		1				
 
-#define H_ACTPIX	(LCD_X_RES * CLOCKS_PER_PIX)	/* active horizontal pixel */
-#define H_PERIOD	(408 * CLOCKS_PER_PIX)		/* HS period */
-#define H_PULSE		90				/* HS pulse width */
-#define H_START		204				/* first valid pixel */
+#define H_ACTPIX	(LCD_X_RES * CLOCKS_PER_PIX)	
+#define H_PERIOD	(408 * CLOCKS_PER_PIX)		
+#define H_PULSE		90				
+#define H_START		204				
 
-#define	V_LINES		(LCD_Y_RES + U_LINE)		/* total vertical lines */
-#define V_PULSE		(3 * H_PERIOD)			/* VS pulse width (1-5 H_PERIODs) */
-#define V_PERIOD	(H_PERIOD * V_LINES)		/* VS period */
+#define	V_LINES		(LCD_Y_RES + U_LINE)		
+#define V_PULSE		(3 * H_PERIOD)			
+#define V_PERIOD	(H_PERIOD * V_LINES)		
 
 #define ACTIVE_VIDEO_MEM_OFFSET	(U_LINE * H_ACTPIX)
 
@@ -86,11 +83,11 @@ static char driver_name[] = DRIVER_NAME;
 struct bfin_t350mcqbfb_info {
 	struct fb_info *fb;
 	struct device *dev;
-	unsigned char *fb_buffer;	/* RGB Buffer */
+	unsigned char *fb_buffer;	
 	dma_addr_t dma_handle;
 	int lq043_open_cnt;
 	int irq;
-	spinlock_t lock;	/* lock */
+	spinlock_t lock;	
 	u32 pseudo_pal[16];
 };
 
@@ -110,11 +107,11 @@ static void bfin_t350mcqb_config_ppi(struct bfin_t350mcqbfb_info *fbi)
 	bfin_write_PPI_COUNT(H_ACTPIX-1);
 	bfin_write_PPI_FRAME(V_LINES);
 
-	bfin_write_PPI_CONTROL(PPI_TX_MODE |	   /* output mode , PORT_DIR */
-				PPI_XFER_TYPE_11 | /* sync mode XFR_TYPE */
-				PPI_PORT_CFG_01 |  /* two frame sync PORT_CFG */
-				PPI_PACK_EN |	   /* packing enabled PACK_EN */
-				PPI_POLS_1);	   /* faling edge syncs POLS */
+	bfin_write_PPI_CONTROL(PPI_TX_MODE |	   
+				PPI_XFER_TYPE_11 | 
+				PPI_PORT_CFG_01 |  
+				PPI_PACK_EN |	   
+				PPI_POLS_1);	   
 }
 
 static inline void bfin_t350mcqb_disable_ppi(void)
@@ -217,7 +214,7 @@ static int bfin_t350mcqb_fb_open(struct fb_info *info, int user)
 		bfin_t350mcqb_config_ppi(fbi);
 		bfin_t350mcqb_init_timers();
 
-		/* start dma */
+		
 		enable_dma(CH_PPI);
 		bfin_t350mcqb_enable_ppi();
 		bfin_t350mcqb_start_timers();
@@ -253,7 +250,7 @@ static int bfin_t350mcqb_fb_check_var(struct fb_var_screeninfo *var,
 {
 
 	switch (var->bits_per_pixel) {
-	case 24:/* TRUECOLOUR, 16m */
+	case 24:
 		var->red.offset = 0;
 		var->green.offset = 8;
 		var->blue.offset = 16;
@@ -279,9 +276,6 @@ static int bfin_t350mcqb_fb_check_var(struct fb_var_screeninfo *var,
 		return -EINVAL;
 	}
 
-	/*
-	 *  Memory limit
-	 */
 
 	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
 		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
@@ -297,7 +291,7 @@ int bfin_t350mcqb_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	if (nocursor)
 		return 0;
 	else
-		return -EINVAL;	/* just to force soft_cursor() call */
+		return -EINVAL;	
 }
 
 static int bfin_t350mcqb_fb_setcolreg(u_int regno, u_int red, u_int green,
@@ -308,14 +302,14 @@ static int bfin_t350mcqb_fb_setcolreg(u_int regno, u_int red, u_int green,
 		return -EINVAL;
 
 	if (info->var.grayscale) {
-		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
+		
 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
 	}
 
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
 
 		u32 value;
-		/* Place color in the pseudopalette */
+		
 		if (regno > 16)
 			return -EINVAL;
 
@@ -400,7 +394,7 @@ static struct lcd_device *lcd_dev;
 
 static irqreturn_t bfin_t350mcqb_irq_error(int irq, void *dev_id)
 {
-	/*struct bfin_t350mcqbfb_info *info = (struct bfin_t350mcqbfb_info *)dev_id;*/
+	
 
 	u16 status = bfin_read_PPI_STATUS();
 	bfin_write_PPI_STATUS(0xFFFF);
@@ -409,7 +403,7 @@ static irqreturn_t bfin_t350mcqb_irq_error(int irq, void *dev_id)
 		bfin_t350mcqb_disable_ppi();
 		disable_dma(CH_PPI);
 
-		/* start dma */
+		
 		enable_dma(CH_PPI);
 		bfin_t350mcqb_enable_ppi();
 		bfin_write_PPI_STATUS(0xFFFF);
@@ -642,7 +636,7 @@ static int bfin_t350mcqb_resume(struct platform_device *pdev)
 		bfin_t350mcqb_config_ppi(fbi);
 		bfin_t350mcqb_init_timers();
 
-		/* start dma */
+		
 		enable_dma(CH_PPI);
 		bfin_t350mcqb_enable_ppi();
 		bfin_t350mcqb_start_timers();

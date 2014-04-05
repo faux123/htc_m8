@@ -6,11 +6,6 @@
         Onspec 90c20 parallel to IDE adapter. 
 */
 
-/* Changes:
-
-        1.01    GRG 1998.05.06 init_proto, release_proto
-
-*/
 
 #define	ON20_VERSION	"1.01"
 
@@ -29,9 +24,6 @@
 
 #define j44(a,b)  (((a>>4)&0x0f)|(b&0xf0))
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
 
 static int on20_read_regr( PIA *pi, int cont, int regr )
 

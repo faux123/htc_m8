@@ -2,9 +2,9 @@
 #define _S3C_ADC_BATTERY_H
 
 struct s3c_adc_bat_thresh {
-	int volt; /* mV */
-	int cur; /* mA */
-	int level; /* percent */
+	int volt; 
+	int cur; 
+	int level; 
 };
 
 struct s3c_adc_bat_pdata {

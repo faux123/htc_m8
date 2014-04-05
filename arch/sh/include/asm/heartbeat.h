@@ -15,4 +15,4 @@ struct heartbeat_data {
 	unsigned long flags;
 };
 
-#endif /* __ASM_SH_HEARTBEAT_H */
+#endif 

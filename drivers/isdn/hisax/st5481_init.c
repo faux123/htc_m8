@@ -10,19 +10,6 @@
  *
  */
 
-/*
- * TODO:
- *
- * b layer1 delay?
- * hotplug / unregister issues
- * mod_inc/dec_use_count
- * unify parts of d/b channel usb handling
- * file header
- * avoid copy to isoc buffer?
- * improve usb delay?
- * merge l1 state machines?
- * clean up debug
- */
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -34,10 +21,10 @@ MODULE_DESCRIPTION("ISDN4Linux: driver for ST5481 USB ISDN adapter");
 MODULE_AUTHOR("Frode Isaksen");
 MODULE_LICENSE("GPL");
 
-static int protocol = 2;       /* EURO-ISDN Default */
+static int protocol = 2;       
 module_param(protocol, int, 0);
 
-static int number_of_leds = 2;       /* 2 LEDs on the adpater default */
+static int number_of_leds = 2;       
 module_param(number_of_leds, int, 0);
 
 #ifdef CONFIG_HISAX_DEBUG
@@ -46,14 +33,7 @@ module_param(debug, int, 0);
 #endif
 int st5481_debug;
 
-/* ======================================================================
- * registration/deregistration with the USB layer
- */
 
-/*
- * This function will be called when the adapter is plugged
- * into the USB bus.
- */
 static int probe_st5481(struct usb_interface *intf,
 			const struct usb_device_id *id)
 {
@@ -126,10 +106,6 @@ err:
 	return -EIO;
 }
 
-/*
- * This function will be called when the adapter is removed
- * from the USB bus.
- */
 static void disconnect_st5481(struct usb_interface *intf)
 {
 	struct st5481_adapter *adapter = usb_get_intfdata(intf);
@@ -144,7 +120,7 @@ static void disconnect_st5481(struct usb_interface *intf)
 	st5481_release_b(&adapter->bcs[1]);
 	st5481_release_b(&adapter->bcs[0]);
 	st5481_release_d(adapter);
-	// we would actually better wait for completion of outstanding urbs
+	
 	mdelay(2);
 	st5481_release_usb(adapter);
 
@@ -153,9 +129,6 @@ static void disconnect_st5481(struct usb_interface *intf)
 	kfree(adapter);
 }
 
-/*
- * The last 4 bits in the Product Id is set with 4 pins on the chip.
- */
 static struct usb_device_id st5481_ids[] = {
 	{ USB_DEVICE(ST_VENDOR_ID, ST5481_PRODUCT_ID + 0x0) },
 	{ USB_DEVICE(ST_VENDOR_ID, ST5481_PRODUCT_ID + 0x1) },

@@ -1,10 +1,3 @@
-/*
- *  Name                         : qnxtypes.h
- *  Author                       : Richard Frowijn
- *  Function                     : standard qnx types
- *  History                      : 22-03-1998 created
- *
- */
 
 #ifndef _QNX4TYPES_H
 #define _QNX4TYPES_H

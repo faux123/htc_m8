@@ -47,8 +47,6 @@ static inline void s3c2416_irq_demux(unsigned int irq, unsigned int len)
 	unsigned int subsrc, submsk;
 	unsigned int end;
 
-	/* read the current pending interrupts, and the mask
-	 * for what it is available */
 
 	subsrc = __raw_readl(S3C2410_SUBSRCPND);
 	submsk = __raw_readl(S3C2410_INTSUBMSK);
@@ -67,7 +65,6 @@ static inline void s3c2416_irq_demux(unsigned int irq, unsigned int len)
 	}
 }
 
-/* WDT/AC97 sub interrupts */
 
 static void s3c2416_irq_demux_wdtac97(unsigned int irq, struct irq_desc *desc)
 {
@@ -98,7 +95,6 @@ static struct irq_chip s3c2416_irq_wdtac97 = {
 	.irq_ack	= s3c2416_irq_wdtac97_ack,
 };
 
-/* LCD sub interrupts */
 
 static void s3c2416_irq_demux_lcd(unsigned int irq, struct irq_desc *desc)
 {
@@ -129,7 +125,6 @@ static struct irq_chip s3c2416_irq_lcd = {
 	.irq_ack	= s3c2416_irq_lcd_ack,
 };
 
-/* DMA sub interrupts */
 
 static void s3c2416_irq_demux_dma(unsigned int irq, struct irq_desc *desc)
 {
@@ -161,7 +156,6 @@ static struct irq_chip s3c2416_irq_dma = {
 	.irq_ack	= s3c2416_irq_dma_ack,
 };
 
-/* UART3 sub interrupts */
 
 static void s3c2416_irq_demux_uart3(unsigned int irq, struct irq_desc *desc)
 {
@@ -192,7 +186,6 @@ static struct irq_chip s3c2416_irq_uart3 = {
 	.irq_ack	= s3c2416_irq_uart3_ack,
 };
 
-/* IRQ initialisation code */
 
 static int __init s3c2416_add_sub(unsigned int base,
 				   void (*demux)(unsigned int,

@@ -7,27 +7,11 @@
 #ifndef _BFIN_PTRACE_H
 #define _BFIN_PTRACE_H
 
-/*
- * GCC defines register number like this:
- * -----------------------------
- *       0 - 7 are data registers R0-R7
- *       8 - 15 are address registers P0-P7
- *      16 - 31 dsp registers I/B/L0 -- I/B/L3 & M0--M3
- *      32 - 33 A registers A0 & A1
- *      34 -    status register
- * -----------------------------
- *
- * We follows above, except:
- *      32-33 --- Low 32-bit of A0&1
- *      34-35 --- High 8-bit of A0&1
- */
 
 #ifndef __ASSEMBLY__
 
 struct task_struct;
 
-/* this struct defines the way the registers are stored on the
-   stack during a system call. */
 
 struct pt_regs {
 	long orig_pc;
@@ -36,9 +20,9 @@ struct pt_regs {
 	long rete;
 	long retn;
 	long retx;
-	long pc;		/* PC == RETI */
+	long pc;		
 	long rets;
-	long reserved;		/* Used as scratch during system calls */
+	long reserved;		
 	long astat;
 	long lb1;
 	long lb0;
@@ -87,38 +71,25 @@ struct pt_regs {
 	long syscfg;
 };
 
-/* Arbitrarily choose the same ptrace numbers as used by the Sparc code. */
 #define PTRACE_GETREGS            12
-#define PTRACE_SETREGS            13	/* ptrace signal  */
+#define PTRACE_SETREGS            13	
 
-#define PTRACE_GETFDPIC           31	/* get the ELF fdpic loadmap address */
-#define PTRACE_GETFDPIC_EXEC       0	/* [addr] request the executable loadmap */
-#define PTRACE_GETFDPIC_INTERP     1	/* [addr] request the interpreter loadmap */
+#define PTRACE_GETFDPIC           31	
+#define PTRACE_GETFDPIC_EXEC       0	
+#define PTRACE_GETFDPIC_INTERP     1	
 
 #define PS_S  (0x0002)
 
 #ifdef __KERNEL__
 
-/* user_mode returns true if only one bit is set in IPEND, other than the
-   master interrupt enable.  */
 #define user_mode(regs) (!(((regs)->ipend & ~0x10) & (((regs)->ipend & ~0x10) - 1)))
 
 #define arch_has_single_step()	(1)
-/* common code demands this function */
 #define ptrace_disable(child) user_disable_single_step(child)
 
 extern int is_user_addr_valid(struct task_struct *child,
 			      unsigned long start, unsigned long len);
 
-/*
- * Get the address of the live pt_regs for the specified task.
- * These are saved onto the top kernel stack when the process
- * is not running.
- *
- * Note: if a user thread is execve'd from kernel space, the
- * kernel stack will not be empty on entry to the kernel, so
- * ptracing these tasks will fail.
- */
 #define task_pt_regs(task) \
 	(struct pt_regs *) \
 	    ((unsigned long)task_stack_page(task) + \
@@ -126,13 +97,10 @@ extern int is_user_addr_valid(struct task_struct *child,
 
 #include <asm-generic/ptrace.h>
 
-#endif  /*  __KERNEL__  */
+#endif  
 
-#endif				/* __ASSEMBLY__ */
+#endif				
 
-/*
- * Offsets used by 'ptrace' system call interface.
- */
 
 #define PT_R0 204
 #define PT_R1 200
@@ -197,4 +165,4 @@ extern int is_user_addr_valid(struct task_struct *child,
 
 #define PT_LAST_PSEUDO PT_FDPIC_INTERP
 
-#endif				/* _BFIN_PTRACE_H */
+#endif				

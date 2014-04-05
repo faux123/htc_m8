@@ -39,10 +39,8 @@
 
 
 
-/*      Constants definition        */
 #define HEXADECIMAL_RADIX	16
 
-/*      Functions definition        */
 
 
 #define DEBUGFS_ADD(name, parent) do {					\
@@ -93,12 +91,7 @@ ssize_t iwmct_dbgfs_##name##_write(struct file *file,			\
 	};
 
 
-/*      Debugfs file ops definitions        */
 
-/*
- * Create the debugfs files and directories
- *
- */
 void iwmct_dbgfs_register(struct iwmct_priv *priv, const char *name)
 {
 	struct iwmct_debugfs *dbgfs;
@@ -121,10 +114,6 @@ void iwmct_dbgfs_register(struct iwmct_priv *priv, const char *name)
 	return;
 }
 
-/**
- * Remove the debugfs files and directories
- *
- */
 void iwmct_dbgfs_unregister(struct iwmct_debugfs *dbgfs)
 {
 	if (!dbgfs)

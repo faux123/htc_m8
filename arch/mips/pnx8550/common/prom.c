@@ -18,7 +18,6 @@
 #include <asm/bootinfo.h>
 #include <uart.h>
 
-/* #define DEBUG_CMDLINE */
 
 extern int prom_argc;
 extern char **prom_argv, **prom_envp;
@@ -26,7 +25,6 @@ extern char **prom_argv, **prom_envp;
 typedef struct
 {
     char *name;
-/*    char *val; */
 }t_env_var;
 
 
@@ -48,10 +46,6 @@ void __init prom_init_cmdline(void)
 
 char *prom_getenv(char *envname)
 {
-	/*
-	 * Return a pointer to the given environment variable.
-	 * Environment variables are stored in the form of "memsize=64".
-	 */
 
 	t_env_var *env = (t_env_var *)prom_envp;
 	int i;
@@ -75,7 +69,7 @@ inline unsigned char str2hexnum(unsigned char c)
 		return c - 'a' + 10;
 	if(c >= 'A' && c <= 'F')
 		return c - 'A' + 10;
-	return 0; /* foo */
+	return 0; 
 }
 
 inline void str2eaddr(unsigned char *ea, unsigned char *str)
@@ -112,14 +106,13 @@ void __init prom_free_prom_memory(void)
 
 extern int pnx8550_console_port;
 
-/* used by early printk */
 void prom_putchar(char c)
 {
 	if (pnx8550_console_port != -1) {
-		/* Wait until FIFO not full */
+		
 		while( ((ip3106_fifo(UART_BASE, pnx8550_console_port) & PNX8XXX_UART_FIFO_TXFIFO) >> 16) >= 16)
 			;
-		/* Send one char */
+		
 		ip3106_fifo(UART_BASE, pnx8550_console_port) = c;
 	}
 }

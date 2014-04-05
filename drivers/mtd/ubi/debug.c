@@ -18,11 +18,6 @@
  * Author: Artem Bityutskiy (Битюцкий Артём)
  */
 
-/*
- * Here we keep all the UBI debugging stuff which should normally be disabled
- * and compiled-out, but it is extremely helpful when hunting bugs or doing big
- * changes.
- */
 
 #ifdef CONFIG_MTD_UBI_DEBUG
 
@@ -31,10 +26,6 @@
 #include <linux/uaccess.h>
 #include <linux/module.h>
 
-/**
- * ubi_dbg_dump_ec_hdr - dump an erase counter header.
- * @ec_hdr: the erase counter header to dump
- */
 void ubi_dbg_dump_ec_hdr(const struct ubi_ec_hdr *ec_hdr)
 {
 	printk(KERN_DEBUG "Erase counter header dump:\n");
@@ -56,10 +47,6 @@ void ubi_dbg_dump_ec_hdr(const struct ubi_ec_hdr *ec_hdr)
 		       ec_hdr, UBI_EC_HDR_SIZE, 1);
 }
 
-/**
- * ubi_dbg_dump_vid_hdr - dump a volume identifier header.
- * @vid_hdr: the volume identifier header to dump
- */
 void ubi_dbg_dump_vid_hdr(const struct ubi_vid_hdr *vid_hdr)
 {
 	printk(KERN_DEBUG "Volume identifier header dump:\n");
@@ -81,10 +68,6 @@ void ubi_dbg_dump_vid_hdr(const struct ubi_vid_hdr *vid_hdr)
 		       vid_hdr, UBI_VID_HDR_SIZE, 1);
 }
 
-/**
- * ubi_dbg_dump_vol_info- dump volume information.
- * @vol: UBI volume description object
- */
 void ubi_dbg_dump_vol_info(const struct ubi_volume *vol)
 {
 	printk(KERN_DEBUG "Volume information dump:\n");
@@ -111,11 +94,6 @@ void ubi_dbg_dump_vol_info(const struct ubi_volume *vol)
 	}
 }
 
-/**
- * ubi_dbg_dump_vtbl_record - dump a &struct ubi_vtbl_record object.
- * @r: the object to dump
- * @idx: volume table index
- */
 void ubi_dbg_dump_vtbl_record(const struct ubi_vtbl_record *r, int idx)
 {
 	int name_len = be16_to_cpu(r->name_len);
@@ -145,10 +123,6 @@ void ubi_dbg_dump_vtbl_record(const struct ubi_vtbl_record *r, int idx)
 	printk(KERN_DEBUG "\tcrc             %#08x\n", be32_to_cpu(r->crc));
 }
 
-/**
- * ubi_dbg_dump_sv - dump a &struct ubi_scan_volume object.
- * @sv: the object to dump
- */
 void ubi_dbg_dump_sv(const struct ubi_scan_volume *sv)
 {
 	printk(KERN_DEBUG "Volume scanning information dump:\n");
@@ -162,11 +136,6 @@ void ubi_dbg_dump_sv(const struct ubi_scan_volume *sv)
 	printk(KERN_DEBUG "\tdata_pad       %d\n", sv->data_pad);
 }
 
-/**
- * ubi_dbg_dump_seb - dump a &struct ubi_scan_leb object.
- * @seb: the object to dump
- * @type: object type: 0 - not corrupted, 1 - corrupted
- */
 void ubi_dbg_dump_seb(const struct ubi_scan_leb *seb, int type)
 {
 	printk(KERN_DEBUG "eraseblock scanning information dump:\n");
@@ -179,10 +148,6 @@ void ubi_dbg_dump_seb(const struct ubi_scan_leb *seb, int type)
 	}
 }
 
-/**
- * ubi_dbg_dump_mkvol_req - dump a &struct ubi_mkvol_req object.
- * @req: the object to dump
- */
 void ubi_dbg_dump_mkvol_req(const struct ubi_mkvol_req *req)
 {
 	char nm[17];
@@ -199,13 +164,6 @@ void ubi_dbg_dump_mkvol_req(const struct ubi_mkvol_req *req)
 	printk(KERN_DEBUG "\t1st 16 characters of name: %s\n", nm);
 }
 
-/**
- * ubi_dbg_dump_flash - dump a region of flash.
- * @ubi: UBI device description object
- * @pnum: the physical eraseblock number to dump
- * @offset: the starting offset within the physical eraseblock to dump
- * @len: the length of the region to dump
- */
 void ubi_dbg_dump_flash(struct ubi_device *ubi, int pnum, int offset, int len)
 {
 	int err;
@@ -231,14 +189,6 @@ out:
 	return;
 }
 
-/**
- * ubi_debugging_init_dev - initialize debugging for an UBI device.
- * @ubi: UBI device description object
- *
- * This function initializes debugging-related data for UBI device @ubi.
- * Returns zero in case of success and a negative error code in case of
- * failure.
- */
 int ubi_debugging_init_dev(struct ubi_device *ubi)
 {
 	ubi->dbg = kzalloc(sizeof(struct ubi_debug_info), GFP_KERNEL);
@@ -248,27 +198,13 @@ int ubi_debugging_init_dev(struct ubi_device *ubi)
 	return 0;
 }
 
-/**
- * ubi_debugging_exit_dev - free debugging data for an UBI device.
- * @ubi: UBI device description object
- */
 void ubi_debugging_exit_dev(struct ubi_device *ubi)
 {
 	kfree(ubi->dbg);
 }
 
-/*
- * Root directory for UBI stuff in debugfs. Contains sub-directories which
- * contain the stuff specific to particular UBI devices.
- */
 static struct dentry *dfs_rootdir;
 
-/**
- * ubi_debugfs_init - create UBI debugfs directory.
- *
- * Create UBI debugfs directory. Returns zero in case of success and a negative
- * error code in case of failure.
- */
 int ubi_debugfs_init(void)
 {
 	dfs_rootdir = debugfs_create_dir("ubi", NULL);
@@ -283,15 +219,11 @@ int ubi_debugfs_init(void)
 	return 0;
 }
 
-/**
- * ubi_debugfs_exit - remove UBI debugfs directory.
- */
 void ubi_debugfs_exit(void)
 {
 	debugfs_remove(dfs_rootdir);
 }
 
-/* Read an UBI debugfs file */
 static ssize_t dfs_file_read(struct file *file, char __user *user_buf,
 			     size_t count, loff_t *ppos)
 {
@@ -336,7 +268,6 @@ out:
 	return count;
 }
 
-/* Write an UBI debugfs file */
 static ssize_t dfs_file_write(struct file *file, const char __user *user_buf,
 			      size_t count, loff_t *ppos)
 {
@@ -386,7 +317,6 @@ out:
 	return count;
 }
 
-/* File operations for all UBI debugfs files */
 static const struct file_operations dfs_fops = {
 	.read   = dfs_file_read,
 	.write  = dfs_file_write,
@@ -395,13 +325,6 @@ static const struct file_operations dfs_fops = {
 	.owner  = THIS_MODULE,
 };
 
-/**
- * ubi_debugfs_init_dev - initialize debugfs for an UBI device.
- * @ubi: UBI device description object
- *
- * This function creates all debugfs files for UBI device @ubi. Returns zero in
- * case of success and a negative error code in case of failure.
- */
 int ubi_debugfs_init_dev(struct ubi_device *ubi)
 {
 	int err, n;
@@ -413,7 +336,7 @@ int ubi_debugfs_init_dev(struct ubi_device *ubi)
 	n = snprintf(d->dfs_dir_name, UBI_DFS_DIR_LEN + 1, UBI_DFS_DIR_NAME,
 		     ubi->ubi_num);
 	if (n == UBI_DFS_DIR_LEN) {
-		/* The array size is too small */
+		
 		fname = UBI_DFS_DIR_NAME;
 		dent = ERR_PTR(-EINVAL);
 		goto out;
@@ -471,13 +394,9 @@ out:
 	return err;
 }
 
-/**
- * dbg_debug_exit_dev - free all debugfs files corresponding to device @ubi
- * @ubi: UBI device description object
- */
 void ubi_debugfs_exit_dev(struct ubi_device *ubi)
 {
 	debugfs_remove_recursive(ubi->dbg->dfs_dir);
 }
 
-#endif /* CONFIG_MTD_UBI_DEBUG */
+#endif 

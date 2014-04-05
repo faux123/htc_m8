@@ -28,9 +28,6 @@
 #define BITS	(1<<SHIFT)
 #define R_MASK	(BITS-1)
 
-/*
- *  Basic rate conversion plugin
- */
 
 struct rate_channel {
 	signed short last_S1;
@@ -294,7 +291,7 @@ static int rate_action(struct snd_pcm_plugin *plugin,
 	default:
 		break;
 	}
-	return 0;	/* silenty ignore other actions */
+	return 0;	
 }
 
 int snd_pcm_plugin_build_rate(struct snd_pcm_substream *plug,

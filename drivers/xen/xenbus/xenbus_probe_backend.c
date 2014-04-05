@@ -54,7 +54,6 @@
 #include "xenbus_comms.h"
 #include "xenbus_probe.h"
 
-/* backend/<type>/<fe-uuid>/<id> => <type>-<fe-domid>-<id> */
 static int backend_bus_id(char bus_id[XEN_BUS_ID_SIZE], const char *nodename)
 {
 	int domid, err;
@@ -109,7 +108,7 @@ static int xenbus_uevent_backend(struct device *dev,
 	if (add_uevent_var(env, "MODALIAS=xen-backend:%s", xdev->devicetype))
 		return -ENOMEM;
 
-	/* stuff we want to pass to /sbin/hotplug */
+	
 	if (add_uevent_var(env, "XENBUS_TYPE=%s", xdev->devicetype))
 		return -ENOMEM;
 
@@ -128,7 +127,6 @@ static int xenbus_uevent_backend(struct device *dev,
 	return 0;
 }
 
-/* backend/<typename>/<frontend-uuid>/<name> */
 static int xenbus_probe_backend_unit(struct xen_bus_type *bus,
 				     const char *dir,
 				     const char *type,
@@ -148,7 +146,6 @@ static int xenbus_probe_backend_unit(struct xen_bus_type *bus,
 	return err;
 }
 
-/* backend/<typename>/<frontend-domid> */
 static int xenbus_probe_backend(struct xen_bus_type *bus, const char *type,
 				const char *domid)
 {
@@ -187,7 +184,7 @@ static void frontend_changed(struct xenbus_watch *watch,
 
 static struct xen_bus_type xenbus_backend = {
 	.root = "backend",
-	.levels = 3,		/* backend/type/<frontend>/<id> */
+	.levels = 3,		
 	.get_bus_id = backend_bus_id,
 	.probe = xenbus_probe_backend,
 	.otherend_changed = frontend_changed,
@@ -226,7 +223,7 @@ int xenbus_dev_is_online(struct xenbus_device *dev)
 
 	rc = xenbus_scanf(XBT_NIL, dev->nodename, "online", "%d", &val);
 	if (rc != 1)
-		val = 0; /* no online node present */
+		val = 0; 
 
 	return val;
 }
@@ -244,7 +241,7 @@ static int backend_probe_and_watch(struct notifier_block *notifier,
 				   unsigned long event,
 				   void *data)
 {
-	/* Enumerate devices in xenstore and watch for changes. */
+	
 	xenbus_probe_devices(&xenbus_backend);
 	register_xenbus_watch(&be_watch);
 
@@ -260,7 +257,7 @@ static int __init xenbus_probe_backend_init(void)
 
 	DPRINTK("");
 
-	/* Register ourselves with the kernel bus subsystem */
+	
 	err = bus_register(&xenbus_backend.bus);
 	if (err)
 		return err;

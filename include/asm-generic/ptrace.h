@@ -11,7 +11,6 @@
 
 #ifndef __ASSEMBLY__
 
-/* Helpers for working with the instruction pointer */
 #ifndef GET_IP
 #define GET_IP(regs) ((regs)->pc)
 #endif
@@ -33,7 +32,6 @@ static inline void instruction_pointer_set(struct pt_regs *regs,
 #define profile_pc(regs) instruction_pointer(regs)
 #endif
 
-/* Helpers for working with the user stack pointer */
 #ifndef GET_USP
 #define GET_USP(regs) ((regs)->usp)
 #endif
@@ -51,7 +49,6 @@ static inline void user_stack_pointer_set(struct pt_regs *regs,
 	SET_USP(regs, val);
 }
 
-/* Helpers for working with the frame pointer */
 #ifndef GET_FP
 #define GET_FP(regs) ((regs)->fp)
 #endif
@@ -69,6 +66,6 @@ static inline void frame_pointer_set(struct pt_regs *regs,
 	SET_FP(regs, val);
 }
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
 #endif

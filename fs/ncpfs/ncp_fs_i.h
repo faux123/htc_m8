@@ -8,10 +8,6 @@
 #ifndef _LINUX_NCP_FS_I
 #define _LINUX_NCP_FS_I
 
-/*
- * This is the ncpfs part of the inode structure. This must contain
- * all the information we need to work with an inode after creation.
- */
 struct ncp_inode_info {
 	__le32	dirEntNum;
 	__le32	DosDirNum;
@@ -26,4 +22,4 @@ struct ncp_inode_info {
 	struct inode vfs_inode;
 };
 
-#endif	/* _LINUX_NCP_FS_I */
+#endif	

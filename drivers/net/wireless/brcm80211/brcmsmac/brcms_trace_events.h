@@ -30,23 +30,10 @@
 static inline void trace_ ## name(proto) {}
 #endif
 
-/*
- * We define a tracepoint, its arguments, its printk format and its
- * 'fast binary record' layout.
- */
 TRACE_EVENT(brcms_timer,
-	/* TPPROTO is the prototype of the function called by this tracepoint */
+	
 	TP_PROTO(struct brcms_timer *t),
-	/*
-	 * TPARGS(firstarg, p) are the parameters names, same as found in the
-	 * prototype.
-	 */
 	TP_ARGS(t),
-	/*
-	 * Fast binary tracing: define the trace record via TP_STRUCT__entry().
-	 * You can think about it like a regular C structure local variable
-	 * definition.
-	 */
 	TP_STRUCT__entry(
 		__field(uint, ms)
 		__field(uint, set)
@@ -78,7 +65,7 @@ TRACE_EVENT(brcms_dpc,
 	)
 );
 
-#endif /* __TRACE_BRCMSMAC_H */
+#endif 
 
 #ifdef CONFIG_BRCMDBG
 
@@ -89,4 +76,4 @@ TRACE_EVENT(brcms_dpc,
 
 #include <trace/define_trace.h>
 
-#endif /* CONFIG_BRCMDBG */
+#endif 

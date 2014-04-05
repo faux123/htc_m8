@@ -1,4 +1,3 @@
-/***************************************************************************/
 
 /*
  *	dma.c -- Freescale ColdFire DMA support
@@ -6,7 +5,6 @@
  *	Copyright (C) 2007, Greg Ungerer (gerg@snapgear.com)
  */
 
-/***************************************************************************/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -15,11 +13,7 @@
 #include <asm/mcfsim.h>
 #include <asm/mcfdma.h>
 
-/***************************************************************************/
 
-/*
- *      DMA channel base address table.
- */
 unsigned int dma_base_addr[MAX_M68K_DMA_CHANNELS] = {
 #ifdef MCFDMA_BASE0
 	MCFDMA_BASE0,
@@ -39,4 +33,3 @@ EXPORT_SYMBOL(dma_base_addr);
 unsigned int dma_device_address[MAX_M68K_DMA_CHANNELS];
 EXPORT_SYMBOL(dma_device_address);
 
-/***************************************************************************/

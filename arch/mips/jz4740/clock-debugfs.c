@@ -84,7 +84,6 @@ void jz4740_clock_debugfs_add_clk(struct clk *clk)
 	}
 }
 
-/* TODO: Locking */
 void jz4740_clock_debugfs_update_parent(struct clk *clk)
 {
 	if (clk->debugfs_parent_entry)

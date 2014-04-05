@@ -20,9 +20,6 @@ static inline phys_t __fixup_bigphys_addr(phys_t phys_addr, phys_t size)
 }
 #endif
 
-/*
- * Allow physical addresses to be fixed up to help 36-bit peripherals.
- */
 static inline phys_t fixup_bigphys_addr(phys_t phys_addr, phys_t size)
 {
 	return __fixup_bigphys_addr(phys_addr, size);
@@ -39,4 +36,4 @@ static inline int plat_iounmap(const volatile void __iomem *addr)
 	return 0;
 }
 
-#endif /* __ASM_MACH_AU1X00_IOREMAP_H */
+#endif 

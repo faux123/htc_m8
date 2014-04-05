@@ -1,4 +1,3 @@
-/* atm_he.h */
 
 #ifndef LINUX_ATM_HE_H
 #define LINUX_ATM_HE_H
@@ -17,4 +16,4 @@ struct he_ioctl_reg {
 	char type;
 };
 
-#endif /* LINUX_ATM_HE_H */
+#endif 

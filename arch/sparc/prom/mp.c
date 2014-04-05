@@ -14,11 +14,6 @@
 
 extern void restore_current(void);
 
-/* Start cpu with prom-tree node 'cpunode' using context described
- * by 'ctable_reg' in context 'ctx' at program counter 'pc'.
- *
- * XXX Have to look into what the return values mean. XXX
- */
 int
 prom_startcpu(int cpunode, struct linux_prom_registers *ctable_reg, int ctx, char *pc)
 {

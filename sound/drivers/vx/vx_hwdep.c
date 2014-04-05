@@ -91,8 +91,8 @@ int snd_vx_setup_firmware(struct vx_core *chip)
 #endif
 	}
 
-	/* ok, we reached to the last one */
-	/* create the devices if not built yet */
+	
+	
 	if ((err = snd_vx_pcm_new(chip)) < 0)
 		return err;
 
@@ -109,7 +109,6 @@ int snd_vx_setup_firmware(struct vx_core *chip)
 	return snd_card_register(chip->card);
 }
 
-/* exported */
 void snd_vx_free_firmware(struct vx_core *chip)
 {
 #ifdef CONFIG_PM
@@ -119,7 +118,7 @@ void snd_vx_free_firmware(struct vx_core *chip)
 #endif
 }
 
-#else /* old style firmware loading */
+#else 
 
 static int vx_hwdep_dsp_status(struct snd_hwdep *hw,
 			       struct snd_hwdep_dsp_status *info)
@@ -201,8 +200,8 @@ static int vx_hwdep_dsp_load(struct snd_hwdep *hw,
 	if (index < 3)
 		return 0;
 
-	/* ok, we reached to the last one */
-	/* create the devices if not built yet */
+	
+	
 	if (! (vx->chip_status & VX_STAT_DEVICE_INIT)) {
 		if ((err = snd_vx_pcm_new(vx)) < 0)
 			return err;
@@ -224,7 +223,6 @@ static int vx_hwdep_dsp_load(struct snd_hwdep *hw,
 }
 
 
-/* exported */
 int snd_vx_setup_firmware(struct vx_core *chip)
 {
 	int err;
@@ -244,7 +242,6 @@ int snd_vx_setup_firmware(struct vx_core *chip)
 	return snd_card_register(chip->card);
 }
 
-/* exported */
 void snd_vx_free_firmware(struct vx_core *chip)
 {
 #ifdef CONFIG_PM
@@ -254,7 +251,7 @@ void snd_vx_free_firmware(struct vx_core *chip)
 #endif
 }
 
-#endif /* SND_VX_FW_LOADER */
+#endif 
 
 EXPORT_SYMBOL(snd_vx_setup_firmware);
 EXPORT_SYMBOL(snd_vx_free_firmware);

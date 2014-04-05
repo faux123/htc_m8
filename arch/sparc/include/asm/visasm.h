@@ -9,7 +9,6 @@
 #include <asm/pstate.h>
 #include <asm/ptrace.h>
 
-/* Clobbers %o5, %g1, %g2, %g3, %g7, %icc, %xcc */
 
 #define VISEntry					\
 	rd		%fprs, %o5;			\
@@ -24,8 +23,6 @@
 #define VISExit						\
 	wr		%g0, 0, %fprs;
 
-/* Clobbers %o5, %g1, %g2, %g3, %g7, %icc, %xcc.
- * Must preserve %o5 between VISEntryHalf and VISExitHalf */
 
 #define VISEntryHalf					\
 	rd		%fprs, %o5;			\
@@ -60,4 +57,4 @@ static inline void save_and_clear_fpu(void) {
 extern int vis_emul(struct pt_regs *, unsigned int);
 #endif
 
-#endif /* _SPARC64_ASI_H */
+#endif 

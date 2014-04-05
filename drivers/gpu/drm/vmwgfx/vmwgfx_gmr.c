@@ -100,10 +100,6 @@ static void vmw_gmr2_unbind(struct vmw_private *dev_priv,
 	vmw_fifo_commit(dev_priv, define_size);
 }
 
-/**
- * FIXME: Adjust to the ttm lowmem / highmem storage to minimize
- * the number of used descriptors.
- */
 
 static int vmw_gmr_build_descriptors(struct list_head *desc_pages,
 				     struct page *pages[],
@@ -129,10 +125,6 @@ static int vmw_gmr_build_descriptors(struct list_head *desc_pages,
 
 		list_add_tail(&page->lru, desc_pages);
 
-		/*
-		 * Point previous page terminating descriptor to this
-		 * page before unmapping it.
-		 */
 
 		if (likely(page_virtual != NULL)) {
 			desc_virtual->ppn = page_to_pfn(page);
@@ -211,10 +203,6 @@ static void vmw_gmr_fire_descriptors(struct vmw_private *dev_priv,
 
 }
 
-/**
- * FIXME: Adjust to the ttm lowmem / highmem storage to minimize
- * the number of used descriptors.
- */
 
 static unsigned long vmw_gmr_count_descriptors(struct page *pages[],
 					unsigned long num_pages)

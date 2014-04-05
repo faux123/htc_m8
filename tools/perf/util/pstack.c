@@ -1,8 +1,3 @@
-/*
- * Simple pointer stack
- *
- * (c) 2010 Arnaldo Carvalho de Melo <acme@redhat.com>
- */
 
 #include "util.h"
 #include "pstack.h"

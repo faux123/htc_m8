@@ -29,12 +29,9 @@ static inline struct task_struct *get_current(void)
 
 #else
 
-/*
- * We keep `current' in r2 for speed.
- */
 register struct task_struct *current asm ("r2");
 
 #endif
 
-#endif /* __KERNEL__ */
-#endif /* _ASM_POWERPC_CURRENT_H */
+#endif 
+#endif 

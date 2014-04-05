@@ -103,10 +103,6 @@ int __init omap1_dm_timer_init(void)
 			irq = INT_1610_GPTIMER8;
 			break;
 		default:
-			/*
-			 * not supposed to reach here.
-			 * this is to remove warning.
-			 */
 			return -EINVAL;
 		}
 

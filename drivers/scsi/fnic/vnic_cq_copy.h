@@ -59,4 +59,4 @@ static inline unsigned int vnic_cq_copy_service(
 	return work_done;
 }
 
-#endif /* _VNIC_CQ_COPY_H_ */
+#endif 

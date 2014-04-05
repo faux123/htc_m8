@@ -10,7 +10,6 @@
 #ifndef _TLV320AIC32X4_H
 #define _TLV320AIC32X4_H
 
-/* tlv320aic32x4 register space (in decimal to match datasheet) */
 
 #define AIC32X4_PAGE1		128
 
@@ -140,4 +139,4 @@
 #define AIC32X4_MUTEON			0x0C
 #define	AIC32X4_DACMOD2BCLK		0x01
 
-#endif				/* _TLV320AIC32X4_H */
+#endif				

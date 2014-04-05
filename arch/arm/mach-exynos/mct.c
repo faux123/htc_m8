@@ -59,15 +59,15 @@ static void exynos4_mct_write(unsigned int value, void *addr)
 		switch ((u32) addr & ~EXYNOS4_MCT_L_MASK) {
 		case (u32) MCT_L_TCON_OFFSET:
 			stat_addr = (void __iomem *) base + MCT_L_WSTAT_OFFSET;
-			mask = 1 << 3;		/* L_TCON write status */
+			mask = 1 << 3;		
 			break;
 		case (u32) MCT_L_ICNTB_OFFSET:
 			stat_addr = (void __iomem *) base + MCT_L_WSTAT_OFFSET;
-			mask = 1 << 1;		/* L_ICNTB write status */
+			mask = 1 << 1;		
 			break;
 		case (u32) MCT_L_TCNTB_OFFSET:
 			stat_addr = (void __iomem *) base + MCT_L_WSTAT_OFFSET;
-			mask = 1 << 0;		/* L_TCNTB write status */
+			mask = 1 << 0;		
 			break;
 		default:
 			return;
@@ -76,27 +76,27 @@ static void exynos4_mct_write(unsigned int value, void *addr)
 		switch ((u32) addr) {
 		case (u32) EXYNOS4_MCT_G_TCON:
 			stat_addr = EXYNOS4_MCT_G_WSTAT;
-			mask = 1 << 16;		/* G_TCON write status */
+			mask = 1 << 16;		
 			break;
 		case (u32) EXYNOS4_MCT_G_COMP0_L:
 			stat_addr = EXYNOS4_MCT_G_WSTAT;
-			mask = 1 << 0;		/* G_COMP0_L write status */
+			mask = 1 << 0;		
 			break;
 		case (u32) EXYNOS4_MCT_G_COMP0_U:
 			stat_addr = EXYNOS4_MCT_G_WSTAT;
-			mask = 1 << 1;		/* G_COMP0_U write status */
+			mask = 1 << 1;		
 			break;
 		case (u32) EXYNOS4_MCT_G_COMP0_ADD_INCR:
 			stat_addr = EXYNOS4_MCT_G_WSTAT;
-			mask = 1 << 2;		/* G_COMP0_ADD_INCR w status */
+			mask = 1 << 2;		
 			break;
 		case (u32) EXYNOS4_MCT_G_CNT_L:
 			stat_addr = EXYNOS4_MCT_G_CNT_WSTAT;
-			mask = 1 << 0;		/* G_CNT_L write status */
+			mask = 1 << 0;		
 			break;
 		case (u32) EXYNOS4_MCT_G_CNT_U:
 			stat_addr = EXYNOS4_MCT_G_CNT_WSTAT;
-			mask = 1 << 1;		/* G_CNT_U write status */
+			mask = 1 << 1;		
 			break;
 		default:
 			return;
@@ -113,7 +113,6 @@ static void exynos4_mct_write(unsigned int value, void *addr)
 	panic("MCT hangs after writing %d (addr:0x%08x)\n", value, (u32)addr);
 }
 
-/* Clocksource handling */
 static void exynos4_mct_frc_start(u32 hi, u32 lo)
 {
 	u32 reg;
@@ -271,7 +270,6 @@ static void exynos4_clockevent_init(void)
 
 static DEFINE_PER_CPU(struct mct_clock_event_device, percpu_mct_tick);
 
-/* Clock event handling */
 static void exynos4_mct_tick_stop(struct mct_clock_event_device *mevt)
 {
 	unsigned long tmp;
@@ -292,12 +290,12 @@ static void exynos4_mct_tick_start(unsigned long cycles,
 
 	exynos4_mct_tick_stop(mevt);
 
-	tmp = (1 << 31) | cycles;	/* MCT_L_UPDATE_ICNTB */
+	tmp = (1 << 31) | cycles;	
 
-	/* update interrupt count buffer */
+	
 	exynos4_mct_write(tmp, mevt->base + MCT_L_ICNTB_OFFSET);
 
-	/* enable MCT tick interrupt */
+	
 	exynos4_mct_write(0x1, mevt->base + MCT_L_INT_ENB_OFFSET);
 
 	tmp = __raw_readl(mevt->base + MCT_L_TCON_OFFSET);
@@ -343,15 +341,10 @@ static int exynos4_mct_tick_clear(struct mct_clock_event_device *mevt)
 {
 	struct clock_event_device *evt = mevt->evt;
 
-	/*
-	 * This is for supporting oneshot mode.
-	 * Mct would generate interrupt periodically
-	 * without explicit stopping.
-	 */
 	if (evt->mode != CLOCK_EVT_MODE_PERIODIC)
 		exynos4_mct_tick_stop(mevt);
 
-	/* Clear the MCT tick interrupt */
+	
 	if (__raw_readl(mevt->base + MCT_L_INT_CSTAT_OFFSET) & 1) {
 		exynos4_mct_write(0x1, mevt->base + MCT_L_INT_CSTAT_OFFSET);
 		return 1;
@@ -447,7 +440,7 @@ static struct local_timer_ops exynos4_mct_tick_ops __cpuinitdata = {
 	.setup	= exynos4_local_timer_setup,
 	.stop	= exynos4_local_timer_stop,
 };
-#endif /* CONFIG_LOCAL_TIMERS */
+#endif 
 
 static void __init exynos4_timer_resources(void)
 {
@@ -468,7 +461,7 @@ static void __init exynos4_timer_resources(void)
 	}
 
 	local_timer_register(&exynos4_mct_tick_ops);
-#endif /* CONFIG_LOCAL_TIMERS */
+#endif 
 }
 
 static void __init exynos4_timer_init(void)

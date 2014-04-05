@@ -1,4 +1,3 @@
-/* For debugging general purposes */
 #ifndef __PERF_DEBUG_H
 #define __PERF_DEBUG_H
 
@@ -33,4 +32,4 @@ int ui__error(const char *format, ...) __attribute__((format(printf, 1, 2)));
 int ui__warning(const char *format, ...) __attribute__((format(printf, 1, 2)));
 int ui__error_paranoid(void);
 
-#endif	/* __PERF_DEBUG_H */
+#endif	

@@ -33,7 +33,6 @@
 #include <linux/power/max17042_battery.h>
 #include <linux/of.h>
 
-/* Status register bits */
 #define STATUS_POR_BIT         (1 << 1)
 #define STATUS_BST_BIT         (1 << 3)
 #define STATUS_VMN_BIT         (1 << 8)
@@ -45,7 +44,6 @@
 #define STATUS_SMX_BIT         (1 << 14)
 #define STATUS_BR_BIT          (1 << 15)
 
-/* Interrupt mask bits */
 #define CONFIG_ALRT_BIT_ENBL	(1 << 2)
 #define STATUS_INTR_SOCMIN_BIT	(1 << 10)
 #define STATUS_INTR_SOCMAX_BIT	(1 << 14)
@@ -105,6 +103,7 @@ static enum power_supply_property max17042_battery_props[] = {
 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 	POWER_SUPPLY_PROP_VOLTAGE_AVG,
+	POWER_SUPPLY_PROP_VOLTAGE_OCV,
 	POWER_SUPPLY_PROP_CAPACITY,
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_TEMP,
@@ -147,7 +146,7 @@ static int max17042_get_property(struct power_supply *psy,
 			return ret;
 
 		val->intval = ret >> 8;
-		val->intval *= 20000; /* Units of LSB = 20mV */
+		val->intval *= 20000; 
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
 		ret = max17042_read_reg(chip->client, MAX17042_V_empty);
@@ -155,7 +154,7 @@ static int max17042_get_property(struct power_supply *psy,
 			return ret;
 
 		val->intval = ret >> 7;
-		val->intval *= 10000; /* Units of LSB = 10mV */
+		val->intval *= 10000; 
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
 		ret = max17042_read_reg(chip->client, MAX17042_VCELL);
@@ -166,6 +165,13 @@ static int max17042_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_AVG:
 		ret = max17042_read_reg(chip->client, MAX17042_AvgVCELL);
+		if (ret < 0)
+			return ret;
+
+		val->intval = ret * 625 / 8;
+		break;
+	case POWER_SUPPLY_PROP_VOLTAGE_OCV:
+		ret = max17042_read_reg(chip->client, MAX17042_OCVInternal);
 		if (ret < 0)
 			return ret;
 
@@ -191,13 +197,13 @@ static int max17042_get_property(struct power_supply *psy,
 			return ret;
 
 		val->intval = ret;
-		/* The value is signed. */
+		
 		if (val->intval & 0x8000) {
 			val->intval = (0x7fff & ~val->intval) + 1;
 			val->intval *= -1;
 		}
-		/* The value is converted into deci-centigrade scale */
-		/* Units of LSB = 1 / 256 degree Celsius */
+		
+		
 		val->intval = val->intval * 10 / 256;
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
@@ -208,7 +214,7 @@ static int max17042_get_property(struct power_supply *psy,
 
 			val->intval = ret;
 			if (val->intval & 0x8000) {
-				/* Negative */
+				
 				val->intval = ~val->intval & 0x7fff;
 				val->intval++;
 				val->intval *= -1;
@@ -227,7 +233,7 @@ static int max17042_get_property(struct power_supply *psy,
 
 			val->intval = ret;
 			if (val->intval & 0x8000) {
-				/* Negative */
+				
 				val->intval = ~val->intval & 0x7fff;
 				val->intval++;
 				val->intval *= -1;
@@ -432,17 +438,13 @@ static void max17042_load_new_capacity_params(struct max17042_chip *chip)
 	full_cap0 = max17042_read_reg(chip->client, MAX17042_FullCAP0);
 	vfSoc = max17042_read_reg(chip->client, MAX17042_VFSOC);
 
-	/* fg_vfSoc needs to shifted by 8 bits to get the
-	 * perc in 1% accuracy, to get the right rem_cap multiply
-	 * full_cap0, fg_vfSoc and devide by 100
-	 */
 	rem_cap = ((vfSoc >> 8) * full_cap0) / 100;
 	max17042_write_verify_reg(chip->client, MAX17042_RemCap, (u16)rem_cap);
 
 	rep_cap = (u16)rem_cap;
 	max17042_write_verify_reg(chip->client, MAX17042_RepCap, rep_cap);
 
-	/* Write dQ_acc to 200% of Capacity and dP_acc to 200% */
+	
 	dq_acc = config->fullcap / dQ_ACC_DIV;
 	max17042_write_verify_reg(chip->client, MAX17042_dQacc, dq_acc);
 	max17042_write_verify_reg(chip->client, MAX17042_dPacc, dP_ACC_200);
@@ -455,11 +457,6 @@ static void max17042_load_new_capacity_params(struct max17042_chip *chip)
 			config->fullcapnom);
 }
 
-/*
- * Block write all the override values coming from platform data.
- * This function MUST be called before the POR initialization proceedure
- * specified by maxim.
- */
 static inline void max17042_override_por_values(struct max17042_chip *chip)
 {
 	struct i2c_client *client = chip->client;
@@ -511,15 +508,12 @@ static int max17042_init_chip(struct max17042_chip *chip)
 	int val;
 
 	max17042_override_por_values(chip);
-	/* After Power up, the MAX17042 requires 500mS in order
-	 * to perform signal debouncing and initial SOC reporting
-	 */
 	msleep(500);
 
-	/* Initialize configaration */
+	
 	max17042_write_config_regs(chip);
 
-	/* write cell characterization data */
+	
 	ret = max17042_init_model(chip);
 	if (ret) {
 		dev_err(&chip->client->dev, "%s init failed\n",
@@ -532,24 +526,21 @@ static int max17042_init_chip(struct max17042_chip *chip)
 			__func__);
 		return -EIO;
 	}
-	/* write custom parameters */
+	
 	max17042_write_custom_regs(chip);
 
-	/* update capacity params */
+	
 	max17042_update_capacity_regs(chip);
 
-	/* delay must be atleast 350mS to allow VFSOC
-	 * to be calculated from the new configuration
-	 */
 	msleep(350);
 
-	/* reset vfsoc0 reg */
+	
 	max17042_reset_vfsoc0_reg(chip);
 
-	/* load new capacity params */
+	
 	max17042_load_new_capacity_params(chip);
 
-	/* Init complete, Clear the POR bit */
+	
 	val = max17042_read_reg(chip->client, MAX17042_STATUS);
 	max17042_write_reg(chip->client, MAX17042_STATUS,
 			val & (~STATUS_POR_BIT));
@@ -560,9 +551,6 @@ static void max17042_set_soc_threshold(struct max17042_chip *chip, u16 off)
 {
 	u16 soc, soc_tr;
 
-	/* program interrupt thesholds such that we should
-	 * get interrupt for every 'off' perc change in the soc
-	 */
 	soc = max17042_read_reg(chip->client, MAX17042_RepSOC) >> 8;
 	soc_tr = (soc + off) << 8;
 	soc_tr |= (soc - off);
@@ -591,7 +579,7 @@ static void max17042_init_worker(struct work_struct *work)
 				struct max17042_chip, work);
 	int ret;
 
-	/* Initialize registers according to values from the platform data */
+	
 	if (chip->pdata->enable_por_init && chip->pdata->config_data) {
 		ret = max17042_init_chip(chip);
 		if (ret)
@@ -616,10 +604,6 @@ max17042_get_pdata(struct device *dev)
 	if (!pdata)
 		return NULL;
 
-	/*
-	 * Require current sense resistor value to be specified for
-	 * current-sense functionality to be enabled at all.
-	 */
 	if (of_property_read_u32(np, "maxim,rsns-microohm", &prop) == 0) {
 		pdata->r_sns = prop;
 		pdata->enable_current_sense = true;
@@ -665,8 +649,6 @@ static int __devinit max17042_probe(struct i2c_client *client,
 	chip->battery.properties	= max17042_battery_props;
 	chip->battery.num_properties	= ARRAY_SIZE(max17042_battery_props);
 
-	/* When current is not measured,
-	 * CURRENT_NOW and CURRENT_AVG properties should be invisible. */
 	if (!chip->pdata->enable_current_sense)
 		chip->battery.num_properties -= 2;
 

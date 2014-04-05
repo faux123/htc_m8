@@ -1,6 +1,3 @@
-/*
- * (C) P. Horton 2006
- */
 #include <linux/io.h>
 #include <linux/serial_reg.h>
 

@@ -16,7 +16,6 @@
 #include <linux/gpio.h>
 #include <asm/mach-bcm47xx/bcm47xx.h>
 
-/* GPIO definitions for the WGT634U */
 #define WGT634U_GPIO_LED	3
 #define WGT634U_GPIO_RESET	2
 #define WGT634U_GPIO_TP1	7
@@ -48,34 +47,32 @@ static struct platform_device wgt634u_gpio_leds = {
 };
 
 
-/* 8MiB flash. The struct mtd_partition matches original Netgear WGT634U
-   firmware. */
 static struct mtd_partition wgt634u_partitions[] = {
 	{
 		.name       = "cfe",
 		.offset     = 0,
-		.size       = 0x60000,		/* 384k */
-		.mask_flags = MTD_WRITEABLE 	/* force read-only */
+		.size       = 0x60000,		
+		.mask_flags = MTD_WRITEABLE 	
 	},
 	{
 		.name   = "config",
 		.offset = 0x60000,
-		.size   = 0x20000		/* 128k */
+		.size   = 0x20000		
 	},
 	{
 		.name   = "linux",
 		.offset = 0x80000,
-		.size   = 0x140000 		/* 1280k */
+		.size   = 0x140000 		
 	},
 	{
 		.name   = "jffs",
 		.offset = 0x1c0000,
-		.size   = 0x620000 		/* 6272k */
+		.size   = 0x620000 		
 	},
 	{
 		.name   = "nvram",
 		.offset = 0x7e0000,
-		.size   = 0x20000		/* 128k */
+		.size   = 0x20000		
 	},
 };
 
@@ -96,7 +93,6 @@ static struct platform_device wgt634u_flash = {
 	.num_resources = 1,
 };
 
-/* Platform devices */
 static struct platform_device *wgt634u_devices[] __initdata = {
 	&wgt634u_flash,
 	&wgt634u_gpio_leds,
@@ -106,16 +102,12 @@ static irqreturn_t gpio_interrupt(int irq, void *ignored)
 {
 	int state;
 
-	/* Interrupts are shared, check if the current one is
-	   a GPIO interrupt. */
 	if (!ssb_chipco_irq_status(&bcm47xx_bus.ssb.chipco,
 				   SSB_CHIPCO_IRQ_GPIO))
 		return IRQ_NONE;
 
 	state = gpio_get_value(WGT634U_GPIO_RESET);
 
-	/* Interrupt are level triggered, revert the interrupt polarity
-	   to clear the interrupt. */
 	gpio_polarity(WGT634U_GPIO_RESET, state);
 
 	if (!state) {
@@ -128,10 +120,6 @@ static irqreturn_t gpio_interrupt(int irq, void *ignored)
 
 static int __init wgt634u_init(void)
 {
-	/* There is no easy way to detect that we are running on a WGT634U
-	 * machine. Use the MAC address as an heuristic. Netgear Inc. has
-	 * been allocated ranges 00:09:5b:xx:xx:xx and 00:0f:b5:xx:xx:xx.
-	 */
 	u8 *et0mac;
 
 	if (bcm47xx_bus_type != BCM47XX_BUS_TYPE_SSB)

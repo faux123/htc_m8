@@ -11,7 +11,7 @@
 
 extern void prefill_possible_map(void);
 
-#else /* CONFIG_SMP */
+#else 
 
 static inline void prefill_possible_map(void) {}
 
@@ -19,7 +19,7 @@ static inline void prefill_possible_map(void) {}
 #define safe_smp_processor_id()			0
 #define stack_smp_processor_id()		0
 
-#endif /* CONFIG_SMP */
+#endif 
 
 struct x86_cpu {
 	struct cpu cpu;
@@ -34,4 +34,4 @@ DECLARE_PER_CPU(int, cpu_state);
 
 int mwait_usable(const struct cpuinfo_x86 *);
 
-#endif /* _ASM_X86_CPU_H */
+#endif 

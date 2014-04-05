@@ -98,28 +98,14 @@ struct ipmr_result {
 	struct mr_table		*mrt;
 };
 
-/* Big lock, protecting vif table, mrt cache and mroute socket state.
- * Note that the changes are semaphored via rtnl_lock.
- */
 
 static DEFINE_RWLOCK(mrt_lock);
 
-/*
- *	Multicast router control variables
- */
 
 #define VIF_EXISTS(_mrt, _idx) ((_mrt)->vif_table[_idx].dev != NULL)
 
-/* Special spinlock for queue of unresolved entries */
 static DEFINE_SPINLOCK(mfc_unres_lock);
 
-/* We return to original Alan's scheme. Hash table of resolved
- * entries is changed only in process context and protected
- * with weak lock mrt_lock. Queue of unresolved entries is protected
- * with strong spinlock mfc_unres_lock.
- *
- * In this case data path is free of exclusive locks at all.
- */
 
 static struct kmem_cache *mrt_cachep __read_mostly;
 
@@ -318,7 +304,7 @@ static struct mr_table *ipmr_new_table(struct net *net, u32 id)
 	write_pnet(&mrt->net, net);
 	mrt->id = id;
 
-	/* Forwarding cache */
+	
 	for (i = 0; i < MFC_LINES; i++)
 		INIT_LIST_HEAD(&mrt->mfc_cache_array[i]);
 
@@ -336,7 +322,6 @@ static struct mr_table *ipmr_new_table(struct net *net, u32 id)
 	return mrt;
 }
 
-/* Service routines creating virtual interfaces: DVMRP tunnels and PIMREG */
 
 static void ipmr_del_tunnel(struct net_device *dev, struct vifctl *v)
 {
@@ -422,7 +407,7 @@ struct net_device *ipmr_new_tunnel(struct net *net, struct vifctl *v)
 	return dev;
 
 failure:
-	/* allow the register to be completed before unregistering. */
+	
 	rtnl_unlock();
 	rtnl_lock();
 
@@ -515,7 +500,7 @@ static struct net_device *ipmr_reg_vif(struct net *net, struct mr_table *mrt)
 	return dev;
 
 failure:
-	/* allow the register to be completed before unregistering. */
+	
 	rtnl_unlock();
 	rtnl_lock();
 
@@ -524,10 +509,6 @@ failure:
 }
 #endif
 
-/*
- *	Delete a VIF entry
- *	@notify: Set to 1, if the caller is a notifier_call
- */
 
 static int vif_delete(struct mr_table *mrt, int vifi, int notify,
 		      struct list_head *head)
@@ -594,9 +575,6 @@ static inline void ipmr_cache_free(struct mfc_cache *c)
 	call_rcu(&c->rcu, ipmr_cache_free_rcu);
 }
 
-/* Destroy an unresolved cache entry, killing queued skbs
- * and reporting error to netlink readers.
- */
 
 static void ipmr_destroy_unres(struct mr_table *mrt, struct mfc_cache *c)
 {
@@ -626,7 +604,6 @@ static void ipmr_destroy_unres(struct mr_table *mrt, struct mfc_cache *c)
 }
 
 
-/* Timer process for the unresolved queue. */
 
 static void ipmr_expire_process(unsigned long arg)
 {
@@ -665,7 +642,6 @@ out:
 	spin_unlock(&mfc_unres_lock);
 }
 
-/* Fill oifs list. It is called under write locked mrt_lock. */
 
 static void ipmr_update_thresholds(struct mr_table *mrt, struct mfc_cache *cache,
 				   unsigned char *ttls)
@@ -697,17 +673,13 @@ static int vif_add(struct net *net, struct mr_table *mrt,
 	struct in_device *in_dev;
 	int err;
 
-	/* Is vif busy ? */
+	
 	if (VIF_EXISTS(mrt, vifi))
 		return -EADDRINUSE;
 
 	switch (vifc->vifc_flags) {
 #ifdef CONFIG_IP_PIMSM
 	case VIFF_REGISTER:
-		/*
-		 * Special Purpose VIF in PIM
-		 * All the packets will be sent to the daemon
-		 */
 		if (mrt->mroute_reg_vif_num >= 0)
 			return -EADDRINUSE;
 		dev = ipmr_reg_vif(net, mrt);
@@ -764,7 +736,7 @@ static int vif_add(struct net *net, struct mr_table *mrt,
 	IPV4_DEVCONF(in_dev->cnf, MC_FORWARDING)++;
 	ip_rt_multicast_event(in_dev);
 
-	/* Fill in the VIF structures */
+	
 
 	v->rate_limit = vifc->vifc_rate_limit;
 	v->local = vifc->vifc_lcl_addr.s_addr;
@@ -781,7 +753,7 @@ static int vif_add(struct net *net, struct mr_table *mrt,
 	if (v->flags & (VIFF_TUNNEL | VIFF_REGISTER))
 		v->link = dev->iflink;
 
-	/* And finish update writing critical data */
+	
 	write_lock_bh(&mrt_lock);
 	v->dev = dev;
 #ifdef CONFIG_IP_PIMSM
@@ -794,7 +766,6 @@ static int vif_add(struct net *net, struct mr_table *mrt,
 	return 0;
 }
 
-/* called with rcu_read_lock() */
 static struct mfc_cache *ipmr_cache_find(struct mr_table *mrt,
 					 __be32 origin,
 					 __be32 mcastgrp)
@@ -809,9 +780,6 @@ static struct mfc_cache *ipmr_cache_find(struct mr_table *mrt,
 	return NULL;
 }
 
-/*
- *	Allocate a multicast cache entry
- */
 static struct mfc_cache *ipmr_cache_alloc(void)
 {
 	struct mfc_cache *c = kmem_cache_zalloc(mrt_cachep, GFP_KERNEL);
@@ -832,9 +800,6 @@ static struct mfc_cache *ipmr_cache_alloc_unres(void)
 	return c;
 }
 
-/*
- *	A cache entry has gone into a resolved state from queued
- */
 
 static void ipmr_cache_resolve(struct net *net, struct mr_table *mrt,
 			       struct mfc_cache *uc, struct mfc_cache *c)
@@ -842,7 +807,7 @@ static void ipmr_cache_resolve(struct net *net, struct mr_table *mrt,
 	struct sk_buff *skb;
 	struct nlmsgerr *e;
 
-	/* Play the pending entries through our router */
+	
 
 	while ((skb = __skb_dequeue(&uc->mfc_un.unres.unresolved))) {
 		if (ip_hdr(skb)->version == 0) {
@@ -867,12 +832,6 @@ static void ipmr_cache_resolve(struct net *net, struct mr_table *mrt,
 	}
 }
 
-/*
- *	Bounce a cache query up to mrouted. We could use netlink for this but mrouted
- *	expects the following bizarre scheme.
- *
- *	Called under mrt_lock.
- */
 
 static int ipmr_cache_report(struct mr_table *mrt,
 			     struct sk_buff *pkt, vifi_t vifi, int assert)
@@ -896,11 +855,6 @@ static int ipmr_cache_report(struct mr_table *mrt,
 
 #ifdef CONFIG_IP_PIMSM
 	if (assert == IGMPMSG_WHOLEPKT) {
-		/* Ugly, but we have no choice with this interface.
-		 * Duplicate old header, fix ihl, length etc.
-		 * And all this only to mangle msg->im_msgtype and
-		 * to set msg->im_mbz to "mbz" :-)
-		 */
 		skb_push(skb, sizeof(struct iphdr));
 		skb_reset_network_header(skb);
 		skb_reset_transport_header(skb);
@@ -916,23 +870,23 @@ static int ipmr_cache_report(struct mr_table *mrt,
 #endif
 	{
 
-	/* Copy the IP header */
+	
 
 	skb->network_header = skb->tail;
 	skb_put(skb, ihl);
 	skb_copy_to_linear_data(skb, pkt->data, ihl);
-	ip_hdr(skb)->protocol = 0;	/* Flag to the kernel this is a route add */
+	ip_hdr(skb)->protocol = 0;	
 	msg = (struct igmpmsg *)skb_network_header(skb);
 	msg->im_vif = vifi;
 	skb_dst_set(skb, dst_clone(skb_dst(pkt)));
 
-	/* Add our header */
+	
 
 	igmp = (struct igmphdr *)skb_put(skb, sizeof(struct igmphdr));
 	igmp->type	=
 	msg->im_msgtype = assert;
 	igmp->code	= 0;
-	ip_hdr(skb)->tot_len = htons(skb->len);		/* Fix the length */
+	ip_hdr(skb)->tot_len = htons(skb->len);		
 	skb->transport_header = skb->network_header;
 	}
 
@@ -944,7 +898,7 @@ static int ipmr_cache_report(struct mr_table *mrt,
 		return -EINVAL;
 	}
 
-	/* Deliver to mrouted */
+	
 
 	ret = sock_queue_rcv_skb(mroute_sk, skb);
 	rcu_read_unlock();
@@ -957,9 +911,6 @@ static int ipmr_cache_report(struct mr_table *mrt,
 	return ret;
 }
 
-/*
- *	Queue a packet for resolution. It gets locked cache entry!
- */
 
 static int
 ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi, struct sk_buff *skb)
@@ -979,7 +930,7 @@ ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi, struct sk_buff *skb)
 	}
 
 	if (!found) {
-		/* Create a new entry if allowable */
+		
 
 		if (atomic_read(&mrt->cache_resolve_queue_len) >= 10 ||
 		    (c = ipmr_cache_alloc_unres()) == NULL) {
@@ -989,19 +940,16 @@ ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi, struct sk_buff *skb)
 			return -ENOBUFS;
 		}
 
-		/* Fill in the new cache entry */
+		
 
 		c->mfc_parent	= -1;
 		c->mfc_origin	= iph->saddr;
 		c->mfc_mcastgrp	= iph->daddr;
 
-		/* Reflect first query at mrouted. */
+		
 
 		err = ipmr_cache_report(mrt, skb, vifi, IGMPMSG_NOCACHE);
 		if (err < 0) {
-			/* If the report failed throw the cache entry
-			   out - Brad Parker
-			 */
 			spin_unlock_bh(&mfc_unres_lock);
 
 			ipmr_cache_free(c);
@@ -1016,7 +964,7 @@ ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi, struct sk_buff *skb)
 			mod_timer(&mrt->ipmr_expire_timer, c->mfc_un.unres.expires);
 	}
 
-	/* See if we can append the packet */
+	
 
 	if (c->mfc_un.unres.unresolved.qlen > 3) {
 		kfree_skb(skb);
@@ -1030,9 +978,6 @@ ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi, struct sk_buff *skb)
 	return err;
 }
 
-/*
- *	MFC cache manipulation by user space mroute daemon
- */
 
 static int ipmr_mfc_delete(struct mr_table *mrt, struct mfcctl *mfc)
 {
@@ -1099,10 +1044,6 @@ static int ipmr_mfc_add(struct net *net, struct mr_table *mrt,
 
 	list_add_rcu(&c->list, &mrt->mfc_cache_array[line]);
 
-	/*
-	 *	Check to see if we resolved a queued list. If so we
-	 *	need to send on the frames and tidy up.
-	 */
 	found = false;
 	spin_lock_bh(&mfc_unres_lock);
 	list_for_each_entry(uc, &mrt->mfc_unres_queue, list) {
@@ -1125,9 +1066,6 @@ static int ipmr_mfc_add(struct net *net, struct mr_table *mrt,
 	return 0;
 }
 
-/*
- *	Close the multicast socket, and clear the vif tables etc
- */
 
 static void mroute_clean_tables(struct mr_table *mrt)
 {
@@ -1135,7 +1073,7 @@ static void mroute_clean_tables(struct mr_table *mrt)
 	LIST_HEAD(list);
 	struct mfc_cache *c, *next;
 
-	/* Shut down all active vif entries */
+	
 
 	for (i = 0; i < mrt->maxvif; i++) {
 		if (!(mrt->vif_table[i].flags & VIFF_STATIC))
@@ -1143,7 +1081,7 @@ static void mroute_clean_tables(struct mr_table *mrt)
 	}
 	unregister_netdevice_many(&list);
 
-	/* Wipe the cache */
+	
 
 	for (i = 0; i < MFC_LINES; i++) {
 		list_for_each_entry_safe(c, next, &mrt->mfc_cache_array[i], list) {
@@ -1164,9 +1102,6 @@ static void mroute_clean_tables(struct mr_table *mrt)
 	}
 }
 
-/* called from ip_ra_control(), before an RCU grace period,
- * we dont need to call synchronize_rcu() here
- */
 static void mrtsock_destruct(struct sock *sk)
 {
 	struct net *net = sock_net(sk);
@@ -1183,12 +1118,6 @@ static void mrtsock_destruct(struct sock *sk)
 	rtnl_unlock();
 }
 
-/*
- *	Socket options and virtual interface manipulation. The whole
- *	virtual interface system is a complete heap, but unfortunately
- *	that's how BSD mrouted happens to think. Maybe one day with a proper
- *	MOSPF/PIM router set up we can clean this up.
- */
 
 int ip_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, unsigned int optlen)
 {
@@ -1251,10 +1180,6 @@ int ip_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, unsi
 		rtnl_unlock();
 		return ret;
 
-		/*
-		 *	Manipulate the forwarding caches. These live
-		 *	in a sort of kernel/user symbiosis.
-		 */
 	case MRT_ADD_MFC:
 	case MRT_DEL_MFC:
 		if (optlen != sizeof(mfc))
@@ -1269,9 +1194,6 @@ int ip_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, unsi
 					   sk == rtnl_dereference(mrt->mroute_sk));
 		rtnl_unlock();
 		return ret;
-		/*
-		 *	Control PIM assert.
-		 */
 	case MRT_ASSERT:
 	{
 		int v;
@@ -1322,18 +1244,11 @@ int ip_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, unsi
 		return ret;
 	}
 #endif
-	/*
-	 *	Spurious command, or MRT_VERSION which you cannot
-	 *	set.
-	 */
 	default:
 		return -ENOPROTOOPT;
 	}
 }
 
-/*
- *	Getsock opt support for the multicast routing system.
- */
 
 int ip_mroute_getsockopt(struct sock *sk, int optname, char __user *optval, int __user *optlen)
 {
@@ -1375,9 +1290,6 @@ int ip_mroute_getsockopt(struct sock *sk, int optname, char __user *optval, int 
 	return 0;
 }
 
-/*
- *	The IP multicast ioctl support routines.
- */
 
 int ipmr_ioctl(struct sock *sk, int cmd, void __user *arg)
 {
@@ -1446,7 +1358,7 @@ struct compat_sioc_sg_req {
 };
 
 struct compat_sioc_vif_req {
-	vifi_t	vifi;		/* Which iface */
+	vifi_t	vifi;		
 	compat_ulong_t icount;
 	compat_ulong_t ocount;
 	compat_ulong_t ibytes;
@@ -1538,11 +1450,6 @@ static struct notifier_block ip_mr_notifier = {
 	.notifier_call = ipmr_device_event,
 };
 
-/*
- *	Encapsulate a packet by attaching a valid IPIP header to it.
- *	This avoids tunnel drivers and other mess and gives us the speed so
- *	important for multicast video.
- */
 
 static void ip_encap(struct sk_buff *skb, __be32 saddr, __be32 daddr)
 {
@@ -1582,9 +1489,6 @@ static inline int ipmr_forward_finish(struct sk_buff *skb)
 	return dst_output(skb);
 }
 
-/*
- *	Processing handlers for ipmr_forward
- */
 
 static void ipmr_queue_xmit(struct net *net, struct mr_table *mrt,
 			    struct sk_buff *skb, struct mfc_cache *c, int vifi)
@@ -1631,10 +1535,6 @@ static void ipmr_queue_xmit(struct net *net, struct mr_table *mrt,
 	dev = rt->dst.dev;
 
 	if (skb->len+encap > dst_mtu(&rt->dst) && (ntohs(iph->frag_off) & IP_DF)) {
-		/* Do not fragment multicasts. Alas, IPv4 does not
-		 * allow to send ICMP, so that packets will disappear
-		 * to blackhole.
-		 */
 
 		IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_FRAGFAILS);
 		ip_rt_put(rt);
@@ -1655,29 +1555,15 @@ static void ipmr_queue_xmit(struct net *net, struct mr_table *mrt,
 	skb_dst_set(skb, &rt->dst);
 	ip_decrease_ttl(ip_hdr(skb));
 
-	/* FIXME: forward and output firewalls used to be called here.
-	 * What do we do with netfilter? -- RR
-	 */
 	if (vif->flags & VIFF_TUNNEL) {
 		ip_encap(skb, vif->local, vif->remote);
-		/* FIXME: extra output firewall step used to be here. --RR */
+		
 		vif->dev->stats.tx_packets++;
 		vif->dev->stats.tx_bytes += skb->len;
 	}
 
 	IPCB(skb)->flags |= IPSKB_FORWARDED;
 
-	/*
-	 * RFC1584 teaches, that DVMRP/PIM router must deliver packets locally
-	 * not only before forwarding, but after forwarding on all output
-	 * interfaces. It is clear, if mrouter runs a multicasting
-	 * program, it should receive packets not depending to what interface
-	 * program is joined.
-	 * If we will not make it, the program will have to join on all
-	 * interfaces. On the other hand, multihoming host (or router, but
-	 * not mrouter) cannot join to more than one interface - it will
-	 * result in receiving multiple packets.
-	 */
 	NF_HOOK(NFPROTO_IPV4, NF_INET_FORWARD, skb, skb->dev, dev,
 		ipmr_forward_finish);
 	return;
@@ -1697,7 +1583,6 @@ static int ipmr_find_vif(struct mr_table *mrt, struct net_device *dev)
 	return ct;
 }
 
-/* "local" means that we should preserve one skb (for local delivery) */
 
 static int ip_mr_forward(struct net *net, struct mr_table *mrt,
 			 struct sk_buff *skb, struct mfc_cache *cache,
@@ -1710,24 +1595,10 @@ static int ip_mr_forward(struct net *net, struct mr_table *mrt,
 	cache->mfc_un.res.pkt++;
 	cache->mfc_un.res.bytes += skb->len;
 
-	/*
-	 * Wrong interface: drop packet and (maybe) send PIM assert.
-	 */
 	if (mrt->vif_table[vif].dev != skb->dev) {
 		int true_vifi;
 
 		if (rt_is_output_route(skb_rtable(skb))) {
-			/* It is our own packet, looped back.
-			 * Very complicated situation...
-			 *
-			 * The best workaround until routing daemons will be
-			 * fixed is not to redistribute packet, if it was
-			 * send through wrong interface. It means, that
-			 * multicast applications WILL NOT work for
-			 * (S,G), which have default multicast route pointing
-			 * to wrong oif. In any case, it is not a good
-			 * idea to use multicasting applications on router.
-			 */
 			goto dont_forward;
 		}
 
@@ -1735,11 +1606,6 @@ static int ip_mr_forward(struct net *net, struct mr_table *mrt,
 		true_vifi = ipmr_find_vif(mrt, skb->dev);
 
 		if (true_vifi >= 0 && mrt->mroute_do_assert &&
-		    /* pimsm uses asserts, when switching from RPT to SPT,
-		     * so that we cannot check that packet arrived on an oif.
-		     * It is bad, but otherwise we would need to move pretty
-		     * large chunk of pimd to kernel. Ough... --ANK
-		     */
 		    (mrt->mroute_do_pim ||
 		     cache->mfc_un.res.ttls[true_vifi] < 255) &&
 		    time_after(jiffies,
@@ -1753,9 +1619,6 @@ static int ip_mr_forward(struct net *net, struct mr_table *mrt,
 	mrt->vif_table[vif].pkt_in++;
 	mrt->vif_table[vif].bytes_in += skb->len;
 
-	/*
-	 *	Forward the frame
-	 */
 	for (ct = cache->mfc_un.res.maxvif - 1;
 	     ct >= cache->mfc_un.res.minvif; ct--) {
 		if (ip_hdr(skb)->ttl > cache->mfc_un.res.ttls[ct]) {
@@ -1808,10 +1671,6 @@ static struct mr_table *ipmr_rt_fib_lookup(struct net *net, struct sk_buff *skb)
 	return mrt;
 }
 
-/*
- *	Multicast packets for forwarding arrive here
- *	Called with rcu_read_lock();
- */
 
 int ip_mr_input(struct sk_buff *skb)
 {
@@ -1820,9 +1679,6 @@ int ip_mr_input(struct sk_buff *skb)
 	int local = skb_rtable(skb)->rt_flags & RTCF_LOCAL;
 	struct mr_table *mrt;
 
-	/* Packet is looped back after forward, it should not be
-	 * forwarded second time, but still can be delivered locally.
-	 */
 	if (IPCB(skb)->flags & IPSKB_FORWARDED)
 		goto dont_forward;
 
@@ -1836,12 +1692,6 @@ int ip_mr_input(struct sk_buff *skb)
 			if (ip_call_ra_chain(skb))
 				return 0;
 		} else if (ip_hdr(skb)->protocol == IPPROTO_IGMP) {
-			/* IGMPv1 (and broken IGMPv2 implementations sort of
-			 * Cisco IOS <= 11.2(8)) do not put router alert
-			 * option to IGMP packets destined to routable
-			 * groups. It is very bad, because it means
-			 * that we can forward NO IGMP messages.
-			 */
 			struct sock *mroute_sk;
 
 			mroute_sk = rcu_dereference(mrt->mroute_sk);
@@ -1853,12 +1703,9 @@ int ip_mr_input(struct sk_buff *skb)
 		    }
 	}
 
-	/* already under rcu_read_lock() */
+	
 	cache = ipmr_cache_find(mrt, ip_hdr(skb)->saddr, ip_hdr(skb)->daddr);
 
-	/*
-	 *	No usable cache entry
-	 */
 	if (cache == NULL) {
 		int vif;
 
@@ -1900,7 +1747,6 @@ dont_forward:
 }
 
 #ifdef CONFIG_IP_PIMSM
-/* called with rcu_read_lock() */
 static int __pim_rcv(struct mr_table *mrt, struct sk_buff *skb,
 		     unsigned int pimlen)
 {
@@ -1908,12 +1754,6 @@ static int __pim_rcv(struct mr_table *mrt, struct sk_buff *skb,
 	struct iphdr *encap;
 
 	encap = (struct iphdr *)(skb_transport_header(skb) + pimlen);
-	/*
-	 * Check that:
-	 * a. packet is really sent to a multicast group
-	 * b. packet is not a NULL-REGISTER
-	 * c. packet is not truncated
-	 */
 	if (!ipv4_is_multicast(encap->daddr) ||
 	    encap->tot_len == 0 ||
 	    ntohs(encap->tot_len) + pimlen > skb->len)
@@ -1943,9 +1783,6 @@ static int __pim_rcv(struct mr_table *mrt, struct sk_buff *skb,
 #endif
 
 #ifdef CONFIG_IP_PIMSM_V1
-/*
- * Handle IGMP messages of PIMv1
- */
 
 int pim_rcv_v1(struct sk_buff *skb)
 {
@@ -2009,7 +1846,7 @@ static int __ipmr_fill_mroute(struct mr_table *mrt, struct sk_buff *skb,
 	u8 *b = skb_tail_pointer(skb);
 	struct rtattr *mp_head;
 
-	/* If cache is unresolved, don't try to parse IIF and OIF */
+	
 	if (c->mfc_parent >= MAXVIFS)
 		return -ENOENT;
 
@@ -2186,10 +2023,6 @@ done:
 }
 
 #ifdef CONFIG_PROC_FS
-/*
- *	The /proc interfaces to multicast routing :
- *	/proc/net/ip_mr_cache & /proc/net/ip_mr_vif
- */
 struct ipmr_vif_iter {
 	struct seq_net_private p;
 	struct mr_table *mrt;
@@ -2375,7 +2208,7 @@ static void *ipmr_mfc_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 		return list_first_entry(it->cache, struct mfc_cache, list);
 	}
 
-	/* exhausted cache_array, show unresolved */
+	
 	rcu_read_unlock();
 	it->cache = &mrt->mfc_unres_queue;
 	it->ct = 0;
@@ -2433,9 +2266,6 @@ static int ipmr_mfc_seq_show(struct seq_file *seq, void *v)
 					   n, mfc->mfc_un.res.ttls[n]);
 			}
 		} else {
-			/* unresolved mfc_caches don't contain
-			 * pkt, bytes and wrong_if values
-			 */
 			seq_printf(seq, " %8lu %8lu %8lu", 0ul, 0ul, 0ul);
 		}
 		seq_putc(seq, '\n');
@@ -2473,9 +2303,6 @@ static const struct net_protocol pim_protocol = {
 #endif
 
 
-/*
- *	Setup for IP multicast routing
- */
 static int __net_init ipmr_net_init(struct net *net)
 {
 	int err;

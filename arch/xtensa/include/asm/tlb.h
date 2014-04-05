@@ -16,7 +16,6 @@
 
 #if (DCACHE_WAY_SIZE <= PAGE_SIZE)
 
-/* Note, read http://lkml.org/lkml/2004/1/15/6 */
 
 # define tlb_start_vma(tlb,vma)			do { } while (0)
 # define tlb_end_vma(tlb,vma)			do { } while (0)
@@ -44,4 +43,4 @@
 
 #define __pte_free_tlb(tlb, pte, address)	pte_free((tlb)->mm, pte)
 
-#endif	/* _XTENSA_TLB_H */
+#endif	

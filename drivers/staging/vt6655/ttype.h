@@ -31,7 +31,6 @@
 #define __TTYPE_H__
 
 
-/******* Common definitions and typedefs ***********************************/
 
 #ifndef TxInSleep
 #define TxInSleep
@@ -45,16 +44,8 @@
 #define Calcu_LinkQual
 #endif
 
-/****** Simple typedefs  ***************************************************/
 
-/* These lines assume that your compiler's longs are 32 bits and
- * shorts are 16 bits. It is already assumed that chars are 8 bits,
- * but it doesn't matter if they're signed or unsigned.
- */
 
-// QWORD is for those situation that we want
-// an 8-byte-aligned 8 byte long structure
-// which is NOT really a floating point number.
 typedef union tagUQuadWord {
     struct {
         unsigned int dwLowDword;
@@ -62,10 +53,9 @@ typedef union tagUQuadWord {
     } u;
     double      DoNotUseThisField;
 } UQuadWord;
-typedef UQuadWord       QWORD;          // 64-bit
+typedef UQuadWord       QWORD;          
 
-/****** Common pointer types ***********************************************/
 
 typedef QWORD *          PQWORD;
 
-#endif // __TTYPE_H__
+#endif 

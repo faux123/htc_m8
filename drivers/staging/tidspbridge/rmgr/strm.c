@@ -18,77 +18,54 @@
 
 #include <linux/types.h>
 
-/*  ----------------------------------- Host OS */
 #include <dspbridge/host_os.h>
 
-/*  ----------------------------------- DSP/BIOS Bridge */
 #include <dspbridge/dbdefs.h>
 
-/*  ----------------------------------- OS Adaptation Layer */
 #include <dspbridge/sync.h>
 
-/*  ----------------------------------- Bridge Driver */
 #include <dspbridge/dspdefs.h>
 
-/*  ----------------------------------- Resource Manager */
 #include <dspbridge/nodepriv.h>
 
-/*  ----------------------------------- Others */
 #include <dspbridge/cmm.h>
 
-/*  ----------------------------------- This */
 #include <dspbridge/strm.h>
 
 #include <dspbridge/resourcecleanup.h>
 
-/*  ----------------------------------- Defines, Data Structures, Typedefs */
 #define DEFAULTTIMEOUT      10000
 #define DEFAULTNUMBUFS      2
 
-/*
- *  ======== strm_mgr ========
- *  The strm_mgr contains device information needed to open the underlying
- *  channels of a stream.
- */
 struct strm_mgr {
-	struct dev_object *dev_obj;	/* Device for this processor */
-	struct chnl_mgr *chnl_mgr;	/* Channel manager */
-	/* Function interface to Bridge driver */
+	struct dev_object *dev_obj;	
+	struct chnl_mgr *chnl_mgr;	
+	
 	struct bridge_drv_interface *intf_fxns;
 };
 
-/*
- *  ======== strm_object ========
- *  This object is allocated in strm_open().
- */
 struct strm_object {
 	struct strm_mgr *strm_mgr_obj;
 	struct chnl_object *chnl_obj;
-	u32 dir;		/* DSP_TONODE or DSP_FROMNODE */
+	u32 dir;		
 	u32 timeout;
-	u32 num_bufs;		/* Max # of bufs allowed in stream */
-	u32 bufs_in_strm;	/* Current # of bufs in stream */
-	u32 bytes;		/* bytes transferred since idled */
-	/* STREAM_IDLE, STREAM_READY, ... */
+	u32 num_bufs;		
+	u32 bufs_in_strm;	
+	u32 bytes;		
+	
 	enum dsp_streamstate strm_state;
-	void *user_event;	/* Saved for strm_get_info() */
-	enum dsp_strmmode strm_mode;	/* STRMMODE_[PROCCOPY][ZEROCOPY]... */
-	u32 dma_chnl_id;	/* DMA chnl id */
-	u32 dma_priority;	/* DMA priority:DMAPRI_[LOW][HIGH] */
-	u32 segment_id;		/* >0 is SM segment.=0 is local heap */
-	u32 buf_alignment;	/* Alignment for stream bufs */
-	/* Stream's SM address translator */
+	void *user_event;	
+	enum dsp_strmmode strm_mode;	
+	u32 dma_chnl_id;	
+	u32 dma_priority;	
+	u32 segment_id;		
+	u32 buf_alignment;	
+	
 	struct cmm_xlatorobject *xlator;
 };
 
-/*  ----------------------------------- Function Prototypes */
 static int delete_strm(struct strm_object *stream_obj);
 
-/*
- *  ======== strm_allocate_buffer ========
- *  Purpose:
- *      Allocates buffers for a stream.
- */
 int strm_allocate_buffer(struct strm_res_object *strmres, u32 usize,
 				u8 **ap_buffer, u32 num_bufs,
 				struct process_context *pr_ctxt)
@@ -99,9 +76,6 @@ int strm_allocate_buffer(struct strm_res_object *strmres, u32 usize,
 	struct strm_object *stream_obj = strmres->stream;
 
 	if (stream_obj) {
-		/*
-		 * Allocate from segment specified at time of stream open.
-		 */
 		if (usize == 0)
 			status = -EINVAL;
 
@@ -133,11 +107,6 @@ func_end:
 	return status;
 }
 
-/*
- *  ======== strm_close ========
- *  Purpose:
- *      Close a stream opened with strm_open().
- */
 int strm_close(struct strm_res_object *strmres,
 		      struct process_context *pr_ctxt)
 {
@@ -149,8 +118,6 @@ int strm_close(struct strm_res_object *strmres,
 	if (!stream_obj) {
 		status = -EFAULT;
 	} else {
-		/* Have all buffers been reclaimed? If not, return
-		 * -EPIPE */
 		intf_fxns = stream_obj->strm_mgr_obj->intf_fxns;
 		status =
 		    (*intf_fxns->chnl_get_info) (stream_obj->chnl_obj,
@@ -172,11 +139,6 @@ func_end:
 	return status;
 }
 
-/*
- *  ======== strm_create ========
- *  Purpose:
- *      Create a STRM manager object.
- */
 int strm_create(struct strm_mgr **strm_man,
 		       struct dev_object *dev_obj)
 {
@@ -184,14 +146,14 @@ int strm_create(struct strm_mgr **strm_man,
 	int status = 0;
 
 	*strm_man = NULL;
-	/* Allocate STRM manager object */
+	
 	strm_mgr_obj = kzalloc(sizeof(struct strm_mgr), GFP_KERNEL);
 	if (strm_mgr_obj == NULL)
 		status = -ENOMEM;
 	else
 		strm_mgr_obj->dev_obj = dev_obj;
 
-	/* Get Channel manager and Bridge function interface */
+	
 	if (!status) {
 		status = dev_get_chnl_mgr(dev_obj, &(strm_mgr_obj->chnl_mgr));
 		if (!status) {
@@ -208,21 +170,11 @@ int strm_create(struct strm_mgr **strm_man,
 	return status;
 }
 
-/*
- *  ======== strm_delete ========
- *  Purpose:
- *      Delete the STRM Manager Object.
- */
 void strm_delete(struct strm_mgr *strm_mgr_obj)
 {
 	kfree(strm_mgr_obj);
 }
 
-/*
- *  ======== strm_free_buffer ========
- *  Purpose:
- *      Frees the buffers allocated for a stream.
- */
 int strm_free_buffer(struct strm_res_object *strmres, u8 ** ap_buffer,
 			    u32 num_bufs, struct process_context *pr_ctxt)
 {
@@ -248,11 +200,6 @@ int strm_free_buffer(struct strm_res_object *strmres, u8 ** ap_buffer,
 	return status;
 }
 
-/*
- *  ======== strm_get_info ========
- *  Purpose:
- *      Retrieves information about a stream.
- */
 int strm_get_info(struct strm_object *stream_obj,
 			 struct stream_info *stream_info,
 			 u32 stream_info_size)
@@ -260,13 +207,13 @@ int strm_get_info(struct strm_object *stream_obj,
 	struct bridge_drv_interface *intf_fxns;
 	struct chnl_info chnl_info_obj;
 	int status = 0;
-	void *virt_base = NULL;	/* NULL if no SM used */
+	void *virt_base = NULL;	
 
 	if (!stream_obj) {
 		status = -EFAULT;
 	} else {
 		if (stream_info_size < sizeof(struct stream_info)) {
-			/* size of users info */
+			
 			status = -EINVAL;
 		}
 	}
@@ -281,7 +228,7 @@ int strm_get_info(struct strm_object *stream_obj,
 		goto func_end;
 
 	if (stream_obj->xlator) {
-		/* We have a translator */
+		
 		cmm_xlator_info(stream_obj->xlator, (u8 **) &virt_base, 0,
 				stream_obj->segment_id, false);
 	}
@@ -291,10 +238,10 @@ int strm_get_info(struct strm_object *stream_obj,
 	stream_info->user_strm->number_bufs_allowed = stream_obj->num_bufs;
 	stream_info->user_strm->number_bufs_in_stream = chnl_info_obj.cio_cs +
 	    chnl_info_obj.cio_reqs;
-	/* # of bytes transferred since last call to DSPStream_Idle() */
+	
 	stream_info->user_strm->number_bytes = chnl_info_obj.bytes_tx;
 	stream_info->user_strm->sync_object_handle = chnl_info_obj.event_obj;
-	/* Determine stream state based on channel state and info */
+	
 	if (chnl_info_obj.state & CHNL_STATEEOS) {
 		stream_info->user_strm->ss_stream_state = STREAM_DONE;
 	} else {
@@ -311,11 +258,6 @@ func_end:
 	return status;
 }
 
-/*
- *  ======== strm_idle ========
- *  Purpose:
- *      Idles a particular stream.
- */
 int strm_idle(struct strm_object *stream_obj, bool flush_data)
 {
 	struct bridge_drv_interface *intf_fxns;
@@ -336,11 +278,6 @@ int strm_idle(struct strm_object *stream_obj, bool flush_data)
 	return status;
 }
 
-/*
- *  ======== strm_issue ========
- *  Purpose:
- *      Issues a buffer on a stream
- */
 int strm_issue(struct strm_object *stream_obj, u8 *pbuf, u32 ul_bytes,
 		      u32 ul_buf_size, u32 dw_arg)
 {
@@ -376,12 +313,6 @@ int strm_issue(struct strm_object *stream_obj, u8 *pbuf, u32 ul_bytes,
 	return status;
 }
 
-/*
- *  ======== strm_open ========
- *  Purpose:
- *      Open a stream for sending/receiving data buffers to/from a task or
- *      XDAIS socket node on the DSP.
- */
 int strm_open(struct node_object *hnode, u32 dir, u32 index,
 		     struct strm_attr *pattr,
 		     struct strm_res_object **strmres,
@@ -394,7 +325,7 @@ int strm_open(struct node_object *hnode, u32 dir, u32 index,
 	s8 chnl_mode;
 	struct chnl_attr chnl_attr_obj;
 	int status = 0;
-	struct cmm_object *hcmm_mgr = NULL;	/* Shared memory manager hndl */
+	struct cmm_object *hcmm_mgr = NULL;	
 
 	void *stream_res;
 
@@ -402,7 +333,7 @@ int strm_open(struct node_object *hnode, u32 dir, u32 index,
 	if (dir != DSP_TONODE && dir != DSP_FROMNODE) {
 		status = -EPERM;
 	} else {
-		/* Get the channel id from the node (set in node_connect()) */
+		
 		status = node_get_channel_id(hnode, dir, index, &ul_chnl_id);
 	}
 	if (!status)
@@ -438,14 +369,14 @@ int strm_open(struct node_object *hnode, u32 dir, u32 index,
 				strm_obj->timeout = DEFAULTTIMEOUT;
 				strm_obj->num_bufs = DEFAULTNUMBUFS;
 				strm_obj->strm_mode = STRMMODE_PROCCOPY;
-				strm_obj->segment_id = 0;	/* local mem */
+				strm_obj->segment_id = 0;	
 				strm_obj->buf_alignment = 0;
 				strm_obj->dma_chnl_id = 0;
 				strm_obj->dma_priority = 0;
 				chnl_attr_obj.uio_reqs = DEFAULTNUMBUFS;
 			}
 			chnl_attr_obj.reserved1 = NULL;
-			/* DMA chnl flush timeout */
+			
 			chnl_attr_obj.reserved2 = strm_obj->timeout;
 			chnl_attr_obj.event_obj = NULL;
 			if (pattr->user_event != NULL)
@@ -459,14 +390,14 @@ int strm_open(struct node_object *hnode, u32 dir, u32 index,
 	if ((pattr->virt_base == NULL) || !(pattr->virt_size > 0))
 		goto func_cont;
 
-	/* No System DMA */
-	/* Get the shared mem mgr for this streams dev object */
+	
+	
 	status = dev_get_cmm_mgr(strm_mgr_obj->dev_obj, &hcmm_mgr);
 	if (!status) {
-		/*Allocate a SM addr translator for this strm. */
+		
 		status = cmm_xlator_create(&strm_obj->xlator, hcmm_mgr, NULL);
 		if (!status) {
-			/*  Set translators Virt Addr attributes */
+			
 			status = cmm_xlator_info(strm_obj->xlator,
 						 (u8 **) &pattr->virt_base,
 						 pattr->virt_size,
@@ -475,7 +406,7 @@ int strm_open(struct node_object *hnode, u32 dir, u32 index,
 	}
 func_cont:
 	if (!status) {
-		/* Open channel */
+		
 		chnl_mode = (dir == DSP_TONODE) ?
 		    CHNL_MODETODSP : CHNL_MODEFROMDSP;
 		intf_fxns = strm_mgr_obj->intf_fxns;
@@ -484,19 +415,8 @@ func_cont:
 						      chnl_mode, ul_chnl_id,
 						      &chnl_attr_obj);
 		if (status) {
-			/*
-			 * over-ride non-returnable status codes so we return
-			 * something documented
-			 */
 			if (status != -ENOMEM && status !=
 			    -EINVAL && status != -EPERM) {
-				/*
-				 * We got a status that's not return-able.
-				 * Assert that we got something we were
-				 * expecting (-EFAULT isn't acceptable,
-				 * strm_mgr_obj->chnl_mgr better be valid or we
-				 * assert here), and then return -EPERM.
-				 */
 				status = -EPERM;
 			}
 		}
@@ -518,11 +438,6 @@ func_cont:
 	return status;
 }
 
-/*
- *  ======== strm_reclaim ========
- *  Purpose:
- *      Relcaims a buffer from a stream.
- */
 int strm_reclaim(struct strm_object *stream_obj, u8 ** buf_ptr,
 			u32 *nbytes, u32 *buff_size, u32 *pdw_arg)
 {
@@ -551,28 +466,21 @@ int strm_reclaim(struct strm_object *stream_obj, u8 ** buf_ptr,
 			if (CHNL_IS_TIMED_OUT(chnl_ioc_obj)) {
 				status = -ETIME;
 			} else {
-				/* Allow reclaims after idle to succeed */
+				
 				if (!CHNL_IS_IO_CANCELLED(chnl_ioc_obj))
 					status = -EPERM;
 
 			}
 		}
-		/* Translate zerocopy buffer if channel not canceled. */
+		
 		if (!status
 		    && (!CHNL_IS_IO_CANCELLED(chnl_ioc_obj))
 		    && (stream_obj->strm_mode == STRMMODE_ZEROCOPY)) {
-			/*
-			 *  This is a zero-copy channel so chnl_ioc_obj.buf
-			 *  contains the DSP address of SM. We need to
-			 *  translate it to a virtual address for the user
-			 *  thread to access.
-			 *  Note: Could add CMM_DSPPA2VA to CMM in the future.
-			 */
 			tmp_buf = cmm_xlator_translate(stream_obj->xlator,
 						       chnl_ioc_obj.buf,
 						       CMM_DSPPA2PA);
 			if (tmp_buf != NULL) {
-				/* now convert this GPP Pa to Va */
+				
 				tmp_buf = cmm_xlator_translate(stream_obj->
 							       xlator,
 							       tmp_buf,
@@ -592,11 +500,6 @@ func_end:
 	return status;
 }
 
-/*
- *  ======== strm_register_notify ========
- *  Purpose:
- *      Register to be notified on specific events for this stream.
- */
 int strm_register_notify(struct strm_object *stream_obj, u32 event_mask,
 				u32 notify_type, struct dsp_notification
 				* hnotification)
@@ -628,11 +531,6 @@ int strm_register_notify(struct strm_object *stream_obj, u32 event_mask,
 	return status;
 }
 
-/*
- *  ======== strm_select ========
- *  Purpose:
- *      Selects a ready stream.
- */
 int strm_select(struct strm_object **strm_tab, u32 strms,
 		       u32 *pmask, u32 utimeout)
 {
@@ -653,7 +551,7 @@ int strm_select(struct strm_object **strm_tab, u32 strms,
 	if (status)
 		goto func_end;
 
-	/* Determine which channels have IO ready */
+	
 	for (i = 0; i < strms; i++) {
 		intf_fxns = strm_tab[i]->strm_mgr_obj->intf_fxns;
 		status = (*intf_fxns->chnl_get_info) (strm_tab[i]->chnl_obj,
@@ -667,7 +565,7 @@ int strm_select(struct strm_object **strm_tab, u32 strms,
 		}
 	}
 	if (!status && utimeout > 0 && *pmask == 0) {
-		/* Non-zero timeout */
+		
 		sync_events = kmalloc(strms * sizeof(struct sync_object *),
 								GFP_KERNEL);
 
@@ -692,8 +590,6 @@ int strm_select(struct strm_object **strm_tab, u32 strms,
 			    sync_wait_on_multiple_events(sync_events, strms,
 							 utimeout, &index);
 			if (!status) {
-				/* Since we waited on the event, we have to
-				 * reset it */
 				sync_set_event(sync_events[index]);
 				*pmask = 1 << index;
 			}
@@ -705,11 +601,6 @@ func_end:
 	return status;
 }
 
-/*
- *  ======== delete_strm ========
- *  Purpose:
- *      Frees the resources allocated for a stream.
- */
 static int delete_strm(struct strm_object *stream_obj)
 {
 	struct bridge_drv_interface *intf_fxns;
@@ -718,12 +609,10 @@ static int delete_strm(struct strm_object *stream_obj)
 	if (stream_obj) {
 		if (stream_obj->chnl_obj) {
 			intf_fxns = stream_obj->strm_mgr_obj->intf_fxns;
-			/* Channel close can fail only if the channel handle
-			 * is invalid. */
 			status = (*intf_fxns->chnl_close)
 					(stream_obj->chnl_obj);
 		}
-		/* Free all SM address translator resources */
+		
 		kfree(stream_obj->xlator);
 		kfree(stream_obj);
 	} else {

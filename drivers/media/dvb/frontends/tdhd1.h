@@ -71,4 +71,4 @@ static int alps_tdhd1_204a_tuner_set_params(struct dvb_frontend *fe)
 	return 0;
 }
 
-#endif /* TDHD1_H */
+#endif 

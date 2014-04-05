@@ -8,11 +8,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * asm-x86/xcr.h
- *
- * Definitions for the eXtended Control Register instructions
- */
 
 #ifndef _ASM_X86_XCR_H
 #define _ASM_X86_XCR_H
@@ -28,7 +23,7 @@ static inline u64 xgetbv(u32 index)
 {
 	u32 eax, edx;
 
-	asm volatile(".byte 0x0f,0x01,0xd0" /* xgetbv */
+	asm volatile(".byte 0x0f,0x01,0xd0" 
 		     : "=a" (eax), "=d" (edx)
 		     : "c" (index));
 	return eax + ((u64)edx << 32);
@@ -39,11 +34,11 @@ static inline void xsetbv(u32 index, u64 value)
 	u32 eax = value;
 	u32 edx = value >> 32;
 
-	asm volatile(".byte 0x0f,0x01,0xd1" /* xsetbv */
+	asm volatile(".byte 0x0f,0x01,0xd1" 
 		     : : "a" (eax), "d" (edx), "c" (index));
 }
 
-# endif /* __ASSEMBLY__ */
-#endif /* __KERNEL__ */
+# endif 
+#endif 
 
-#endif /* _ASM_X86_XCR_H */
+#endif 

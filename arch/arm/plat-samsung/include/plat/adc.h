@@ -32,4 +32,4 @@ extern struct s3c_adc_client *
 
 extern void s3c_adc_release(struct s3c_adc_client *client);
 
-#endif /* __ASM_PLAT_ADC_H */
+#endif 

@@ -20,7 +20,6 @@
 #ifndef DEVDEFS_
 #define DEVDEFS_
 
-/* Bridge Device Object */
 struct dev_object;
 
-#endif /* DEVDEFS_ */
+#endif 

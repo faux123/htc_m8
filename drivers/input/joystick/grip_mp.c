@@ -32,20 +32,17 @@ MODULE_LICENSE("GPL");
 #endif
 
 #define GRIP_MAX_PORTS	4
-/*
- * Grip multiport state
- */
 
 struct grip_port {
 	struct input_dev *dev;
 	int mode;
 	int registered;
 
-	/* individual gamepad states */
+	
 	int buttons;
 	int xaxes;
 	int yaxes;
-	int dirty;     /* has the state been updated? */
+	int dirty;     
 };
 
 struct grip_mp {
@@ -55,34 +52,23 @@ struct grip_mp {
 	int bads;
 };
 
-/*
- * Multiport packet interpretation
- */
 
-#define PACKET_FULL          0x80000000       /* packet is full                        */
-#define PACKET_IO_FAST       0x40000000       /* 3 bits per gameport read              */
-#define PACKET_IO_SLOW       0x20000000       /* 1 bit per gameport read               */
-#define PACKET_MP_MORE       0x04000000       /* multiport wants to send more          */
-#define PACKET_MP_DONE       0x02000000       /* multiport done sending                */
+#define PACKET_FULL          0x80000000       
+#define PACKET_IO_FAST       0x40000000       
+#define PACKET_IO_SLOW       0x20000000       
+#define PACKET_MP_MORE       0x04000000       
+#define PACKET_MP_DONE       0x02000000       
 
-/*
- * Packet status code interpretation
- */
 
-#define IO_GOT_PACKET        0x0100           /* Got a packet                           */
-#define IO_MODE_FAST         0x0200           /* Used 3 data bits per gameport read     */
-#define IO_SLOT_CHANGE       0x0800           /* Multiport physical slot status changed */
-#define IO_DONE              0x1000           /* Multiport is done sending packets      */
-#define IO_RETRY             0x4000           /* Try again later to get packet          */
-#define IO_RESET             0x8000           /* Force multiport to resend all packets  */
+#define IO_GOT_PACKET        0x0100           
+#define IO_MODE_FAST         0x0200           
+#define IO_SLOT_CHANGE       0x0800           
+#define IO_DONE              0x1000           
+#define IO_RETRY             0x4000           
+#define IO_RESET             0x8000           
 
-/*
- * Gamepad configuration data.  Other 9-pin digital joystick devices
- * may work with the multiport, so this may not be an exhaustive list!
- * Commodore 64 joystick remains untested.
- */
 
-#define GRIP_INIT_DELAY         2000          /*  2 ms */
+#define GRIP_INIT_DELAY         2000          
 
 #define GRIP_MODE_NONE		0
 #define GRIP_MODE_RESET         1
@@ -106,15 +92,11 @@ static const int init_seq[] = {
 	1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1,
 	0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 };
 
-/* Maps multiport directional values to X,Y axis values (each axis encoded in 3 bits) */
 
 static const int axis_map[] = { 5, 9, 1, 5, 6, 10, 2, 6, 4, 8, 0, 4, 5, 9, 1, 5 };
 
 static int register_slot(int i, struct grip_mp *grip);
 
-/*
- * Returns whether an odd or even number of bits are on in pkt.
- */
 
 static int bit_parity(u32 pkt)
 {
@@ -126,10 +108,6 @@ static int bit_parity(u32 pkt)
 	return x & 1;
 }
 
-/*
- * Poll gameport; return true if all bits set in 'onbits' are on and
- * all bits set in 'offbits' are off.
- */
 
 static inline int poll_until(u8 onbits, u8 offbits, int u_sec, struct gameport* gp, u8 *data)
 {
@@ -146,31 +124,17 @@ static inline int poll_until(u8 onbits, u8 offbits, int u_sec, struct gameport* 
 	return 0;
 }
 
-/*
- * Gets a 28-bit packet from the multiport.
- *
- * After getting a packet successfully, commands encoded by sendcode may
- * be sent to the multiport.
- *
- * The multiport clock value is reflected in gameport bit B4.
- *
- * Returns a packet status code indicating whether packet is valid, the transfer
- * mode, and any error conditions.
- *
- * sendflags:      current I/O status
- * sendcode:   data to send to the multiport if sendflags is nonzero
- */
 
 static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *packet)
 {
-	u8  raw_data;            /* raw data from gameport */
-	u8  data_mask;           /* packet data bits from raw_data */
-	u32 pkt;                 /* packet temporary storage */
-	int bits_per_read;       /* num packet bits per gameport read */
-	int portvals = 0;        /* used for port value sanity check */
+	u8  raw_data;            
+	u8  data_mask;           
+	u32 pkt;                 
+	int bits_per_read;       
+	int portvals = 0;        
 	int i;
 
-	/* Gameport bits B0, B4, B5 should first be off, then B4 should come on. */
+	
 
 	*packet = 0;
 	raw_data = gameport_read(gameport);
@@ -179,10 +143,10 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 
 	for (i = 0; i < 64; i++) {
 		raw_data = gameport_read(gameport);
-		portvals |= 1 << ((raw_data >> 4) & 3); /* Demux B4, B5 */
+		portvals |= 1 << ((raw_data >> 4) & 3); 
 	}
 
-	if (portvals == 1) {                            /* B4, B5 off */
+	if (portvals == 1) {                            
 		raw_data = gameport_read(gameport);
 		portvals = raw_data & 0xf0;
 
@@ -195,23 +159,23 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	} else
 		return IO_RETRY;
 
-	/* Determine packet transfer mode and prepare for packet construction. */
+	
 
-	if (raw_data & 0x20) {                 /* 3 data bits/read */
-		portvals |= raw_data >> 4;     /* Compare B4-B7 before & after trigger */
+	if (raw_data & 0x20) {                 
+		portvals |= raw_data >> 4;     
 
 		if (portvals != 0xb)
 			return 0;
 		data_mask = 7;
 		bits_per_read = 3;
 		pkt = (PACKET_FULL | PACKET_IO_FAST) >> 28;
-	} else {                                 /* 1 data bit/read */
+	} else {                                 
 		data_mask = 1;
 		bits_per_read = 1;
 		pkt = (PACKET_FULL | PACKET_IO_SLOW) >> 28;
 	}
 
-	/* Construct a packet.  Final data bits must be zero. */
+	
 
 	while (1) {
 		if (!poll_until(0, 0x10, 77, gameport, &raw_data))
@@ -229,7 +193,7 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	if (raw_data)
 		return IO_RESET;
 
-	/* If 3 bits/read used, drop from 30 bits to 28. */
+	
 
 	if (bits_per_read == 3) {
 		pkt = (pkt & 0xffff0000) | ((pkt << 1) & 0xffff);
@@ -239,7 +203,7 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	if (bit_parity(pkt) == 1)
 		return IO_RESET;
 
-	/* Acknowledge packet receipt */
+	
 
 	if (!poll_until(0x30, 0, 77, gameport, &raw_data))
 		return IO_RESET;
@@ -254,7 +218,7 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	if (!poll_until(0, 0x20, 77, gameport, &raw_data))
 		return IO_RESET;
 
-        /* Return if we just wanted the packet or multiport wants to send more */
+        
 
 	*packet = pkt;
 	if ((sendflags == 0) || ((sendflags & IO_RETRY) && !(pkt & PACKET_MP_DONE)))
@@ -263,7 +227,7 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	if (pkt & PACKET_MP_MORE)
 		return IO_GOT_PACKET | IO_RETRY;
 
-	/* Multiport is done sending packets and is ready to receive data */
+	
 
 	if (!poll_until(0x20, 0, 77, gameport, &raw_data))
 		return IO_GOT_PACKET | IO_RESET;
@@ -272,7 +236,7 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	if (raw_data & 1)
 		return IO_GOT_PACKET | IO_RESET;
 
-	/* Trigger gameport based on bits in sendcode */
+	
 
 	gameport_trigger(gameport);
 	do {
@@ -294,9 +258,6 @@ static int mp_io(struct gameport* gameport, int sendflags, int sendcode, u32 *pa
 	return IO_GOT_PACKET | IO_MODE_FAST;
 }
 
-/*
- * Disables and restores interrupts for mp_io(), which does the actual I/O.
- */
 
 static int multiport_io(struct gameport* gameport, int sendflags, int sendcode, u32 *packet)
 {
@@ -310,27 +271,22 @@ static int multiport_io(struct gameport* gameport, int sendflags, int sendcode, 
 	return status;
 }
 
-/*
- * Puts multiport into digital mode.  Multiport LED turns green.
- *
- * Returns true if a valid digital packet was received, false otherwise.
- */
 
 static int dig_mode_start(struct gameport *gameport, u32 *packet)
 {
 	int i;
 	int flags, tries = 0, bads = 0;
 
-	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {     /* Send magic sequence */
+	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {     
 		if (init_seq[i])
 			gameport_trigger(gameport);
 		udelay(GRIP_INIT_DELAY);
 	}
 
-	for (i = 0; i < 16; i++)            /* Wait for multiport to settle */
+	for (i = 0; i < 16; i++)            
 		udelay(GRIP_INIT_DELAY);
 
-	while (tries < 64 && bads < 8) {    /* Reset multiport and try getting a packet */
+	while (tries < 64 && bads < 8) {    
 
 		flags = multiport_io(gameport, IO_RESET, 0x27, packet);
 
@@ -345,15 +301,6 @@ static int dig_mode_start(struct gameport *gameport, u32 *packet)
 	return 0;
 }
 
-/*
- * Packet structure: B0-B15   => gamepad state
- *                   B16-B20  => gamepad device type
- *                   B21-B24  => multiport slot index (1-4)
- *
- * Known device types: 0x1f (grip pad), 0x0 (no device).  Others may exist.
- *
- * Returns the packet status.
- */
 
 static int get_and_decode_packet(struct grip_mp *grip, int flags)
 {
@@ -362,7 +309,7 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 	int joytype = 0;
 	int slot;
 
-	/* Get a packet and check for validity */
+	
 
 	flags &= IO_RESET | IO_RETRY;
 	flags = multiport_io(grip->gameport, flags, 0, &packet);
@@ -376,7 +323,7 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 		return flags;
 	}
 
-	/* Ignore non-gamepad packets, e.g. multiport hardware version */
+	
 
 	slot = ((packet >> 21) & 0xf) - 1;
 	if ((slot < 0) || (slot > 3))
@@ -384,10 +331,6 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 
 	port = grip->port[slot];
 
-	/*
-	 * Handle "reset" packets, which occur at startup, and when gamepads
-	 * are removed or plugged in.  May contain configuration of a new gamepad.
-	 */
 
 	joytype = (packet >> 16) & 0x1f;
 	if (!joytype) {
@@ -404,11 +347,11 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 		return flags;
 	}
 
-	/* Interpret a grip pad packet */
+	
 
 	if (joytype == 0x1f) {
 
-		int dir = (packet >> 8) & 0xf;          /* eight way directional value */
+		int dir = (packet >> 8) & 0xf;          
 		port->buttons = (~packet) & 0xff;
 		port->yaxes = ((axis_map[dir] >> 2) & 3) - 1;
 		port->xaxes = (axis_map[dir] & 3) - 1;
@@ -429,7 +372,7 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 		return flags;
 	}
 
-	/* Handle non-grip device codes.  For now, just print diagnostics. */
+	
 
 	{
 		static int strange_code = 0;
@@ -442,9 +385,6 @@ static int get_and_decode_packet(struct grip_mp *grip, int flags)
 	return flags;
 }
 
-/*
- * Returns true if all multiport slot states appear valid.
- */
 
 static int slots_valid(struct grip_mp *grip)
 {
@@ -461,18 +401,14 @@ static int slots_valid(struct grip_mp *grip)
 			active = 1;
 	}
 
-	/* Return true if no active slot but multiport sent all its data */
+	
 	if (!active)
 		return (flags & IO_DONE) ? 1 : 0;
 
-	/* Return false if invalid device code received */
+	
 	return invalid ? 0 : 1;
 }
 
-/*
- * Returns whether the multiport was placed into digital mode and
- * able to communicate its state successfully.
- */
 
 static int multiport_init(struct grip_mp *grip)
 {
@@ -492,7 +428,7 @@ static int multiport_init(struct grip_mp *grip)
 		return 0;
 	}
 
-	/* Get packets, store multiport state, and check state's validity */
+	
 	for (tries = 0; tries < 4096; tries++) {
 		if (slots_valid(grip)) {
 			initialized = 1;
@@ -503,35 +439,29 @@ static int multiport_init(struct grip_mp *grip)
 	return initialized;
 }
 
-/*
- * Reports joystick state to the linux input layer.
- */
 
 static void report_slot(struct grip_mp *grip, int slot)
 {
 	struct grip_port *port = grip->port[slot];
 	int i;
 
-	/* Store button states with linux input driver */
+	
 
 	for (i = 0; i < 8; i++)
 		input_report_key(port->dev, grip_btn_gp[i], (port->buttons >> i) & 1);
 
-	/* Store axis states with linux driver */
+	
 
 	input_report_abs(port->dev, ABS_X, port->xaxes);
 	input_report_abs(port->dev, ABS_Y, port->yaxes);
 
-	/* Tell the receiver of the events to process them */
+	
 
 	input_sync(port->dev);
 
 	port->dirty = 0;
 }
 
-/*
- * Get the multiport state.
- */
 
 static void grip_poll(struct gameport *gameport)
 {
@@ -554,9 +484,6 @@ static void grip_poll(struct gameport *gameport)
 			report_slot(grip, i);
 }
 
-/*
- * Called when a joystick device file is opened
- */
 
 static int grip_open(struct input_dev *dev)
 {
@@ -566,9 +493,6 @@ static int grip_open(struct input_dev *dev)
 	return 0;
 }
 
-/*
- * Called when a joystick device file is closed
- */
 
 static void grip_close(struct input_dev *dev)
 {
@@ -577,9 +501,6 @@ static void grip_close(struct input_dev *dev)
 	gameport_stop_polling(grip->gameport);
 }
 
-/*
- * Tell the linux input layer about a newly plugged-in gamepad.
- */
 
 static int register_slot(int slot, struct grip_mp *grip)
 {
@@ -621,7 +542,7 @@ static int register_slot(int slot, struct grip_mp *grip)
 
 	port->registered = 1;
 
-	if (port->dirty)	            /* report initial state, if any */
+	if (port->dirty)	            
 		report_slot(grip, slot);
 
 	return 0;
@@ -652,7 +573,7 @@ static int grip_connect(struct gameport *gameport, struct gameport_driver *drv)
 	}
 
 	if (!grip->port[0]->mode && !grip->port[1]->mode && !grip->port[2]->mode && !grip->port[3]->mode) {
-		/* nothing plugged in */
+		
 		err = -ENODEV;
 		goto fail2;
 	}

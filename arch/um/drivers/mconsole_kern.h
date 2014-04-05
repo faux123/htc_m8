@@ -14,7 +14,6 @@ struct mconsole_entry {
 	struct mc_request request;
 };
 
-/* All these methods are called in process context. */
 struct mc_device {
 	struct list_head list;
 	char *name;

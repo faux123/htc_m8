@@ -29,11 +29,6 @@
 static DEFINE_SPINLOCK(mmu_context_lock);
 static DEFINE_IDA(mmu_context_ida);
 
-/*
- * The proto-VSID space has 2^35 - 1 segments available for user mappings.
- * Each segment contains 2^28 bytes.  Each context maps 2^44 bytes,
- * so we can support 2^19-1 contexts (19 == 35 + 28 - 44).
- */
 #define MAX_CONTEXT	((1UL << 19) - 1)
 
 int __init_new_context(void)
@@ -73,10 +68,6 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 	if (index < 0)
 		return index;
 
-	/* The old code would re-promote on fork, we don't do that
-	 * when using slices as it could cause problem promoting slices
-	 * that have been forced down to 4K
-	 */
 	if (slice_mm_new_context(mm))
 		slice_set_user_psize(mm, mmu_virtual_psize);
 	subpage_prot_init_new_context(mm);
@@ -90,7 +81,7 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 		return -ENOMEM;
 	}
 	spin_lock_init(mm->context.cop_lockp);
-#endif /* CONFIG_PPC_ICSWX */
+#endif 
 
 	return 0;
 }
@@ -109,7 +100,7 @@ void destroy_context(struct mm_struct *mm)
 	drop_cop(mm->context.acop, mm);
 	kfree(mm->context.cop_lockp);
 	mm->context.cop_lockp = NULL;
-#endif /* CONFIG_PPC_ICSWX */
+#endif 
 	__destroy_context(mm->context.id);
 	subpage_prot_free(mm);
 	mm->context.id = MMU_NO_CONTEXT;

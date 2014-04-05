@@ -68,9 +68,6 @@
 #define MPT_DEBUG_TARGET_MODE		0x00100000
 
 
-/*
- * CONFIG_SCSI_MPT2SAS_LOGGING - enabled in Kconfig
- */
 
 #ifdef CONFIG_SCSI_MPT2SAS_LOGGING
 #define MPT_CHECK_LOGGING(IOC, CMD, BITS)			\
@@ -80,12 +77,9 @@
 }
 #else
 #define MPT_CHECK_LOGGING(IOC, CMD, BITS)
-#endif /* CONFIG_SCSI_MPT2SAS_LOGGING */
+#endif 
 
 
-/*
- * debug macros
- */
 
 #define dprintk(IOC, CMD)			\
 	MPT_CHECK_LOGGING(IOC, CMD, MPT_DEBUG)
@@ -153,13 +147,7 @@
 #define dTMprintk(IOC, CMD)			\
 	MPT_CHECK_LOGGING(IOC, CMD, MPT_DEBUG_TARGET_MODE)
 
-/* inline functions for dumping debug data*/
 #ifdef CONFIG_SCSI_MPT2SAS_LOGGING
-/**
- * _debug_dump_mf - print message frame contents
- * @mpi_request: pointer to message frame
- * @sz: number of dwords
- */
 static inline void
 _debug_dump_mf(void *mpi_request, int sz)
 {
@@ -176,6 +164,6 @@ _debug_dump_mf(void *mpi_request, int sz)
 }
 #else
 #define _debug_dump_mf(mpi_request, sz)
-#endif /* CONFIG_SCSI_MPT2SAS_LOGGING */
+#endif 
 
-#endif /* MPT2SAS_DEBUG_H_INCLUDED */
+#endif 

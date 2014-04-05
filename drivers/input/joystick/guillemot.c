@@ -2,9 +2,6 @@
  *  Copyright (c) 2001 Vojtech Pavlik
  */
 
-/*
- * Guillemot Digital Interface Protocol driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -41,9 +38,9 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-#define GUILLEMOT_MAX_START	600	/* 600 us */
-#define GUILLEMOT_MAX_STROBE	60	/* 60 us */
-#define GUILLEMOT_MAX_LENGTH	17	/* 17 bytes */
+#define GUILLEMOT_MAX_START	600	
+#define GUILLEMOT_MAX_STROBE	60	
+#define GUILLEMOT_MAX_LENGTH	17	
 
 static short guillemot_abs_pad[] =
 	{ ABS_X, ABS_Y, ABS_THROTTLE, ABS_RUDDER, -1 };
@@ -78,9 +75,6 @@ static struct guillemot_type guillemot_type[] = {
 	{ 0x00, guillemot_abs_pad, guillemot_btn_pad, 1, "Guillemot Pad" },
 	{ 0 }};
 
-/*
- * guillemot_read_packet() reads Guillemot joystick data.
- */
 
 static int guillemot_read_packet(struct gameport *gameport, u8 *data)
 {
@@ -115,9 +109,6 @@ static int guillemot_read_packet(struct gameport *gameport, u8 *data)
 	return i;
 }
 
-/*
- * guillemot_poll() reads and analyzes Guillemot joystick data.
- */
 
 static void guillemot_poll(struct gameport *gameport)
 {
@@ -148,9 +139,6 @@ static void guillemot_poll(struct gameport *gameport)
 	input_sync(dev);
 }
 
-/*
- * guillemot_open() is a callback from the input open routine.
- */
 
 static int guillemot_open(struct input_dev *dev)
 {
@@ -160,9 +148,6 @@ static int guillemot_open(struct input_dev *dev)
 	return 0;
 }
 
-/*
- * guillemot_close() is a callback from the input close routine.
- */
 
 static void guillemot_close(struct input_dev *dev)
 {
@@ -171,9 +156,6 @@ static void guillemot_close(struct input_dev *dev)
 	gameport_stop_polling(guillemot->gameport);
 }
 
-/*
- * guillemot_connect() probes for Guillemot joysticks.
- */
 
 static int guillemot_connect(struct gameport *gameport, struct gameport_driver *drv)
 {

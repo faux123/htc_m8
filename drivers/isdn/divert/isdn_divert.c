@@ -16,72 +16,59 @@
 
 #include "isdn_divert.h"
 
-/**********************************/
-/* structure keeping calling info */
-/**********************************/
 struct call_struc
-{ isdn_ctrl ics; /* delivered setup + driver parameters */
-	ulong divert_id; /* Id delivered to user */
-	unsigned char akt_state; /* actual state */
-	char deflect_dest[35]; /* deflection destination */
-	struct timer_list timer; /* timer control structure */
-	char info[90]; /* device info output */
-	struct call_struc *next; /* pointer to next entry */
+{ isdn_ctrl ics; 
+	ulong divert_id; 
+	unsigned char akt_state; 
+	char deflect_dest[35]; 
+	struct timer_list timer; 
+	char info[90]; 
+	struct call_struc *next; 
 	struct call_struc *prev;
 };
 
 
-/********************************************/
-/* structure keeping deflection table entry */
-/********************************************/
 struct deflect_struc
 { struct deflect_struc *next, *prev;
-	divert_rule rule; /* used rule */
+	divert_rule rule; 
 };
 
 
-/*****************************************/
-/* variables for main diversion services */
-/*****************************************/
-/* diversion/deflection processes */
-static struct call_struc *divert_head = NULL; /* head of remembered entrys */
-static ulong next_id = 1; /* next info id */
+static struct call_struc *divert_head = NULL; 
+static ulong next_id = 1; 
 static struct deflect_struc *table_head = NULL;
 static struct deflect_struc *table_tail = NULL;
-static unsigned char extern_wait_max = 4; /* maximum wait in s for external process */
+static unsigned char extern_wait_max = 4; 
 
 DEFINE_SPINLOCK(divert_lock);
 
-/***************************/
-/* timer callback function */
-/***************************/
 static void deflect_timer_expire(ulong arg)
 {
 	unsigned long flags;
 	struct call_struc *cs = (struct call_struc *) arg;
 
 	spin_lock_irqsave(&divert_lock, flags);
-	del_timer(&cs->timer); /* delete active timer */
+	del_timer(&cs->timer); 
 	spin_unlock_irqrestore(&divert_lock, flags);
 
 	switch (cs->akt_state)
 	{ case DEFLECT_PROCEED:
-			cs->ics.command = ISDN_CMD_HANGUP; /* cancel action */
+			cs->ics.command = ISDN_CMD_HANGUP; 
 			divert_if.ll_cmd(&cs->ics);
 			spin_lock_irqsave(&divert_lock, flags);
-			cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+			cs->akt_state = DEFLECT_AUTODEL; 
 			cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 			add_timer(&cs->timer);
 			spin_unlock_irqrestore(&divert_lock, flags);
 			break;
 
 	case DEFLECT_ALERT:
-		cs->ics.command = ISDN_CMD_REDIR; /* protocol */
+		cs->ics.command = ISDN_CMD_REDIR; 
 		strlcpy(cs->ics.parm.setup.phone, cs->deflect_dest, sizeof(cs->ics.parm.setup.phone));
 		strcpy(cs->ics.parm.setup.eazmsn, "Testtext delayed");
 		divert_if.ll_cmd(&cs->ics);
 		spin_lock_irqsave(&divert_lock, flags);
-		cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+		cs->akt_state = DEFLECT_AUTODEL; 
 		cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 		add_timer(&cs->timer);
 		spin_unlock_irqrestore(&divert_lock, flags);
@@ -91,23 +78,19 @@ static void deflect_timer_expire(ulong arg)
 	default:
 		spin_lock_irqsave(&divert_lock, flags);
 		if (cs->prev)
-			cs->prev->next = cs->next; /* forward link */
+			cs->prev->next = cs->next; 
 		else
 			divert_head = cs->next;
 		if (cs->next)
-			cs->next->prev = cs->prev; /* back link */
+			cs->next->prev = cs->prev; 
 		spin_unlock_irqrestore(&divert_lock, flags);
 		kfree(cs);
 		return;
 
-	} /* switch */
-} /* deflect_timer_func */
+	} 
+} 
 
 
-/*****************************************/
-/* handle call forwarding de/activations */
-/* 0 = deact, 1 = act, 2 = interrogate   */
-/*****************************************/
 int cf_command(int drvid, int mode,
 	       u_char proc, char *msn,
 	       u_char service, char *fwd_nr, ulong *procid)
@@ -117,59 +100,59 @@ int cf_command(int drvid, int mode,
 	char *p, *ielenp, tmp[60];
 	struct call_struc *cs;
 
-	if (strchr(msn, '.')) return (-EINVAL); /* subaddress not allowed in msn */
+	if (strchr(msn, '.')) return (-EINVAL); 
 	if ((proc & 0x7F) > 2) return (-EINVAL);
 	proc &= 3;
 	p = tmp;
-	*p++ = 0x30; /* enumeration */
-	ielenp = p++; /* remember total length position */
-	*p++ = 0xa; /* proc tag */
-	*p++ = 1;   /* length */
-	*p++ = proc & 0x7F; /* procedure to de/activate/interrogate */
-	*p++ = 0xa; /* service tag */
-	*p++ = 1;   /* length */
-	*p++ = service; /* service to handle */
+	*p++ = 0x30; 
+	ielenp = p++; 
+	*p++ = 0xa; 
+	*p++ = 1;   
+	*p++ = proc & 0x7F; 
+	*p++ = 0xa; 
+	*p++ = 1;   
+	*p++ = service; 
 
 	if (mode == 1)
-	{ if (!*fwd_nr) return (-EINVAL); /* destination missing */
-		if (strchr(fwd_nr, '.')) return (-EINVAL); /* subaddress not allowed */
+	{ if (!*fwd_nr) return (-EINVAL); 
+		if (strchr(fwd_nr, '.')) return (-EINVAL); 
 		fwd_len = strlen(fwd_nr);
-		*p++ = 0x30; /* number enumeration */
-		*p++ = fwd_len + 2; /* complete forward to len */
-		*p++ = 0x80; /* fwd to nr */
-		*p++ = fwd_len; /* length of number */
-		strcpy(p, fwd_nr); /* copy number */
-		p += fwd_len; /* pointer beyond fwd */
-	} /* activate */
+		*p++ = 0x30; 
+		*p++ = fwd_len + 2; 
+		*p++ = 0x80; 
+		*p++ = fwd_len; 
+		strcpy(p, fwd_nr); 
+		p += fwd_len; 
+	} 
 
 	msnlen = strlen(msn);
-	*p++ = 0x80; /* msn number */
+	*p++ = 0x80; 
 	if (msnlen > 1)
-	{ *p++ = msnlen; /* length */
+	{ *p++ = msnlen; 
 		strcpy(p, msn);
 		p += msnlen;
 	}
 	else *p++ = 0;
 
-	*ielenp = p - ielenp - 1; /* set total IE length */
+	*ielenp = p - ielenp - 1; 
 
-	/* allocate mem for information struct */
+	
 	if (!(cs = kmalloc(sizeof(struct call_struc), GFP_ATOMIC)))
-		return (-ENOMEM); /* no memory */
+		return (-ENOMEM); 
 	init_timer(&cs->timer);
 	cs->info[0] = '\0';
 	cs->timer.function = deflect_timer_expire;
-	cs->timer.data = (ulong) cs; /* pointer to own structure */
+	cs->timer.data = (ulong) cs; 
 	cs->ics.driver = drvid;
-	cs->ics.command = ISDN_CMD_PROT_IO; /* protocol specific io */
-	cs->ics.arg = DSS1_CMD_INVOKE; /* invoke supplementary service */
-	cs->ics.parm.dss1_io.proc = (mode == 1) ? 7 : (mode == 2) ? 11 : 8; /* operation */
-	cs->ics.parm.dss1_io.timeout = 4000; /* from ETS 300 207-1 */
-	cs->ics.parm.dss1_io.datalen = p - tmp; /* total len */
-	cs->ics.parm.dss1_io.data = tmp; /* start of buffer */
+	cs->ics.command = ISDN_CMD_PROT_IO; 
+	cs->ics.arg = DSS1_CMD_INVOKE; 
+	cs->ics.parm.dss1_io.proc = (mode == 1) ? 7 : (mode == 2) ? 11 : 8; 
+	cs->ics.parm.dss1_io.timeout = 4000; 
+	cs->ics.parm.dss1_io.datalen = p - tmp; 
+	cs->ics.parm.dss1_io.data = tmp; 
 
 	spin_lock_irqsave(&divert_lock, flags);
-	cs->ics.parm.dss1_io.ll_id = next_id++; /* id for callback */
+	cs->ics.parm.dss1_io.ll_id = next_id++; 
 	spin_unlock_irqrestore(&divert_lock, flags);
 	*procid = cs->ics.parm.dss1_io.ll_id;
 
@@ -184,7 +167,7 @@ int cf_command(int drvid, int mode,
 		(mode != 1) ? "" : " 0 ",
 		(mode != 1) ? "" : fwd_nr);
 
-	retval = divert_if.ll_cmd(&cs->ics); /* execute command */
+	retval = divert_if.ll_cmd(&cs->ics); 
 
 	if (!retval)
 	{ cs->prev = NULL;
@@ -196,51 +179,48 @@ int cf_command(int drvid, int mode,
 	else
 		kfree(cs);
 	return (retval);
-} /* cf_command */
+} 
 
 
-/****************************************/
-/* handle a external deflection command */
-/****************************************/
 int deflect_extern_action(u_char cmd, ulong callid, char *to_nr)
 { struct call_struc *cs;
 	isdn_ctrl ic;
 	unsigned long flags;
 	int i;
 
-	if ((cmd & 0x7F) > 2) return (-EINVAL); /* invalid command */
-	cs = divert_head; /* start of parameter list */
+	if ((cmd & 0x7F) > 2) return (-EINVAL); 
+	cs = divert_head; 
 	while (cs)
-	{ if (cs->divert_id == callid) break; /* found */
+	{ if (cs->divert_id == callid) break; 
 		cs = cs->next;
-	} /* search entry */
-	if (!cs) return (-EINVAL); /* invalid callid */
+	} 
+	if (!cs) return (-EINVAL); 
 
 	ic.driver = cs->ics.driver;
 	ic.arg = cs->ics.arg;
 	i = -EINVAL;
-	if (cs->akt_state == DEFLECT_AUTODEL) return (i); /* no valid call */
+	if (cs->akt_state == DEFLECT_AUTODEL) return (i); 
 	switch (cmd & 0x7F)
-	{ case 0: /* hangup */
+	{ case 0: 
 			del_timer(&cs->timer);
 			ic.command = ISDN_CMD_HANGUP;
 			i = divert_if.ll_cmd(&ic);
 			spin_lock_irqsave(&divert_lock, flags);
-			cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+			cs->akt_state = DEFLECT_AUTODEL; 
 			cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 			add_timer(&cs->timer);
 			spin_unlock_irqrestore(&divert_lock, flags);
 			break;
 
-	case 1: /* alert */
+	case 1: 
 		if (cs->akt_state == DEFLECT_ALERT) return (0);
-		cmd &= 0x7F; /* never wait */
+		cmd &= 0x7F; 
 		del_timer(&cs->timer);
 		ic.command = ISDN_CMD_ALERT;
 		if ((i = divert_if.ll_cmd(&ic)))
 		{
 			spin_lock_irqsave(&divert_lock, flags);
-			cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+			cs->akt_state = DEFLECT_AUTODEL; 
 			cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 			add_timer(&cs->timer);
 			spin_unlock_irqrestore(&divert_lock, flags);
@@ -249,7 +229,7 @@ int deflect_extern_action(u_char cmd, ulong callid, char *to_nr)
 			cs->akt_state = DEFLECT_ALERT;
 		break;
 
-	case 2: /* redir */
+	case 2: 
 		del_timer(&cs->timer);
 		strlcpy(cs->ics.parm.setup.phone, to_nr, sizeof(cs->ics.parm.setup.phone));
 		strcpy(cs->ics.parm.setup.eazmsn, "Testtext manual");
@@ -257,7 +237,7 @@ int deflect_extern_action(u_char cmd, ulong callid, char *to_nr)
 		if ((i = divert_if.ll_cmd(&ic)))
 		{
 			spin_lock_irqsave(&divert_lock, flags);
-			cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+			cs->akt_state = DEFLECT_AUTODEL; 
 			cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 			add_timer(&cs->timer);
 			spin_unlock_irqrestore(&divert_lock, flags);
@@ -266,22 +246,19 @@ int deflect_extern_action(u_char cmd, ulong callid, char *to_nr)
 			cs->akt_state = DEFLECT_ALERT;
 		break;
 
-	} /* switch */
+	} 
 	return (i);
-} /* deflect_extern_action */
+} 
 
-/********************************/
-/* insert a new rule before idx */
-/********************************/
 int insertrule(int idx, divert_rule *newrule)
 { struct deflect_struc *ds, *ds1 = NULL;
 	unsigned long flags;
 
 	if (!(ds = kmalloc(sizeof(struct deflect_struc),
 			   GFP_KERNEL)))
-		return (-ENOMEM); /* no memory */
+		return (-ENOMEM); 
 
-	ds->rule = *newrule; /* set rule */
+	ds->rule = *newrule; 
 
 	spin_lock_irqsave(&divert_lock, flags);
 
@@ -295,29 +272,26 @@ int insertrule(int idx, divert_rule *newrule)
 	}
 
 	if (idx < 0)
-	{ ds->prev = table_tail; /* previous entry */
-		ds->next = NULL; /* end of chain */
+	{ ds->prev = table_tail; 
+		ds->next = NULL; 
 		if (ds->prev)
-			ds->prev->next = ds; /* last forward */
+			ds->prev->next = ds; 
 		else
-			table_head = ds; /* is first entry */
-		table_tail = ds; /* end of queue */
+			table_head = ds; 
+		table_tail = ds; 
 	}
 	else
-	{ ds->next = ds1; /* next entry */
-		ds->prev = ds1->prev; /* prev entry */
-		ds1->prev = ds; /* backward chain old element */
+	{ ds->next = ds1; 
+		ds->prev = ds1->prev; 
+		ds1->prev = ds; 
 		if (!ds->prev)
-			table_head = ds; /* first element */
+			table_head = ds; 
 	}
 
 	spin_unlock_irqrestore(&divert_lock, flags);
 	return (0);
-} /* insertrule */
+} 
 
-/***********************************/
-/* delete the rule at position idx */
-/***********************************/
 int deleterule(int idx)
 { struct deflect_struc *ds, *ds1;
 	unsigned long flags;
@@ -351,23 +325,20 @@ int deleterule(int idx)
 	}
 
 	if (ds->next)
-		ds->next->prev = ds->prev; /* backward chain */
+		ds->next->prev = ds->prev; 
 	else
-		table_tail = ds->prev; /* end of chain */
+		table_tail = ds->prev; 
 
 	if (ds->prev)
-		ds->prev->next = ds->next; /* forward chain */
+		ds->prev->next = ds->next; 
 	else
-		table_head = ds->next; /* start of chain */
+		table_head = ds->next; 
 
 	spin_unlock_irqrestore(&divert_lock, flags);
 	kfree(ds);
 	return (0);
-} /* deleterule */
+} 
 
-/*******************************************/
-/* get a pointer to a specific rule number */
-/*******************************************/
 divert_rule *getruleptr(int idx)
 { struct deflect_struc *ds = table_head;
 
@@ -380,11 +351,8 @@ divert_rule *getruleptr(int idx)
 		ds = ds->next;
 	}
 	return (NULL);
-} /* getruleptr */
+} 
 
-/*************************************************/
-/* called from common module on an incoming call */
-/*************************************************/
 static int isdn_divert_icall(isdn_ctrl *ic)
 { int retval = 0;
 	unsigned long flags;
@@ -393,51 +361,51 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 	char *p, *p1;
 	u_char accept;
 
-	/* first check the internal deflection table */
+	
 	for (dv = table_head; dv; dv = dv->next)
-	{ /* scan table */
+	{ 
 		if (((dv->rule.callopt == 1) && (ic->command == ISDN_STAT_ICALLW)) ||
 		    ((dv->rule.callopt == 2) && (ic->command == ISDN_STAT_ICALL)))
-			continue; /* call option check */
+			continue; 
 		if (!(dv->rule.drvid & (1L << ic->driver)))
-			continue; /* driver not matching */
+			continue; 
 		if ((dv->rule.si1) && (dv->rule.si1 != ic->parm.setup.si1))
-			continue; /* si1 not matching */
+			continue; 
 		if ((dv->rule.si2) && (dv->rule.si2 != ic->parm.setup.si2))
-			continue; /* si2 not matching */
+			continue; 
 
 		p = dv->rule.my_msn;
 		p1 = ic->parm.setup.eazmsn;
 		accept = 0;
 		while (*p)
-		{ /* complete compare */
+		{ 
 			if (*p == '-')
-			{ accept = 1; /* call accepted */
+			{ accept = 1; 
 				break;
 			}
 			if (*p++ != *p1++)
-				break; /* not accepted */
+				break; 
 			if ((!*p) && (!*p1))
 				accept = 1;
-		} /* complete compare */
-		if (!accept) continue; /* not accepted */
+		} 
+		if (!accept) continue; 
 
 		if ((strcmp(dv->rule.caller, "0")) || (ic->parm.setup.phone[0]))
 		{ p = dv->rule.caller;
 			p1 = ic->parm.setup.phone;
 			accept = 0;
 			while (*p)
-			{ /* complete compare */
+			{ 
 				if (*p == '-')
-				{ accept = 1; /* call accepted */
+				{ accept = 1; 
 					break;
 				}
 				if (*p++ != *p1++)
-					break; /* not accepted */
+					break; 
 				if ((!*p) && (!*p1))
 					accept = 1;
-			} /* complete compare */
-			if (!accept) continue; /* not accepted */
+			} 
+			if (!accept) continue; 
 		}
 
 		switch (dv->rule.action)
@@ -451,15 +419,15 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 		case DEFLECT_REJECT:
 			if (dv->rule.action == DEFLECT_PROCEED)
 				if ((!if_used) || ((!extern_wait_max) && (!dv->rule.waittime)))
-					return (0); /* no external deflection needed */
+					return (0); 
 			if (!(cs = kmalloc(sizeof(struct call_struc), GFP_ATOMIC)))
-				return (0); /* no memory */
+				return (0); 
 			init_timer(&cs->timer);
 			cs->info[0] = '\0';
 			cs->timer.function = deflect_timer_expire;
-			cs->timer.data = (ulong) cs; /* pointer to own structure */
+			cs->timer.data = (ulong) cs; 
 
-			cs->ics = *ic; /* copy incoming data */
+			cs->ics = *ic; 
 			if (!cs->ics.parm.setup.phone[0]) strcpy(cs->ics.parm.setup.phone, "0");
 			if (!cs->ics.parm.setup.eazmsn[0]) strcpy(cs->ics.parm.setup.eazmsn, "0");
 			cs->ics.parm.setup.screen = dv->rule.screen;
@@ -472,7 +440,7 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 					cs->timer.expires = 0;
 			cs->akt_state = dv->rule.action;
 			spin_lock_irqsave(&divert_lock, flags);
-			cs->divert_id = next_id++; /* new sequence number */
+			cs->divert_id = next_id++; 
 			spin_unlock_irqrestore(&divert_lock, flags);
 			cs->prev = NULL;
 			if (cs->akt_state == DEFLECT_ALERT)
@@ -481,16 +449,16 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 				{ strcpy(ic->parm.setup.eazmsn, "Testtext direct");
 					ic->parm.setup.screen = dv->rule.screen;
 					strlcpy(ic->parm.setup.phone, dv->rule.to_nr, sizeof(ic->parm.setup.phone));
-					cs->akt_state = DEFLECT_AUTODEL; /* delete after timeout */
+					cs->akt_state = DEFLECT_AUTODEL; 
 					cs->timer.expires = jiffies + (HZ * AUTODEL_TIME);
 					retval = 5;
 				}
 				else
-					retval = 1; /* alerting */
+					retval = 1; 
 			}
 			else
 			{ cs->deflect_dest[0] = '\0';
-				retval = 4; /* only proceed */
+				retval = 4; 
 			}
 			sprintf(cs->info, "%d 0x%lx %s %s %s %s 0x%x 0x%x %d %d %s\n",
 				cs->akt_state,
@@ -507,17 +475,17 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 			if ((dv->rule.action == DEFLECT_REPORT) ||
 			    (dv->rule.action == DEFLECT_REJECT))
 			{ put_info_buffer(cs->info);
-				kfree(cs); /* remove */
-				return ((dv->rule.action == DEFLECT_REPORT) ? 0 : 2); /* nothing to do */
+				kfree(cs); 
+				return ((dv->rule.action == DEFLECT_REPORT) ? 0 : 2); 
 			}
 			break;
 
 		default:
-			return (0); /* ignore call */
+			return (0); 
 			break;
-		} /* switch action */
+		} 
 		break;
-	} /* scan_table */
+	} 
 
 	if (cs)
 	{ cs->prev = NULL;
@@ -532,7 +500,7 @@ static int isdn_divert_icall(isdn_ctrl *ic)
 	}
 	else
 		return (0);
-} /* isdn_divert_icall */
+} 
 
 
 void deleteprocs(void)
@@ -549,20 +517,17 @@ void deleteprocs(void)
 		kfree(cs1);
 	}
 	spin_unlock_irqrestore(&divert_lock, flags);
-} /* deleteprocs */
+} 
 
-/****************************************************/
-/* put a address including address type into buffer */
-/****************************************************/
 static int put_address(char *st, u_char *p, int len)
 { u_char retval = 0;
-	u_char adr_typ = 0; /* network standard */
+	u_char adr_typ = 0; 
 
 	if (len < 2) return (retval);
 	if (*p == 0xA1)
-	{ retval = *(++p) + 2; /* total length */
-		if (retval > len) return (0); /* too short */
-		len = retval - 2; /* remaining length */
+	{ retval = *(++p) + 2; 
+		if (retval > len) return (0); 
+		len = retval - 2; 
 		if (len < 3) return (0);
 		if ((*(++p) != 0x0A) || (*(++p) != 1)) return (0);
 		adr_typ = *(++p);
@@ -570,18 +535,18 @@ static int put_address(char *st, u_char *p, int len)
 		p++;
 		if (len < 2) return (0);
 		if (*p++ != 0x12) return (0);
-		if (*p > len) return (0); /* check number length */
+		if (*p > len) return (0); 
 		len = *p++;
 	}
 	else
 		if (*p == 0x80)
-		{ retval = *(++p) + 2; /* total length */
+		{ retval = *(++p) + 2; 
 			if (retval > len) return (0);
 			len = retval - 2;
 			p++;
 		}
 		else
-			return (0); /* invalid address information */
+			return (0); 
 
 	sprintf(st, "%d ", adr_typ);
 	st += strlen(st);
@@ -592,11 +557,8 @@ static int put_address(char *st, u_char *p, int len)
 			*st++ = *p++;
 	*st = '\0';
 	return (retval);
-} /* put_address */
+} 
 
-/*************************************/
-/* report a successful interrogation */
-/*************************************/
 static int interrogate_success(isdn_ctrl *ic, struct call_struc *cs)
 { char *src = ic->parm.dss1_io.data;
 	int restlen = ic->parm.dss1_io.datalen;
@@ -604,10 +566,10 @@ static int interrogate_success(isdn_ctrl *ic, struct call_struc *cs)
 	u_char n, n1;
 	char st[90], *p, *stp;
 
-	if (restlen < 2) return (-100); /* frame too short */
+	if (restlen < 2) return (-100); 
 	if (*src++ != 0x30) return (-101);
-	if ((n = *src++) > 0x81) return (-102); /* invalid length field */
-	restlen -= 2; /* remaining bytes */
+	if ((n = *src++) > 0x81) return (-102); 
+	restlen -= 2; 
 	if (n == 0x80)
 	{ if (restlen < 2) return (-103);
 		if ((*(src + restlen - 1)) || (*(src + restlen - 2))) return (-104);
@@ -623,15 +585,15 @@ static int interrogate_success(isdn_ctrl *ic, struct call_struc *cs)
 		else
 			if (n > restlen) return (-106);
 			else
-				restlen = n; /* standard format */
-	if (restlen < 3) return (-107); /* no procedure */
+				restlen = n; 
+	if (restlen < 3) return (-107); 
 	if ((*src++ != 2) || (*src++ != 1) || (*src++ != 0x0B)) return (-108);
 	restlen -= 3;
-	if (restlen < 2) return (-109); /* list missing */
+	if (restlen < 2) return (-109); 
 	if (*src == 0x31)
 	{ src++;
-		if ((n = *src++) > 0x81) return (-110); /* invalid length field */
-		restlen -= 2; /* remaining bytes */
+		if ((n = *src++) > 0x81) return (-110); 
+		restlen -= 2; 
 		if (n == 0x80)
 		{ if (restlen < 2) return (-111);
 			if ((*(src + restlen - 1)) || (*(src + restlen - 2))) return (-112);
@@ -647,26 +609,26 @@ static int interrogate_success(isdn_ctrl *ic, struct call_struc *cs)
 			else
 				if (n > restlen) return (-114);
 				else
-					restlen = n; /* standard format */
-	} /* result list header */
+					restlen = n; 
+	} 
 
 	while (restlen >= 2)
 	{ stp = st;
 		sprintf(stp, "%d 0x%lx %d %s ", DIVERT_REPORT, ic->parm.dss1_io.ll_id,
 			cnt++, divert_if.drv_to_name(ic->driver));
 		stp += strlen(stp);
-		if (*src++ != 0x30) return (-115); /* invalid enum */
+		if (*src++ != 0x30) return (-115); 
 		n = *src++;
 		restlen -= 2;
-		if (n > restlen) return (-116); /* enum length wrong */
+		if (n > restlen) return (-116); 
 		restlen -= n;
-		p = src; /* one entry */
+		p = src; 
 		src += n;
 		if (!(n1 = put_address(stp, p, n & 0xFF))) continue;
 		stp += strlen(stp);
 		p += n1;
 		n -= n1;
-		if (n < 6) continue; /* no service and proc */
+		if (n < 6) continue; 
 		if ((*p++ != 0x0A) || (*p++ != 1)) continue;
 		sprintf(stp, " 0x%02x ", (*p++) & 0xFF);
 		stp += strlen(stp);
@@ -683,20 +645,17 @@ static int interrogate_success(isdn_ctrl *ic, struct call_struc *cs)
 		}
 		sprintf(stp, "\n");
 		put_info_buffer(st);
-	} /* while restlen */
+	} 
 	if (restlen) return (-117);
 	return (0);
-} /* interrogate_success */
+} 
 
-/*********************************************/
-/* callback for protocol specific extensions */
-/*********************************************/
 static int prot_stat_callback(isdn_ctrl *ic)
 { struct call_struc *cs, *cs1;
 	int i;
 	unsigned long flags;
 
-	cs = divert_head; /* start of list */
+	cs = divert_head; 
 	cs1 = NULL;
 	while (cs)
 	{ if (ic->driver == cs->ics.driver)
@@ -739,10 +698,10 @@ static int prot_stat_callback(isdn_ctrl *ic)
 							printk(KERN_WARNING "dss1_divert unknown invoke answer %lx\n", ic->arg);
 							break;
 						}
-						cs1 = cs; /* remember structure */
+						cs1 = cs; 
 						cs = NULL;
-						continue; /* abort search */
-					} /* id found */
+						continue; 
+					} 
 					break;
 
 			case DSS1_CMD_INVOKE_ABORT:
@@ -752,9 +711,9 @@ static int prot_stat_callback(isdn_ctrl *ic)
 			default:
 				printk(KERN_WARNING "dss1_divert unknown cmd 0x%lx\n", cs->ics.arg);
 				break;
-			} /* switch ics.arg */
+			} 
 			cs = cs->next;
-		} /* driver ok */
+		} 
 	}
 
 	if (!cs1)
@@ -767,29 +726,26 @@ static int prot_stat_callback(isdn_ctrl *ic)
 		spin_lock_irqsave(&divert_lock, flags);
 		del_timer(&cs1->timer);
 		if (cs1->prev)
-			cs1->prev->next = cs1->next; /* forward link */
+			cs1->prev->next = cs1->next; 
 		else
 			divert_head = cs1->next;
 		if (cs1->next)
-			cs1->next->prev = cs1->prev; /* back link */
+			cs1->next->prev = cs1->prev; 
 		spin_unlock_irqrestore(&divert_lock, flags);
 		kfree(cs1);
 	}
 
 	return (0);
-} /* prot_stat_callback */
+} 
 
 
-/***************************/
-/* status callback from HL */
-/***************************/
 static int isdn_divert_stat_callback(isdn_ctrl *ic)
 { struct call_struc *cs, *cs1;
 	unsigned long flags;
 	int retval;
 
 	retval = -1;
-	cs = divert_head; /* start of list */
+	cs = divert_head; 
 	while (cs)
 	{ if ((ic->driver == cs->ics.driver) && (ic->arg == cs->ics.arg))
 		{ switch (ic->command)
@@ -822,22 +778,19 @@ static int isdn_divert_stat_callback(isdn_ctrl *ic)
 		{
 			spin_lock_irqsave(&divert_lock, flags);
 			if (cs1->prev)
-				cs1->prev->next = cs1->next; /* forward link */
+				cs1->prev->next = cs1->next; 
 			else
 				divert_head = cs1->next;
 			if (cs1->next)
-				cs1->next->prev = cs1->prev; /* back link */
+				cs1->next->prev = cs1->prev; 
 			spin_unlock_irqrestore(&divert_lock, flags);
 			kfree(cs1);
 		}
 	}
-	return (retval); /* not found */
-} /* isdn_divert_stat_callback */
+	return (retval); 
+} 
 
 
-/********************/
-/* callback from ll */
-/********************/
 int ll_callback(isdn_ctrl *ic)
 {
 	switch (ic->command)
@@ -851,12 +804,12 @@ int ll_callback(isdn_ctrl *ic)
 		{ if (ic->arg != DSS1_STAT_INVOKE_BRD)
 				return (prot_stat_callback(ic));
 			else
-				return (0); /* DSS1 invoke broadcast */
+				return (0); 
 		}
 		else
-			return (-1); /* protocol not euro */
+			return (-1); 
 
 	default:
 		return (isdn_divert_stat_callback(ic));
 	}
-} /* ll_callback */
+} 

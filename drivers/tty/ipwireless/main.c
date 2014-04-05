@@ -42,10 +42,6 @@ MODULE_DEVICE_TABLE(pcmcia, ipw_ids);
 
 static void ipwireless_detach(struct pcmcia_device *link);
 
-/*
- * Module params
- */
-/* Debug mode: more verbose, print sent/recv bytes */
 int ipwireless_debug;
 int ipwireless_loopback;
 int ipwireless_out_queue = 10;
@@ -58,7 +54,6 @@ MODULE_PARM_DESC(loopback,
 		"debug: enable ras_raw channel [0]");
 MODULE_PARM_DESC(out_queue, "debug: set size of outgoing PPP queue [10]");
 
-/* Executes in process context. */
 static void signalled_reboot_work(struct work_struct *work_reboot)
 {
 	struct ipw_dev *ipw = container_of(work_reboot, struct ipw_dev,
@@ -71,7 +66,7 @@ static void signalled_reboot_callback(void *callback_data)
 {
 	struct ipw_dev *ipw = (struct ipw_dev *) callback_data;
 
-	/* Delegate to process context. */
+	
 	schedule_work(&ipw->work_reboot);
 }
 
@@ -83,8 +78,8 @@ static int ipwireless_probe(struct pcmcia_device *p_dev, void *priv_data)
 	p_dev->resource[0]->flags &= ~IO_DATA_PATH_WIDTH;
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 
-	/* 0x40 causes it to generate level mode interrupts. */
-	/* 0x04 enables IREQ pin. */
+	
+	
 	p_dev->config_index |= 0x44;
 	p_dev->io_lines = 16;
 	ret = pcmcia_request_io(p_dev);
@@ -122,7 +117,7 @@ static int ipwireless_probe(struct pcmcia_device *p_dev, void *priv_data)
 
 	p_dev->resource[3]->flags |= WIN_DATA_WIDTH_16 | WIN_MEMORY_TYPE_AM |
 					WIN_ENABLE;
-	p_dev->resource[3]->end = 0; /* this used to be 0x1000 */
+	p_dev->resource[3]->end = 0; 
 	ret = pcmcia_request_window(p_dev, p_dev->resource[3], 0);
 	if (ret != 0)
 		goto exit3;
@@ -202,10 +197,6 @@ static int config_ipwireless(struct ipw_dev *ipw)
 
 	ipwireless_init_hardware_v2_v3(ipw->hardware);
 
-	/*
-	 * Do the RequestConfiguration last, because it enables interrupts.
-	 * Then we don't get any interrupts before we're ready for them.
-	 */
 	ret = pcmcia_enable_device(link);
 	if (ret != 0)
 		goto exit;
@@ -244,15 +235,6 @@ static void release_ipwireless(struct ipw_dev *ipw)
 	pcmcia_disable_device(ipw->link);
 }
 
-/*
- * ipwireless_attach() creates an "instance" of the driver, allocating
- * local data structures for one device (one interface).  The device
- * is registered with Card Services.
- *
- * The pcmcia_device structure is initialized, but we don't actually
- * configure the card at this point -- we wait until we receive a
- * card insertion event.
- */
 static int ipwireless_attach(struct pcmcia_device *link)
 {
 	struct ipw_dev *ipw;
@@ -270,7 +252,7 @@ static int ipwireless_attach(struct pcmcia_device *link)
 		kfree(ipw);
 		return -ENOMEM;
 	}
-	/* RegisterClient will call config_ipwireless */
+	
 
 	ret = config_ipwireless(ipw);
 
@@ -282,12 +264,6 @@ static int ipwireless_attach(struct pcmcia_device *link)
 	return 0;
 }
 
-/*
- * This deletes a driver "instance".  The device is de-registered with
- * Card Services.  If it has been released, all local data structures
- * are freed.  Otherwise, the structures will be freed when the device
- * is released.
- */
 static void ipwireless_detach(struct pcmcia_device *link)
 {
 	struct ipw_dev *ipw = link->priv;
@@ -311,10 +287,6 @@ static struct pcmcia_driver me = {
 	.id_table       = ipw_ids
 };
 
-/*
- * Module insertion : initialisation of the module.
- * Register the card with cardmgr...
- */
 static int __init init_ipwireless(void)
 {
 	int ret;
@@ -330,9 +302,6 @@ static int __init init_ipwireless(void)
 	return ret;
 }
 
-/*
- * Module removal
- */
 static void __exit exit_ipwireless(void)
 {
 	pcmcia_unregister_driver(&me);

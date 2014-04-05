@@ -22,10 +22,6 @@
 #include <drm/drmP.h>
 #include "psb_intel_drv.h"
 
-/**
- * psb_intel_ddc_probe
- *
- */
 bool psb_intel_ddc_probe(struct i2c_adapter *adapter)
 {
 	u8 out_buf[] = { 0x0, 0x0 };
@@ -53,12 +49,6 @@ bool psb_intel_ddc_probe(struct i2c_adapter *adapter)
 	return false;
 }
 
-/**
- * psb_intel_ddc_get_modes - get modelist from monitor
- * @connector: DRM connector device to use
- *
- * Fetch the EDID information from @connector using the DDC bus.
- */
 int psb_intel_ddc_get_modes(struct drm_connector *connector,
 			    struct i2c_adapter *adapter)
 {

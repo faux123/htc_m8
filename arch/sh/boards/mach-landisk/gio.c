@@ -23,7 +23,7 @@
 #include <mach-landisk/mach/iodata_landisk.h>
 
 #define DEVCOUNT                4
-#define GIO_MINOR	        2	/* GIO minor no. */
+#define GIO_MINOR	        2	
 
 static dev_t dev;
 static struct cdev *cdev_p;
@@ -64,47 +64,47 @@ static long gio_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	unsigned int data;
 	static unsigned int addr = 0;
 
-	if (cmd & 0x01) {	/* write */
+	if (cmd & 0x01) {	
 		if (copy_from_user(&data, (int *)arg, sizeof(int))) {
 			return -EFAULT;
 		}
 	}
 
 	switch (cmd) {
-	case GIODRV_IOCSGIOSETADDR:	/* address set */
+	case GIODRV_IOCSGIOSETADDR:	
 		addr = data;
 		break;
 
-	case GIODRV_IOCSGIODATA1:	/* write byte */
+	case GIODRV_IOCSGIODATA1:	
 		__raw_writeb((unsigned char)(0x0ff & data), addr);
 		break;
 
-	case GIODRV_IOCSGIODATA2:	/* write word */
+	case GIODRV_IOCSGIODATA2:	
 		if (addr & 0x01) {
 			return -EFAULT;
 		}
 		__raw_writew((unsigned short int)(0x0ffff & data), addr);
 		break;
 
-	case GIODRV_IOCSGIODATA4:	/* write long */
+	case GIODRV_IOCSGIODATA4:	
 		if (addr & 0x03) {
 			return -EFAULT;
 		}
 		__raw_writel(data, addr);
 		break;
 
-	case GIODRV_IOCGGIODATA1:	/* read byte */
+	case GIODRV_IOCGGIODATA1:	
 		data = __raw_readb(addr);
 		break;
 
-	case GIODRV_IOCGGIODATA2:	/* read word */
+	case GIODRV_IOCGGIODATA2:	
 		if (addr & 0x01) {
 			return -EFAULT;
 		}
 		data = __raw_readw(addr);
 		break;
 
-	case GIODRV_IOCGGIODATA4:	/* read long */
+	case GIODRV_IOCGGIODATA4:	
 		if (addr & 0x03) {
 			return -EFAULT;
 		}
@@ -115,7 +115,7 @@ static long gio_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	}
 
-	if ((cmd & 0x01) == 0) {	/* read */
+	if ((cmd & 0x01) == 0) {	
 		if (copy_to_user((int *)arg, &data, sizeof(int))) {
 			return -EFAULT;
 		}
@@ -125,8 +125,8 @@ static long gio_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 static const struct file_operations gio_fops = {
 	.owner = THIS_MODULE,
-	.open = gio_open,	/* open */
-	.release = gio_close,	/* release */
+	.open = gio_open,	
+	.release = gio_close,	
 	.unlocked_ioctl = gio_ioctl,
 	.llseek = noop_llseek,
 };

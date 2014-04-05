@@ -14,7 +14,6 @@
 #include <linux/string.h>
 #include <mach/ocd.h>
 
-/* On-Chip-Debugger functions */
 
 static void early_ocd_write(struct console *con, const char *s, unsigned n)
 {
@@ -33,7 +32,6 @@ static struct console early_ocd_console = {
 	.index =	-1,
 };
 
-/* Direct interface for emergencies */
 static struct console *early_console = &early_ocd_console;
 
 static int __initdata keep_early;

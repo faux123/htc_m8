@@ -13,9 +13,6 @@
 
 static struct dentry *bonding_debug_root;
 
-/*
- *  Show RLB hash table
- */
 static int bond_debug_rlb_hash_show(struct seq_file *m, void *v)
 {
 	struct bonding *bond = m->private;
@@ -121,7 +118,7 @@ void bond_destroy_debugfs(void)
 }
 
 
-#else /* !CONFIG_DEBUG_FS */
+#else 
 
 void bond_debug_register(struct bonding *bond)
 {
@@ -143,4 +140,4 @@ void bond_destroy_debugfs(void)
 {
 }
 
-#endif /* CONFIG_DEBUG_FS */
+#endif 

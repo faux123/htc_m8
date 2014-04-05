@@ -23,9 +23,6 @@
 #include <asm/mach/irq.h>
 #include <asm/mach/time.h>
 #include "common.h"
-/*
- * Timer interrupt handler
- */
 static irqreturn_t
 h7201_timer_interrupt(int irq, void *dev_id)
 {
@@ -41,9 +38,6 @@ static struct irqaction h7201_timer_irq = {
 	.handler	= h7201_timer_interrupt,
 };
 
-/*
- * Setup TIMER0 as system timer
- */
 void __init h7201_init_time(void)
 {
 	CPU_REG (TIMER_VIRT, TM0_PERIOD) = LATCH;

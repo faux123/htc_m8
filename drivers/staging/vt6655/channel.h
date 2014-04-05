@@ -26,7 +26,6 @@
 #include "ttype.h"
 #include "card.h"
 
-/*---------------------  Export Classes  ----------------------------*/
 
 typedef struct tagSChannelTblElement {
     unsigned char byChannelNumber;
@@ -36,7 +35,6 @@ typedef struct tagSChannelTblElement {
 }SChannelTblElement, *PSChannelTblElement;
 
 
-/*---------------------  Export Functions  --------------------------*/
 
 bool is_channel_valid(unsigned int CountryCode);
 void init_channel_table(void *pDeviceHandler);
@@ -55,4 +53,4 @@ void clear_channel_map_info(void *pDeviceHandler);
 unsigned char auto_channel_select(void *pDeviceHandler, CARD_PHY_TYPE ePHYType);
 
 
-#endif /* _CHANNEL_H_ */
+#endif 

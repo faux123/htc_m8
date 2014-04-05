@@ -1,6 +1,3 @@
-/* IEEE754 floating point arithmetic
- * single precision
- */
 /*
  * MIPS floating point support
  * Copyright (C) 1994-2000 Algorithmics Ltd.
@@ -68,8 +65,6 @@ ieee754sp ieee754sp_add(ieee754sp x, ieee754sp y)
 		return x;
 
 
-		/* Infinity handling
-		 */
 
 	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_INF):
 		if (xs == ys)
@@ -87,8 +82,6 @@ ieee754sp ieee754sp_add(ieee754sp x, ieee754sp y)
 	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_DNORM):
 		return x;
 
-		/* Zero handling
-		 */
 
 	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_ZERO):
 		if (xs == ys)
@@ -122,18 +115,14 @@ ieee754sp ieee754sp_add(ieee754sp x, ieee754sp y)
 	assert(xm & SP_HIDDEN_BIT);
 	assert(ym & SP_HIDDEN_BIT);
 
-	/* provide guard,round and stick bit space */
+	
 	xm <<= 3;
 	ym <<= 3;
 
 	if (xe > ye) {
-		/* have to shift y fraction right to align
-		 */
 		int s = xe - ye;
 		SPXSRSYn(s);
 	} else if (ye > xe) {
-		/* have to shift x fraction right to align
-		 */
 		int s = ye - xe;
 		SPXSRSXn(s);
 	}
@@ -141,14 +130,11 @@ ieee754sp ieee754sp_add(ieee754sp x, ieee754sp y)
 	assert(xe <= SP_EMAX);
 
 	if (xs == ys) {
-		/* generate 28 bit result of adding two 27 bit numbers
-		 * leaving result in xm,xs,xe
-		 */
 		xm = xm + ym;
 		xe = xe;
 		xs = xs;
 
-		if (xm >> (SP_MBITS + 1 + 3)) {	/* carry out */
+		if (xm >> (SP_MBITS + 1 + 3)) {	
 			SPXSRSX1();
 		}
 	} else {
@@ -165,7 +151,7 @@ ieee754sp ieee754sp_add(ieee754sp x, ieee754sp y)
 			return ieee754sp_zero(ieee754_csr.rm ==
 					      IEEE754_RD);
 
-		/* normalize in extended single precision */
+		
 		while ((xm >> (SP_MBITS + 3)) == 0) {
 			xm <<= 1;
 			xe--;

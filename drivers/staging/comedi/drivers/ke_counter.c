@@ -20,23 +20,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 */
-/*
-Driver: ke_counter
-Description: Driver for Kolter Electronic Counter Card
-Devices: [Kolter Electronic] PCI Counter Card (ke_counter)
-Author: Michael Hillmann
-Updated: Mon, 14 Apr 2008 15:42:42 +0100
-Status: tested
-
-Configuration Options:
-  [0] - PCI bus of device (optional)
-  [1] - PCI slot of device (optional)
-  If bus/slot is not specified, the first supported
-  PCI device found will be used.
-
-This driver is a simple driver to read the counter values from
-Kolter Electronic PCI Counter Card.
-*/
 
 #include "../comedidev.h"
 
@@ -46,7 +29,6 @@ Kolter Electronic PCI Counter Card.
 #define PCI_VENDOR_ID_KOLTER    0x1001
 #define CNT_CARD_DEVICE_ID      0x0014
 
-/*-- function prototypes ----------------------------------------------------*/
 
 static int cnt_attach(struct comedi_device *dev, struct comedi_devconfig *it);
 static int cnt_detach(struct comedi_device *dev);
@@ -58,7 +40,6 @@ static DEFINE_PCI_DEVICE_TABLE(cnt_pci_table) = {
 
 MODULE_DEVICE_TABLE(pci, cnt_pci_table);
 
-/*-- board specification structure ------------------------------------------*/
 
 struct cnt_board_struct {
 
@@ -78,7 +59,6 @@ static const struct cnt_board_struct cnt_boards[] = {
 
 #define cnt_board_nbr (sizeof(cnt_boards)/sizeof(struct cnt_board_struct))
 
-/*-- device private structure -----------------------------------------------*/
 
 struct cnt_device_private {
 
@@ -132,10 +112,7 @@ static void __exit cnt_driver_cleanup_module(void)
 module_init(cnt_driver_init_module);
 module_exit(cnt_driver_cleanup_module);
 
-/*-- counter write ----------------------------------------------------------*/
 
-/* This should be used only for resetting the counters; maybe it is better
-   to make a special command 'reset'. */
 static int cnt_winsn(struct comedi_device *dev,
 		     struct comedi_subdevice *s, struct comedi_insn *insn,
 		     unsigned int *data)
@@ -155,7 +132,6 @@ static int cnt_winsn(struct comedi_device *dev,
 	return 1;
 }
 
-/*-- counter read -----------------------------------------------------------*/
 
 static int cnt_rinsn(struct comedi_device *dev,
 		     struct comedi_subdevice *s, struct comedi_insn *insn,
@@ -177,11 +153,10 @@ static int cnt_rinsn(struct comedi_device *dev,
 
 	*data = (unsigned int)result;
 
-	/* return the number of samples read */
+	
 	return 1;
 }
 
-/*-- attach -----------------------------------------------------------------*/
 
 static int cnt_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 {
@@ -191,21 +166,21 @@ static int cnt_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	unsigned long io_base;
 	int error, i;
 
-	/* allocate device private structure */
+	
 	error = alloc_private(dev, sizeof(struct cnt_device_private));
 	if (error < 0)
 		return error;
 
-	/* Probe the device to determine what device in the series it is. */
+	
 	for_each_pci_dev(pci_device) {
 		if (pci_device->vendor == PCI_VENDOR_ID_KOLTER) {
 			for (i = 0; i < cnt_board_nbr; i++) {
 				if (cnt_boards[i].device_id ==
 				    pci_device->device) {
-					/* was a particular bus/slot requested? */
+					
 					if ((it->options[0] != 0)
 					    || (it->options[1] != 0)) {
-						/* are we on the wrong bus/slot? */
+						
 						if (pci_device->bus->number !=
 						    it->options[0]
 						    ||
@@ -237,7 +212,7 @@ found:
 	devpriv->pcidev = pci_device;
 	dev->board_name = board->name;
 
-	/* enable PCI device and request regions */
+	
 	error = comedi_pci_enable(pci_device, CNT_DRIVER_NAME);
 	if (error < 0) {
 		printk(KERN_WARNING "comedi%d: "
@@ -246,11 +221,11 @@ found:
 		return error;
 	}
 
-	/* read register base address [PCI_BASE_ADDRESS #0] */
+	
 	io_base = pci_resource_start(pci_device, 0);
 	dev->iobase = io_base;
 
-	/* allocate the subdevice structures */
+	
 	error = alloc_subdevices(dev, 1);
 	if (error < 0)
 		return error;
@@ -259,16 +234,16 @@ found:
 	dev->read_subdev = subdevice;
 
 	subdevice->type = COMEDI_SUBD_COUNTER;
-	subdevice->subdev_flags = SDF_READABLE /* | SDF_COMMON */ ;
+	subdevice->subdev_flags = SDF_READABLE  ;
 	subdevice->n_chan = board->cnt_channel_nbr;
 	subdevice->maxdata = (1 << board->cnt_bits) - 1;
 	subdevice->insn_read = cnt_rinsn;
 	subdevice->insn_write = cnt_winsn;
 
-	/*  select 20MHz clock */
+	
 	outb(3, dev->iobase + 248);
 
-	/*  reset all counters */
+	
 	outb(0, dev->iobase);
 	outb(0, dev->iobase + 0x20);
 	outb(0, dev->iobase + 0x40);
@@ -278,7 +253,6 @@ found:
 	return 0;
 }
 
-/*-- detach -----------------------------------------------------------------*/
 
 static int cnt_detach(struct comedi_device *dev)
 {

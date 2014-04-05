@@ -13,14 +13,6 @@ static int devm_ioremap_match(struct device *dev, void *res, void *match_data)
 	return *(void **)res == match_data;
 }
 
-/**
- * devm_ioremap - Managed ioremap()
- * @dev: Generic device to remap IO address for
- * @offset: BUS offset to map
- * @size: Size of map
- *
- * Managed ioremap().  Map is automatically unmapped on driver detach.
- */
 void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
 			   unsigned long size)
 {
@@ -41,15 +33,6 @@ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
 }
 EXPORT_SYMBOL(devm_ioremap);
 
-/**
- * devm_ioremap_nocache - Managed ioremap_nocache()
- * @dev: Generic device to remap IO address for
- * @offset: BUS offset to map
- * @size: Size of map
- *
- * Managed ioremap_nocache().  Map is automatically unmapped on driver
- * detach.
- */
 void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
 				   unsigned long size)
 {
@@ -70,13 +53,6 @@ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
 }
 EXPORT_SYMBOL(devm_ioremap_nocache);
 
-/**
- * devm_iounmap - Managed iounmap()
- * @dev: Generic device to unmap for
- * @addr: Address to unmap
- *
- * Managed iounmap().  @addr must have been mapped using devm_ioremap*().
- */
 void devm_iounmap(struct device *dev, void __iomem *addr)
 {
 	WARN_ON(devres_destroy(dev, devm_ioremap_release, devm_ioremap_match,
@@ -85,23 +61,7 @@ void devm_iounmap(struct device *dev, void __iomem *addr)
 }
 EXPORT_SYMBOL(devm_iounmap);
 
-/**
- * devm_request_and_ioremap() - Check, request region, and ioremap resource
- * @dev: Generic device to handle the resource for
- * @res: resource to be handled
- *
- * Takes all necessary steps to ioremap a mem resource. Uses managed device, so
- * everything is undone on driver detach. Checks arguments, so you can feed
- * it the result from e.g. platform_get_resource() directly. Returns the
- * remapped pointer or NULL on error. Usage example:
- *
- *	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- *	base = devm_request_and_ioremap(&pdev->dev, res);
- *	if (!base)
- *		return -EADDRNOTAVAIL;
- */
-void __iomem *devm_request_and_ioremap(struct device *dev,
-			struct resource *res)
+void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
 {
 	resource_size_t size;
 	const char *name;
@@ -111,7 +71,7 @@ void __iomem *devm_request_and_ioremap(struct device *dev,
 
 	if (!res || resource_type(res) != IORESOURCE_MEM) {
 		dev_err(dev, "invalid resource\n");
-		return NULL;
+		return ERR_PTR(-EINVAL);
 	}
 
 	size = resource_size(res);
@@ -119,7 +79,7 @@ void __iomem *devm_request_and_ioremap(struct device *dev,
 
 	if (!devm_request_mem_region(dev, res->start, size, name)) {
 		dev_err(dev, "can't request region for resource %pR\n", res);
-		return NULL;
+		return ERR_PTR(-EBUSY);
 	}
 
 	if (res->flags & IORESOURCE_CACHEABLE)
@@ -130,16 +90,27 @@ void __iomem *devm_request_and_ioremap(struct device *dev,
 	if (!dest_ptr) {
 		dev_err(dev, "ioremap failed for resource %pR\n", res);
 		devm_release_mem_region(dev, res->start, size);
+		dest_ptr = ERR_PTR(-ENOMEM);
 	}
+
+	return dest_ptr;
+}
+EXPORT_SYMBOL(devm_ioremap_resource);
+
+void __iomem *devm_request_and_ioremap(struct device *device,
+				       struct resource *res)
+{
+	void __iomem *dest_ptr;
+
+	dest_ptr = devm_ioremap_resource(device, res);
+	if (IS_ERR(dest_ptr))
+		return NULL;
 
 	return dest_ptr;
 }
 EXPORT_SYMBOL(devm_request_and_ioremap);
 
 #ifdef CONFIG_HAS_IOPORT
-/*
- * Generic iomap devres
- */
 static void devm_ioport_map_release(struct device *dev, void *res)
 {
 	ioport_unmap(*(void __iomem **)res);
@@ -151,15 +122,6 @@ static int devm_ioport_map_match(struct device *dev, void *res,
 	return *(void **)res == match_data;
 }
 
-/**
- * devm_ioport_map - Managed ioport_map()
- * @dev: Generic device to map ioport for
- * @port: Port to map
- * @nr: Number of ports to map
- *
- * Managed ioport_map().  Map is automatically unmapped on driver
- * detach.
- */
 void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
 			       unsigned int nr)
 {
@@ -180,14 +142,6 @@ void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
 }
 EXPORT_SYMBOL(devm_ioport_map);
 
-/**
- * devm_ioport_unmap - Managed ioport_unmap()
- * @dev: Generic device to unmap for
- * @addr: Address to unmap
- *
- * Managed ioport_unmap().  @addr must have been mapped using
- * devm_ioport_map().
- */
 void devm_ioport_unmap(struct device *dev, void __iomem *addr)
 {
 	ioport_unmap(addr);
@@ -197,9 +151,6 @@ void devm_ioport_unmap(struct device *dev, void __iomem *addr)
 EXPORT_SYMBOL(devm_ioport_unmap);
 
 #ifdef CONFIG_PCI
-/*
- * PCI iomap devres
- */
 #define PCIM_IOMAP_MAX	PCI_ROM_RESOURCE
 
 struct pcim_iomap_devres {
@@ -217,19 +168,6 @@ static void pcim_iomap_release(struct device *gendev, void *res)
 			pci_iounmap(dev, this->table[i]);
 }
 
-/**
- * pcim_iomap_table - access iomap allocation table
- * @pdev: PCI device to access iomap table for
- *
- * Access iomap allocation table for @dev.  If iomap table doesn't
- * exist and @pdev is managed, it will be allocated.  All iomaps
- * recorded in the iomap table are automatically unmapped on driver
- * detach.
- *
- * This function might sleep when the table is first allocated but can
- * be safely called without context and guaranteed to succed once
- * allocated.
- */
 void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
 {
 	struct pcim_iomap_devres *dr, *new_dr;
@@ -246,15 +184,6 @@ void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
 }
 EXPORT_SYMBOL(pcim_iomap_table);
 
-/**
- * pcim_iomap - Managed pcim_iomap()
- * @pdev: PCI device to iomap for
- * @bar: BAR to iomap
- * @maxlen: Maximum length of iomap
- *
- * Managed pci_iomap().  Map is automatically unmapped on driver
- * detach.
- */
 void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
 {
 	void __iomem **tbl;
@@ -262,7 +191,7 @@ void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
 	BUG_ON(bar >= PCIM_IOMAP_MAX);
 
 	tbl = (void __iomem **)pcim_iomap_table(pdev);
-	if (!tbl || tbl[bar])	/* duplicate mappings not allowed */
+	if (!tbl || tbl[bar])	
 		return NULL;
 
 	tbl[bar] = pci_iomap(pdev, bar, maxlen);
@@ -270,13 +199,6 @@ void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
 }
 EXPORT_SYMBOL(pcim_iomap);
 
-/**
- * pcim_iounmap - Managed pci_iounmap()
- * @pdev: PCI device to iounmap for
- * @addr: Address to unmap
- *
- * Managed pci_iounmap().  @addr must have been mapped using pcim_iomap().
- */
 void pcim_iounmap(struct pci_dev *pdev, void __iomem *addr)
 {
 	void __iomem **tbl;
@@ -296,14 +218,6 @@ void pcim_iounmap(struct pci_dev *pdev, void __iomem *addr)
 }
 EXPORT_SYMBOL(pcim_iounmap);
 
-/**
- * pcim_iomap_regions - Request and iomap PCI BARs
- * @pdev: PCI device to map IO resources for
- * @mask: Mask of BARs to request and iomap
- * @name: Name used when requesting regions
- *
- * Request and iomap regions specified by @mask.
- */
 int pcim_iomap_regions(struct pci_dev *pdev, int mask, const char *name)
 {
 	void __iomem * const *iomap;
@@ -349,14 +263,6 @@ int pcim_iomap_regions(struct pci_dev *pdev, int mask, const char *name)
 }
 EXPORT_SYMBOL(pcim_iomap_regions);
 
-/**
- * pcim_iomap_regions_request_all - Request all BARs and iomap specified ones
- * @pdev: PCI device to map IO resources for
- * @mask: Mask of BARs to iomap
- * @name: Name used when requesting regions
- *
- * Request all PCI BARs and iomap regions specified by @mask.
- */
 int pcim_iomap_regions_request_all(struct pci_dev *pdev, int mask,
 				   const char *name)
 {
@@ -374,13 +280,6 @@ int pcim_iomap_regions_request_all(struct pci_dev *pdev, int mask,
 }
 EXPORT_SYMBOL(pcim_iomap_regions_request_all);
 
-/**
- * pcim_iounmap_regions - Unmap and release PCI BARs
- * @pdev: PCI device to map IO resources for
- * @mask: Mask of BARs to unmap and release
- *
- * Unmap and release regions specified by @mask.
- */
 void pcim_iounmap_regions(struct pci_dev *pdev, int mask)
 {
 	void __iomem * const *iomap;
@@ -399,5 +298,5 @@ void pcim_iounmap_regions(struct pci_dev *pdev, int mask)
 	}
 }
 EXPORT_SYMBOL(pcim_iounmap_regions);
-#endif /* CONFIG_PCI */
-#endif /* CONFIG_HAS_IOPORT */
+#endif 
+#endif 

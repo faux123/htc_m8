@@ -459,9 +459,6 @@ static void tgr192_key_schedule(u64 * x)
 }
 
 
-/****************
- * Transform the message DATA which consists of 512 bytes (8 words)
- */
 
 static void tgr192_transform(struct tgr192_ctx *tctx, const u8 * data)
 {
@@ -473,7 +470,7 @@ static void tgr192_transform(struct tgr192_ctx *tctx, const u8 * data)
 	for (i = 0; i < 8; i++)
 		x[i] = le64_to_cpu(ptr[i]);
 
-	/* save */
+	
 	a = aa = tctx->a;
 	b = bb = tctx->b;
 	c = cc = tctx->c;
@@ -485,11 +482,11 @@ static void tgr192_transform(struct tgr192_ctx *tctx, const u8 * data)
 	tgr192_pass(&b, &c, &a, x, 9);
 
 
-	/* feedforward */
+	
 	a ^= aa;
 	b -= bb;
 	c += cc;
-	/* store */
+	
 	tctx->a = a;
 	tctx->b = b;
 	tctx->c = c;
@@ -509,14 +506,12 @@ static int tgr192_init(struct shash_desc *desc)
 }
 
 
-/* Update the message digest with the contents
- * of INBUF with length INLEN. */
 static int tgr192_update(struct shash_desc *desc, const u8 *inbuf,
 			  unsigned int len)
 {
 	struct tgr192_ctx *tctx = shash_desc_ctx(desc);
 
-	if (tctx->count == 64) {	/* flush the buffer */
+	if (tctx->count == 64) {	
 		tgr192_transform(tctx, tctx->hash);
 		tctx->count = 0;
 		tctx->nblocks++;
@@ -551,7 +546,6 @@ static int tgr192_update(struct shash_desc *desc, const u8 *inbuf,
 
 
 
-/* The routine terminates the computation */
 static int tgr192_final(struct shash_desc *desc, u8 * out)
 {
 	struct tgr192_ctx *tctx = shash_desc_ctx(desc);
@@ -560,38 +554,38 @@ static int tgr192_final(struct shash_desc *desc, u8 * out)
 	__le32 *le32p;
 	u32 t, msb, lsb;
 
-	tgr192_update(desc, NULL, 0); /* flush */ ;
+	tgr192_update(desc, NULL, 0);  ;
 
 	msb = 0;
 	t = tctx->nblocks;
-	if ((lsb = t << 6) < t) { /* multiply by 64 to make a byte count */
+	if ((lsb = t << 6) < t) { 
 		msb++;
 	}
 	msb += t >> 26;
 	t = lsb;
-	if ((lsb = t + tctx->count) < t) {	/* add the count */
+	if ((lsb = t + tctx->count) < t) {	
 		msb++;
 	}
 	t = lsb;
-	if ((lsb = t << 3) < t)	{ /* multiply by 8 to make a bit count */
+	if ((lsb = t << 3) < t)	{ 
 		msb++;
 	}
 	msb += t >> 29;
 
-	if (tctx->count < 56) {	/* enough room */
-		tctx->hash[tctx->count++] = 0x01;	/* pad */
+	if (tctx->count < 56) {	
+		tctx->hash[tctx->count++] = 0x01;	
 		while (tctx->count < 56) {
-			tctx->hash[tctx->count++] = 0;	/* pad */
+			tctx->hash[tctx->count++] = 0;	
 		}
-	} else {		/* need one extra block */
-		tctx->hash[tctx->count++] = 0x01;	/* pad character */
+	} else {		
+		tctx->hash[tctx->count++] = 0x01;	
 		while (tctx->count < 64) {
 			tctx->hash[tctx->count++] = 0;
 		}
-		tgr192_update(desc, NULL, 0); /* flush */ ;
-		memset(tctx->hash, 0, 56);    /* fill next block with zeroes */
+		tgr192_update(desc, NULL, 0);  ;
+		memset(tctx->hash, 0, 56);    
 	}
-	/* append the 64 bit count */
+	
 	le32p = (__le32 *)&tctx->hash[56];
 	le32p[0] = cpu_to_le32(lsb);
 	le32p[1] = cpu_to_le32(msb);

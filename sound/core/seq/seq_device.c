@@ -51,28 +51,27 @@ MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
 MODULE_DESCRIPTION("ALSA sequencer device management");
 MODULE_LICENSE("GPL");
 
-/* driver state */
 #define DRIVER_EMPTY		0
 #define DRIVER_LOADED		(1<<0)
 #define DRIVER_REQUESTED	(1<<1)
 #define DRIVER_LOCKED		(1<<2)
 
 struct ops_list {
-	char id[ID_LEN];	/* driver id */
-	int driver;		/* driver state */
-	int used;		/* reference counter */
-	int argsize;		/* argument size */
+	char id[ID_LEN];	
+	int driver;		
+	int used;		
+	int argsize;		
 
-	/* operators */
+	
 	struct snd_seq_dev_ops ops;
 
-	/* registred devices */
-	struct list_head dev_list;	/* list of devices */
-	int num_devices;	/* number of associated devices */
-	int num_init_devices;	/* number of initialized devices */
+	
+	struct list_head dev_list;	
+	int num_devices;	
+	int num_init_devices;	
 	struct mutex reg_mutex;
 
-	struct list_head list;	/* next driver */
+	struct list_head list;	
 };
 
 
@@ -83,9 +82,6 @@ static DEFINE_MUTEX(ops_mutex);
 static struct snd_info_entry *info_entry;
 #endif
 
-/*
- * prototypes
- */
 static int snd_seq_device_free(struct snd_seq_device *dev);
 static int snd_seq_device_dev_free(struct snd_device *device);
 static int snd_seq_device_dev_register(struct snd_device *device);
@@ -98,9 +94,6 @@ static struct ops_list *create_driver(char *id);
 static void unlock_driver(struct ops_list *ops);
 static void remove_drivers(void);
 
-/*
- * show all drivers and their status
- */
 
 #ifdef CONFIG_PROC_FS
 static void snd_seq_device_info(struct snd_info_entry *entry,
@@ -121,12 +114,8 @@ static void snd_seq_device_info(struct snd_info_entry *entry,
 }
 #endif
  
-/*
- * load all registered drivers (called from seq_clientmgr.c)
- */
 
 #ifdef CONFIG_MODULES
-/* avoid auto-loading during module_init() */
 static int snd_seq_in_init;
 void snd_seq_autoload_lock(void)
 {
@@ -144,9 +133,6 @@ void snd_seq_device_load_drivers(void)
 #ifdef CONFIG_MODULES
 	struct ops_list *ops;
 
-	/* Calling request_module during module_init()
-	 * may cause blocking.
-	 */
 	if (snd_seq_in_init)
 		return;
 
@@ -166,13 +152,6 @@ void snd_seq_device_load_drivers(void)
 #endif
 }
 
-/*
- * register a sequencer device
- * card = card info (NULL allowed)
- * device = device number (if any)
- * id = id of driver
- * result = return pointer (NULL allowed if unnecessary)
- */
 int snd_seq_device_new(struct snd_card *card, int device, char *id, int argsize,
 		       struct snd_seq_device **result)
 {
@@ -201,14 +180,14 @@ int snd_seq_device_new(struct snd_card *card, int device, char *id, int argsize,
 		return -ENOMEM;
 	}
 
-	/* set up device info */
+	
 	dev->card = card;
 	dev->device = device;
 	strlcpy(dev->id, id, sizeof(dev->id));
 	dev->argsize = argsize;
 	dev->status = SNDRV_SEQ_DEVICE_FREE;
 
-	/* add this device to the list */
+	
 	mutex_lock(&ops->reg_mutex);
 	list_add_tail(&dev->list, &ops->dev_list);
 	ops->num_devices++;
@@ -227,9 +206,6 @@ int snd_seq_device_new(struct snd_card *card, int device, char *id, int argsize,
 	return 0;
 }
 
-/*
- * free the existing device
- */
 static int snd_seq_device_free(struct snd_seq_device *dev)
 {
 	struct ops_list *ops;
@@ -241,7 +217,7 @@ static int snd_seq_device_free(struct snd_seq_device *dev)
 	if (ops == NULL)
 		return -ENXIO;
 
-	/* remove the device from the list */
+	
 	mutex_lock(&ops->reg_mutex);
 	list_del(&dev->list);
 	ops->num_devices--;
@@ -263,9 +239,6 @@ static int snd_seq_device_dev_free(struct snd_device *device)
 	return snd_seq_device_free(dev);
 }
 
-/*
- * register the device
- */
 static int snd_seq_device_dev_register(struct snd_device *device)
 {
 	struct snd_seq_device *dev = device->device_data;
@@ -275,9 +248,6 @@ static int snd_seq_device_dev_register(struct snd_device *device)
 	if (ops == NULL)
 		return -ENOENT;
 
-	/* initialize this device if the corresponding driver was
-	 * already loaded
-	 */
 	if (ops->driver & DRIVER_LOADED)
 		init_device(dev, ops);
 
@@ -285,9 +255,6 @@ static int snd_seq_device_dev_register(struct snd_device *device)
 	return 0;
 }
 
-/*
- * disconnect the device
- */
 static int snd_seq_device_dev_disconnect(struct snd_device *device)
 {
 	struct snd_seq_device *dev = device->device_data;
@@ -303,11 +270,6 @@ static int snd_seq_device_dev_disconnect(struct snd_device *device)
 	return 0;
 }
 
-/*
- * register device driver
- * id = driver id
- * entry = driver operators - duplicated to each instance
- */
 int snd_seq_device_register_driver(char *id, struct snd_seq_dev_ops *entry,
 				   int argsize)
 {
@@ -332,12 +294,12 @@ int snd_seq_device_register_driver(char *id, struct snd_seq_dev_ops *entry,
 	}
 
 	mutex_lock(&ops->reg_mutex);
-	/* copy driver operators */
+	
 	ops->ops = *entry;
 	ops->driver |= DRIVER_LOADED;
 	ops->argsize = argsize;
 
-	/* initialize existing devices if necessary */
+	
 	list_for_each_entry(dev, &ops->dev_list, list) {
 		init_device(dev, ops);
 	}
@@ -350,9 +312,6 @@ int snd_seq_device_register_driver(char *id, struct snd_seq_dev_ops *entry,
 }
 
 
-/*
- * create driver record
- */
 static struct ops_list * create_driver(char *id)
 {
 	struct ops_list *ops;
@@ -361,21 +320,17 @@ static struct ops_list * create_driver(char *id)
 	if (ops == NULL)
 		return ops;
 
-	/* set up driver entry */
+	
 	strlcpy(ops->id, id, sizeof(ops->id));
 	mutex_init(&ops->reg_mutex);
-	/*
-	 * The ->reg_mutex locking rules are per-driver, so we create
-	 * separate per-driver lock classes:
-	 */
 	lockdep_set_class(&ops->reg_mutex, (struct lock_class_key *)id);
 
 	ops->driver = DRIVER_EMPTY;
 	INIT_LIST_HEAD(&ops->dev_list);
-	/* lock this instance */
+	
 	ops->used = 1;
 
-	/* register driver entry */
+	
 	mutex_lock(&ops_mutex);
 	list_add_tail(&ops->list, &opslist);
 	num_ops++;
@@ -385,9 +340,6 @@ static struct ops_list * create_driver(char *id)
 }
 
 
-/*
- * unregister the specified driver
- */
 int snd_seq_device_unregister_driver(char *id)
 {
 	struct ops_list *ops;
@@ -404,9 +356,9 @@ int snd_seq_device_unregister_driver(char *id)
 		return -EBUSY;
 	}
 
-	/* close and release all devices associated with this driver */
+	
 	mutex_lock(&ops->reg_mutex);
-	ops->driver |= DRIVER_LOCKED; /* do not remove this driver recursively */
+	ops->driver |= DRIVER_LOCKED; 
 	list_for_each_entry(dev, &ops->dev_list, list) {
 		free_device(dev, ops);
 	}
@@ -419,16 +371,13 @@ int snd_seq_device_unregister_driver(char *id)
 
 	unlock_driver(ops);
 
-	/* remove empty driver entries */
+	
 	remove_drivers();
 
 	return 0;
 }
 
 
-/*
- * remove empty driver entries
- */
 static void remove_drivers(void)
 {
 	struct list_head *head;
@@ -449,15 +398,12 @@ static void remove_drivers(void)
 	mutex_unlock(&ops_mutex);
 }
 
-/*
- * initialize the device - call init_device operator
- */
 static int init_device(struct snd_seq_device *dev, struct ops_list *ops)
 {
 	if (! (ops->driver & DRIVER_LOADED))
-		return 0; /* driver is not loaded yet */
+		return 0; 
 	if (dev->status != SNDRV_SEQ_DEVICE_FREE)
-		return 0; /* already initialized */
+		return 0; 
 	if (ops->argsize != dev->argsize) {
 		snd_printk(KERN_ERR "incompatible device '%s' for plug-in '%s' (%d %d)\n",
 			   dev->name, ops->id, ops->argsize, dev->argsize);
@@ -474,17 +420,14 @@ static int init_device(struct snd_seq_device *dev, struct ops_list *ops)
 	return 0;
 }
 
-/*
- * release the device - call free_device operator
- */
 static int free_device(struct snd_seq_device *dev, struct ops_list *ops)
 {
 	int result;
 
 	if (! (ops->driver & DRIVER_LOADED))
-		return 0; /* driver is not loaded yet */
+		return 0; 
 	if (dev->status != SNDRV_SEQ_DEVICE_REGISTERED)
-		return 0; /* not registered */
+		return 0; 
 	if (ops->argsize != dev->argsize) {
 		snd_printk(KERN_ERR "incompatible device '%s' for plug-in '%s' (%d %d)\n",
 			   dev->name, ops->id, ops->argsize, dev->argsize);
@@ -502,9 +445,6 @@ static int free_device(struct snd_seq_device *dev, struct ops_list *ops)
 	return 0;
 }
 
-/*
- * find the matching driver with given id
- */
 static struct ops_list * find_driver(char *id, int create_if_empty)
 {
 	struct ops_list *ops;
@@ -531,9 +471,6 @@ static void unlock_driver(struct ops_list *ops)
 }
 
 
-/*
- * module part
- */
 
 static int __init alsa_seq_device_init(void)
 {

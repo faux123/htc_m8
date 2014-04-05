@@ -31,17 +31,10 @@ void user_disable_single_step(struct task_struct *child)
 	clear_tsk_thread_flag(child, TIF_SINGLESTEP);
 }
 
-/*
- * Called by kernel/ptrace.c when detaching..
- */
 void ptrace_disable(struct task_struct *child)
 {
 	clear_tsk_thread_flag(child, TIF_SINGLESTEP);
 
-	/*
-	 * These two are currently unused, but will be set by arch_ptrace()
-	 * and used in the syscall assembly when we do support them.
-	 */
 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
 }
 
@@ -57,7 +50,7 @@ long arch_ptrace(struct task_struct *child, long request,
 
 	switch (request) {
 
-	case PTRACE_PEEKUSR:  /* Read register from pt_regs. */
+	case PTRACE_PEEKUSR:  
 		if (addr >= PTREGS_SIZE)
 			break;
 		childreg = (char *)task_pt_regs(child) + addr;
@@ -76,15 +69,15 @@ long arch_ptrace(struct task_struct *child, long request,
 		}
 		break;
 
-	case PTRACE_POKEUSR:  /* Write register in pt_regs. */
+	case PTRACE_POKEUSR:  
 		if (addr >= PTREGS_SIZE)
 			break;
 		childreg = (char *)task_pt_regs(child) + addr;
 
-		/* Guard against overwrites of the privilege level. */
+		
 		ex1_offset = PTREGS_OFFSET_EX1;
 #if defined(CONFIG_COMPAT) && defined(__BIG_ENDIAN)
-		if (is_compat_task())   /* point at low word */
+		if (is_compat_task())   
 			ex1_offset += sizeof(compat_long_t);
 #endif
 		if (addr == ex1_offset)
@@ -105,14 +98,14 @@ long arch_ptrace(struct task_struct *child, long request,
 		ret = 0;
 		break;
 
-	case PTRACE_GETREGS:  /* Get all registers from the child. */
+	case PTRACE_GETREGS:  
 		if (copy_to_user(datap, task_pt_regs(child),
 				 sizeof(struct pt_regs)) == 0) {
 			ret = 0;
 		}
 		break;
 
-	case PTRACE_SETREGS:  /* Set all registers in the child. */
+	case PTRACE_SETREGS:  
 		if (copy_from_user(&copyregs, datap,
 				   sizeof(struct pt_regs)) == 0) {
 			copyregs.ex1 =
@@ -122,12 +115,12 @@ long arch_ptrace(struct task_struct *child, long request,
 		}
 		break;
 
-	case PTRACE_GETFPREGS:  /* Get the child FPU state. */
-	case PTRACE_SETFPREGS:  /* Set the child FPU state. */
+	case PTRACE_GETFPREGS:  
+	case PTRACE_SETFPREGS:  
 		break;
 
 	case PTRACE_SETOPTIONS:
-		/* Support TILE-specific ptrace options. */
+		
 		child->ptrace &= ~PT_TRACE_MASK_TILE;
 		tmp = data & PTRACE_O_MASK_TILE;
 		data &= ~PTRACE_O_MASK_TILE;
@@ -152,7 +145,6 @@ long arch_ptrace(struct task_struct *child, long request,
 }
 
 #ifdef CONFIG_COMPAT
-/* Not used; we handle compat issues in arch_ptrace() directly. */
 long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 			       compat_ulong_t addr, compat_ulong_t data)
 {
@@ -168,17 +160,8 @@ void do_syscall_trace(void)
 	if (!(current->ptrace & PT_PTRACED))
 		return;
 
-	/*
-	 * The 0x80 provides a way for the tracing parent to distinguish
-	 * between a syscall stop and SIGTRAP delivery
-	 */
 	ptrace_notify(SIGTRAP|((current->ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
 
-	/*
-	 * this isn't the same as continuing with a signal, but it will do
-	 * for normal use.  strace only continues with a signal if the
-	 * stopping signal is not SIGTRAP.  -brl
-	 */
 	if (current->exit_code) {
 		send_sig(current->exit_code, current, 1);
 		current->exit_code = 0;
@@ -194,11 +177,10 @@ void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs, int error_code)
 	info.si_code  = TRAP_BRKPT;
 	info.si_addr  = (void __user *) regs->pc;
 
-	/* Send us the fakey SIGTRAP */
+	
 	force_sig_info(SIGTRAP, &info, tsk);
 }
 
-/* Handle synthetic interrupt delivered only by the simulator. */
 void __kprobes do_breakpoint(struct pt_regs* regs, int fault_num)
 {
 	send_sigtrap(current, regs, fault_num);

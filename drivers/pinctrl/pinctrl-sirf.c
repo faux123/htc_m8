@@ -26,10 +26,6 @@
 #define SIRFSOC_GPIO_PAD_EN(g) ((g)*0x100 + 0x84)
 #define SIRFSOC_RSC_PIN_MUX 0x4
 
-/*
- * pad list for the pinmux subsystem
- * refer to CS-131858-DC-6A.xls
- */
 static const struct pinctrl_pin_desc sirfsoc_pads[] = {
 	PINCTRL_PIN(4, "pwm0"),
 	PINCTRL_PIN(5, "pwm1"),
@@ -137,10 +133,6 @@ static const struct pinctrl_pin_desc sirfsoc_pads[] = {
 	PINCTRL_PIN(114, "x_ldd[15]"),
 };
 
-/**
- * @dev: a pointer back to containing device
- * @virtbase: the offset to the controller in virtual memory
- */
 struct sirfsoc_pmx {
 	struct device *dev;
 	struct pinctrl_dev *pmx;
@@ -148,7 +140,6 @@ struct sirfsoc_pmx {
 	void __iomem *rsc_virtbase;
 };
 
-/* SIRFSOC_GPIO_PAD_EN set */
 struct sirfsoc_muxmask {
 	unsigned long group;
 	unsigned long mask;
@@ -157,19 +148,11 @@ struct sirfsoc_muxmask {
 struct sirfsoc_padmux {
 	unsigned long muxmask_counts;
 	const struct sirfsoc_muxmask *muxmask;
-	/* RSC_PIN_MUX set */
+	
 	unsigned long funcmask;
 	unsigned long funcval;
 };
 
- /**
- * struct sirfsoc_pin_group - describes a SiRFprimaII pin group
- * @name: the name of this specific pin group
- * @pins: an array of discrete physical pins used in this group, taken
- *	from the driver-local pin enumeration space
- * @num_pins: the number of pins in this group array, i.e. the number of
- *	elements in .pins so we can iterate over that array
- */
 struct sirfsoc_pin_group {
 	const char *name;
 	const unsigned int *pins;
@@ -771,7 +754,7 @@ static const struct sirfsoc_padmux usb0_utmi_drvbus_padmux = {
 	.muxmask_counts = ARRAY_SIZE(usb0_utmi_drvbus_muxmask),
 	.muxmask = usb0_utmi_drvbus_muxmask,
 	.funcmask = BIT(6),
-	.funcval = BIT(6), /* refer to PAD_UTMI_DRVVBUS0_ENABLE */
+	.funcval = BIT(6), 
 };
 
 static const unsigned usb0_utmi_drvbus_pins[] = { 54 };
@@ -787,7 +770,7 @@ static const struct sirfsoc_padmux usb1_utmi_drvbus_padmux = {
 	.muxmask_counts = ARRAY_SIZE(usb1_utmi_drvbus_muxmask),
 	.muxmask = usb1_utmi_drvbus_muxmask,
 	.funcmask = BIT(11),
-	.funcval = BIT(11), /* refer to PAD_UTMI_DRVVBUS1_ENABLE */
+	.funcval = BIT(11), 
 };
 
 static const unsigned usb1_utmi_drvbus_pins[] = { 59 };
@@ -853,18 +836,14 @@ static const struct sirfsoc_pin_group sirfsoc_pin_groups[] = {
 	SIRFSOC_PIN_GROUP("gpsgrp", gps_pins),
 };
 
-static int sirfsoc_list_groups(struct pinctrl_dev *pctldev, unsigned selector)
+static int sirfsoc_get_groups_count(struct pinctrl_dev *pctldev)
 {
-	if (selector >= ARRAY_SIZE(sirfsoc_pin_groups))
-		return -EINVAL;
-	return 0;
+	return ARRAY_SIZE(sirfsoc_pin_groups);
 }
 
 static const char *sirfsoc_get_group_name(struct pinctrl_dev *pctldev,
 				       unsigned selector)
 {
-	if (selector >= ARRAY_SIZE(sirfsoc_pin_groups))
-		return NULL;
 	return sirfsoc_pin_groups[selector].name;
 }
 
@@ -872,8 +851,6 @@ static int sirfsoc_get_group_pins(struct pinctrl_dev *pctldev, unsigned selector
 			       const unsigned **pins,
 			       unsigned *num_pins)
 {
-	if (selector >= ARRAY_SIZE(sirfsoc_pin_groups))
-		return -EINVAL;
 	*pins = sirfsoc_pin_groups[selector].pins;
 	*num_pins = sirfsoc_pin_groups[selector].num_pins;
 	return 0;
@@ -886,7 +863,7 @@ static void sirfsoc_pin_dbg_show(struct pinctrl_dev *pctldev, struct seq_file *s
 }
 
 static struct pinctrl_ops sirfsoc_pctrl_ops = {
-	.list_groups = sirfsoc_list_groups,
+	.get_groups_count = sirfsoc_get_groups_count,
 	.get_group_name = sirfsoc_get_group_name,
 	.get_group_pins = sirfsoc_get_group_pins,
 	.pin_dbg_show = sirfsoc_pin_dbg_show,
@@ -1033,11 +1010,9 @@ static void sirfsoc_pinmux_disable(struct pinctrl_dev *pmxdev, unsigned selector
 	sirfsoc_pinmux_endisable(spmx, selector, false);
 }
 
-static int sirfsoc_pinmux_list_funcs(struct pinctrl_dev *pmxdev, unsigned selector)
+static int sirfsoc_pinmux_get_funcs_count(struct pinctrl_dev *pmxdev)
 {
-	if (selector >= ARRAY_SIZE(sirfsoc_pmx_functions))
-		return -EINVAL;
-	return 0;
+	return ARRAY_SIZE(sirfsoc_pmx_functions);
 }
 
 static const char *sirfsoc_pinmux_get_func_name(struct pinctrl_dev *pctldev,
@@ -1074,9 +1049,9 @@ static int sirfsoc_pinmux_request_gpio(struct pinctrl_dev *pmxdev,
 }
 
 static struct pinmux_ops sirfsoc_pinmux_ops = {
-	.list_functions = sirfsoc_pinmux_list_funcs,
 	.enable = sirfsoc_pinmux_enable,
 	.disable = sirfsoc_pinmux_disable,
+	.get_functions_count = sirfsoc_pinmux_get_funcs_count,
 	.get_function_name = sirfsoc_pinmux_get_func_name,
 	.get_function_groups = sirfsoc_pinmux_get_groups,
 	.gpio_request_enable = sirfsoc_pinmux_request_gpio,
@@ -1091,9 +1066,6 @@ static struct pinctrl_desc sirfsoc_pinmux_desc = {
 	.owner = THIS_MODULE,
 };
 
-/*
- * Todo: bind irq_chip to every pinctrl_gpio_range
- */
 static struct pinctrl_gpio_range sirfsoc_gpio_ranges[] = {
 	{
 		.name = "sirfsoc-gpio*",
@@ -1144,7 +1116,7 @@ static int __devinit sirfsoc_pinmux_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	int i;
 
-	/* Create state holders etc for this driver */
+	
 	spmx = devm_kzalloc(&pdev->dev, sizeof(*spmx), GFP_KERNEL);
 	if (!spmx)
 		return -ENOMEM;
@@ -1167,7 +1139,7 @@ static int __devinit sirfsoc_pinmux_probe(struct platform_device *pdev)
 		goto out_no_rsc_remap;
 	}
 
-	/* Now register the pin controller and all pins it handles */
+	
 	spmx->pmx = pinctrl_register(&sirfsoc_pinmux_desc, &pdev->dev, spmx);
 	if (!spmx->pmx) {
 		dev_err(&pdev->dev, "could not register SIRFSOC pinmux driver\n");

@@ -30,7 +30,6 @@
 
 extern void tlb_flush(struct mmu_gather *tlb);
 
-/* Get the generic bits... */
 #include <asm-generic/tlb.h>
 
 extern void flush_hash_entry(struct mm_struct *mm, pte_t *ptep,
@@ -45,5 +44,5 @@ static inline void __tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep,
 #endif
 }
 
-#endif /* __KERNEL__ */
-#endif /* __ASM_POWERPC_TLB_H */
+#endif 
+#endif 

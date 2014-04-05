@@ -13,20 +13,13 @@
 
 #ifdef CONFIG_PPC64
 
-/*
- * PACA flags in paca->irq_happened.
- *
- * This bits are set when interrupts occur while soft-disabled
- * and allow a proper replay. Additionally, PACA_IRQ_HARD_DIS
- * is set whenever we manually hard disable.
- */
 #define PACA_IRQ_HARD_DIS	0x01
 #define PACA_IRQ_DBELL		0x02
 #define PACA_IRQ_EE		0x04
-#define PACA_IRQ_DEC		0x08 /* Or FIT */
-#define PACA_IRQ_EE_EDGE	0x10 /* BookE only */
+#define PACA_IRQ_DEC		0x08 
+#define PACA_IRQ_EE_EDGE	0x10 
 
-#endif /* CONFIG_PPC64 */
+#endif 
 
 #ifndef __ASSEMBLY__
 
@@ -99,11 +92,6 @@ static inline void hard_irq_disable(void)
 	get_paca()->irq_happened |= PACA_IRQ_HARD_DIS;
 }
 
-/*
- * This is called by asynchronous interrupts to conditionally
- * re-enable hard interrupts when soft-disabled after having
- * cleared the source of the interrupt
- */
 static inline void may_hard_irq_enable(void)
 {
 	get_paca()->irq_happened &= ~PACA_IRQ_HARD_DIS;
@@ -116,7 +104,7 @@ static inline bool arch_irq_disabled_regs(struct pt_regs *regs)
 	return !regs->softe;
 }
 
-#else /* CONFIG_PPC64 */
+#else 
 
 #define SET_MSR_EE(x)	mtmsr(x)
 
@@ -183,16 +171,12 @@ static inline bool arch_irq_disabled_regs(struct pt_regs *regs)
 
 static inline void may_hard_irq_enable(void) { }
 
-#endif /* CONFIG_PPC64 */
+#endif 
 
 #define ARCH_IRQ_INIT_FLAGS	IRQ_NOREQUEST
 
-/*
- * interrupt-retrigger: should we handle this via lost interrupts and IPIs
- * or should we not care like we do now ? --BenH.
- */
 struct irq_chip;
 
-#endif  /* __ASSEMBLY__ */
-#endif	/* __KERNEL__ */
-#endif	/* _ASM_POWERPC_HW_IRQ_H */
+#endif  
+#endif	
+#endif	

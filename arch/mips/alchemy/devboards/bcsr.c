@@ -1,11 +1,3 @@
-/*
- * bcsr.h -- Db1xxx/Pb1xxx Devboard CPLD registers ("BCSR") abstraction.
- *
- * All Alchemy development boards (except, of course, the weird PB1000)
- * have a few registers in a CPLD with standardised layout; they mostly
- * only differ in base address.
- * All registers are 16bits wide with 32bit spacing.
- */
 
 #include <linux/interrupt.h>
 #include <linux/module.h>
@@ -20,8 +12,8 @@ static struct bcsr_reg {
 	spinlock_t lock;
 } bcsr_regs[BCSR_CNT];
 
-static void __iomem *bcsr_virt;	/* KSEG1 addr of BCSR base */
-static int bcsr_csc_base;	/* linux-irq of first cascaded irq */
+static void __iomem *bcsr_virt;	
+static int bcsr_csc_base;	
 
 void __init bcsr_init(unsigned long bcsr1_phys, unsigned long bcsr2_phys)
 {
@@ -82,9 +74,6 @@ void bcsr_mod(enum bcsr_id reg, unsigned short clr, unsigned short set)
 }
 EXPORT_SYMBOL_GPL(bcsr_mod);
 
-/*
- * DB1200/PB1200 CPLD IRQ muxer
- */
 static void bcsr_csc_handler(unsigned int irq, struct irq_desc *d)
 {
 	unsigned short bisr = __raw_readw(bcsr_virt + BCSR_REG_INTSTAT);
@@ -108,7 +97,7 @@ static void bcsr_irq_maskack(struct irq_data *d)
 {
 	unsigned short v = 1 << (d->irq - bcsr_csc_base);
 	__raw_writew(v, bcsr_virt + BCSR_REG_MASKCLR);
-	__raw_writew(v, bcsr_virt + BCSR_REG_INTSTAT);	/* ack */
+	__raw_writew(v, bcsr_virt + BCSR_REG_INTSTAT);	
 	wmb();
 }
 
@@ -130,7 +119,7 @@ void __init bcsr_init_irq(int csc_start, int csc_end, int hook_irq)
 {
 	unsigned int irq;
 
-	/* mask & enable & ack all */
+	
 	__raw_writew(0xffff, bcsr_virt + BCSR_REG_MASKCLR);
 	__raw_writew(0xffff, bcsr_virt + BCSR_REG_INTSET);
 	__raw_writew(0xffff, bcsr_virt + BCSR_REG_INTSTAT);

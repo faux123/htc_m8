@@ -1,7 +1,3 @@
-/*
- * i8253.c  8253/PIT functions
- *
- */
 #include <linux/clockchips.h>
 #include <linux/i8253.h>
 #include <linux/export.h>
@@ -31,7 +27,7 @@ void __init setup_pit_timer(void)
 
 static int __init init_pit_clocksource(void)
 {
-	if (num_possible_cpus() > 1) /* PIT does not scale! */
+	if (num_possible_cpus() > 1) 
 		return 0;
 
 	return clocksource_i8253_init();

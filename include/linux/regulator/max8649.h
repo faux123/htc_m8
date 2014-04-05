@@ -17,7 +17,7 @@
 enum {
 	MAX8649_EXTCLK_26MHZ = 0,
 	MAX8649_EXTCLK_13MHZ,
-	MAX8649_EXTCLK_19MHZ,	/* 19.2MHz */
+	MAX8649_EXTCLK_19MHZ,	
 };
 
 enum {
@@ -34,11 +34,11 @@ enum {
 struct max8649_platform_data {
 	struct regulator_init_data *regulator;
 
-	unsigned	mode:2;		/* bit[1:0] = VID1,VID0 */
+	unsigned	mode:2;		
 	unsigned	extclk_freq:2;
 	unsigned	extclk:1;
 	unsigned	ramp_timing:3;
 	unsigned	ramp_down:1;
 };
 
-#endif	/* __LINUX_REGULATOR_MAX8649_H */
+#endif	

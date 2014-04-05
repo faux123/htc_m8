@@ -28,9 +28,6 @@
 #include <linux/irqflags.h>
 #include <linux/compiler.h>
 
-/*
- * clear_bit may not imply a memory barrier
- */
 #ifndef smp_mb__before_clear_bit
 #define smp_mb__before_clear_bit()	smp_mb()
 #define smp_mb__after_clear_bit()	smp_mb()
@@ -56,4 +53,4 @@
 #include <asm-generic/bitops/non-atomic.h>
 #include <asm-generic/bitops/ext2-atomic.h>
 
-#endif /* __ASM_GENERIC_BITOPS_H */
+#endif 

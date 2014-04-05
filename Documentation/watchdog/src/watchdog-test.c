@@ -1,6 +1,3 @@
-/*
- * Watchdog Driver Test Program
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +10,6 @@
 
 int fd;
 
-/*
- * This function simply sends an IOCTL to the driver, which in turn ticks
- * the PC Watchdog card to reset its internal timer so it doesn't trigger
- * a computer reset.
- */
 static void keep_alive(void)
 {
     int dummy;
@@ -25,10 +17,6 @@ static void keep_alive(void)
     ioctl(fd, WDIOC_KEEPALIVE, &dummy);
 }
 
-/*
- * The main program.  Run the program with "-d" to disable the card,
- * or "-e" to enable the card.
- */
 int main(int argc, char *argv[])
 {
     int flags;

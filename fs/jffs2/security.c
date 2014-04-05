@@ -22,7 +22,6 @@
 #include <linux/security.h>
 #include "nodelist.h"
 
-/* ---- Initial Security Label(s) Attachment callback --- */
 static int jffs2_initxattrs(struct inode *inode,
 			    const struct xattr *xattr_array, void *fs_info)
 {
@@ -39,7 +38,6 @@ static int jffs2_initxattrs(struct inode *inode,
 	return err;
 }
 
-/* ---- Initial Security Label(s) Attachment ----------- */
 int jffs2_init_security(struct inode *inode, struct inode *dir,
 			const struct qstr *qstr)
 {
@@ -47,7 +45,6 @@ int jffs2_init_security(struct inode *inode, struct inode *dir,
 					    &jffs2_initxattrs, NULL);
 }
 
-/* ---- XATTR Handler for "security.*" ----------------- */
 static int jffs2_security_getxattr(struct dentry *dentry, const char *name,
 				   void *buffer, size_t size, int type)
 {

@@ -1,6 +1,3 @@
-/*
- *	Just a place holder. 
- */
 
 #ifndef _SPARC_SETUP_H
 #define _SPARC_SETUP_H
@@ -16,9 +13,6 @@
 extern char reboot_command[];
 
 #ifdef CONFIG_SPARC32
-/* The CPU that was used for booting
- * Only sun4d + leon may have boot_cpu_id != 0
- */
 extern unsigned char boot_cpu_id;
 extern unsigned char boot_cpu_id4;
 
@@ -37,6 +31,6 @@ extern void sun_do_break(void);
 extern int stop_a_enabled;
 extern int scons_pwroff;
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _SPARC_SETUP_H */
+#endif 

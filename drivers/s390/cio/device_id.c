@@ -26,13 +26,6 @@
 #define SENSE_ID_MIN_LEN	4
 #define SENSE_ID_BASIC_LEN	7
 
-/**
- * diag210_to_senseid - convert diag 0x210 data to sense id information
- * @senseid: sense id
- * @diag: diag 0x210 data
- *
- * Return 0 on success, non-zero otherwise.
- */
 static int diag210_to_senseid(struct senseid *senseid, struct diag210 *diag)
 {
 	static struct {
@@ -70,7 +63,7 @@ static int diag210_to_senseid(struct senseid *senseid, struct diag210 *diag)
 	};
 	int i;
 
-	/* Special case for osa devices. */
+	
 	if (diag->vrdcvcla == 0x02 && diag->vrdcvtyp == 0x20) {
 		senseid->cu_type = 0x3088;
 		senseid->cu_model = 0x60;
@@ -89,12 +82,6 @@ static int diag210_to_senseid(struct senseid *senseid, struct diag210 *diag)
 	return -ENODEV;
 }
 
-/**
- * diag_get_dev_info - retrieve device information via diag 0x210
- * @cdev: ccw device
- *
- * Returns zero on success, non-zero otherwise.
- */
 static int diag210_get_dev_info(struct ccw_device *cdev)
 {
 	struct ccw_dev_id *dev_id = &cdev->private->dev_id;
@@ -127,9 +114,6 @@ err_failed:
 	return -ENODEV;
 }
 
-/*
- * Initialize SENSE ID data.
- */
 static void snsid_init(struct ccw_device *cdev)
 {
 	cdev->private->flags.esid = 0;
@@ -137,23 +121,20 @@ static void snsid_init(struct ccw_device *cdev)
 	cdev->private->senseid.cu_type = 0xffff;
 }
 
-/*
- * Check for complete SENSE ID data.
- */
 static int snsid_check(struct ccw_device *cdev, void *data)
 {
 	struct cmd_scsw *scsw = &cdev->private->irb.scsw.cmd;
 	int len = sizeof(struct senseid) - scsw->count;
 
-	/* Check for incomplete SENSE ID data. */
+	
 	if (len < SENSE_ID_MIN_LEN)
 		goto out_restart;
 	if (cdev->private->senseid.cu_type == 0xffff)
 		goto out_restart;
-	/* Check for incompatible SENSE ID data. */
+	
 	if (cdev->private->senseid.reserved != 0xff)
 		return -EOPNOTSUPP;
-	/* Check for extended-identification information. */
+	
 	if (len > SENSE_ID_BASIC_LEN)
 		cdev->private->flags.esid = 1;
 	return 0;
@@ -163,9 +144,6 @@ out_restart:
 	return -EAGAIN;
 }
 
-/*
- * Process SENSE ID request result.
- */
 static void snsid_callback(struct ccw_device *cdev, void *data, int rc)
 {
 	struct ccw_dev_id *id = &cdev->private->dev_id;
@@ -173,7 +151,7 @@ static void snsid_callback(struct ccw_device *cdev, void *data, int rc)
 	int vm = 0;
 
 	if (rc && MACHINE_IS_VM) {
-		/* Try diag 0x210 fallback on z/VM. */
+		
 		snsid_init(cdev);
 		if (diag210_get_dev_info(cdev) == 0) {
 			rc = 0;
@@ -187,14 +165,6 @@ static void snsid_callback(struct ccw_device *cdev, void *data, int rc)
 	ccw_device_sense_id_done(cdev, rc);
 }
 
-/**
- * ccw_device_sense_id_start - perform SENSE ID
- * @cdev: ccw device
- *
- * Execute a SENSE ID channel program on @cdev to update its sense id
- * information. When finished, call ccw_device_sense_id_done with a
- * return code specifying the result.
- */
 void ccw_device_sense_id_start(struct ccw_device *cdev)
 {
 	struct subchannel *sch = to_subchannel(cdev->dev.parent);
@@ -203,14 +173,14 @@ void ccw_device_sense_id_start(struct ccw_device *cdev)
 
 	CIO_TRACE_EVENT(4, "snsid");
 	CIO_HEX_EVENT(4, &cdev->private->dev_id, sizeof(cdev->private->dev_id));
-	/* Data setup. */
+	
 	snsid_init(cdev);
-	/* Channel program setup. */
+	
 	cp->cmd_code	= CCW_CMD_SENSE_ID;
 	cp->cda		= (u32) (addr_t) &cdev->private->senseid;
 	cp->count	= sizeof(struct senseid);
 	cp->flags	= CCW_FLAG_SLI;
-	/* Request setup. */
+	
 	memset(req, 0, sizeof(*req));
 	req->cp		= cp;
 	req->timeout	= SENSE_ID_TIMEOUT;

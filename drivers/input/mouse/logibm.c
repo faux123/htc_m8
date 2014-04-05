@@ -9,9 +9,6 @@
  *	Russell King
  */
 
-/*
- * Logitech Bus Mouse Driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify

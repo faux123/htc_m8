@@ -1,16 +1,3 @@
-/* Sysctl interface for parport devices.
- * 
- * Authors: David Campbell
- *          Tim Waugh <tim@cyberelk.demon.co.uk>
- *          Philip Blundell <philb@gnu.org>
- *          Andrea Arcangeli
- *          Riccardo Facchetti <fizban@tin.it>
- *
- * based on work by Grant Guenther <grant@torque.net>
- *              and Philip Blundell
- *
- * Cleaned up include files - Russell King <linux@arm.uk.linux.org>
- */
 
 #include <linux/string.h>
 #include <linux/init.h>
@@ -39,7 +26,7 @@ static int do_active_device(ctl_table *table, int write,
 	struct pardevice *dev;
 	int len = 0;
 
-	if (write)		/* can't happen anyway */
+	if (write)		
 		return -EACCES;
 
 	if (*ppos) {
@@ -76,7 +63,7 @@ static int do_autoprobe(ctl_table *table, int write,
 	char buffer[256];
 	int len = 0;
 
-	if (write) /* permissions stop this */
+	if (write) 
 		return -EACCES;
 
 	if (*ppos) {
@@ -108,7 +95,7 @@ static int do_autoprobe(ctl_table *table, int write,
 
 	return copy_to_user (result, buffer, len) ? -EFAULT : 0;
 }
-#endif /* IEEE1284.3 support. */
+#endif 
 
 static int do_hardware_base_addr (ctl_table *table, int write,
 				  void __user *result,
@@ -123,7 +110,7 @@ static int do_hardware_base_addr (ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) 
 		return -EACCES;
 
 	len += sprintf (buffer, "%lu\t%lu\n", port->base, port->base_hi);
@@ -151,7 +138,7 @@ static int do_hardware_irq (ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) 
 		return -EACCES;
 
 	len += sprintf (buffer, "%d\n", port->irq);
@@ -179,7 +166,7 @@ static int do_hardware_dma (ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) 
 		return -EACCES;
 
 	len += sprintf (buffer, "%d\n", port->dma);
@@ -207,7 +194,7 @@ static int do_hardware_modes (ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) 
 		return -EACCES;
 
 	{
@@ -339,7 +326,7 @@ static const struct parport_sysctl_table parport_sysctl_template = {
 			.mode		= 0444,
 			.proc_handler	= do_autoprobe
 		},
-#endif /* IEEE 1284 support */
+#endif 
 		{}
 	},
 	{
@@ -574,7 +561,7 @@ static void __exit parport_default_proc_unregister(void)
 	}
 }
 
-#else /* no sysctl or no procfs*/
+#else 
 
 int parport_proc_register(struct parport *pp)
 {

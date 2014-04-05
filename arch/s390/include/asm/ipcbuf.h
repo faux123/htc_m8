@@ -1,15 +1,6 @@
 #ifndef __S390_IPCBUF_H__
 #define __S390_IPCBUF_H__
 
-/*
- * The user_ipc_perm structure for S/390 architecture.
- * Note extra padding because this structure is passed back and forth
- * between kernel and user space.
- *
- * Pad space is left for:
- * - 32-bit mode_t and seq
- * - 2 miscellaneous 32-bit values
- */
 
 struct ipc64_perm
 {
@@ -23,9 +14,9 @@ struct ipc64_perm
 	unsigned short		seq;
 #ifndef __s390x__
 	unsigned short		__pad2;
-#endif /* ! __s390x__ */
+#endif 
 	unsigned long		__unused1;
 	unsigned long		__unused2;
 };
 
-#endif /* __S390_IPCBUF_H__ */
+#endif 

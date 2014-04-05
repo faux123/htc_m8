@@ -4,4 +4,4 @@
 static inline void enter_idle(void) { }
 static inline void exit_idle(void) { }
 
-#endif /* _ASM_IA64_IDLE_H */
+#endif 

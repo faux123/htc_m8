@@ -1,6 +1,3 @@
-/*
- * arch/arm/include/asm/flat.h -- uClinux flat-format executables
- */
 
 #ifndef __ARM_FLAT_H__
 #define __ARM_FLAT_H__
@@ -13,4 +10,4 @@
 #define	flat_get_relocate_addr(rel)		(rel)
 #define	flat_set_persistent(relval, p)		0
 
-#endif /* __ARM_FLAT_H__ */
+#endif 

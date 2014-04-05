@@ -25,7 +25,6 @@
 #ifndef _RTL_DEBUG_H
 #define _RTL_DEBUG_H
 
-/* Allow files to override DRV_NAME */
 #ifndef DRV_NAME
 #define DRV_NAME "rtllib_92e"
 #endif
@@ -34,7 +33,6 @@
 
 extern u32 rt_global_debug_component;
 
-/* These are the defines for rt_global_debug_component */
 enum RTL_DEBUG {
 	COMP_TRACE		= (1 << 0),
 	COMP_DBG		= (1 << 1),

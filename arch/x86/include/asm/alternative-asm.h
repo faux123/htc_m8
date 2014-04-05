@@ -23,4 +23,4 @@
 	.byte \alt_len
 .endm
 
-#endif  /*  __ASSEMBLY__  */
+#endif  

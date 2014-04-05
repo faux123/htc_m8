@@ -23,7 +23,6 @@ static void (*old_machine_restart)(char *);
 static void (*old_machine_halt)(void);
 static void (*old_machine_power_off)(void);
 
-/* Shutdown handler. Signal completion of shutdown by loading special PSW. */
 static void do_machine_quiesce(void)
 {
 	psw_t quiesce_psw;
@@ -35,7 +34,6 @@ static void do_machine_quiesce(void)
 	__load_psw(quiesce_psw);
 }
 
-/* Handler for quiesce event. Start shutdown procedure. */
 static void sclp_quiesce_handler(struct evbuf_header *evbuf)
 {
 	if (_machine_restart != (void *) do_machine_quiesce) {
@@ -49,7 +47,6 @@ static void sclp_quiesce_handler(struct evbuf_header *evbuf)
 	ctrl_alt_del();
 }
 
-/* Undo machine restart/halt/power_off modification on resume */
 static void sclp_quiesce_pm_event(struct sclp_register *reg,
 				  enum sclp_pm_event sclp_pm_event)
 {
@@ -76,7 +73,6 @@ static struct sclp_register sclp_quiesce_event = {
 	.pm_event_fn = sclp_quiesce_pm_event
 };
 
-/* Initialize quiesce driver. */
 static int __init sclp_quiesce_init(void)
 {
 	return sclp_register(&sclp_quiesce_event);

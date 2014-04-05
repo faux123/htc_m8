@@ -23,15 +23,7 @@
 #include <linux/ceph/auth.h>
 #include <linux/ceph/debugfs.h>
 
-/*
- * Ceph superblock operations
- *
- * Handle the basics of mounting, unmounting.
- */
 
-/*
- * super ops
- */
 static void ceph_put_super(struct super_block *s)
 {
 	struct ceph_fs_client *fsc = ceph_sb_to_client(s);
@@ -39,10 +31,6 @@ static void ceph_put_super(struct super_block *s)
 	dout("put_super\n");
 	ceph_mdsc_close_sessions(fsc->mdsc);
 
-	/*
-	 * ensure we release the bdi before put_anon_super releases
-	 * the device name.
-	 */
 	if (s->s_bdi == &fsc->backing_dev_info) {
 		bdi_unregister(&fsc->backing_dev_info);
 		s->s_bdi = NULL;
@@ -64,13 +52,9 @@ static int ceph_statfs(struct dentry *dentry, struct kstatfs *buf)
 	if (err < 0)
 		return err;
 
-	/* fill in kstatfs */
-	buf->f_type = CEPH_SUPER_MAGIC;  /* ?? */
+	
+	buf->f_type = CEPH_SUPER_MAGIC;  
 
-	/*
-	 * express utilization in terms of large blocks to avoid
-	 * overflow on 32-bit machines.
-	 */
 	buf->f_bsize = 1 << CEPH_BLOCK_SHIFT;
 	buf->f_blocks = le64_to_cpu(st.kb) >> (CEPH_BLOCK_SHIFT-10);
 	buf->f_bfree = le64_to_cpu(st.kb_avail) >> (CEPH_BLOCK_SHIFT-10);
@@ -81,7 +65,7 @@ static int ceph_statfs(struct dentry *dentry, struct kstatfs *buf)
 	buf->f_namelen = NAME_MAX;
 	buf->f_frsize = PAGE_CACHE_SIZE;
 
-	/* leave fsid little-endian, regardless of host endianness */
+	
 	fsid = *(u64 *)(&monmap->fsid) ^ *((u64 *)&monmap->fsid + 1);
 	buf->f_fsid.val[0] = fsid & 0xffffffff;
 	buf->f_fsid.val[1] = fsid >> 32;
@@ -108,9 +92,6 @@ static int ceph_sync_fs(struct super_block *sb, int wait)
 	return 0;
 }
 
-/*
- * mount options
- */
 enum {
 	Opt_wsize,
 	Opt_rsize,
@@ -122,10 +103,10 @@ enum {
 	Opt_readdir_max_bytes,
 	Opt_congestion_kb,
 	Opt_last_int,
-	/* int args above */
+	
 	Opt_snapdirname,
 	Opt_last_string,
-	/* string args above */
+	
 	Opt_dirstat,
 	Opt_nodirstat,
 	Opt_rbytes,
@@ -148,9 +129,9 @@ static match_table_t fsopt_tokens = {
 	{Opt_readdir_max_entries, "readdir_max_entries=%d"},
 	{Opt_readdir_max_bytes, "readdir_max_bytes=%d"},
 	{Opt_congestion_kb, "write_congestion_kb=%d"},
-	/* int args above */
+	
 	{Opt_snapdirname, "snapdirname=%s"},
-	/* string args above */
+	
 	{Opt_dirstat, "dirstat"},
 	{Opt_nodirstat, "nodirstat"},
 	{Opt_rbytes, "rbytes"},
@@ -199,7 +180,7 @@ static int parse_fsopt_token(char *c, void *private)
 			return -ENOMEM;
 		break;
 
-		/* misc */
+		
 	case Opt_wsize:
 		fsopt->wsize = intval;
 		break;
@@ -327,7 +308,7 @@ static int parse_mount_options(struct ceph_mount_options **pfsopt,
 	fsopt->max_readdir_bytes = CEPH_MAX_READDIR_BYTES_DEFAULT;
 	fsopt->congestion_kb = default_congestion_kb();
 
-	/* ip1[:port1][,ip2[:port2]...]:/subdir/in/fs */
+	
 	err = -EINVAL;
 	if (!dev_name)
 		goto out;
@@ -340,7 +321,7 @@ static int parse_mount_options(struct ceph_mount_options **pfsopt,
 	dev_name_end = *path;
 	dout("device name '%.*s'\n", (int)(dev_name_end - dev_name), dev_name);
 
-	/* path on server */
+	
 	*path += 2;
 	dout("server path '%s'\n", *path);
 
@@ -351,7 +332,7 @@ static int parse_mount_options(struct ceph_mount_options **pfsopt,
 		goto out;
 	}
 
-	/* success */
+	
 	*pfsopt = fsopt;
 	return 0;
 
@@ -360,11 +341,6 @@ out:
 	return err;
 }
 
-/**
- * ceph_show_options - Show mount options in /proc/mounts
- * @m: seq_file to write to
- * @root: root of that (sub)tree
- */
 static int ceph_show_options(struct seq_file *m, struct dentry *root)
 {
 	struct ceph_fs_client *fsc = ceph_sb_to_client(root->d_sb);
@@ -430,10 +406,6 @@ static int ceph_show_options(struct seq_file *m, struct dentry *root)
 	return 0;
 }
 
-/*
- * handle any mon messages the standard library doesn't understand.
- * return error if we don't either.
- */
 static int extra_mon_dispatch(struct ceph_client *client, struct ceph_msg *msg)
 {
 	struct ceph_fs_client *fsc = client->private;
@@ -449,9 +421,6 @@ static int extra_mon_dispatch(struct ceph_client *client, struct ceph_msg *msg)
 	}
 }
 
-/*
- * create a new fs client
- */
 static struct ceph_fs_client *create_fs_client(struct ceph_mount_options *fsopt,
 					struct ceph_options *opt)
 {
@@ -487,10 +456,6 @@ static struct ceph_fs_client *create_fs_client(struct ceph_mount_options *fsopt,
 		goto fail_client;
 
 	err = -ENOMEM;
-	/*
-	 * The number of concurrent works can be high but they don't need
-	 * to be processed in parallel, limit concurrency.
-	 */
 	fsc->wb_wq = alloc_workqueue("ceph-writeback", 0, 1);
 	if (fsc->wb_wq == NULL)
 		goto fail_bdi;
@@ -501,14 +466,14 @@ static struct ceph_fs_client *create_fs_client(struct ceph_mount_options *fsopt,
 	if (fsc->trunc_wq == NULL)
 		goto fail_pg_inv_wq;
 
-	/* set up mempools */
+	
 	err = -ENOMEM;
 	fsc->wb_pagevec_pool = mempool_create_kmalloc_pool(10,
 			      fsc->mount_options->wsize >> PAGE_CACHE_SHIFT);
 	if (!fsc->wb_pagevec_pool)
 		goto fail_trunc_wq;
 
-	/* caps */
+	
 	fsc->min_caps = fsopt->max_readdir;
 
 	return fsc;
@@ -550,9 +515,6 @@ static void destroy_fs_client(struct ceph_fs_client *fsc)
 	dout("destroy_fs_client %p done\n", fsc);
 }
 
-/*
- * caches
- */
 struct kmem_cache *ceph_inode_cachep;
 struct kmem_cache *ceph_cap_cachep;
 struct kmem_cache *ceph_dentry_cachep;
@@ -609,10 +571,6 @@ static void destroy_caches(void)
 }
 
 
-/*
- * ceph_umount_begin - initiate forced umount.  Tear down down the
- * mount, skipping steps that may hang while waiting for server(s).
- */
 static void ceph_umount_begin(struct super_block *sb)
 {
 	struct ceph_fs_client *fsc = ceph_sb_to_client(sb);
@@ -635,10 +593,6 @@ static const struct super_operations ceph_super_ops = {
 	.umount_begin   = ceph_umount_begin,
 };
 
-/*
- * Bootstrap mount by opening the root directory.  Note the mount
- * @started time from caller, and time out if this takes too long.
- */
 static struct dentry *open_root_dentry(struct ceph_fs_client *fsc,
 				       const char *path,
 				       unsigned long started)
@@ -648,7 +602,7 @@ static struct dentry *open_root_dentry(struct ceph_fs_client *fsc,
 	int err;
 	struct dentry *root;
 
-	/* open dir */
+	
 	dout("open_root_inode opening '%s'\n", path);
 	req = ceph_mdsc_create_request(mdsc, CEPH_MDS_OP_GETATTR, USE_ANY_MDS);
 	if (IS_ERR(req))
@@ -688,16 +642,13 @@ out:
 
 
 
-/*
- * mount: join the ceph cluster, and open root directory.
- */
 static struct dentry *ceph_real_mount(struct ceph_fs_client *fsc,
 		      const char *path)
 {
 	int err;
-	unsigned long started = jiffies;  /* note the start time */
+	unsigned long started = jiffies;  
 	struct dentry *root;
-	int first = 0;   /* first vfsmount for this super_block */
+	int first = 0;   
 
 	dout("mount start\n");
 	mutex_lock(&fsc->client->mount_mutex);
@@ -759,7 +710,7 @@ static int ceph_set_super(struct super_block *s, void *data)
 	dout("set_super %p data %p\n", s, data);
 
 	s->s_flags = fsc->mount_options->sb_flags;
-	s->s_maxbytes = 1ULL << 40;  /* temp value until we get mdsmap */
+	s->s_maxbytes = 1ULL << 40;  
 
 	s->s_fs_info = fsc;
 	fsc->sb = s;
@@ -767,9 +718,9 @@ static int ceph_set_super(struct super_block *s, void *data)
 	s->s_op = &ceph_super_ops;
 	s->s_export_op = &ceph_export_ops;
 
-	s->s_time_gran = 1000;  /* 1000 ns == 1 us */
+	s->s_time_gran = 1000;  
 
-	ret = set_anon_super(s, NULL);  /* what is that second arg for? */
+	ret = set_anon_super(s, NULL);  
 	if (ret != 0)
 		goto fail;
 
@@ -781,9 +732,6 @@ fail:
 	return ret;
 }
 
-/*
- * share superblock if same fs AND options
- */
 static int ceph_compare_super(struct super_block *sb, void *data)
 {
 	struct ceph_fs_client *new = data;
@@ -809,9 +757,6 @@ static int ceph_compare_super(struct super_block *sb, void *data)
 	return 1;
 }
 
-/*
- * construct our own bdi so we can control readahead, etc.
- */
 static atomic_long_t bdi_seq = ATOMIC_LONG_INIT(0);
 
 static int ceph_register_bdi(struct super_block *sb,
@@ -819,7 +764,7 @@ static int ceph_register_bdi(struct super_block *sb,
 {
 	int err;
 
-	/* set ra_pages based on rasize mount option? */
+	
 	if (fsc->mount_options->rasize >= PAGE_CACHE_SIZE)
 		fsc->backing_dev_info.ra_pages =
 			(fsc->mount_options->rasize + PAGE_CACHE_SIZE - 1)
@@ -854,7 +799,7 @@ static struct dentry *ceph_mount(struct file_system_type *fs_type,
 		goto out_final;
 	}
 
-	/* create client (which we may/may not use) */
+	
 	fsc = create_fs_client(fsopt, opt);
 	if (IS_ERR(fsc)) {
 		res = ERR_CAST(fsc);
@@ -916,7 +861,7 @@ static void ceph_kill_sb(struct super_block *s)
 	struct ceph_fs_client *fsc = ceph_sb_to_client(s);
 	dout("kill_sb %p\n", s);
 	ceph_mdsc_pre_umount(fsc->mdsc);
-	kill_anon_super(s);    /* will call put_super after sb is r/o */
+	kill_anon_super(s);    
 	ceph_mdsc_destroy(fsc);
 	destroy_fs_client(fsc);
 }

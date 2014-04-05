@@ -20,9 +20,6 @@ struct tlb_state {
 };
 DECLARE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate);
 
-/**
- * local_flush_tlb - Flush the current MM's entries from the local CPU's TLBs
- */
 static inline void local_flush_tlb(void)
 {
 	int w;
@@ -35,27 +32,16 @@ static inline void local_flush_tlb(void)
 		: "cc", "memory");
 }
 
-/**
- * local_flush_tlb_all - Flush all entries from the local CPU's TLBs
- */
 static inline void local_flush_tlb_all(void)
 {
 	local_flush_tlb();
 }
 
-/**
- * local_flush_tlb_one - Flush one entry from the local CPU's TLBs
- */
 static inline void local_flush_tlb_one(unsigned long addr)
 {
 	local_flush_tlb();
 }
 
-/**
- * local_flush_tlb_page - Flush a page's entry from the local CPU's TLBs
- * @mm: The MM to flush for
- * @addr: The address of the target page in RAM (not its page struct)
- */
 static inline
 void local_flush_tlb_page(struct mm_struct *mm, unsigned long addr)
 {
@@ -84,16 +70,6 @@ void local_flush_tlb_page(struct mm_struct *mm, unsigned long addr)
 	local_irq_restore(flags);
 }
 
-/*
- * TLB flushing:
- *
- *  - flush_tlb() flushes the current mm struct TLBs
- *  - flush_tlb_all() flushes all processes TLBs
- *  - flush_tlb_mm(mm) flushes the specified mm context TLB's
- *  - flush_tlb_page(vma, vmaddr) flushes one page
- *  - flush_tlb_range(mm, start, end) flushes a range of pages
- *  - flush_tlb_pgtables(mm, start, end) flushes a range of page tables
- */
 #ifdef CONFIG_SMP
 
 #include <asm/smp.h>
@@ -111,7 +87,7 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
 	flush_tlb_mm(vma->vm_mm);
 }
 
-#else   /* CONFIG_SMP */
+#else   
 
 static inline void flush_tlb_all(void)
 {
@@ -138,7 +114,7 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
 #define flush_tlb_page(vma, addr)	local_flush_tlb_page((vma)->vm_mm, addr)
 #define flush_tlb()			flush_tlb_all()
 
-#endif /* CONFIG_SMP */
+#endif 
 
 static inline void flush_tlb_kernel_range(unsigned long start,
 					  unsigned long end)
@@ -151,4 +127,4 @@ static inline void flush_tlb_pgtables(struct mm_struct *mm,
 {
 }
 
-#endif /* _ASM_TLBFLUSH_H */
+#endif 

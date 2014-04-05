@@ -28,7 +28,6 @@
 
 #define BTNAMSIZ 18
 
-/* CMTP ioctl defines */
 #define CMTPCONNADD	_IOW('C', 200, int)
 #define CMTPCONNDEL	_IOW('C', 201, int)
 #define CMTPGETCONNLIST	_IOR('C', 210, int)
@@ -37,7 +36,7 @@
 #define CMTP_LOOPBACK	0
 
 struct cmtp_connadd_req {
-	int   sock;	/* Connected socket */
+	int   sock;	
 	__u32 flags;
 };
 
@@ -63,7 +62,6 @@ int cmtp_del_connection(struct cmtp_conndel_req *req);
 int cmtp_get_connlist(struct cmtp_connlist_req *req);
 int cmtp_get_conninfo(struct cmtp_conninfo *ci);
 
-/* CMTP session defines */
 #define CMTP_INTEROP_TIMEOUT	(HZ * 5)
 #define CMTP_INITIAL_MSGNUM	0xff00
 
@@ -81,7 +79,6 @@ struct cmtp_session {
 
 	char name[BTNAMSIZ];
 
-	atomic_t terminate;
 	struct task_struct *task;
 
 	wait_queue_head_t wait;
@@ -122,8 +119,7 @@ void cmtp_detach_device(struct cmtp_session *session);
 
 void cmtp_recv_capimsg(struct cmtp_session *session, struct sk_buff *skb);
 
-/* CMTP init defines */
 int cmtp_init_sockets(void);
 void cmtp_cleanup_sockets(void);
 
-#endif /* __CMTP_H */
+#endif 

@@ -17,4 +17,4 @@ struct i2c_bit_adapter {
 				      } mask;
 };
 
-#endif /* __MATROXFB_MAVEN_H__ */
+#endif 

@@ -31,7 +31,6 @@
 #ifndef __RNDIS_H__
 #define __RNDIS_H__
 
-/*---------------------  Export Definitions -------------------------*/
 #define MESSAGE_TYPE_READ               0x01
 #define MESSAGE_TYPE_WRITE              0x00
 #define MESSAGE_TYPE_LOCK_OR            0x02
@@ -51,7 +50,6 @@
 #define MESSAGE_TYPE_DISABLE_PS         0x10
 #define MESSAGE_TYPE_WRITE_IFRF         0x11
 
-//used for read/write(index)
 #define MESSAGE_REQUEST_MEM             0x01
 #define MESSAGE_REQUEST_BBREG           0x02
 #define MESSAGE_REQUEST_MACREG          0x03
@@ -70,7 +68,6 @@
 #define VIAUSB20_PACKET_HEADER          0x04
 
 
-/*---------------------  Export Classes  ----------------------------*/
 
 typedef struct _CMD_MESSAGE
 {
@@ -115,7 +112,7 @@ typedef struct _CMD_CLRKEY_ENTRY
 
 typedef struct _CMD_WRITE_MISCFF
 {
-    DWORD       adwMiscFFData[22][4];  //a key entry has only 22 dwords
+    DWORD       adwMiscFFData[22][4];  
 } CMD_WRITE_MISCFF, *PCMD_WRITE_MISCFF;
 
 typedef struct _CMD_SET_TSFTBTT
@@ -141,7 +138,7 @@ typedef struct _CMD_CHANGE_BBTYPE
     BYTE        bySlotTime;
     BYTE        byCwMax_Min;
     BYTE        byBBCR10;
-    BYTE        byBB_BBType;    //CR88
+    BYTE        byBB_BBType;    
     BYTE        byMAC_BBType;
     DWORD       dwRSPINF_b_1;
     DWORD       dwRSPINF_b_2;
@@ -150,12 +147,9 @@ typedef struct _CMD_CHANGE_BBTYPE
     WORD        wRSPINF_a[9];
 } CMD_CHANGE_BBTYPE, *PCMD_CHANGE_BBTYPE;
 
-/*---------------------  Export Macros -------------------------*/
 
 #define EXCH_WORD(w) ((WORD)((WORD)(w)<<8) | (WORD)((WORD)(w)>>8))
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
 
-#endif /* _RNDIS_H_ */
+#endif 

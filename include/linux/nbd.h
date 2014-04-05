@@ -36,13 +36,11 @@ enum {
 
 #define nbd_cmd(req) ((req)->cmd[0])
 
-/* userspace doesn't need the nbd_device structure */
 #ifdef __KERNEL__
 
 #include <linux/wait.h>
 #include <linux/mutex.h>
 
-/* values for flags field */
 #define NBD_READ_ONLY 0x0001
 #define NBD_WRITE_NOCHK 0x0002
 
@@ -50,53 +48,43 @@ struct request;
 
 struct nbd_device {
 	int flags;
-	int harderror;		/* Code of hard error			*/
+	int harderror;		
 	struct socket * sock;
-	struct file * file; 	/* If == NULL, device is not ready, yet	*/
+	struct file * file; 	
 	int magic;
 
 	spinlock_t queue_lock;
-	struct list_head queue_head;	/* Requests waiting result */
+	struct list_head queue_head;	
 	struct request *active_req;
 	wait_queue_head_t active_wq;
-	struct list_head waiting_queue;	/* Requests to be sent */
+	struct list_head waiting_queue;	
 	wait_queue_head_t waiting_wq;
 
 	struct mutex tx_lock;
 	struct gendisk *disk;
 	int blksize;
 	u64 bytesize;
-	pid_t pid; /* pid of nbd-client, if attached */
+	pid_t pid; 
 	int xmit_timeout;
 };
 
 #endif
 
-/* These are sent over the network in the request/reply magic fields */
 
 #define NBD_REQUEST_MAGIC 0x25609513
 #define NBD_REPLY_MAGIC 0x67446698
-/* Do *not* use magics: 0x12560953 0x96744668. */
 
-/*
- * This is the packet used for communication between client and
- * server. All data are in network byte order.
- */
 struct nbd_request {
 	__be32 magic;
-	__be32 type;	/* == READ || == WRITE 	*/
+	__be32 type;	
 	char handle[8];
 	__be64 from;
 	__be32 len;
 } __attribute__((packed));
 
-/*
- * This is the reply packet that nbd-server sends back to the client after
- * it has completed an I/O request (or an error occurs).
- */
 struct nbd_reply {
 	__be32 magic;
-	__be32 error;		/* 0 = ok, else error	*/
-	char handle[8];		/* handle you got from request	*/
+	__be32 error;		
+	char handle[8];		
 };
 #endif

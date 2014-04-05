@@ -21,10 +21,6 @@
 
 #include "vnic_dev.h"
 
-/*
- * Calls the devcmd function given by argument vnicdevcmdfn.
- * If vf argument is valid, it proxies the devcmd
- */
 #define ENIC_DEVCMD_PROXY_BY_INDEX(vf, err, enic, vnicdevcmdfn, ...) \
 	do { \
 		spin_lock(&enic->devcmd_lock); \
@@ -61,4 +57,4 @@ int enic_dev_enable2(struct enic *enic, int arg);
 int enic_dev_enable2_done(struct enic *enic, int *status);
 int enic_dev_status_to_errno(int devcmd_status);
 
-#endif /* _ENIC_DEV_H_ */
+#endif 

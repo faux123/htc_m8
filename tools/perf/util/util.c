@@ -2,9 +2,6 @@
 #include "util.h"
 #include <sys/mman.h>
 
-/*
- * XXX We need to find a better place for these things...
- */
 bool perf_host  = true;
 bool perf_guest = false;
 
@@ -14,7 +11,7 @@ void event_attr_init(struct perf_event_attr *attr)
 		attr->exclude_host  = 1;
 	if (!perf_guest)
 		attr->exclude_guest = 1;
-	/* to capture ABI version */
+	
 	attr->size = sizeof(*attr);
 }
 
@@ -81,7 +78,7 @@ int copyfile(const char *from, const char *to)
 	if (stat(from, &st))
 		goto out;
 
-	if (st.st_size == 0) /* /proc? do it slowly... */
+	if (st.st_size == 0) 
 		return slow_copyfile(from, to);
 
 	fromfd = open(from, O_RDONLY);

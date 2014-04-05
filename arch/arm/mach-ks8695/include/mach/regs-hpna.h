@@ -18,8 +18,5 @@
 #define KS8695_HPNA_PA		(KS8695_IO_PA + KS8695_HPNA_OFFSET)
 
 
-/*
- * HPNA registers
- */
 
 #endif

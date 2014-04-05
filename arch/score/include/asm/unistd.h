@@ -10,4 +10,4 @@
 
 #include <asm-generic/unistd.h>
 
-#endif /* _ASM_SCORE_UNISTD_H */
+#endif 

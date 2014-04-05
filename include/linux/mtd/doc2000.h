@@ -86,11 +86,6 @@
 #define DoC_Mplus_CtrlConfirm		0x1076
 #define DoC_Mplus_Power			0x1fff
 
-/* How to access the device?
- * On ARM, it'll be mmap'd directly with 32-bit wide accesses.
- * On PPC, it's mmap'd and 16-bit wide.
- * Others use readb/writeb
- */
 #if defined(__arm__)
 #define ReadDOC_(adr, reg)      ((unsigned char)(*(volatile __u32 *)(((unsigned long)adr)+((reg)<<2))))
 #define WriteDOC_(d, adr, reg)  do{ *(volatile __u32 *)(((unsigned long)adr)+((reg)<<2)) = (__u32)d; wmb();} while(0)
@@ -110,7 +105,6 @@
 #define USE_MEMCPY
 #endif
 
-/* These are provided to directly use the DoC_xxx defines */
 #define ReadDOC(adr, reg)      ReadDOC_(adr,DoC_##reg)
 #define WriteDOC(d, adr, reg)  WriteDOC_(d,adr,DoC_##reg)
 
@@ -125,7 +119,7 @@
 #define DOC_MODE_MDWREN 	0x04
 
 #define DOC_ChipID_Doc2k 	0x20
-#define DOC_ChipID_Doc2kTSOP 	0x21	/* internal number for MTD */
+#define DOC_ChipID_Doc2kTSOP 	0x21	
 #define DOC_ChipID_DocMil 	0x30
 #define DOC_ChipID_DocMilPlus32	0x40
 #define DOC_ChipID_DocMilPlus16	0x41
@@ -153,7 +147,6 @@
 #define DOC_FLASH_WP		0x40
 #define DOC_FLASH_BANK		0x02
 
-/* We have to also set the reserved bit 1 for enable */
 #define DOC_ECC_EN (DOC_ECC__EN | DOC_ECC_RESV)
 #define DOC_ECC_DIS (DOC_ECC_RESV)
 
@@ -161,7 +154,7 @@ struct Nand {
 	char floor, chip;
 	unsigned long curadr;
 	unsigned char curmode;
-	/* Also some erase/write/pipeline info when we get that far */
+	
 };
 
 #define MAX_FLOORS 4
@@ -181,15 +174,15 @@ struct DiskOnChip {
 	unsigned long physadr;
 	void __iomem *virtadr;
 	unsigned long totlen;
-	unsigned char ChipID; /* Type of DiskOnChip */
+	unsigned char ChipID; 
 	int ioreg;
 
-	unsigned long mfr; /* Flash IDs - only one type of flash per device */
+	unsigned long mfr; 
 	unsigned long id;
 	int chipshift;
 	char page256;
 	char pageadrlen;
-	char interleave; /* Internal interleaving - Millennium Plus style */
+	char interleave; 
 	unsigned long erasesize;
 
 	int curfloor;
@@ -203,4 +196,4 @@ struct DiskOnChip {
 
 int doc_decode_ecc(unsigned char sector[512], unsigned char ecc1[6]);
 
-#endif /* __MTD_DOC2000_H__ */
+#endif 

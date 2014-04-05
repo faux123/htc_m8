@@ -29,9 +29,6 @@ extern void snd_gf1_timers_done(struct snd_gus_card * gus);
 extern int snd_gf1_synth_init(struct snd_gus_card * gus);
 extern void snd_gf1_synth_done(struct snd_gus_card * gus);
 
-/*
- *  ok.. default interrupt handlers...
- */
 
 static void snd_gf1_default_interrupt_handler_midi_out(struct snd_gus_card * gus)
 {
@@ -94,9 +91,6 @@ void snd_gf1_set_default_handlers(struct snd_gus_card * gus, unsigned int what)
 		gus->gf1.interrupt_handler_dma_read = snd_gf1_default_interrupt_handler_dma_read;
 }
 
-/*
-
- */
 
 static void snd_gf1_clear_regs(struct snd_gus_card * gus)
 {
@@ -104,9 +98,9 @@ static void snd_gf1_clear_regs(struct snd_gus_card * gus)
 
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	inb(GUSP(gus, IRQSTAT));
-	snd_gf1_write8(gus, 0x41, 0);	/* DRAM DMA Control Register */
-	snd_gf1_write8(gus, 0x45, 0);	/* Timer Control */
-	snd_gf1_write8(gus, 0x49, 0);	/* Sampling Control Register */
+	snd_gf1_write8(gus, 0x41, 0);	
+	snd_gf1_write8(gus, 0x45, 0);	
+	snd_gf1_write8(gus, 0x49, 0);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 }
 
@@ -115,16 +109,13 @@ static void snd_gf1_look_regs(struct snd_gus_card * gus)
 	unsigned long flags;
 
 	spin_lock_irqsave(&gus->reg_lock, flags);
-	snd_gf1_look8(gus, 0x41);	/* DRAM DMA Control Register */
-	snd_gf1_look8(gus, 0x49);	/* Sampling Control Register */
+	snd_gf1_look8(gus, 0x41);	
+	snd_gf1_look8(gus, 0x49);	
 	inb(GUSP(gus, IRQSTAT));
-	snd_gf1_read8(gus, 0x0f);	/* IRQ Source Register */
+	snd_gf1_read8(gus, 0x0f);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 }
 
-/*
- *  put selected GF1 voices to initial stage...
- */
 
 void snd_gf1_smart_stop_voice(struct snd_gus_card * gus, unsigned short voice)
 {
@@ -175,10 +166,10 @@ static void snd_gf1_clear_voices(struct snd_gus_card * gus, unsigned short v_min
 #endif
 		spin_lock_irqsave(&gus->reg_lock, flags);
 		snd_gf1_select_voice(gus, i);
-		snd_gf1_ctrl_stop(gus, SNDRV_GF1_VB_ADDRESS_CONTROL);	/* Voice Control Register = voice stop */
-		snd_gf1_ctrl_stop(gus, SNDRV_GF1_VB_VOLUME_CONTROL);	/* Volume Ramp Control Register = ramp off */
+		snd_gf1_ctrl_stop(gus, SNDRV_GF1_VB_ADDRESS_CONTROL);	
+		snd_gf1_ctrl_stop(gus, SNDRV_GF1_VB_VOLUME_CONTROL);	
 		if (gus->gf1.enh_mode)
-			snd_gf1_write8(gus, SNDRV_GF1_VB_MODE, gus->gf1.memory ? 0x02 : 0x82);	/* Deactivate voice */
+			snd_gf1_write8(gus, SNDRV_GF1_VB_MODE, gus->gf1.memory ? 0x02 : 0x82);	
 		w_16 = snd_gf1_read8(gus, SNDRV_GF1_VB_ADDRESS_CONTROL) & 0x04;
 		snd_gf1_write16(gus, SNDRV_GF1_VW_FREQUENCY, 0x400);
 		snd_gf1_write_addr(gus, SNDRV_GF1_VA_START, daddr, w_16);
@@ -208,17 +199,17 @@ void snd_gf1_stop_voices(struct snd_gus_card * gus, unsigned short v_min, unsign
 	short i, ramp_ok;
 	unsigned short ramp_end;
 
-	if (!in_interrupt()) {	/* this can't be done in interrupt */
+	if (!in_interrupt()) {	
 		for (i = v_min, ramp_ok = 0; i <= v_max; i++) {
 			spin_lock_irqsave(&gus->reg_lock, flags);
 			snd_gf1_select_voice(gus, i);
 			ramp_end = snd_gf1_read16(gus, 9) >> 8;
 			if (ramp_end > SNDRV_GF1_MIN_OFFSET) {
 				ramp_ok++;
-				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_RATE, 20);	/* ramp rate */
-				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_START, SNDRV_GF1_MIN_OFFSET);	/* ramp start */
-				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_END, ramp_end);	/* ramp end */
-				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_CONTROL, 0x40);	/* ramp down */
+				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_RATE, 20);	
+				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_START, SNDRV_GF1_MIN_OFFSET);	
+				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_END, ramp_end);	
+				snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_CONTROL, 0x40);	
 				if (gus->gf1.enh_mode) {
 					snd_gf1_delay(gus);
 					snd_gf1_write8(gus, SNDRV_GF1_VB_VOLUME_CONTROL, 0x40);
@@ -312,18 +303,15 @@ void snd_gf1_free_voice(struct snd_gus_card * gus, struct snd_gus_voice *voice)
 		private_free(voice);
 }
 
-/*
- *  call this function only by start of driver
- */
 
 int snd_gf1_start(struct snd_gus_card * gus)
 {
 	unsigned long flags;
 	unsigned int i;
 
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 0);	/* reset GF1 */
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 0);	
 	udelay(160);
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 1);	/* disable IRQ & DAC */
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 1);	
 	udelay(160);
 	snd_gf1_i_write8(gus, SNDRV_GF1_GB_JOYSTICK_DAC_LEVEL, gus->joystick_dac);
 
@@ -333,9 +321,9 @@ int snd_gf1_start(struct snd_gus_card * gus)
 		snd_gf1_set_default_handlers(gus, SNDRV_GF1_HANDLER_VOICE | i);
 	}
 
-	snd_gf1_uart_cmd(gus, 0x03);	/* huh.. this cleanup took me some time... */
+	snd_gf1_uart_cmd(gus, 0x03);	
 
-	if (gus->gf1.enh_mode) {	/* enhanced mode !!!! */
+	if (gus->gf1.enh_mode) {	
 		snd_gf1_i_write8(gus, SNDRV_GF1_GB_GLOBAL_MODE, snd_gf1_i_look8(gus, SNDRV_GF1_GB_GLOBAL_MODE) | 0x01);
 		snd_gf1_i_write8(gus, SNDRV_GF1_GB_MEMORY_CONTROL, 0x01);
 	}
@@ -343,7 +331,7 @@ int snd_gf1_start(struct snd_gus_card * gus)
 	snd_gf1_select_active_voices(gus);
 	snd_gf1_delay(gus);
 	gus->gf1.default_voice_address = gus->gf1.memory > 0 ? 0 : 512 - 8;
-	/* initialize LFOs & clear LFOs memory */
+	
 	if (gus->gf1.enh_mode && gus->gf1.memory) {
 		gus->gf1.hw_lfo = 1;
 		gus->gf1.default_voice_address += 1024;
@@ -360,10 +348,10 @@ int snd_gf1_start(struct snd_gus_card * gus)
 	snd_gf1_clear_voices(gus, 0, 31);
 	snd_gf1_look_regs(gus);
 	udelay(160);
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 7);	/* Reset Register = IRQ enable, DAC enable */
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 7);	
 	udelay(160);
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 7);	/* Reset Register = IRQ enable, DAC enable */
-	if (gus->gf1.enh_mode) {	/* enhanced mode !!!! */
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 7);	
+	if (gus->gf1.enh_mode) {	
 		snd_gf1_i_write8(gus, SNDRV_GF1_GB_GLOBAL_MODE, snd_gf1_i_look8(gus, SNDRV_GF1_GB_GLOBAL_MODE) | 0x01);
 		snd_gf1_i_write8(gus, SNDRV_GF1_GB_MEMORY_CONTROL, 0x01);
 	}
@@ -395,15 +383,12 @@ int snd_gf1_start(struct snd_gus_card * gus)
 	return 0;
 }
 
-/*
- *  call this function only by shutdown of driver
- */
 
 int snd_gf1_stop(struct snd_gus_card * gus)
 {
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, 0); /* stop all timers */
-	snd_gf1_stop_voices(gus, 0, 31);		/* stop all voices */
-	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 1);	/* disable IRQ & DAC */
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, 0); 
+	snd_gf1_stop_voices(gus, 0, 31);		
+	snd_gf1_i_write8(gus, SNDRV_GF1_GB_RESET, 1);	
 	snd_gf1_timers_done(gus);
 	snd_gf1_mem_done(gus);
 #if 0

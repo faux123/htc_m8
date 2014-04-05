@@ -56,12 +56,6 @@ static const struct irda_entry irda_dirs[] = {
 	{"irias",	&irias_seq_fops},
 };
 
-/*
- * Function irda_proc_register (void)
- *
- *    Register irda entry in /proc file system
- *
- */
 void __init irda_proc_register(void)
 {
 	int i;
@@ -75,12 +69,6 @@ void __init irda_proc_register(void)
 				   irda_dirs[i].fops);
 }
 
-/*
- * Function irda_proc_unregister (void)
- *
- *    Unregister irda entry in /proc file system
- *
- */
 void irda_proc_unregister(void)
 {
 	int i;

@@ -1,6 +1,3 @@
-/*
- * cs5536 mfgpt header file
- */
 
 #ifndef _CS5536_MFGPT_H
 #define _CS5536_MFGPT_H
@@ -32,4 +29,4 @@ static inline void __maybe_unused enable_mfgpt0_counter(void)
 #define MFGPT0_CNT	(MFGPT_BASE + 4)
 #define MFGPT0_SETUP	(MFGPT_BASE + 6)
 
-#endif /*!_CS5536_MFGPT_H */
+#endif 

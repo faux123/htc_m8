@@ -36,7 +36,6 @@
 int xs_init(void);
 int xb_init_comms(void);
 
-/* Low level routines. */
 int xb_write(const void *data, unsigned len);
 int xb_read(void *data, unsigned len);
 int xb_data_to_read(void);
@@ -47,4 +46,4 @@ extern int xen_store_evtchn;
 
 extern const struct file_operations xen_xenbus_fops;
 
-#endif /* _XENBUS_COMMS_H */
+#endif 

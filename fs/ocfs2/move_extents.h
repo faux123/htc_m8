@@ -19,4 +19,4 @@
 
 int ocfs2_ioctl_move_extents(struct file *filp,  void __user *argp);
 
-#endif /* OCFS2_MOVE_EXTENTS_H */
+#endif 

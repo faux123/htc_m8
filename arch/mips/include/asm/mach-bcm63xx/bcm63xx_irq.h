@@ -10,4 +10,4 @@
 #define IRQ_EXT_2			(IRQ_EXTERNAL_BASE + 2)
 #define IRQ_EXT_3			(IRQ_EXTERNAL_BASE + 3)
 
-#endif /* ! BCM63XX_IRQ_H_ */
+#endif 

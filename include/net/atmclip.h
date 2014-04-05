@@ -1,4 +1,3 @@
-/* net/atm/atmarp.h - RFC1577 ATM ARP */
  
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
  
@@ -19,34 +18,32 @@
 struct sk_buff;
 
 struct clip_vcc {
-	struct atm_vcc	*vcc;		/* VCC descriptor */
-	struct atmarp_entry *entry;	/* ATMARP table entry, NULL if IP addr.
-					   isn't known yet */
-	int		xoff;		/* 1 if send buffer is full */
-	unsigned char	encap;		/* 0: NULL, 1: LLC/SNAP */
-	unsigned long	last_use;	/* last send or receive operation */
-	unsigned long	idle_timeout;	/* keep open idle for so many jiffies*/
+	struct atm_vcc	*vcc;		
+	struct atmarp_entry *entry;	
+	int		xoff;		
+	unsigned char	encap;		
+	unsigned long	last_use;	
+	unsigned long	idle_timeout;	
 	void (*old_push)(struct atm_vcc *vcc,struct sk_buff *skb);
-					/* keep old push fn for chaining */
+					
 	void (*old_pop)(struct atm_vcc *vcc,struct sk_buff *skb);
-					/* keep old pop fn for chaining */
-	struct clip_vcc	*next;		/* next VCC */
+					
+	struct clip_vcc	*next;		
 };
 
 
 struct atmarp_entry {
-	struct clip_vcc	*vccs;		/* active VCCs; NULL if resolution is
-					   pending */
-	unsigned long	expires;	/* entry expiration time */
-	struct neighbour *neigh;	/* neighbour back-pointer */
+	struct clip_vcc	*vccs;		
+	unsigned long	expires;	
+	struct neighbour *neigh;	
 };
 
 #define PRIV(dev) ((struct clip_priv *) netdev_priv(dev))
 
 struct clip_priv {
-	int number;			/* for convenience ... */
-	spinlock_t xoff_lock;		/* ensures that pop is atomic (SMP) */
-	struct net_device *next;	/* next CLIP interface */
+	int number;			
+	spinlock_t xoff_lock;		
+	struct net_device *next;	
 };
 
 #endif

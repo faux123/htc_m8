@@ -12,10 +12,8 @@
  * See the GNU General Public License for more details.
  */
 
-#define LLC_NR_SAP_STATES	2       /* size of state table */
+#define LLC_NR_SAP_STATES	2       
 
-/* structures and types */
-/* SAP state table structure */
 struct llc_sap_state_trans {
 	llc_sap_ev_t	  ev;
 	u8		  next_state;
@@ -27,6 +25,5 @@ struct llc_sap_state {
 	struct llc_sap_state_trans **transitions;
 };
 
-/* only access to SAP state table */
 extern struct llc_sap_state llc_sap_state_table[LLC_NR_SAP_STATES];
-#endif /* LLC_S_ST_H */
+#endif 

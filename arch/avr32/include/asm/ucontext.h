@@ -9,4 +9,4 @@ struct ucontext {
 	sigset_t		uc_sigmask;
 };
 
-#endif /* __ASM_AVR32_UCONTEXT_H */
+#endif 

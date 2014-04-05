@@ -101,14 +101,6 @@ static unsigned short snd_cs46xx_codec_read(struct snd_cs46xx *chip,
 	if (codec_index == CS46XX_SECONDARY_CODEC_INDEX)
 		offset = CS46XX_SECONDARY_CODEC_OFFSET;
 
-	/*
-	 *  1. Write ACCAD = Command Address Register = 46Ch for AC97 register address
-	 *  2. Write ACCDA = Command Data Register = 470h    for data to write to AC97 
-	 *  3. Write ACCTL = Control Register = 460h for initiating the write7---55
-	 *  4. Read ACCTL = 460h, DCV should be reset by now and 460h = 17h
-	 *  5. if DCV not cleared, break and return error
-	 *  6. Read ACSTS = Status Register = 464h, check VSTS bit
-	 */
 
 	snd_cs46xx_peekBA0(chip, BA0_ACSDA + offset);
 
@@ -122,23 +114,11 @@ static unsigned short snd_cs46xx_codec_read(struct snd_cs46xx *chip,
 
 	}
 
-	/*
-	 *  Setup the AC97 control registers on the CS461x to send the
-	 *  appropriate command to the AC97 to perform the read.
-	 *  ACCAD = Command Address Register = 46Ch
-	 *  ACCDA = Command Data Register = 470h
-	 *  ACCTL = Control Register = 460h
-	 *  set DCV - will clear when process completed
-	 *  set CRW - Read command
-	 *  set VFRM - valid frame enabled
-	 *  set ESYN - ASYNC generation enabled
-	 *  set RSTN - ARST# inactive, AC97 codec not reset
-	 */
 
 	snd_cs46xx_pokeBA0(chip, BA0_ACCAD, reg);
 	snd_cs46xx_pokeBA0(chip, BA0_ACCDA, 0);
 	if (codec_index == CS46XX_PRIMARY_CODEC_INDEX) {
-		snd_cs46xx_pokeBA0(chip, BA0_ACCTL,/* clear ACCTL_DCV */ ACCTL_CRW | 
+		snd_cs46xx_pokeBA0(chip, BA0_ACCTL, ACCTL_CRW | 
 				   ACCTL_VFRM | ACCTL_ESYN |
 				   ACCTL_RSTN);
 		snd_cs46xx_pokeBA0(chip, BA0_ACCTL, ACCTL_DCV | ACCTL_CRW |
@@ -150,18 +130,8 @@ static unsigned short snd_cs46xx_codec_read(struct snd_cs46xx *chip,
 				   ACCTL_RSTN);
 	}
 
-	/*
-	 *  Wait for the read to occur.
-	 */
 	for (count = 0; count < 1000; count++) {
-		/*
-		 *  First, we want to wait for a short time.
-	 	 */
 		udelay(10);
-		/*
-		 *  Now, check to see if the read has completed.
-		 *  ACCTL = 460h, DCV should be reset by now and 460h = 17h
-		 */
 		if (!(snd_cs46xx_peekBA0(chip, BA0_ACCTL) & ACCTL_DCV))
 			goto ok1;
 	}
@@ -171,15 +141,7 @@ static unsigned short snd_cs46xx_codec_read(struct snd_cs46xx *chip,
 	goto end;
 	
  ok1:
-	/*
-	 *  Wait for the valid status bit to go active.
-	 */
 	for (count = 0; count < 100; count++) {
-		/*
-		 *  Read the AC97 status register.
-		 *  ACSTS = Status Register = 464h
-		 *  VSTS - Valid Status
-		 */
 		if (snd_cs46xx_peekBA0(chip, BA0_ACSTS + offset) & ACSTS_VSTS)
 			goto ok2;
 		udelay(10);
@@ -190,17 +152,13 @@ static unsigned short snd_cs46xx_codec_read(struct snd_cs46xx *chip,
 	goto end;
 
  ok2:
-	/*
-	 *  Read the data returned from the AC97 register.
-	 *  ACSDA = Status Data Register = 474h
-	 */
 #if 0
 	printk(KERN_DEBUG "e) reg = 0x%x, val = 0x%x, BA0_ACCAD = 0x%x\n", reg,
 			snd_cs46xx_peekBA0(chip, BA0_ACSDA),
 			snd_cs46xx_peekBA0(chip, BA0_ACCAD));
 #endif
 
-	//snd_cs46xx_peekBA0(chip, BA0_ACCAD);
+	
 	result = snd_cs46xx_peekBA0(chip, BA0_ACSDA + offset);
  end:
 	chip->active_ctrl(chip, -1);
@@ -237,32 +195,13 @@ static void snd_cs46xx_codec_write(struct snd_cs46xx *chip,
 
 	chip->active_ctrl(chip, 1);
 
-	/*
-	 *  1. Write ACCAD = Command Address Register = 46Ch for AC97 register address
-	 *  2. Write ACCDA = Command Data Register = 470h    for data to write to AC97
-	 *  3. Write ACCTL = Control Register = 460h for initiating the write
-	 *  4. Read ACCTL = 460h, DCV should be reset by now and 460h = 07h
-	 *  5. if DCV not cleared, break and return error
-	 */
 
-	/*
-	 *  Setup the AC97 control registers on the CS461x to send the
-	 *  appropriate command to the AC97 to perform the read.
-	 *  ACCAD = Command Address Register = 46Ch
-	 *  ACCDA = Command Data Register = 470h
-	 *  ACCTL = Control Register = 460h
-	 *  set DCV - will clear when process completed
-	 *  reset CRW - Write command
-	 *  set VFRM - valid frame enabled
-	 *  set ESYN - ASYNC generation enabled
-	 *  set RSTN - ARST# inactive, AC97 codec not reset
-         */
 	snd_cs46xx_pokeBA0(chip, BA0_ACCAD , reg);
 	snd_cs46xx_pokeBA0(chip, BA0_ACCDA , val);
 	snd_cs46xx_peekBA0(chip, BA0_ACCTL);
 
 	if (codec_index == CS46XX_PRIMARY_CODEC_INDEX) {
-		snd_cs46xx_pokeBA0(chip, BA0_ACCTL, /* clear ACCTL_DCV */ ACCTL_VFRM |
+		snd_cs46xx_pokeBA0(chip, BA0_ACCTL,  ACCTL_VFRM |
 				   ACCTL_ESYN | ACCTL_RSTN);
 		snd_cs46xx_pokeBA0(chip, BA0_ACCTL, ACCTL_DCV | ACCTL_VFRM |
 				   ACCTL_ESYN | ACCTL_RSTN);
@@ -272,14 +211,7 @@ static void snd_cs46xx_codec_write(struct snd_cs46xx *chip,
 	}
 
 	for (count = 0; count < 4000; count++) {
-		/*
-		 *  First, we want to wait for a short time.
-		 */
 		udelay(10);
-		/*
-		 *  Now, check to see if the write has completed.
-		 *  ACCTL = 460h, DCV should be reset by now and 460h = 07h
-		 */
 		if (!(snd_cs46xx_peekBA0(chip, BA0_ACCTL) & ACCTL_DCV)) {
 			goto end;
 		}
@@ -304,9 +236,6 @@ static void snd_cs46xx_ac97_write(struct snd_ac97 *ac97,
 }
 
 
-/*
- *  Chip initialization
- */
 
 int snd_cs46xx_download(struct snd_cs46xx *chip,
 			u32 *src,
@@ -322,7 +251,7 @@ int snd_cs46xx_download(struct snd_cs46xx *chip,
 	dst = chip->region.idx[bank+1].remap_addr + offset;
 	len /= sizeof(u32);
 
-	/* writel already converts 32-bit value to right endianess */
+	
 	while (len-- > 0) {
 		writel(*src++, dst);
 		dst += sizeof(u32);
@@ -351,7 +280,7 @@ int snd_cs46xx_clear_BA1(struct snd_cs46xx *chip,
 	dst = chip->region.idx[bank+1].remap_addr + offset;
 	len /= sizeof(u32);
 
-	/* writel already converts 32-bit value to right endianess */
+	
 	while (len-- > 0) {
 		writel(0, dst);
 		dst += sizeof(u32);
@@ -359,7 +288,7 @@ int snd_cs46xx_clear_BA1(struct snd_cs46xx *chip,
 	return 0;
 }
 
-#else /* old DSP image */
+#else 
 
 #include "cs46xx_image.h"
 
@@ -378,47 +307,29 @@ int snd_cs46xx_download_image(struct snd_cs46xx *chip)
 	}	
 	return 0;
 }
-#endif /* CONFIG_SND_CS46XX_NEW_DSP */
+#endif 
 
-/*
- *  Chip reset
- */
 
 static void snd_cs46xx_reset(struct snd_cs46xx *chip)
 {
 	int idx;
 
-	/*
-	 *  Write the reset bit of the SP control register.
-	 */
 	snd_cs46xx_poke(chip, BA1_SPCR, SPCR_RSTSP);
 
-	/*
-	 *  Write the control register.
-	 */
 	snd_cs46xx_poke(chip, BA1_SPCR, SPCR_DRQEN);
 
-	/*
-	 *  Clear the trap registers.
-	 */
 	for (idx = 0; idx < 8; idx++) {
 		snd_cs46xx_poke(chip, BA1_DREG, DREG_REGID_TRAP_SELECT + idx);
 		snd_cs46xx_poke(chip, BA1_TWPR, 0xFFFF);
 	}
 	snd_cs46xx_poke(chip, BA1_DREG, 0);
 
-	/*
-	 *  Set the frame timer to reflect the number of cycles per frame.
-	 */
 	snd_cs46xx_poke(chip, BA1_FRMT, 0xadf);
 }
 
 static int cs46xx_wait_for_fifo(struct snd_cs46xx * chip,int retry_timeout) 
 {
 	u32 i, status = 0;
-	/*
-	 * Make sure the previous FIFO write operation has completed.
-	 */
 	for(i = 0; i < 50; i++){
 		status = snd_cs46xx_peekBA0(chip, BA0_SERBST);
     
@@ -442,30 +353,15 @@ static void snd_cs46xx_clear_serial_FIFOs(struct snd_cs46xx *chip)
 	int idx, powerdown = 0;
 	unsigned int tmp;
 
-	/*
-	 *  See if the devices are powered down.  If so, we must power them up first
-	 *  or they will not respond.
-	 */
 	tmp = snd_cs46xx_peekBA0(chip, BA0_CLKCR1);
 	if (!(tmp & CLKCR1_SWCE)) {
 		snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, tmp | CLKCR1_SWCE);
 		powerdown = 1;
 	}
 
-	/*
-	 *  We want to clear out the serial port FIFOs so we don't end up playing
-	 *  whatever random garbage happens to be in them.  We fill the sample FIFOS
-	 *  with zero (silence).
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_SERBWP, 0);
 
-	/*
-	 *  Fill all 256 sample FIFO locations.
-	 */
 	for (idx = 0; idx < 0xFF; idx++) {
-		/*
-		 *  Make sure the previous FIFO write operation has completed.
-		 */
 		if (cs46xx_wait_for_fifo(chip,1)) {
 			snd_printdd ("failed waiting for FIFO at addr (%02X)\n",idx);
 
@@ -474,19 +370,9 @@ static void snd_cs46xx_clear_serial_FIFOs(struct snd_cs46xx *chip)
           
 			break;
 		}
-		/*
-		 *  Write the serial port FIFO index.
-		 */
 		snd_cs46xx_pokeBA0(chip, BA0_SERBAD, idx);
-		/*
-		 *  Tell the serial port to load the new value into the FIFO location.
-		 */
 		snd_cs46xx_pokeBA0(chip, BA0_SERBCM, SERBCM_WRC);
 	}
-	/*
-	 *  Now, if we powered up the devices, then power them back down again.
-	 *  This is kinda ugly, but should never happen.
-	 */
 	if (powerdown)
 		snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, tmp);
 }
@@ -495,19 +381,8 @@ static void snd_cs46xx_proc_start(struct snd_cs46xx *chip)
 {
 	int cnt;
 
-	/*
-	 *  Set the frame timer to reflect the number of cycles per frame.
-	 */
 	snd_cs46xx_poke(chip, BA1_FRMT, 0xadf);
-	/*
-	 *  Turn on the run, run at frame, and DMA enable bits in the local copy of
-	 *  the SP control register.
-	 */
 	snd_cs46xx_poke(chip, BA1_SPCR, SPCR_RUN | SPCR_RUNFR | SPCR_DRQEN);
-	/*
-	 *  Wait until the run at frame bit resets itself in the SP control
-	 *  register.
-	 */
 	for (cnt = 0; cnt < 25; cnt++) {
 		udelay(50);
 		if (!(snd_cs46xx_peek(chip, BA1_SPCR) & SPCR_RUNFR))
@@ -520,16 +395,9 @@ static void snd_cs46xx_proc_start(struct snd_cs46xx *chip)
 
 static void snd_cs46xx_proc_stop(struct snd_cs46xx *chip)
 {
-	/*
-	 *  Turn off the run, run at frame, and DMA enable bits in the local copy of
-	 *  the SP control register.
-	 */
 	snd_cs46xx_poke(chip, BA1_SPCR, 0);
 }
 
-/*
- *  Sample rate routines
- */
 
 #define GOF_PER_SEC 200
 
@@ -540,23 +408,6 @@ static void snd_cs46xx_set_play_sample_rate(struct snd_cs46xx *chip, unsigned in
 	unsigned int phiIncr;
 	unsigned int correctionPerGOF, correctionPerSec;
 
-	/*
-	 *  Compute the values used to drive the actual sample rate conversion.
-	 *  The following formulas are being computed, using inline assembly
-	 *  since we need to use 64 bit arithmetic to compute the values:
-	 *
-	 *  phiIncr = floor((Fs,in * 2^26) / Fs,out)
-	 *  correctionPerGOF = floor((Fs,in * 2^26 - Fs,out * phiIncr) /
-         *                                   GOF_PER_SEC)
-         *  ulCorrectionPerSec = Fs,in * 2^26 - Fs,out * phiIncr -M
-         *                       GOF_PER_SEC * correctionPerGOF
-	 *
-	 *  i.e.
-	 *
-	 *  phiIncr:other = dividend:remainder((Fs,in * 2^26) / Fs,out)
-	 *  correctionPerGOF:correctionPerSec =
-	 *      dividend:remainder(ulOther / GOF_PER_SEC)
-	 */
 	tmp1 = rate << 16;
 	phiIncr = tmp1 / 48000;
 	tmp1 -= phiIncr * 48000;
@@ -569,9 +420,6 @@ static void snd_cs46xx_set_play_sample_rate(struct snd_cs46xx *chip, unsigned in
 	tmp1 -= correctionPerGOF * GOF_PER_SEC;
 	correctionPerSec = tmp1;
 
-	/*
-	 *  Fill in the SampleRateConverter control block.
-	 */
 	spin_lock_irqsave(&chip->reg_lock, flags);
 	snd_cs46xx_poke(chip, BA1_PSRC,
 	  ((correctionPerSec << 16) & 0xFFFF0000) | (correctionPerGOF & 0xFFFF));
@@ -586,41 +434,12 @@ static void snd_cs46xx_set_capture_sample_rate(struct snd_cs46xx *chip, unsigned
 	unsigned int correctionPerGOF, correctionPerSec, initialDelay;
 	unsigned int frameGroupLength, cnt;
 
-	/*
-	 *  We can only decimate by up to a factor of 1/9th the hardware rate.
-	 *  Correct the value if an attempt is made to stray outside that limit.
-	 */
 	if ((rate * 9) < 48000)
 		rate = 48000 / 9;
 
-	/*
-	 *  We can not capture at at rate greater than the Input Rate (48000).
-	 *  Return an error if an attempt is made to stray outside that limit.
-	 */
 	if (rate > 48000)
 		rate = 48000;
 
-	/*
-	 *  Compute the values used to drive the actual sample rate conversion.
-	 *  The following formulas are being computed, using inline assembly
-	 *  since we need to use 64 bit arithmetic to compute the values:
-	 *
-	 *     coeffIncr = -floor((Fs,out * 2^23) / Fs,in)
-	 *     phiIncr = floor((Fs,in * 2^26) / Fs,out)
-	 *     correctionPerGOF = floor((Fs,in * 2^26 - Fs,out * phiIncr) /
-	 *                                GOF_PER_SEC)
-	 *     correctionPerSec = Fs,in * 2^26 - Fs,out * phiIncr -
-	 *                          GOF_PER_SEC * correctionPerGOF
-	 *     initialDelay = ceil((24 * Fs,in) / Fs,out)
-	 *
-	 * i.e.
-	 *
-	 *     coeffIncr = neg(dividend((Fs,out * 2^23) / Fs,in))
-	 *     phiIncr:ulOther = dividend:remainder((Fs,in * 2^26) / Fs,out)
-	 *     correctionPerGOF:correctionPerSec =
-	 * 	    dividend:remainder(ulOther / GOF_PER_SEC)
-	 *     initialDelay = dividend(((24 * Fs,in) + Fs,out - 1) / Fs,out)
-	 */
 
 	tmp1 = rate << 16;
 	coeffIncr = tmp1 / 48000;
@@ -643,9 +462,6 @@ static void snd_cs46xx_set_capture_sample_rate(struct snd_cs46xx *chip, unsigned
 	correctionPerSec = tmp1;
 	initialDelay = ((48000 * 24) + rate - 1) / rate;
 
-	/*
-	 *  Fill in the VariDecimate control block.
-	 */
 	spin_lock_irqsave(&chip->reg_lock, flags);
 	snd_cs46xx_poke(chip, BA1_CSRC,
 		((correctionPerSec << 16) & 0xFFFF0000) | (correctionPerGOF & 0xFFFF));
@@ -655,11 +471,6 @@ static void snd_cs46xx_set_capture_sample_rate(struct snd_cs46xx *chip, unsigned
 	snd_cs46xx_poke(chip, BA1_CPI, phiIncr);
 	spin_unlock_irqrestore(&chip->reg_lock, flags);
 
-	/*
-	 *  Figure out the frame group length for the write back task.  Basically,
-	 *  this is just the factors of 24000 (2^6*3*5^3) that are not present in
-	 *  the output sample rate.
-	 */
 	frameGroupLength = 1;
 	for (cnt = 2; cnt <= 64; cnt *= 2) {
 		if (((rate / cnt) * cnt) != rate)
@@ -673,9 +484,6 @@ static void snd_cs46xx_set_capture_sample_rate(struct snd_cs46xx *chip, unsigned
 			frameGroupLength *= 5;
         }
 
-	/*
-	 * Fill in the WriteBack control block.
-	 */
 	spin_lock_irqsave(&chip->reg_lock, flags);
 	snd_cs46xx_poke(chip, BA1_CFG1, frameGroupLength);
 	snd_cs46xx_poke(chip, BA1_CFG2, (0x00800000 | frameGroupLength));
@@ -685,9 +493,6 @@ static void snd_cs46xx_set_capture_sample_rate(struct snd_cs46xx *chip, unsigned
 	spin_unlock_irqrestore(&chip->reg_lock, flags);
 }
 
-/*
- *  PCM part
- */
 
 static void snd_cs46xx_pb_trans_copy(struct snd_pcm_substream *substream,
 				     struct snd_pcm_indirect *rec, size_t bytes)
@@ -774,7 +579,7 @@ static int snd_cs46xx_playback_trigger(struct snd_pcm_substream *substream,
 				       int cmd)
 {
 	struct snd_cs46xx *chip = snd_pcm_substream_chip(substream);
-	/*struct snd_pcm_runtime *runtime = substream->runtime;*/
+	
 	int result = 0;
 
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
@@ -787,7 +592,7 @@ static int snd_cs46xx_playback_trigger(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_RESUME:
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-		/* magic value to unmute PCM stream  playback volume */
+		
 		snd_cs46xx_poke(chip, (cpcm->pcm_channel->pcm_reader_scb->address + 
 				       SCBVolumeCtrl) << 2, 0x80008000);
 
@@ -811,7 +616,7 @@ static int snd_cs46xx_playback_trigger(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_SUSPEND:
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-		/* magic mute channel */
+		
 		snd_cs46xx_poke(chip, (cpcm->pcm_channel->pcm_reader_scb->address + 
 				       SCBVolumeCtrl) << 2, 0xffffffff);
 
@@ -870,7 +675,7 @@ static int _cs46xx_adjust_sample_rate (struct snd_cs46xx *chip, struct snd_cs46x
 				       int sample_rate) 
 {
 
-	/* If PCMReaderSCB and SrcTaskSCB not created yet ... */
+	
 	if ( cpcm->pcm_channel == NULL) {
 		cpcm->pcm_channel = cs46xx_dsp_create_pcm_channel (chip, sample_rate, 
 								   cpcm, cpcm->hw_buf.addr,cpcm->pcm_channel_id);
@@ -880,7 +685,7 @@ static int _cs46xx_adjust_sample_rate (struct snd_cs46xx *chip, struct snd_cs46x
 		}
 		cpcm->pcm_channel->sample_rate = sample_rate;
 	} else
-	/* if sample rate is changed */
+	
 	if ((int)cpcm->pcm_channel->sample_rate != sample_rate) {
 		int unlinked = cpcm->pcm_channel->unlinked;
 		cs46xx_dsp_destroy_pcm_channel (chip,cpcm->pcm_channel);
@@ -1006,14 +811,12 @@ static int snd_cs46xx_playback_hw_params(struct snd_pcm_substream *substream,
 
 static int snd_cs46xx_playback_hw_free(struct snd_pcm_substream *substream)
 {
-	/*struct snd_cs46xx *chip = snd_pcm_substream_chip(substream);*/
+	
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_cs46xx_pcm *cpcm;
 
 	cpcm = runtime->private_data;
 
-	/* if play_back open fails, then this function
-	   is called and cpcm can actually be NULL here */
 	if (!cpcm) return -ENXIO;
 
 	if (runtime->dma_area != cpcm->hw_buf.area)
@@ -1043,29 +846,29 @@ static int snd_cs46xx_playback_prepare(struct snd_pcm_substream *substream)
 	pfie = snd_cs46xx_peek(chip, (cpcm->pcm_channel->pcm_reader_scb->address + 1) << 2 );
 	pfie &= ~0x0000f03f;
 #else
-	/* old dsp */
+	
 	pfie = snd_cs46xx_peek(chip, BA1_PFIE);
  	pfie &= ~0x0000f03f;
 #endif
 
 	cpcm->shift = 2;
-	/* if to convert from stereo to mono */
+	
 	if (runtime->channels == 1) {
 		cpcm->shift--;
 		pfie |= 0x00002000;
 	}
-	/* if to convert from 8 bit to 16 bit */
+	
 	if (snd_pcm_format_width(runtime->format) == 8) {
 		cpcm->shift--;
 		pfie |= 0x00001000;
 	}
-	/* if to convert to unsigned */
+	
 	if (snd_pcm_format_unsigned(runtime->format))
 		pfie |= 0x00008000;
 
-	/* Never convert byte order when sample stream is 8 bit */
+	
 	if (snd_pcm_format_width(runtime->format) != 8) {
-		/* convert from big endian to little endian */
+		
 		if (snd_pcm_format_big_endian(runtime->format))
 			pfie |= 0x00004000;
 	}
@@ -1079,10 +882,10 @@ static int snd_cs46xx_playback_prepare(struct snd_pcm_substream *substream)
 	tmp = snd_cs46xx_peek(chip, (cpcm->pcm_channel->pcm_reader_scb->address) << 2);
 	tmp &= ~0x000003ff;
 	tmp |= (4 << cpcm->shift) - 1;
-	/* playback transaction count register */
+	
 	snd_cs46xx_poke(chip, (cpcm->pcm_channel->pcm_reader_scb->address) << 2, tmp);
 
-	/* playback format && interrupt enable */
+	
 	snd_cs46xx_poke(chip, (cpcm->pcm_channel->pcm_reader_scb->address + 1) << 2, pfie | cpcm->pcm_channel->pcm_slot);
 #else
 	snd_cs46xx_poke(chip, BA1_PBA, cpcm->hw_buf.addr);
@@ -1168,9 +971,6 @@ static irqreturn_t snd_cs46xx_interrupt(int irq, void *dev_id)
 	struct snd_cs46xx_pcm *cpcm = NULL;
 #endif
 
-	/*
-	 *  Read the Interrupt Status Register to clear the interrupt
-	 */
 	status1 = snd_cs46xx_peekBA0(chip, BA0_HISR);
 	if ((status1 & 0x7fffffff) == 0) {
 		snd_cs46xx_pokeBA0(chip, BA0_HICR, HICR_CHGM | HICR_IEV);
@@ -1208,7 +1008,7 @@ static irqreturn_t snd_cs46xx_interrupt(int irq, void *dev_id)
 	}
 
 #else
-	/* old dsp */
+	
 	if ((status1 & HISR_VC0) && chip->playback_pcm) {
 		if (chip->playback_pcm->substream)
 			snd_pcm_period_elapsed(chip->playback_pcm->substream);
@@ -1241,9 +1041,6 @@ static irqreturn_t snd_cs46xx_interrupt(int irq, void *dev_id)
 		}
 		spin_unlock(&chip->reg_lock);
 	}
-	/*
-	 *  EOI to the PCI part....reenables interrupts
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_HICR, HICR_CHGM | HICR_IEV);
 
 	return IRQ_HANDLED;
@@ -1253,8 +1050,8 @@ static struct snd_pcm_hardware snd_cs46xx_playback =
 {
 	.info =			(SNDRV_PCM_INFO_MMAP |
 				 SNDRV_PCM_INFO_INTERLEAVED | 
-				 SNDRV_PCM_INFO_BLOCK_TRANSFER /*|*/
-				 /*SNDRV_PCM_INFO_RESUME*/),
+				 SNDRV_PCM_INFO_BLOCK_TRANSFER 
+				 ),
 	.formats =		(SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_U8 |
 				 SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |
 				 SNDRV_PCM_FMTBIT_U16_LE | SNDRV_PCM_FMTBIT_U16_BE),
@@ -1275,8 +1072,8 @@ static struct snd_pcm_hardware snd_cs46xx_capture =
 {
 	.info =			(SNDRV_PCM_INFO_MMAP |
 				 SNDRV_PCM_INFO_INTERLEAVED |
-				 SNDRV_PCM_INFO_BLOCK_TRANSFER /*|*/
-				 /*SNDRV_PCM_INFO_RESUME*/),
+				 SNDRV_PCM_INFO_BLOCK_TRANSFER 
+				 ),
 	.formats =		SNDRV_PCM_FMTBIT_S16_LE,
 	.rates =		SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_8000_48000,
 	.rate_min =		5500,
@@ -1340,7 +1137,7 @@ static int _cs46xx_playback_open_channel (struct snd_pcm_substream *substream,in
 
 	mutex_unlock(&chip->spos_mutex);
 #else
-	chip->playback_pcm = cpcm; /* HACK */
+	chip->playback_pcm = cpcm; 
 #endif
 
 	if (chip->accept_valid)
@@ -1434,7 +1231,7 @@ static int snd_cs46xx_playback_close(struct snd_pcm_substream *substream)
 
 	cpcm = runtime->private_data;
 
-	/* when playback_open fails, then cpcm can be NULL */
+	
 	if (!cpcm) return -ENXIO;
 
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
@@ -1605,7 +1402,7 @@ int __devinit snd_cs46xx_pcm(struct snd_cs46xx *chip, int device, struct snd_pcm
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_cs46xx_playback_ops);
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_cs46xx_capture_ops);
 
-	/* global setup */
+	
 	pcm->info_flags = 0;
 	strcpy(pcm->name, "CS46xx");
 	chip->pcm = pcm;
@@ -1636,7 +1433,7 @@ int __devinit snd_cs46xx_pcm_rear(struct snd_cs46xx *chip, int device, struct sn
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_cs46xx_playback_rear_ops);
 
-	/* global setup */
+	
 	pcm->info_flags = 0;
 	strcpy(pcm->name, "CS46xx - Rear");
 	chip->pcm_rear = pcm;
@@ -1665,7 +1462,7 @@ int __devinit snd_cs46xx_pcm_center_lfe(struct snd_cs46xx *chip, int device, str
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_cs46xx_playback_clfe_ops);
 
-	/* global setup */
+	
 	pcm->info_flags = 0;
 	strcpy(pcm->name, "CS46xx - Center LFE");
 	chip->pcm_center_lfe = pcm;
@@ -1694,7 +1491,7 @@ int __devinit snd_cs46xx_pcm_iec958(struct snd_cs46xx *chip, int device, struct 
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_cs46xx_playback_iec958_ops);
 
-	/* global setup */
+	
 	pcm->info_flags = 0;
 	strcpy(pcm->name, "CS46xx - IEC958");
 	chip->pcm_rear = pcm;
@@ -1709,9 +1506,6 @@ int __devinit snd_cs46xx_pcm_iec958(struct snd_cs46xx *chip, int device, struct 
 }
 #endif
 
-/*
- *  Mixer routines
- */
 static void snd_cs46xx_mixer_free_ac97_bus(struct snd_ac97_bus *bus)
 {
 	struct snd_cs46xx *chip = bus->private_data;
@@ -1864,7 +1658,7 @@ static int snd_cs46xx_iec958_put(struct snd_kcontrol *kcontrol,
 		change = chip->dsp_spos_instance->spdif_status_in;
 		if (ucontrol->value.integer.value[0] && !change) {
 			cs46xx_dsp_enable_spdif_in(chip);
-			/* restore volume */
+			
 		}
 		else if (change && !ucontrol->value.integer.value[0])
 			cs46xx_dsp_disable_spdif_in(chip);
@@ -1873,7 +1667,7 @@ static int snd_cs46xx_iec958_put(struct snd_kcontrol *kcontrol,
 		break;
 	default:
 		res = -EINVAL;
-		snd_BUG(); /* should never happen ... */
+		snd_BUG(); 
 	}
 
 	return res;
@@ -1958,9 +1752,7 @@ static int snd_herc_spdif_select_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-/*
- *	Game Theatre XP card - EGPIO[0] is used to select SPDIF input optical or coaxial.
- */ 
+ 
 static int snd_herc_spdif_select_put(struct snd_kcontrol *kcontrol, 
                                        struct snd_ctl_elem_value *ucontrol)
 {
@@ -1969,19 +1761,17 @@ static int snd_herc_spdif_select_put(struct snd_kcontrol *kcontrol,
 	int val2 = snd_cs46xx_peekBA0(chip, BA0_EGPIOPTR);
 
 	if (ucontrol->value.integer.value[0]) {
-		/* optical is default */
+		
 		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR, 
-				   EGPIODR_GPOE0 | val1);  /* enable EGPIO0 output */
+				   EGPIODR_GPOE0 | val1);  
 		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, 
-				   EGPIOPTR_GPPT0 | val2); /* open-drain on output */
+				   EGPIOPTR_GPPT0 | val2); 
 	} else {
-		/* coaxial */
-		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR,  val1 & ~EGPIODR_GPOE0); /* disable */
-		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, val2 & ~EGPIOPTR_GPPT0); /* disable */
+		
+		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR,  val1 & ~EGPIODR_GPOE0); 
+		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, val2 & ~EGPIOPTR_GPPT0); 
 	}
 
-	/* checking diff from the EGPIO direction register 
-	   should be enough */
 	return (val1 != (int)snd_cs46xx_peekBA0(chip, BA0_EGPIODR));
 }
 
@@ -2021,7 +1811,7 @@ static int snd_cs46xx_spdif_default_put(struct snd_kcontrol *kcontrol,
 	val = ((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[0]) << 24) |
 		((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[2]) << 16) |
 		((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[3]))  |
-		/* left and right validity bit */
+		
 		(1 << 13) | (1 << 12);
 
 
@@ -2074,7 +1864,7 @@ static int snd_cs46xx_spdif_stream_put(struct snd_kcontrol *kcontrol,
 	val = ((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[0]) << 24) |
 		((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[1]) << 16) |
 		((unsigned int)_wrap_all_bits(ucontrol->value.iec958.status[3])) |
-		/* left and right validity bit */
+		
 		(1 << 13) | (1 << 12);
 
 
@@ -2089,7 +1879,7 @@ static int snd_cs46xx_spdif_stream_put(struct snd_kcontrol *kcontrol,
 	return change;
 }
 
-#endif /* CONFIG_SND_CS46XX_NEW_DSP */
+#endif 
 
 
 static struct snd_kcontrol_new snd_cs46xx_controls[] __devinitdata = {
@@ -2151,7 +1941,6 @@ static struct snd_kcontrol_new snd_cs46xx_controls[] __devinitdata = {
 	.private_value = CS46XX_MIXER_SPDIF_INPUT_ELEMENT,
 },
 #if 0
-/* Input IEC958 volume does not work for the moment. (Benny) */
 {
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = SNDRV_CTL_NAME_IEC958("Input ",NONE,VOLUME),
@@ -2187,7 +1976,6 @@ static struct snd_kcontrol_new snd_cs46xx_controls[] __devinitdata = {
 };
 
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-/* set primary cs4294 codec into Extended Audio Mode */
 static int snd_cs46xx_front_dup_get(struct snd_kcontrol *kcontrol, 
 				    struct snd_ctl_elem_value *ucontrol)
 {
@@ -2217,7 +2005,6 @@ static struct snd_kcontrol_new snd_cs46xx_front_dup_ctl = {
 #endif
 
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-/* Only available on the Hercules Game Theater XP soundcard */
 static struct snd_kcontrol_new snd_hercules_controls[] = {
 {
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
@@ -2234,10 +2021,10 @@ static void snd_cs46xx_codec_reset (struct snd_ac97 * ac97)
 	unsigned long end_time;
 	int err;
 
-	/* reset to defaults */
+	
 	snd_ac97_write(ac97, AC97_RESET, 0);	
 
-	/* set the desired CODEC mode */
+	
 	if (ac97->num == CS46XX_PRIMARY_CODEC_INDEX) {
 		snd_printdd("cs46xx: CODEC1 mode %04x\n", 0x0);
 		snd_cs46xx_ac97_write(ac97, AC97_CSR_ACMODE, 0x0);
@@ -2245,28 +2032,28 @@ static void snd_cs46xx_codec_reset (struct snd_ac97 * ac97)
 		snd_printdd("cs46xx: CODEC2 mode %04x\n", 0x3);
 		snd_cs46xx_ac97_write(ac97, AC97_CSR_ACMODE, 0x3);
 	} else {
-		snd_BUG(); /* should never happen ... */
+		snd_BUG(); 
 	}
 
 	udelay(50);
 
-	/* it's necessary to wait awhile until registers are accessible after RESET */
-	/* because the PCM or MASTER volume registers can be modified, */
-	/* the REC_GAIN register is used for tests */
+	
+	
+	
 	end_time = jiffies + HZ;
 	do {
 		unsigned short ext_mid;
     
-		/* use preliminary reads to settle the communication */
+		
 		snd_ac97_read(ac97, AC97_RESET);
 		snd_ac97_read(ac97, AC97_VENDOR_ID1);
 		snd_ac97_read(ac97, AC97_VENDOR_ID2);
-		/* modem? */
+		
 		ext_mid = snd_ac97_read(ac97, AC97_EXTENDED_MID);
 		if (ext_mid != 0xffff && (ext_mid & 1) != 0)
 			return;
 
-		/* test if we can write to the record gain volume register */
+		
 		snd_ac97_write(ac97, AC97_REC_GAIN, 0x8a05);
 		if ((err = snd_ac97_read(ac97, AC97_REC_GAIN)) == 0x8a05)
 			return;
@@ -2325,7 +2112,7 @@ int __devinit snd_cs46xx_mixer(struct snd_cs46xx *chip, int spdif_device)
 		.read = snd_cs46xx_ac97_read,
 	};
 
-	/* detect primary codec */
+	
 	chip->nr_ac97_codecs = 0;
 	snd_printdd("snd_cs46xx: detecting primary codec\n");
 	if ((err = snd_ac97_bus(card, 0, &ops, chip, &chip->ac97_bus)) < 0)
@@ -2338,12 +2125,12 @@ int __devinit snd_cs46xx_mixer(struct snd_cs46xx *chip, int spdif_device)
 
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	snd_printdd("snd_cs46xx: detecting seconadry codec\n");
-	/* try detect a secondary codec */
+	
 	if (! cs46xx_detect_codec(chip, CS46XX_SECONDARY_CODEC_INDEX))
 		chip->nr_ac97_codecs = 2;
-#endif /* CONFIG_SND_CS46XX_NEW_DSP */
+#endif 
 
-	/* add cs4630 mixer controls */
+	
 	for (idx = 0; idx < ARRAY_SIZE(snd_cs46xx_controls); idx++) {
 		struct snd_kcontrol *kctl;
 		kctl = snd_ctl_new1(&snd_cs46xx_controls[idx], chip);
@@ -2353,7 +2140,7 @@ int __devinit snd_cs46xx_mixer(struct snd_cs46xx *chip, int spdif_device)
 			return err;
 	}
 
-	/* get EAPD mixer switch (for voyetra hack) */
+	
 	memset(&id, 0, sizeof(id));
 	id.iface = SNDRV_CTL_ELEM_IFACE_MIXER;
 	strcpy(id.name, "External Amplifier");
@@ -2370,22 +2157,19 @@ int __devinit snd_cs46xx_mixer(struct snd_cs46xx *chip, int spdif_device)
 					     AC97_CSR_ACMODE, 0x200);
 		}
 	}
-	/* do soundcard specific mixer setup */
+	
 	if (chip->mixer_init) {
 		snd_printdd ("calling chip->mixer_init(chip);\n");
 		chip->mixer_init(chip);
 	}
 #endif
 
- 	/* turn on amplifier */
+ 	
 	chip->amplifier_ctrl(chip, 1);
     
 	return 0;
 }
 
-/*
- *  RawMIDI interface
- */
 
 static void snd_cs46xx_midi_reset(struct snd_cs46xx *chip)
 {
@@ -2497,7 +2281,7 @@ static void snd_cs46xx_midi_output_trigger(struct snd_rawmidi_substream *substre
 	if (up) {
 		if ((chip->midcr & MIDCR_TIE) == 0) {
 			chip->midcr |= MIDCR_TIE;
-			/* fill UART FIFO buffer at first, and turn Tx interrupts only if necessary */
+			
 			while ((chip->midcr & MIDCR_TIE) &&
 			       (snd_cs46xx_peekBA0(chip, BA0_MIDSR) & MIDSR_TBF) == 0) {
 				if (snd_rawmidi_transmit(substream, &byte, 1) != 1) {
@@ -2552,9 +2336,6 @@ int __devinit snd_cs46xx_midi(struct snd_cs46xx *chip, int device, struct snd_ra
 }
 
 
-/*
- * gameport interface
- */
 
 #if defined(CONFIG_GAMEPORT) || (defined(MODULE) && defined(CONFIG_GAMEPORT_MODULE))
 
@@ -2564,7 +2345,7 @@ static void snd_cs46xx_gameport_trigger(struct gameport *gameport)
 
 	if (snd_BUG_ON(!chip))
 		return;
-	snd_cs46xx_pokeBA0(chip, BA0_JSPT, 0xFF);  //outb(gameport->io, 0xFF);
+	snd_cs46xx_pokeBA0(chip, BA0_JSPT, 0xFF);  
 }
 
 static unsigned char snd_cs46xx_gameport_read(struct gameport *gameport)
@@ -2573,7 +2354,7 @@ static unsigned char snd_cs46xx_gameport_read(struct gameport *gameport)
 
 	if (snd_BUG_ON(!chip))
 		return 0;
-	return snd_cs46xx_peekBA0(chip, BA0_JSPT); //inb(gameport->io);
+	return snd_cs46xx_peekBA0(chip, BA0_JSPT); 
 }
 
 static int snd_cs46xx_gameport_cooked_read(struct gameport *gameport, int *axes, int *buttons)
@@ -2633,7 +2414,7 @@ int __devinit snd_cs46xx_gameport(struct snd_cs46xx *chip)
 	gp->trigger = snd_cs46xx_gameport_trigger;
 	gp->cooked_read = snd_cs46xx_gameport_cooked_read;
 
-	snd_cs46xx_pokeBA0(chip, BA0_JSIO, 0xFF); // ?
+	snd_cs46xx_pokeBA0(chip, BA0_JSIO, 0xFF); 
 	snd_cs46xx_pokeBA0(chip, BA0_JSCTL, JSCTL_SP_MEDIUM_SLOW);
 
 	gameport_register_port(gp);
@@ -2651,12 +2432,9 @@ static inline void snd_cs46xx_remove_gameport(struct snd_cs46xx *chip)
 #else
 int __devinit snd_cs46xx_gameport(struct snd_cs46xx *chip) { return -ENOSYS; }
 static inline void snd_cs46xx_remove_gameport(struct snd_cs46xx *chip) { }
-#endif /* CONFIG_GAMEPORT */
+#endif 
 
 #ifdef CONFIG_PROC_FS
-/*
- *  proc interface
- */
 
 static ssize_t snd_cs46xx_io_read(struct snd_info_entry *entry,
 				  void *file_private_data,
@@ -2702,14 +2480,11 @@ static int snd_cs46xx_proc_done(struct snd_cs46xx *chip)
 #endif
 	return 0;
 }
-#else /* !CONFIG_PROC_FS */
+#else 
 #define snd_cs46xx_proc_init(card, chip)
 #define snd_cs46xx_proc_done(chip)
 #endif
 
-/*
- * stop the h/w
- */
 static void snd_cs46xx_hw_stop(struct snd_cs46xx *chip)
 {
 	unsigned int tmp;
@@ -2717,41 +2492,25 @@ static void snd_cs46xx_hw_stop(struct snd_cs46xx *chip)
 	tmp = snd_cs46xx_peek(chip, BA1_PFIE);
 	tmp &= ~0x0000f03f;
 	tmp |=  0x00000010;
-	snd_cs46xx_poke(chip, BA1_PFIE, tmp);	/* playback interrupt disable */
+	snd_cs46xx_poke(chip, BA1_PFIE, tmp);	
 
 	tmp = snd_cs46xx_peek(chip, BA1_CIE);
 	tmp &= ~0x0000003f;
 	tmp |=  0x00000011;
-	snd_cs46xx_poke(chip, BA1_CIE, tmp);	/* capture interrupt disable */
+	snd_cs46xx_poke(chip, BA1_CIE, tmp);	
 
-	/*
-         *  Stop playback DMA.
-	 */
 	tmp = snd_cs46xx_peek(chip, BA1_PCTL);
 	snd_cs46xx_poke(chip, BA1_PCTL, tmp & 0x0000ffff);
 
-	/*
-         *  Stop capture DMA.
-	 */
 	tmp = snd_cs46xx_peek(chip, BA1_CCTL);
 	snd_cs46xx_poke(chip, BA1_CCTL, tmp & 0xffff0000);
 
-	/*
-         *  Reset the processor.
-         */
 	snd_cs46xx_reset(chip);
 
 	snd_cs46xx_proc_stop(chip);
 
-	/*
-	 *  Power down the PLL.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, 0);
 
-	/*
-	 *  Turn off the Processor by turning off the software clock enable flag in 
-	 *  the clock control register.
-	 */
 	tmp = snd_cs46xx_peekBA0(chip, BA0_CLKCR1) & ~CLKCR1_SWCE;
 	snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, tmp);
 }
@@ -2770,7 +2529,7 @@ static int snd_cs46xx_free(struct snd_cs46xx *chip)
 	snd_cs46xx_remove_gameport(chip);
 
 	if (chip->amplifier_ctrl)
-		chip->amplifier_ctrl(chip, -chip->amplifier); /* force to off */
+		chip->amplifier_ctrl(chip, -chip->amplifier); 
 	
 	snd_cs46xx_proc_done(chip);
 
@@ -2812,39 +2571,22 @@ static int snd_cs46xx_dev_free(struct snd_device *device)
 	return snd_cs46xx_free(chip);
 }
 
-/*
- *  initialize chip
- */
 static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 {
 	int timeout;
 
-	/* 
-	 *  First, blast the clock control register to zero so that the PLL starts
-         *  out in a known state, and blast the master serial port control register
-         *  to zero so that the serial ports also start out in a known state.
-         */
         snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, 0);
         snd_cs46xx_pokeBA0(chip, BA0_SERMC1, 0);
 
-	/*
-	 *  If we are in AC97 mode, then we must set the part to a host controlled
-         *  AC-link.  Otherwise, we won't be able to bring up the link.
-         */        
+        
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	snd_cs46xx_pokeBA0(chip, BA0_SERACC, SERACC_HSP | SERACC_CHIP_TYPE_2_0 | 
-			   SERACC_TWO_CODECS);	/* 2.00 dual codecs */
-	/* snd_cs46xx_pokeBA0(chip, BA0_SERACC, SERACC_HSP | SERACC_CHIP_TYPE_2_0); */ /* 2.00 codec */
+			   SERACC_TWO_CODECS);	
+	 
 #else
-	snd_cs46xx_pokeBA0(chip, BA0_SERACC, SERACC_HSP | SERACC_CHIP_TYPE_1_03); /* 1.03 codec */
+	snd_cs46xx_pokeBA0(chip, BA0_SERACC, SERACC_HSP | SERACC_CHIP_TYPE_1_03); 
 #endif
 
-        /*
-         *  Drive the ARST# pin low for a minimum of 1uS (as defined in the AC97
-         *  spec) and then drive it high.  This is done for non AC97 modes since
-         *  there might be logic external to the CS461x that uses the ARST# line
-         *  for a reset.
-         */
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL, 0);
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL2, 0);
@@ -2855,67 +2597,30 @@ static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL2, ACCTL_RSTN);
 #endif
     
-	/*
-	 *  The first thing we do here is to enable sync generation.  As soon
-	 *  as we start receiving bit clock, we'll start producing the SYNC
-	 *  signal.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL, ACCTL_ESYN | ACCTL_RSTN);
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL2, ACCTL_ESYN | ACCTL_RSTN);
 #endif
 
-	/*
-	 *  Now wait for a short while to allow the AC97 part to start
-	 *  generating bit clock (so we don't try to start the PLL without an
-	 *  input clock).
-	 */
 	mdelay(10);
 
-	/*
-	 *  Set the serial port timing configuration, so that
-	 *  the clock control circuit gets its clock from the correct place.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_SERMC1, SERMC1_PTC_AC97);
 
-	/*
-	 *  Write the selected clock control setup to the hardware.  Do not turn on
-	 *  SWCE yet (if requested), so that the devices clocked by the output of
-	 *  PLL are not clocked until the PLL is stable.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_PLLCC, PLLCC_LPF_1050_2780_KHZ | PLLCC_CDR_73_104_MHZ);
 	snd_cs46xx_pokeBA0(chip, BA0_PLLM, 0x3a);
 	snd_cs46xx_pokeBA0(chip, BA0_CLKCR2, CLKCR2_PDIVS_8);
 
-	/*
-	 *  Power up the PLL.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, CLKCR1_PLLP);
 
-	/*
-         *  Wait until the PLL has stabilized.
-	 */
 	msleep(100);
 
-	/*
-	 *  Turn on clocking of the core so that we can setup the serial ports.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, CLKCR1_PLLP | CLKCR1_SWCE);
 
-	/*
-	 * Enable FIFO  Host Bypass
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_SERBCF, SERBCF_HBP);
 
-	/*
-	 *  Fill the serial port FIFOs with silence.
-	 */
 	snd_cs46xx_clear_serial_FIFOs(chip);
 
-	/*
-	 *  Set the serial port FIFO pointer to the first sample in the FIFO.
-	 */
-	/* snd_cs46xx_pokeBA0(chip, BA0_SERBSP, 0); */
+	
 
 	/*
 	 *  Write the serial port configuration to the part.  The master
@@ -2937,15 +2642,8 @@ static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 	mdelay(5);
 
 
-	/*
-	 * Wait for the codec ready signal from the AC97 codec.
-	 */
 	timeout = 150;
 	while (timeout-- > 0) {
-		/*
-		 *  Read the AC97 status register to see if we've seen a CODEC READY
-		 *  signal from the AC97 codec.
-		 */
 		if (snd_cs46xx_peekBA0(chip, BA0_ACSTS) & ACSTS_CRDY)
 			goto ok1;
 		msleep(10);
@@ -2960,41 +2658,26 @@ static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 	{
 		int count;
 		for (count = 0; count < 150; count++) {
-			/* First, we want to wait for a short time. */
+			
 			udelay(25);
         
 			if (snd_cs46xx_peekBA0(chip, BA0_ACSTS2) & ACSTS_CRDY)
 				break;
 		}
 
-		/*
-		 *  Make sure CODEC is READY.
-		 */
 		if (!(snd_cs46xx_peekBA0(chip, BA0_ACSTS2) & ACSTS_CRDY))
 			snd_printdd("cs46xx: never read card ready from secondary AC'97\n");
 	}
 #endif
 
-	/*
-	 *  Assert the vaid frame signal so that we can start sending commands
-	 *  to the AC97 codec.
-	 */
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL, ACCTL_VFRM | ACCTL_ESYN | ACCTL_RSTN);
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	snd_cs46xx_pokeBA0(chip, BA0_ACCTL2, ACCTL_VFRM | ACCTL_ESYN | ACCTL_RSTN);
 #endif
 
 
-	/*
-	 *  Wait until we've sampled input slots 3 and 4 as valid, meaning that
-	 *  the codec is pumping ADC data across the AC-link.
-	 */
 	timeout = 150;
 	while (timeout-- > 0) {
-		/*
-		 *  Read the input slot valid register and see if input slots 3 and
-		 *  4 are valid yet.
-		 */
 		if ((snd_cs46xx_peekBA0(chip, BA0_ACISV) & (ACISV_ISV3 | ACISV_ISV4)) == (ACISV_ISV3 | ACISV_ISV4))
 			goto ok2;
 		msleep(10);
@@ -3004,9 +2687,6 @@ static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 	snd_printk(KERN_ERR "create - never read ISV3 & ISV4 from AC'97\n");
 	return -EIO;
 #else
-	/* This may happen on a cold boot with a Terratec SiXPack 5.1.
-	   Reloading the driver may help, if there's other soundcards 
-	   with the same problem I would like to know. (Benny) */
 
 	snd_printk(KERN_ERR "ERROR: snd-cs46xx: never read ISV3 & ISV4 from AC'97\n");
 	snd_printk(KERN_ERR "       Try reloading the ALSA driver, if you find something\n");
@@ -3017,33 +2697,18 @@ static int snd_cs46xx_chip_init(struct snd_cs46xx *chip)
 #endif
  ok2:
 
-	/*
-	 *  Now, assert valid frame and the slot 3 and 4 valid bits.  This will
-	 *  commense the transfer of digital audio data to the AC97 codec.
-	 */
 
 	snd_cs46xx_pokeBA0(chip, BA0_ACOSV, ACOSV_SLV3 | ACOSV_SLV4);
 
 
-	/*
-	 *  Power down the DAC and ADC.  We will power them up (if) when we need
-	 *  them.
-	 */
-	/* snd_cs46xx_pokeBA0(chip, BA0_AC97_POWERDOWN, 0x300); */
+	
 
-	/*
-	 *  Turn off the Processor by turning off the software clock enable flag in 
-	 *  the clock control register.
-	 */
-	/* tmp = snd_cs46xx_peekBA0(chip, BA0_CLKCR1) & ~CLKCR1_SWCE; */
-	/* snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, tmp); */
+	
+	
 
 	return 0;
 }
 
-/*
- *  start and load DSP 
- */
 
 static void cs46xx_enable_stream_irqs(struct snd_cs46xx *chip)
 {
@@ -3053,24 +2718,18 @@ static void cs46xx_enable_stream_irqs(struct snd_cs46xx *chip)
         
 	tmp = snd_cs46xx_peek(chip, BA1_PFIE);
 	tmp &= ~0x0000f03f;
-	snd_cs46xx_poke(chip, BA1_PFIE, tmp);	/* playback interrupt enable */
+	snd_cs46xx_poke(chip, BA1_PFIE, tmp);	
 
 	tmp = snd_cs46xx_peek(chip, BA1_CIE);
 	tmp &= ~0x0000003f;
 	tmp |=  0x00000001;
-	snd_cs46xx_poke(chip, BA1_CIE, tmp);	/* capture interrupt enable */
+	snd_cs46xx_poke(chip, BA1_CIE, tmp);	
 }
 
 int __devinit snd_cs46xx_start_dsp(struct snd_cs46xx *chip)
 {	
 	unsigned int tmp;
-	/*
-	 *  Reset the processor.
-	 */
 	snd_cs46xx_reset(chip);
-	/*
-	 *  Download the image to the processor.
-	 */
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 #if 0
 	if (cs46xx_dsp_load_module(chip, &cwcemb80_module) < 0) {
@@ -3107,23 +2766,17 @@ int __devinit snd_cs46xx_start_dsp(struct snd_cs46xx *chip)
 	if (cs46xx_dsp_scb_and_task_init(chip) < 0)
 		return -EIO;
 #else
-	/* old image */
+	
 	if (snd_cs46xx_download_image(chip) < 0) {
 		snd_printk(KERN_ERR "image download error\n");
 		return -EIO;
 	}
 
-	/*
-         *  Stop playback DMA.
-	 */
 	tmp = snd_cs46xx_peek(chip, BA1_PCTL);
 	chip->play_ctl = tmp & 0xffff0000;
 	snd_cs46xx_poke(chip, BA1_PCTL, tmp & 0x0000ffff);
 #endif
 
-	/*
-         *  Stop capture DMA.
-	 */
 	tmp = snd_cs46xx_peek(chip, BA1_CCTL);
 	chip->capt.ctl = tmp & 0x0000ffff;
 	snd_cs46xx_poke(chip, BA1_CCTL, tmp & 0xffff0000);
@@ -3138,7 +2791,7 @@ int __devinit snd_cs46xx_start_dsp(struct snd_cs46xx *chip)
 	cs46xx_enable_stream_irqs(chip);
 	
 #ifndef CONFIG_SND_CS46XX_NEW_DSP
-	/* set the attenuation to 0dB */ 
+	 
 	snd_cs46xx_poke(chip, BA1_PVOL, 0x80008000);
 	snd_cs46xx_poke(chip, BA1_CVOL, 0x80008000);
 #endif
@@ -3147,9 +2800,6 @@ int __devinit snd_cs46xx_start_dsp(struct snd_cs46xx *chip)
 }
 
 
-/*
- *	AMP control - null AMP
- */
  
 static void amp_none(struct snd_cs46xx *chip, int change)
 {	
@@ -3164,10 +2814,6 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 
 	snd_printdd ("cs46xx: cs46xx_setup_eapd_slot()+\n");
 
-	/*
-	 *  See if the devices are powered down.  If so, we must power them up first
-	 *  or they will not respond.
-	 */
 	tmp = snd_cs46xx_peekBA0(chip, BA0_CLKCR1);
 
 	if (!(tmp & CLKCR1_SWCE)) {
@@ -3175,10 +2821,6 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 		powerdown = 1;
 	}
 
-	/*
-	 * Clear PRA.  The Bonzo chip will be used for GPIO not for modem
-	 * stuff.
-	 */
 	if(chip->nr_ac97_codecs != 2) {
 		snd_printk (KERN_ERR "cs46xx: cs46xx_setup_eapd_slot() - no secondary codec configured\n");
 		return -EINVAL;
@@ -3193,9 +2835,6 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 			       AC97_EXTENDED_MSTATUS, modem_power,
 			       CS46XX_SECONDARY_CODEC_INDEX);
 
-	/*
-	 * Set GPIO pin's 7 and 8 so that they are configured for output.
-	 */
 	pin_config = snd_cs46xx_codec_read (chip, 
 					    AC97_GPIO_CFG,
 					    CS46XX_SECONDARY_CODEC_INDEX);
@@ -3205,9 +2844,6 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 			       AC97_GPIO_CFG, pin_config,
 			       CS46XX_SECONDARY_CODEC_INDEX);
     
-	/*
-	 * Set GPIO pin's 7 and 8 so that they are compatible with CMOS logic.
-	 */
 
 	logic_type = snd_cs46xx_codec_read(chip, AC97_GPIO_POLARITY,
 					   CS46XX_SECONDARY_CODEC_INDEX);
@@ -3226,45 +2862,23 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 	  return -EINVAL;
 	}
 
-	/*
-	 * Fill slots 12 with the correct value for the GPIO pins. 
-	 */
 	for(idx = 0x90; idx <= 0x9F; idx++) {
-		/*
-		 * Initialize the fifo so that bits 7 and 8 are on.
-		 *
-		 * Remember that the GPIO pins in bonzo are shifted by 4 bits to
-		 * the left.  0x1800 corresponds to bits 7 and 8.
-		 */
 		snd_cs46xx_pokeBA0(chip, BA0_SERBWP, 0x1800);
 
-		/*
-		 * Wait for command to complete
-		 */
 		if ( cs46xx_wait_for_fifo(chip,200) ) {
 			snd_printdd("failed waiting for FIFO at addr (%02X)\n",idx);
 
 			return -EINVAL;
 		}
             
-		/*
-		 * Write the serial port FIFO index.
-		 */
 		snd_cs46xx_pokeBA0(chip, BA0_SERBAD, idx);
       
-		/*
-		 * Tell the serial port to load the new value into the FIFO location.
-		 */
 		snd_cs46xx_pokeBA0(chip, BA0_SERBCM, SERBCM_WRC);
 	}
 
-	/* wait for last command to complete */
+	
 	cs46xx_wait_for_fifo(chip,200);
 
-	/*
-	 *  Now, if we powered up the devices, then power them back down again.
-	 *  This is kinda ugly, but should never happen.
-	 */
 	if (powerdown)
 		snd_cs46xx_pokeBA0(chip, BA0_CLKCR1, tmp);
 
@@ -3272,14 +2886,9 @@ static int voyetra_setup_eapd_slot(struct snd_cs46xx *chip)
 }
 #endif
 
-/*
- *	Crystal EAPD mode
- */
  
 static void amp_voyetra(struct snd_cs46xx *chip, int change)
 {
-	/* Manage the EAPD bit on the Crystal 4297 
-	   and the Analog AD1885 */
 	   
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	int old = chip->amplifier;
@@ -3291,10 +2900,10 @@ static void amp_voyetra(struct snd_cs46xx *chip, int change)
 				     CS46XX_PRIMARY_CODEC_INDEX);
 	val = oval;
 	if (chip->amplifier) {
-		/* Turn the EAPD amp on */
+		
 		val |= 0x8000;
 	} else {
-		/* Turn the EAPD amp off */
+		
 		val &= ~0x8000;
 	}
 	if (val != oval) {
@@ -3314,15 +2923,13 @@ static void amp_voyetra(struct snd_cs46xx *chip, int change)
 
 static void hercules_init(struct snd_cs46xx *chip) 
 {
-	/* default: AMP off, and SPDIF input optical */
+	
 	snd_cs46xx_pokeBA0(chip, BA0_EGPIODR, EGPIODR_GPOE0);
 	snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, EGPIODR_GPOE0);
 }
 
 
-/*
- *	Game Theatre XP card - EGPIO[2] is used to enable the external amp.
- */ 
+ 
 static void amp_hercules(struct snd_cs46xx *chip, int change)
 {
 	int old = chip->amplifier;
@@ -3334,13 +2941,13 @@ static void amp_hercules(struct snd_cs46xx *chip, int change)
 		snd_printdd ("Hercules amplifier ON\n");
 
 		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR, 
-				   EGPIODR_GPOE2 | val1);     /* enable EGPIO2 output */
+				   EGPIODR_GPOE2 | val1);     
 		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, 
-				   EGPIOPTR_GPPT2 | val2);   /* open-drain on output */
+				   EGPIOPTR_GPPT2 | val2);   
 	} else if (old && !chip->amplifier) {
 		snd_printdd ("Hercules amplifier OFF\n");
-		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR,  val1 & ~EGPIODR_GPOE2); /* disable */
-		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, val2 & ~EGPIOPTR_GPPT2); /* disable */
+		snd_cs46xx_pokeBA0(chip, BA0_EGPIODR,  val1 & ~EGPIODR_GPOE2); 
+		snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, val2 & ~EGPIOPTR_GPPT2); 
 	}
 }
 
@@ -3348,7 +2955,7 @@ static void voyetra_mixer_init (struct snd_cs46xx *chip)
 {
 	snd_printdd ("initializing Voyetra mixer\n");
 
-	/* Enable SPDIF out */
+	
 	snd_cs46xx_pokeBA0(chip, BA0_EGPIODR, EGPIODR_GPOE0);
 	snd_cs46xx_pokeBA0(chip, BA0_EGPIOPTR, EGPIODR_GPOE0);
 }
@@ -3361,7 +2968,7 @@ static void hercules_mixer_init (struct snd_cs46xx *chip)
 	struct snd_card *card = chip->card;
 #endif
 
-	/* set EGPIO to default */
+	
 	hercules_init(chip);
 
 	snd_printdd ("initializing Hercules mixer\n");
@@ -3384,21 +2991,18 @@ static void hercules_mixer_init (struct snd_cs46xx *chip)
 
 
 #if 0
-/*
- *	Untested
- */
  
 static void amp_voyetra_4294(struct snd_cs46xx *chip, int change)
 {
 	chip->amplifier += change;
 
 	if (chip->amplifier) {
-		/* Switch the GPIO pins 7 and 8 to open drain */
+		
 		snd_cs46xx_codec_write(chip, 0x4C,
 				       snd_cs46xx_codec_read(chip, 0x4C) & 0xFE7F);
 		snd_cs46xx_codec_write(chip, 0x4E,
 				       snd_cs46xx_codec_read(chip, 0x4E) | 0x0180);
-		/* Now wake the AMP (this might be backwards) */
+		
 		snd_cs46xx_codec_write(chip, 0x54,
 				       snd_cs46xx_codec_read(chip, 0x54) & ~0x0180);
 	} else {
@@ -3409,14 +3013,6 @@ static void amp_voyetra_4294(struct snd_cs46xx *chip, int change)
 #endif
 
 
-/*
- *	Handle the CLKRUN on a thinkpad. We must disable CLKRUN support
- *	whenever we need to beat on the chip.
- *
- *	The original idea and code for this hack comes from David Kaiser at
- *	Linuxcare. Perhaps one day Crystal will document their chips well
- *	enough to make them useful.
- */
  
 static void clkrun_hack(struct snd_cs46xx *chip, int change)
 {
@@ -3427,10 +3023,10 @@ static void clkrun_hack(struct snd_cs46xx *chip, int change)
 
 	chip->amplifier += change;
 	
-	/* Read ACPI port */	
+		
 	nval = control = inw(chip->acpi_port + 0x10);
 
-	/* Flip CLKRUN off while running */
+	
 	if (! chip->amplifier)
 		nval |= 0x2000;
 	else
@@ -3440,9 +3036,6 @@ static void clkrun_hack(struct snd_cs46xx *chip, int change)
 }
 
 	
-/*
- * detect intel piix4
- */
 static void clkrun_init(struct snd_cs46xx *chip)
 {
 	struct pci_dev *pdev;
@@ -3453,18 +3046,15 @@ static void clkrun_init(struct snd_cs46xx *chip)
 	pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
 		PCI_DEVICE_ID_INTEL_82371AB_3, NULL);
 	if (pdev == NULL)
-		return;		/* Not a thinkpad thats for sure */
+		return;		
 
-	/* Find the control port */		
+			
 	pci_read_config_byte(pdev, 0x41, &pp);
 	chip->acpi_port = pp << 8;
 	pci_dev_put(pdev);
 }
 
 
-/*
- * Card subid table
- */
  
 struct cs_card_type
 {
@@ -3482,7 +3072,7 @@ static struct cs_card_type __devinitdata cards[] = {
 		.vendor = 0x1489,
 		.id = 0x7001,
 		.name = "Genius Soundmaker 128 value",
-		/* nothing special */
+		
 	},
 	{
 		.vendor = 0x5053,
@@ -3497,9 +3087,9 @@ static struct cs_card_type __devinitdata cards[] = {
 		.name = "Mitac MI6020/21",
 		.amp = amp_voyetra,
 	},
-	/* Hercules Game Theatre XP */
+	
 	{
-		.vendor = 0x14af, /* Guillemot Corporation */
+		.vendor = 0x14af, 
 		.id = 0x0050,
 		.name = "Hercules Game Theatre XP",
 		.amp = amp_hercules,
@@ -3541,7 +3131,7 @@ static struct cs_card_type __devinitdata cards[] = {
 		.amp = amp_hercules,
 		.mixer_init = hercules_mixer_init,
 	},
-	/* Herculess Fortissimo */
+	
 	{
 		.vendor = 0x1681,
 		.id = 0xa010,
@@ -3552,7 +3142,7 @@ static struct cs_card_type __devinitdata cards[] = {
 		.id = 0xa011,
 		.name = "Hercules Gamesurround Fortissimo III 7.1",
 	},
-	/* Teratec */
+	
 	{
 		.vendor = 0x153b,
 		.id = 0x112e,
@@ -3563,7 +3153,7 @@ static struct cs_card_type __devinitdata cards[] = {
 		.id = 0x1136,
 		.name = "Terratec SiXPack 5.1",
 	},
-	/* Not sure if the 570 needs the clkrun hack */
+	
 	{
 		.vendor = PCI_VENDOR_ID_IBM,
 		.id = 0x0132,
@@ -3583,17 +3173,14 @@ static struct cs_card_type __devinitdata cards[] = {
 		.id = 0x1010,
 		.name = "Thinkpad 600E (unsupported)",
 	},
-	{} /* terminator */
+	{} 
 };
 
 
-/*
- * APM support
- */
 #ifdef CONFIG_PM
 static unsigned int saved_regs[] = {
 	BA0_ACOSV,
-	/*BA0_ASER_FADDR,*/
+	
 	BA0_ASER_MASTER,
 	BA1_PVOL,
 	BA1_CVOL,
@@ -3608,23 +3195,23 @@ int snd_cs46xx_suspend(struct pci_dev *pci, pm_message_t state)
 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
 	chip->in_suspend = 1;
 	snd_pcm_suspend_all(chip->pcm);
-	// chip->ac97_powerdown = snd_cs46xx_codec_read(chip, AC97_POWER_CONTROL);
-	// chip->ac97_general_purpose = snd_cs46xx_codec_read(chip, BA0_AC97_GENERAL_PURPOSE);
+	
+	
 
 	snd_ac97_suspend(chip->ac97[CS46XX_PRIMARY_CODEC_INDEX]);
 	snd_ac97_suspend(chip->ac97[CS46XX_SECONDARY_CODEC_INDEX]);
 
-	/* save some registers */
+	
 	for (i = 0; i < ARRAY_SIZE(saved_regs); i++)
 		chip->saved_regs[i] = snd_cs46xx_peekBA0(chip, saved_regs[i]);
 
 	amp_saved = chip->amplifier;
-	/* turn off amp */
+	
 	chip->amplifier_ctrl(chip, -chip->amplifier);
 	snd_cs46xx_hw_stop(chip);
-	/* disable CLKRUN */
+	
 	chip->active_ctrl(chip, -chip->amplifier);
-	chip->amplifier = amp_saved; /* restore the status */
+	chip->amplifier = amp_saved; 
 
 	pci_disable_device(pci);
 	pci_save_state(pci);
@@ -3654,14 +3241,14 @@ int snd_cs46xx_resume(struct pci_dev *pci)
 
 	amp_saved = chip->amplifier;
 	chip->amplifier = 0;
-	chip->active_ctrl(chip, 1); /* force to on */
+	chip->active_ctrl(chip, 1); 
 
 	snd_cs46xx_chip_init(chip);
 
 	snd_cs46xx_reset(chip);
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	cs46xx_dsp_resume(chip);
-	/* restore some registers */
+	
 	for (i = 0; i < ARRAY_SIZE(saved_regs); i++)
 		snd_cs46xx_pokeBA0(chip, saved_regs[i], chip->saved_regs[i]);
 #else
@@ -3682,16 +3269,13 @@ int snd_cs46xx_resume(struct pci_dev *pci)
 	snd_ac97_resume(chip->ac97[CS46XX_PRIMARY_CODEC_INDEX]);
 	snd_ac97_resume(chip->ac97[CS46XX_SECONDARY_CODEC_INDEX]);
 
-	/*
-         *  Stop capture DMA.
-	 */
 	tmp = snd_cs46xx_peek(chip, BA1_CCTL);
 	chip->capt.ctl = tmp & 0x0000ffff;
 	snd_cs46xx_poke(chip, BA1_CCTL, tmp & 0xffff0000);
 
 	mdelay(5);
 
-	/* reset playback/capture */
+	
 	snd_cs46xx_set_play_sample_rate(chip, 8000);
 	snd_cs46xx_set_capture_sample_rate(chip, 8000);
 	snd_cs46xx_proc_start(chip);
@@ -3699,19 +3283,17 @@ int snd_cs46xx_resume(struct pci_dev *pci)
 	cs46xx_enable_stream_irqs(chip);
 
 	if (amp_saved)
-		chip->amplifier_ctrl(chip, 1); /* turn amp on */
+		chip->amplifier_ctrl(chip, 1); 
 	else
-		chip->active_ctrl(chip, -1); /* disable CLKRUN */
+		chip->active_ctrl(chip, -1); 
 	chip->amplifier = amp_saved;
 	chip->in_suspend = 0;
 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 	return 0;
 }
-#endif /* CONFIG_PM */
+#endif 
 
 
-/*
- */
 
 int __devinit snd_cs46xx_create(struct snd_card *card,
 		      struct pci_dev * pci,
@@ -3729,7 +3311,7 @@ int __devinit snd_cs46xx_create(struct snd_card *card,
 	
 	*rchip = NULL;
 
-	/* enable PCI device */
+	
 	if ((err = pci_enable_device(pci)) < 0)
 		return err;
 
@@ -3780,7 +3362,7 @@ int __devinit snd_cs46xx_create(struct snd_card *card,
 	region->base = chip->ba1_addr + BA1_SP_REG;
 	region->size = CS46XX_BA1_REG_SIZE;
 
-	/* set up amp and clkrun hack */
+	
 	pci_read_config_word(pci, PCI_SUBSYSTEM_VENDOR_ID, &ss_vendor);
 	pci_read_config_word(pci, PCI_SUBSYSTEM_ID, &ss_card);
 
@@ -3814,7 +3396,7 @@ int __devinit snd_cs46xx_create(struct snd_card *card,
 	if (chip->active_ctrl == NULL)
 		chip->active_ctrl = amp_none;
 
-	chip->active_ctrl(chip, 1); /* enable CLKRUN */
+	chip->active_ctrl(chip, 1); 
 
 	pci_set_master(pci);
 
@@ -3873,7 +3455,7 @@ int __devinit snd_cs46xx_create(struct snd_card *card,
 	}
 #endif
 
-	chip->active_ctrl(chip, -1); /* disable CLKRUN */
+	chip->active_ctrl(chip, -1); 
 
 	snd_card_set_dev(card, &pci->dev);
 

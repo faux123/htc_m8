@@ -323,7 +323,7 @@ static int ade7758_reset(struct device *dev)
 	ade7758_spi_read_reg_8(dev,
 			ADE7758_OPMODE,
 			&val);
-	val |= 1 << 6; /* Software Chip Reset */
+	val |= 1 << 6; 
 	ret = ade7758_spi_write_reg_8(dev,
 			ADE7758_OPMODE,
 			val);
@@ -456,8 +456,7 @@ int ade7758_set_irq(struct device *dev, bool enable)
 		goto error_ret;
 
 	if (enable)
-		irqen |= 1 << 16; /* Enables an interrupt when a data is
-				     present in the waveform register */
+		irqen |= 1 << 16; 
 	else
 		irqen &= ~(1 << 16);
 
@@ -469,7 +468,6 @@ error_ret:
 	return ret;
 }
 
-/* Power down the device */
 static int ade7758_stop_device(struct device *dev)
 {
 	int ret;
@@ -477,7 +475,7 @@ static int ade7758_stop_device(struct device *dev)
 	ade7758_spi_read_reg_8(dev,
 			ADE7758_OPMODE,
 			&val);
-	val |= 7 << 3;  /* ADE7758 powered down */
+	val |= 7 << 3;  
 	ret = ade7758_spi_write_reg_8(dev,
 			ADE7758_OPMODE,
 			val);
@@ -491,11 +489,11 @@ static int ade7758_initial_setup(struct iio_dev *indio_dev)
 	struct device *dev = &indio_dev->dev;
 	int ret;
 
-	/* use low spi speed for init */
+	
 	st->us->mode = SPI_MODE_1;
 	spi_setup(st->us);
 
-	/* Disable IRQ */
+	
 	ret = ade7758_set_irq(dev, false);
 	if (ret) {
 		dev_err(dev, "disable irq failed");
@@ -742,10 +740,10 @@ static int __devinit ade7758_probe(struct spi_device *spi)
 	}
 
 	st = iio_priv(indio_dev);
-	/* this is only used for removal purposes */
+	
 	spi_set_drvdata(spi, indio_dev);
 
-	/* Allocate the comms buffers */
+	
 	st->rx = kcalloc(ADE7758_MAX_RX, sizeof(*st->rx), GFP_KERNEL);
 	if (st->rx == NULL) {
 		ret = -ENOMEM;
@@ -782,7 +780,7 @@ static int __devinit ade7758_probe(struct spi_device *spi)
 		goto error_unreg_ring_funcs;
 	}
 
-	/* Get the device into a sane initial state */
+	
 	ret = ade7758_initial_setup(indio_dev);
 	if (ret)
 		goto error_uninitialize_ring;

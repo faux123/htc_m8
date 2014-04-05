@@ -30,7 +30,6 @@
 #define USB_NUM_ETD	32
 #define DMEM_SIZE   	4096
 
-/* Register definitions */
 #define USBOTG_HWMODE		0x00
 #define USBOTG_HWMODE_ANASDBEN		(1 << 14)
 #define USBOTG_HWMODE_OTGXCVR_SHIFT	6
@@ -252,7 +251,6 @@
 
 #define USBOTG_DMEM		0x1000
 
-/* Values in TD blocks */
 #define TD_DIR_SETUP	    0
 #define TD_DIR_OUT	    1
 #define TD_DIR_IN	    2
@@ -264,29 +262,25 @@
 #define TD_TOGGLE_DATA0	    2
 #define TD_TOGGLE_DATA1	    3
 
-/* control transfer states */
 #define US_CTRL_SETUP	2
 #define US_CTRL_DATA	1
 #define US_CTRL_ACK	0
 
-/* bulk transfer main state and 0-length packet */
 #define US_BULK		1
 #define US_BULK0	0
 
-/*ETD format description*/
 #define IMX_FMT_CTRL   0x0
 #define IMX_FMT_ISO    0x1
 #define IMX_FMT_BULK   0x2
 #define IMX_FMT_INT    0x3
 
 static char fmt_urb_to_etd[4] = {
-/*PIPE_ISOCHRONOUS*/ IMX_FMT_ISO,
-/*PIPE_INTERRUPT*/ IMX_FMT_INT,
-/*PIPE_CONTROL*/ IMX_FMT_CTRL,
-/*PIPE_BULK*/ IMX_FMT_BULK
+ IMX_FMT_ISO,
+ IMX_FMT_INT,
+ IMX_FMT_CTRL,
+ IMX_FMT_BULK
 };
 
-/* condition (error) CC codes and mapping (OHCI like) */
 
 #define TD_CC_NOERROR		0x00
 #define TD_CC_CRC		0x01
@@ -295,7 +289,6 @@ static char fmt_urb_to_etd[4] = {
 #define TD_CC_STALL		0x04
 #define TD_DEVNOTRESP		0x05
 #define TD_PIDCHECKFAIL		0x06
-/*#define TD_UNEXPECTEDPID	0x07 - reserved, not active on MX2*/
 #define TD_DATAOVERRUN		0x08
 #define TD_DATAUNDERRUN		0x09
 #define TD_BUFFEROVERRUN	0x0C
@@ -304,25 +297,24 @@ static char fmt_urb_to_etd[4] = {
 #define TD_NOTACCESSED		0x0F
 
 static const int cc_to_error[16] = {
-	/* No  Error  */ 0,
-	/* CRC Error  */ -EILSEQ,
-	/* Bit Stuff  */ -EPROTO,
-	/* Data Togg  */ -EILSEQ,
-	/* Stall      */ -EPIPE,
-	/* DevNotResp */ -ETIMEDOUT,
-	/* PIDCheck   */ -EPROTO,
-	/* UnExpPID   */ -EPROTO,
-	/* DataOver   */ -EOVERFLOW,
-	/* DataUnder  */ -EREMOTEIO,
-	/* (for hw)   */ -EIO,
-	/* (for hw)   */ -EIO,
-	/* BufferOver */ -ECOMM,
-	/* BuffUnder  */ -ENOSR,
-	/* (for HCD)  */ -ENOSPC,
-	/* (for HCD)  */ -EALREADY
+	 0,
+	 -EILSEQ,
+	 -EPROTO,
+	 -EILSEQ,
+	 -EPIPE,
+	 -ETIMEDOUT,
+	 -EPROTO,
+	 -EPROTO,
+	 -EOVERFLOW,
+	 -EREMOTEIO,
+	 -EIO,
+	 -EIO,
+	 -ECOMM,
+	 -ENOSR,
+	 -ENOSPC,
+	 -EALREADY
 };
 
-/* HCD data associated with a usb core URB */
 struct urb_priv {
 	struct urb *urb;
 	struct usb_host_endpoint *ep;
@@ -333,7 +325,6 @@ struct urb_priv {
 	int isoc_status;
 };
 
-/* HCD data associated with a usb core endpoint */
 struct ep_priv {
 	struct usb_host_endpoint *ep;
 	struct list_head td_list;
@@ -342,7 +333,6 @@ struct ep_priv {
 	int waiting_etd;
 };
 
-/* isoc packet */
 struct td {
 	struct list_head list;
 	struct urb *urb;
@@ -354,7 +344,6 @@ struct td {
 	int isoc_index;
 };
 
-/* HCD data associated with a hardware ETD */
 struct etd_priv {
 	struct usb_host_endpoint *ep;
 	struct urb *urb;
@@ -377,7 +366,6 @@ struct etd_priv {
 #endif
 };
 
-/* Hardware data memory info */
 struct imx21_dmem_area {
 	struct usb_host_endpoint *ep;
 	unsigned int offset;
@@ -411,15 +399,14 @@ struct debug_isoc_trace {
 };
 #endif
 
-/* HCD data structure */
 struct imx21 {
 	spinlock_t lock;
 	struct device *dev;
 	struct usb_hcd *hcd;
 	struct mx21_usbh_platform_data *pdata;
 	struct list_head dmem_list;
-	struct list_head queue_for_etd; /* eps queued due to etd shortage */
-	struct list_head queue_for_dmem; /* etds queued due to dmem shortage */
+	struct list_head queue_for_etd; 
+	struct list_head queue_for_dmem; 
 	struct etd_priv etd[USB_NUM_ETD];
 	struct clk *clk;
 	void __iomem *regs;

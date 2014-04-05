@@ -2,9 +2,9 @@
 #include <linux/slab.h>
 #include "minix.h"
 
-enum {DEPTH = 3, DIRECT = 7};	/* Only double indirect */
+enum {DEPTH = 3, DIRECT = 7};	
 
-typedef u16 block_t;	/* 16 bit, host order */
+typedef u16 block_t;	
 
 static inline unsigned long block_to_cpu(block_t n)
 {

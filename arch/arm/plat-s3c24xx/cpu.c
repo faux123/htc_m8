@@ -53,7 +53,6 @@
 #include <plat/s3c244x.h>
 #include <plat/s3c2443.h>
 
-/* table of supported CPUs */
 
 static const char name_s3c2410[]  = "S3C2410";
 static const char name_s3c2412[]  = "S3C2412";
@@ -129,7 +128,7 @@ static struct cpu_table cpu_ids[] __initdata = {
 		.init		= s3c2412_init,
 		.name		= name_s3c2412,
 	},
-	{			/* a newer version of the s3c2412 */
+	{			
 		.idcode		= 0x32412003,
 		.idmask		= 0xffffffff,
 		.map_io		= s3c2412_map_io,
@@ -138,7 +137,7 @@ static struct cpu_table cpu_ids[] __initdata = {
 		.init		= s3c2412_init,
 		.name		= name_s3c2412,
 	},
-	{			/* a strange version of the s3c2416 */
+	{			
 		.idcode		= 0x32450003,
 		.idmask		= 0xffffffff,
 		.map_io		= s3c2416_map_io,
@@ -158,7 +157,6 @@ static struct cpu_table cpu_ids[] __initdata = {
 	},
 };
 
-/* minimal IO mapping */
 
 static struct map_desc s3c_iodesc[] __initdata = {
 	IODESC_ENT(GPIO),
@@ -167,16 +165,15 @@ static struct map_desc s3c_iodesc[] __initdata = {
 	IODESC_ENT(UART)
 };
 
-/* read cpu identificaiton code */
 
 static unsigned long s3c24xx_read_idcode_v5(void)
 {
 #if defined(CONFIG_CPU_S3C2416)
-	/* s3c2416 is v5, with S3C24XX_GSTATUS1 instead of S3C2412_GSTATUS1 */
+	
 
 	u32 gs = __raw_readl(S3C24XX_GSTATUS1);
 
-	/* test for s3c2416 or similar device */
+	
 	if ((gs >> 16) == 0x3245)
 		return gs;
 #endif
@@ -184,7 +181,7 @@ static unsigned long s3c24xx_read_idcode_v5(void)
 #if defined(CONFIG_CPU_S3C2412) || defined(CONFIG_CPU_S3C2413)
 	return __raw_readl(S3C2412_GSTATUS1);
 #else
-	return 1UL;	/* don't look like an 2400 */
+	return 1UL;	
 #endif
 }
 
@@ -198,20 +195,17 @@ static void s3c24xx_default_idle(void)
 	unsigned long tmp;
 	int i;
 
-	/* idle the system by using the idle mode which will wait for an
-	 * interrupt to happen before restarting the system.
-	 */
 
-	/* Warning: going into idle state upsets jtag scanning */
+	
 
 	__raw_writel(__raw_readl(S3C2410_CLKCON) | S3C2410_CLKCON_IDLE,
 		     S3C2410_CLKCON);
 
-	/* the samsung port seems to do a loop and then unset idle.. */
+	
 	for (i = 0; i < 50; i++)
-		tmp += __raw_readl(S3C2410_CLKCON); /* ensure loop not optimised out */
+		tmp += __raw_readl(S3C2410_CLKCON); 
 
-	/* this bit is not cleared on re-start... */
+	
 
 	__raw_writel(__raw_readl(S3C2410_CLKCON) & ~S3C2410_CLKCON_IDLE,
 		     S3C2410_CLKCON);
@@ -221,7 +215,7 @@ void __init s3c24xx_init_io(struct map_desc *mach_desc, int size)
 {
 	arm_pm_idle = s3c24xx_default_idle;
 
-	/* initialise the io descriptors we need for initialisation */
+	
 	iotable_init(mach_desc, size);
 	iotable_init(s3c_iodesc, ARRAY_SIZE(s3c_iodesc));
 

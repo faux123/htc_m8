@@ -14,7 +14,6 @@
  */
 #include "nuc9xx.h"
 
-/* extern file from nuc910.c */
 
 extern void nuc910_board_init(void);
 extern void nuc910_init_clocks(void);

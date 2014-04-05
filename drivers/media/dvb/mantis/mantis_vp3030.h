@@ -27,4 +27,4 @@
 
 extern struct mantis_hwconfig vp3030_config;
 
-#endif /* __MANTIS_VP3030_H */
+#endif 

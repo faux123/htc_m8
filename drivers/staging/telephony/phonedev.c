@@ -31,16 +31,10 @@
 
 #define PHONE_NUM_DEVICES	256
 
-/*
- *    Active devices 
- */
 
 static struct phone_device *phone_device[PHONE_NUM_DEVICES];
 static DEFINE_MUTEX(phone_lock);
 
-/*
- *    Open a phone device.
- */
 
 static int phone_open(struct inode *inode, struct file *file)
 {
@@ -70,7 +64,7 @@ static int phone_open(struct inode *inode, struct file *file)
 	old_fops = file->f_op;
 	file->f_op = new_fops;
 	if (p->open)
-		err = p->open(p, file);	/* Tell the device it is open */
+		err = p->open(p, file);	
 	if (err) {
 		fops_put(file->f_op);
 		file->f_op = fops_get(old_fops);
@@ -81,9 +75,6 @@ end:
 	return err;
 }
 
-/*
- *    Telephony For Linux device drivers request registration here.
- */
 
 int phone_register_device(struct phone_device *p, int unit)
 {
@@ -96,7 +87,7 @@ int phone_register_device(struct phone_device *p, int unit)
 
 	if (unit != PHONE_UNIT_ANY) {
 		base = unit;
-		end = unit + 1;  /* enter the loop at least one time */
+		end = unit + 1;  
 	}
 	
 	mutex_lock(&phone_lock);
@@ -112,9 +103,6 @@ int phone_register_device(struct phone_device *p, int unit)
 	return -ENFILE;
 }
 
-/*
- *    Unregister an unused Telephony for linux device
- */
 
 void phone_unregister_device(struct phone_device *pfd)
 {
@@ -132,14 +120,8 @@ static const struct file_operations phone_fops =
 	.llseek		= noop_llseek,
 };
 
-/*
- *	Board init functions
- */
  
 
-/*
- *    Initialise Telephony for linux
- */
 
 static int __init telephony_init(void)
 {

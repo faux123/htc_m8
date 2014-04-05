@@ -31,7 +31,6 @@
 
 #include "ttype.h"
 
-/****** Common helper macros ***********************************************/
 
 #if !defined(LOBYTE)
 #define LOBYTE(w)           ((unsigned char)(w))
@@ -57,6 +56,6 @@
 #define MAKEDWORD(lw, hw)   ((unsigned long)(((unsigned short)(lw)) | (((unsigned long)((unsigned short)(hw))) << 16)))
 #endif
 
-#endif // __TMACRO_H__
+#endif 
 
 

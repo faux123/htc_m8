@@ -1,6 +1,3 @@
-/*
- * linux/arch/arm/mach-sa1100/simpad.c
- */
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -37,9 +34,6 @@
 
 #include "generic.h"
 
-/*
- * CS3 support
- */
 
 static long cs3_shadow;
 static spinlock_t cs3_lock;
@@ -118,12 +112,12 @@ static int cs3_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
 };
 
 static struct map_desc simpad_io_desc[] __initdata = {
-	{	/* MQ200 */
+	{	
 		.virtual	=  0xf2800000,
 		.pfn		= __phys_to_pfn(0x4b800000),
 		.length		= 0x00800000,
 		.type		= MT_DEVICE
-	}, {	/* Simpad CS3 */
+	}, {	
 		.virtual	= CS3_BASE,
 		.pfn		= __phys_to_pfn(SA1100_CS3_PHYS),
 		.length		= 0x00100000,
@@ -199,24 +193,21 @@ static void __init simpad_map_io(void)
 
 	iotable_init(simpad_io_desc, ARRAY_SIZE(simpad_io_desc));
 
-	/* Initialize CS3 */
+	
 	cs3_shadow = (EN1 | EN0 | LED2_ON | DISPLAY_ON |
 		RS232_ON | ENABLE_5V | RESET_SIMCARD | DECT_POWER_ON);
-	__simpad_write_cs3(); /* Spinlocks not yet initialized */
+	__simpad_write_cs3(); 
 
         sa1100_register_uart_fns(&simpad_port_fns);
-	sa1100_register_uart(0, 3);  /* serial interface */
-	sa1100_register_uart(1, 1);  /* DECT             */
+	sa1100_register_uart(0, 3);  
+	sa1100_register_uart(1, 1);  
 
-	// Reassign UART 1 pins
+	
 	GAFR |= GPIO_UART_TXD | GPIO_UART_RXD;
 	GPDR |= GPIO_UART_TXD | GPIO_LDD13 | GPIO_LDD15;
 	GPDR &= ~GPIO_UART_RXD;
 	PPAR |= PPAR_UPR;
 
-	/*
-	 * Set up registers for sleep mode.
-	 */
 
 
 	PWER = PWER_GPIO0| PWER_RTC;
@@ -230,30 +221,23 @@ static void simpad_power_off(void)
 {
 	local_irq_disable();
 	cs3_shadow = SD_MEDIAQ;
-	__simpad_write_cs3(); /* Bypass spinlock here */
+	__simpad_write_cs3(); 
 
-	/* disable internal oscillator, float CS lines */
+	
 	PCFR = (PCFR_OPDE | PCFR_FP | PCFR_FS);
-	/* enable wake-up on GPIO0 */
+	
 	PWER = GFER = GRER = PWER_GPIO0;
-	/*
-	 * set scratchpad to zero, just in case it is used as a
-	 * restart address by the bootloader.
-	 */
 	PSPR = 0;
 	PGSR = 0;
-	/* enter sleep mode */
+	
 	PMCR = PMCR_SF;
 	while(1);
 
-	local_irq_enable(); /* we won't ever call it */
+	local_irq_enable(); 
 
 
 }
 
-/*
- * gpio_keys
-*/
 
 static struct gpio_keys_button simpad_button_table[] = {
 	{ KEY_POWER, IRQ_GPIO_POWER_BUTTON, 1, "power button" },
@@ -293,9 +277,6 @@ static struct platform_device simpad_polled_keys = {
 	},
 };
 
-/*
- * GPIO LEDs
- */
 
 static struct gpio_led simpad_leds[] = {
 	{
@@ -319,9 +300,6 @@ static struct platform_device simpad_gpio_leds = {
 	},
 };
 
-/*
- * i2c
- */
 static struct i2c_gpio_platform_data simpad_i2c_data = {
 	.sda_pin = GPIO_GPIO21,
 	.scl_pin = GPIO_GPIO25,
@@ -337,9 +315,6 @@ static struct platform_device simpad_i2c = {
 	},
 };
 
-/*
- * MediaQ Video Device
- */
 static struct platform_device simpad_mq200fb = {
 	.name = "simpad-mq200",
 	.id   = 0,
@@ -390,7 +365,7 @@ arch_initcall(simpad_init);
 
 
 MACHINE_START(SIMPAD, "Simpad")
-	/* Maintainer: Holger Freyther */
+	
 	.atag_offset	= 0x100,
 	.map_io		= simpad_map_io,
 	.nr_irqs	= SA1100_NR_IRQS,

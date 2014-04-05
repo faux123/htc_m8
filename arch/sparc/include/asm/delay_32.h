@@ -19,16 +19,15 @@ static inline void __delay(unsigned long loops)
 			     "cc");
 }
 
-/* This is too messy with inline asm on the Sparc. */
 extern void __udelay(unsigned long usecs, unsigned long lpj);
 extern void __ndelay(unsigned long nsecs, unsigned long lpj);
 
 #ifdef CONFIG_SMP
 #define __udelay_val	cpu_data(smp_processor_id()).udelay_val
-#else /* SMP */
+#else 
 #define __udelay_val	loops_per_jiffy
-#endif /* SMP */
+#endif 
 #define udelay(__usecs)	__udelay(__usecs, __udelay_val)
 #define ndelay(__nsecs)	__ndelay(__nsecs, __udelay_val)
 
-#endif /* defined(__SPARC_DELAY_H) */
+#endif 

@@ -12,9 +12,5 @@
 
 extern atomic_t irq_err_count;
 
-/*
- * interrupt-retrigger: NOP for now. This may not be appropriate for all
- * machines, we'll see ...
- */
 
-#endif /* __ASM_HW_IRQ_H */
+#endif 

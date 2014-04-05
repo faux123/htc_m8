@@ -46,9 +46,6 @@
 # define STR(x) _STR(x)
 #endif
 
-/*
- * pagemap kernel ABI bits
- */
 
 #define PM_ENTRY_BYTES      sizeof(uint64_t)
 #define PM_STATUS_BITS      3
@@ -66,14 +63,10 @@
 #define PM_SWAP             PM_STATUS(2LL)
 
 
-/*
- * kernel page flags
- */
 
 #define KPF_BYTES		8
 #define PROC_KPAGEFLAGS		"/proc/kpageflags"
 
-/* copied from kpageflags_read() */
 #define KPF_LOCKED		0
 #define KPF_ERROR		1
 #define KPF_REFERENCED		2
@@ -86,7 +79,6 @@
 #define KPF_RECLAIM		9
 #define KPF_BUDDY		10
 
-/* [11-20] new additions in 2.6.31 */
 #define KPF_MMAP		11
 #define KPF_ANON		12
 #define KPF_SWAPCACHE		13
@@ -100,7 +92,6 @@
 #define KPF_KSM			21
 #define KPF_THP			22
 
-/* [32-] kernel hacking assistances */
 #define KPF_RESERVED		32
 #define KPF_MLOCKED		33
 #define KPF_MAPPEDTODISK	34
@@ -110,9 +101,6 @@
 #define KPF_ARCH		38
 #define KPF_UNCACHED		39
 
-/* [48-] take some arbitrary free slots for expanding overloaded flags
- * not part of kernel API
- */
 #define KPF_READAHEAD		48
 #define KPF_SLOB_FREE		49
 #define KPF_SLUB_FROZEN		50
@@ -172,14 +160,11 @@ static const char * const debugfs_known_mountpoints[] = {
 	0,
 };
 
-/*
- * data structures
- */
 
-static int		opt_raw;	/* for kernel developers */
-static int		opt_list;	/* list pages (in ranges) */
-static int		opt_no_summary;	/* don't show summary */
-static pid_t		opt_pid;	/* process to walk */
+static int		opt_raw;	
+static int		opt_list;	
+static int		opt_no_summary;	
+static pid_t		opt_pid;	
 
 #define MAX_ADDR_RANGES	1024
 static int		nr_addr_ranges;
@@ -218,9 +203,6 @@ static unsigned long	nr_pages[HASH_SIZE];
 static uint64_t		page_flags[HASH_SIZE];
 
 
-/*
- * helper functions
- */
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -261,9 +243,6 @@ static int checked_open(const char *pathname, int flags)
 	return fd;
 }
 
-/*
- * pagemap/kpageflags routines
- */
 
 static unsigned long do_u64_read(int fd, char *name,
 				 uint64_t *buf,
@@ -318,9 +297,6 @@ static unsigned long pagemap_pfn(uint64_t val)
 }
 
 
-/*
- * page flag names
- */
 
 static char *page_flag_name(uint64_t flags)
 {
@@ -361,9 +337,6 @@ static char *page_flag_longname(uint64_t flags)
 }
 
 
-/*
- * page list and summary
- */
 
 static void show_page_range(unsigned long voffset,
 			    unsigned long offset, uint64_t flags)
@@ -422,9 +395,6 @@ static void show_summary(void)
 }
 
 
-/*
- * page flag filters
- */
 
 static int bit_mask_ok(uint64_t flags)
 {
@@ -445,7 +415,7 @@ static int bit_mask_ok(uint64_t flags)
 
 static uint64_t expand_overloaded_flags(uint64_t flags)
 {
-	/* SLOB/SLUB overload several page flags */
+	
 	if (flags & BIT(SLAB)) {
 		if (flags & BIT(PRIVATE))
 			flags ^= BIT(PRIVATE) | BIT(SLOB_FREE);
@@ -455,7 +425,7 @@ static uint64_t expand_overloaded_flags(uint64_t flags)
 			flags ^= BIT(ERROR) | BIT(SLUB_DEBUG);
 	}
 
-	/* PG_reclaim is overloaded as PG_readahead in the read path */
+	
 	if ((flags & (BIT(RECLAIM) | BIT(WRITEBACK))) == BIT(RECLAIM))
 		flags ^= BIT(RECLAIM) | BIT(READAHEAD);
 
@@ -464,10 +434,10 @@ static uint64_t expand_overloaded_flags(uint64_t flags)
 
 static uint64_t well_known_flags(uint64_t flags)
 {
-	/* hide flags intended only for kernel hacker */
+	
 	flags &= ~KPF_HACKERS_BITS;
 
-	/* hide non-hugeTLB compound pages */
+	
 	if ((flags & BITS_COMPOUND) && !(flags & BIT(HUGE)))
 		flags &= ~BITS_COMPOUND;
 
@@ -484,7 +454,6 @@ static uint64_t kpageflags_flags(uint64_t flags)
 	return flags;
 }
 
-/* verify that a mountpoint is actually a debugfs instance */
 static int debugfs_valid_mountpoint(const char *debugfs)
 {
 	struct statfs st_fs;
@@ -497,7 +466,6 @@ static int debugfs_valid_mountpoint(const char *debugfs)
 	return 0;
 }
 
-/* find the path to the mounted debugfs */
 static const char *debugfs_find_mountpoint(void)
 {
 	const char **ptr;
@@ -513,7 +481,7 @@ static const char *debugfs_find_mountpoint(void)
 		ptr++;
 	}
 
-	/* give up and parse /proc/mounts */
+	
 	fp = fopen("/proc/mounts", "r");
 	if (fp == NULL)
 		perror("Can't open /proc/mounts for read");
@@ -533,20 +501,19 @@ static const char *debugfs_find_mountpoint(void)
 	return hwpoison_debug_fs;
 }
 
-/* mount the debugfs somewhere if it's not mounted */
 
 static void debugfs_mount(void)
 {
 	const char **ptr;
 
-	/* see if it's already mounted */
+	
 	if (debugfs_find_mountpoint())
 		return;
 
 	ptr = debugfs_known_mountpoints;
 	while (*ptr) {
 		if (mount(NULL, *ptr, "debugfs", 0, NULL) == 0) {
-			/* save the mountpoint */
+			
 			strcpy(hwpoison_debug_fs, *ptr);
 			break;
 		}
@@ -559,9 +526,6 @@ static void debugfs_mount(void)
 	}
 }
 
-/*
- * page actions
- */
 
 static void prepare_hwpoison_fd(void)
 {
@@ -610,22 +574,16 @@ static int unpoison_page(unsigned long offset)
 	return 0;
 }
 
-/*
- * page frame walker
- */
 
 static int hash_slot(uint64_t flags)
 {
 	int k = HASH_KEY(flags);
 	int i;
 
-	/* Explicitly reserve slot 0 for flags 0: the following logic
-	 * cannot distinguish an unoccupied slot from slot (flags==0).
-	 */
 	if (flags == 0)
 		return 0;
 
-	/* search through the remaining (HASH_SIZE-1) slots */
+	
 	for (i = 1; i < ARRAY_SIZE(page_flags); i++, k++) {
 		if (!k || k >= ARRAY_SIZE(page_flags))
 			k = 1;
@@ -663,7 +621,7 @@ static void add_page(unsigned long voffset,
 	total_pages++;
 }
 
-#define KPAGEFLAGS_BATCH	(64 << 10)	/* 64k pages */
+#define KPAGEFLAGS_BATCH	(64 << 10)	
 static void walk_pfn(unsigned long voffset,
 		     unsigned long index,
 		     unsigned long count)
@@ -764,9 +722,6 @@ static void walk_addr_ranges(void)
 }
 
 
-/*
- * user interface
- */
 
 static const char *page_flag_type(uint64_t flag)
 {
@@ -788,7 +743,7 @@ static void usage(void)
 "            -a|--addr    addr-spec     Walk a range of pages\n"
 "            -b|--bits    bits-spec     Walk pages with specified bits\n"
 "            -p|--pid     pid           Walk process address space\n"
-#if 0 /* planned features */
+#if 0 
 "            -f|--file    filename      Walk file address space\n"
 #endif
 "            -l|--list                  Show page details in ranges\n"
@@ -1088,7 +1043,7 @@ int main(int argc, char *argv[])
 	walk_addr_ranges();
 
 	if (opt_list == 1)
-		show_page_range(0, 0, 0);  /* drain the buffer */
+		show_page_range(0, 0, 0);  
 
 	if (opt_no_summary)
 		return 0;

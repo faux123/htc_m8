@@ -4,7 +4,6 @@
 #include "ieee80211.h"
 
 
-//#define DOT11D_MAX_CHNL_NUM 83
 
 typedef struct _CHNL_TXPOWER_TRIPLE {
 	u8 FirstChnl;
@@ -19,18 +18,18 @@ typedef enum _DOT11D_STATE {
 }DOT11D_STATE;
 
 typedef struct _RT_DOT11D_INFO {
-	//DECLARE_RT_OBJECT(RT_DOT11D_INFO);
+	
 
-	bool bEnabled; // dot11MultiDomainCapabilityEnabled
+	bool bEnabled; 
 
-	u16 CountryIeLen; // > 0 if CountryIeBuf[] contains valid country information element.
+	u16 CountryIeLen; 
 	u8  CountryIeBuf[MAX_IE_LEN];
-	u8  CountryIeSrcAddr[6]; // Source AP of the country IE.
+	u8  CountryIeSrcAddr[6]; 
 	u8  CountryIeWatchdog;
 
-	u8  channel_map[MAX_CHANNEL_NUMBER+1];  //!!!Value 0: Invalid, 1: Valid (active scan), 2: Valid (passive scan)
-	//u8  ChnlListLen; // #Bytes valid in ChnlList[].
-	//u8  ChnlList[DOT11D_MAX_CHNL_NUM];
+	u8  channel_map[MAX_CHANNEL_NUMBER+1];  
+	
+	
 	u8  MaxTxPwrDbmList[MAX_CHANNEL_NUMBER+1];
 
 	DOT11D_STATE State;
@@ -96,4 +95,4 @@ int ToLegalChannel(
 	struct ieee80211_device * dev,
 	u8 channel
 );
-#endif // #ifndef __INC_DOT11D_H
+#endif 

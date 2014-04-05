@@ -15,4 +15,4 @@ typedef struct {
 	unsigned long		end_brk;
 } mm_context_t;
 
-#endif /* _ASM_C6X_MMU_H */
+#endif 

@@ -68,4 +68,4 @@
 #define P_TMR0		(P_DONTCARE)
 #define P_TMRCLK	(P_DEFINED | P_IDENT(GPIO_PF1))
 
-#endif /* _MACH_PORTMUX_H_ */
+#endif 

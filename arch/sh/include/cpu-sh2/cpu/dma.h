@@ -19,5 +19,5 @@
 
 #define DMAOR	0xffffffb0
 
-#endif /* __ASM_CPU_SH2_DMA_H */
+#endif 
 

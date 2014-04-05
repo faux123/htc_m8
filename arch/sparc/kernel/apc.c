@@ -21,10 +21,6 @@
 #include <asm/auxio.h>
 #include <asm/apc.h>
 
-/* Debugging
- * 
- * #define APC_DEBUG_LED
- */
 
 #define APC_MINOR	MISC_DYNAMIC_MINOR
 #define APC_OBPNAME	"power-management"
@@ -36,12 +32,6 @@ static int apc_no_idle __devinitdata = 0;
 #define apc_readb(offs)		(sbus_readb(regs+offs))
 #define apc_writeb(val, offs) 	(sbus_writeb(val, regs+offs))
 
-/* Specify "apc=noidle" on the kernel command line to 
- * disable APC CPU standby support.  Certain prototype
- * systems (SPARCstation-Fox) do not play well with APC
- * CPU idle, so disable this if your system has APC and 
- * crashes randomly.
- */
 static int __init apc_setup(char *str) 
 {
 	if(!strncmp(str, "noidle", strlen("noidle"))) {
@@ -52,10 +42,6 @@ static int __init apc_setup(char *str)
 }
 __setup("apc=", apc_setup);
 
-/* 
- * CPU idle callback function
- * See .../arch/sparc/kernel/process.c
- */
 static void apc_swift_idle(void)
 {
 #ifdef APC_DEBUG_LED
@@ -156,7 +142,7 @@ static int __devinit apc_probe(struct platform_device *op)
 		return -ENODEV;
 	}
 
-	/* Assign power management IDLE handler */
+	
 	if (!apc_no_idle)
 		pm_idle = apc_swift_idle;	
 
@@ -188,8 +174,4 @@ static int __init apc_init(void)
 	return platform_driver_register(&apc_driver);
 }
 
-/* This driver is not critical to the boot process
- * and is easiest to ioremap when SBus is already
- * initialized, so we install ourselves thusly:
- */
 __initcall(apc_init);

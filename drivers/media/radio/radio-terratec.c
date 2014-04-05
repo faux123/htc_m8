@@ -1,31 +1,10 @@
-/* Terratec ActiveRadio ISA Standalone card driver for Linux radio support
- * (c) 1999 R. Offermanns (rolf@offermanns.de)
- * based on the aimslab radio driver from M. Kirkwood
- * many thanks to Michael Becker and Friedhelm Birth (from TerraTec)
- *
- *
- * History:
- * 1999-05-21	First preview release
- *
- *  Notes on the hardware:
- *  There are two "main" chips on the card:
- *  - Philips OM5610 (http://www-us.semiconductors.philips.com/acrobat/datasheets/OM5610_2.pdf)
- *  - Philips SAA6588 (http://www-us.semiconductors.philips.com/acrobat/datasheets/SAA6588_1.pdf)
- *  (you can get the datasheet at the above links)
- *
- *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
- *  Volume Control is done digitally
- *
- * Converted to the radio-isa framework by Hans Verkuil <hans.verkuil@cisco.com>
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/videodev2.h>	
 #include <linux/mutex.h>
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/io.h>		
 #include <linux/slab.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
@@ -36,9 +15,6 @@ MODULE_DESCRIPTION("A driver for the TerraTec ActiveRadio Standalone radio card.
 MODULE_LICENSE("GPL");
 MODULE_VERSION("0.1.99");
 
-/* Note: there seems to be only one possible port (0x590), but without
-   hardware this is hard to verify. For now, this is the only one we will
-   support. */
 static int io = 0x590;
 static int radio_nr = -1;
 
@@ -64,7 +40,7 @@ static int terratec_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol
 
 	if (mute)
 		vol = 0;
-	vol = vol + (vol * 32); /* change both channels */
+	vol = vol + (vol * 32); 
 	for (i = 0; i < 8; i++) {
 		if (vol & (0x80 >> i))
 			outb(0x80, isa->io + 1);
@@ -75,8 +51,6 @@ static int terratec_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol
 }
 
 
-/* this is the worst part in this driver */
-/* many more or less strange things are going on here, but hey, it works :) */
 
 static int terratec_s_frequency(struct radio_isa_card *isa, u32 freq)
 {
@@ -84,13 +58,13 @@ static int terratec_s_frequency(struct radio_isa_card *isa, u32 freq)
 	int p;
 	int temp;
 	long rest;
-	unsigned char buffer[25];		/* we have to bit shift 25 registers */
+	unsigned char buffer[25];		
 
-	freq = freq / 160;			/* convert the freq. to a nice to handle value */
+	freq = freq / 160;			
 	memset(buffer, 0, sizeof(buffer));
 
-	rest = freq * 10 + 10700;	/* I once had understood what is going on here */
-					/* maybe some wise guy (friedhelm?) can comment this stuff */
+	rest = freq * 10 + 10700;	
+					
 	i = 13;
 	p = 10;
 	temp = 102400;
@@ -106,7 +80,7 @@ static int terratec_s_frequency(struct radio_isa_card *isa, u32 freq)
 		temp = temp / 2;
 	}
 
-	for (i = 24; i > -1; i--) {	/* bit shift the values to the radiocard */
+	for (i = 24; i > -1; i--) {	
 		if (buffer[i] == 1) {
 			outb(WRT_EN | DATA, isa->io);
 			outb(WRT_EN | DATA | CLK_ON, isa->io);
@@ -122,7 +96,7 @@ static int terratec_s_frequency(struct radio_isa_card *isa, u32 freq)
 
 static u32 terratec_g_signal(struct radio_isa_card *isa)
 {
-	/* bit set = no signal present	*/
+	
 	return (inb(isa->io) & 2) ? 0 : 0xffff;
 }
 

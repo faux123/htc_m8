@@ -18,9 +18,6 @@
 
 #include <linux/ioport.h>
 
-    /*
-     *  Different Amiga models
-     */
 
 #define AMI_UNKNOWN	(0)
 #define AMI_500		(1)
@@ -40,9 +37,6 @@
 #define AMI_DRACO	(15)
 
 
-    /*
-     *  Chipsets
-     */
 
 extern unsigned long amiga_chipset;
 
@@ -52,14 +46,11 @@ extern unsigned long amiga_chipset;
 #define CS_AGA		(3)
 
 
-    /*
-     *  Miscellaneous
-     */
 
-extern unsigned long amiga_eclock;	/* 700 kHz E Peripheral Clock */
-extern unsigned long amiga_colorclock;	/* 3.5 MHz Color Clock */
-extern unsigned long amiga_chip_size;	/* Chip RAM Size (bytes) */
-extern unsigned char amiga_vblank;	/* VBLANK Frequency */
+extern unsigned long amiga_eclock;	
+extern unsigned long amiga_colorclock;	
+extern unsigned long amiga_chip_size;	
+extern unsigned char amiga_vblank;	
 
 
 #define AMIGAHW_DECLARE(name)	unsigned name : 1
@@ -67,43 +58,43 @@ extern unsigned char amiga_vblank;	/* VBLANK Frequency */
 #define AMIGAHW_PRESENT(name)	(amiga_hw_present.name)
 
 struct amiga_hw_present {
-    /* video hardware */
-    AMIGAHW_DECLARE(AMI_VIDEO);		/* Amiga Video */
-    AMIGAHW_DECLARE(AMI_BLITTER);	/* Amiga Blitter */
-    AMIGAHW_DECLARE(AMBER_FF);		/* Amber Flicker Fixer */
-    /* sound hardware */
-    AMIGAHW_DECLARE(AMI_AUDIO);		/* Amiga Audio */
-    /* disk storage interfaces */
-    AMIGAHW_DECLARE(AMI_FLOPPY);	/* Amiga Floppy */
-    AMIGAHW_DECLARE(A3000_SCSI);	/* SCSI (wd33c93, A3000 alike) */
-    AMIGAHW_DECLARE(A4000_SCSI);	/* SCSI (ncr53c710, A4000T alike) */
-    AMIGAHW_DECLARE(A1200_IDE);		/* IDE (A1200 alike) */
-    AMIGAHW_DECLARE(A4000_IDE);		/* IDE (A4000 alike) */
-    AMIGAHW_DECLARE(CD_ROM);		/* CD ROM drive */
-    /* other I/O hardware */
-    AMIGAHW_DECLARE(AMI_KEYBOARD);	/* Amiga Keyboard */
-    AMIGAHW_DECLARE(AMI_MOUSE);		/* Amiga Mouse */
-    AMIGAHW_DECLARE(AMI_SERIAL);	/* Amiga Serial */
-    AMIGAHW_DECLARE(AMI_PARALLEL);	/* Amiga Parallel */
-    /* real time clocks */
-    AMIGAHW_DECLARE(A2000_CLK);		/* Hardware Clock (A2000 alike) */
-    AMIGAHW_DECLARE(A3000_CLK);		/* Hardware Clock (A3000 alike) */
-    /* supporting hardware */
-    AMIGAHW_DECLARE(CHIP_RAM);		/* Chip RAM */
-    AMIGAHW_DECLARE(PAULA);		/* Paula (8364) */
-    AMIGAHW_DECLARE(DENISE);		/* Denise (8362) */
-    AMIGAHW_DECLARE(DENISE_HR);		/* Denise (8373) */
-    AMIGAHW_DECLARE(LISA);		/* Lisa (8375) */
-    AMIGAHW_DECLARE(AGNUS_PAL);		/* Normal/Fat PAL Agnus (8367/8371) */
-    AMIGAHW_DECLARE(AGNUS_NTSC);	/* Normal/Fat NTSC Agnus (8361/8370) */
-    AMIGAHW_DECLARE(AGNUS_HR_PAL);	/* Fat Hires PAL Agnus (8372) */
-    AMIGAHW_DECLARE(AGNUS_HR_NTSC);	/* Fat Hires NTSC Agnus (8372) */
-    AMIGAHW_DECLARE(ALICE_PAL);		/* PAL Alice (8374) */
-    AMIGAHW_DECLARE(ALICE_NTSC);	/* NTSC Alice (8374) */
-    AMIGAHW_DECLARE(MAGIC_REKICK);	/* A3000 Magic Hard Rekick */
-    AMIGAHW_DECLARE(PCMCIA);		/* PCMCIA Slot */
-    AMIGAHW_DECLARE(ZORRO);		/* Zorro AutoConfig */
-    AMIGAHW_DECLARE(ZORRO3);		/* Zorro III */
+    
+    AMIGAHW_DECLARE(AMI_VIDEO);		
+    AMIGAHW_DECLARE(AMI_BLITTER);	
+    AMIGAHW_DECLARE(AMBER_FF);		
+    
+    AMIGAHW_DECLARE(AMI_AUDIO);		
+    
+    AMIGAHW_DECLARE(AMI_FLOPPY);	
+    AMIGAHW_DECLARE(A3000_SCSI);	
+    AMIGAHW_DECLARE(A4000_SCSI);	
+    AMIGAHW_DECLARE(A1200_IDE);		
+    AMIGAHW_DECLARE(A4000_IDE);		
+    AMIGAHW_DECLARE(CD_ROM);		
+    
+    AMIGAHW_DECLARE(AMI_KEYBOARD);	
+    AMIGAHW_DECLARE(AMI_MOUSE);		
+    AMIGAHW_DECLARE(AMI_SERIAL);	
+    AMIGAHW_DECLARE(AMI_PARALLEL);	
+    
+    AMIGAHW_DECLARE(A2000_CLK);		
+    AMIGAHW_DECLARE(A3000_CLK);		
+    
+    AMIGAHW_DECLARE(CHIP_RAM);		
+    AMIGAHW_DECLARE(PAULA);		
+    AMIGAHW_DECLARE(DENISE);		
+    AMIGAHW_DECLARE(DENISE_HR);		
+    AMIGAHW_DECLARE(LISA);		
+    AMIGAHW_DECLARE(AGNUS_PAL);		
+    AMIGAHW_DECLARE(AGNUS_NTSC);	
+    AMIGAHW_DECLARE(AGNUS_HR_PAL);	
+    AMIGAHW_DECLARE(AGNUS_HR_NTSC);	
+    AMIGAHW_DECLARE(ALICE_PAL);		
+    AMIGAHW_DECLARE(ALICE_NTSC);	
+    AMIGAHW_DECLARE(MAGIC_REKICK);	
+    AMIGAHW_DECLARE(PCMCIA);		
+    AMIGAHW_DECLARE(ZORRO);		
+    AMIGAHW_DECLARE(ZORRO3);		
 };
 
 extern struct amiga_hw_present amiga_hw_present;
@@ -227,9 +218,6 @@ struct CUSTOM {
     unsigned short fmode;
 };
 
-/*
- * DMA register bits
- */
 #define DMAF_SETCLR		(0x8000)
 #define DMAF_AUD0		(0x0001)
 #define DMAF_AUD1		(0x0002)
@@ -282,17 +270,17 @@ void amiga_chip_init (void);
 void *amiga_chip_alloc(unsigned long size, const char *name);
 void *amiga_chip_alloc_res(unsigned long size, struct resource *res);
 void amiga_chip_free(void *ptr);
-unsigned long amiga_chip_avail( void ); /*MILAN*/
+unsigned long amiga_chip_avail( void ); 
 extern volatile unsigned short amiga_audio_min_period;
 
 static inline void amifb_video_off(void)
 {
 	if (amiga_chipset == CS_ECS || amiga_chipset == CS_AGA) {
-		/* program Denise/Lisa for a higher maximum play rate */
-		amiga_custom.htotal = 113;        /* 31 kHz */
-		amiga_custom.vtotal = 223;        /* 70 Hz */
-		amiga_custom.beamcon0 = 0x4390;   /* HARDDIS, VAR{BEAM,VSY,HSY,CSY}EN */
-		/* suspend the monitor */
+		
+		amiga_custom.htotal = 113;        
+		amiga_custom.vtotal = 223;        
+		amiga_custom.beamcon0 = 0x4390;   
+		
 		amiga_custom.hsstrt = amiga_custom.hsstop = 116;
 		amiga_custom.vsstrt = amiga_custom.vsstop = 226;
 		amiga_audio_min_period = 57;
@@ -300,44 +288,44 @@ static inline void amifb_video_off(void)
 }
 
 struct tod3000 {
-  unsigned int  :28, second2:4;	/* lower digit */
-  unsigned int  :28, second1:4;	/* upper digit */
-  unsigned int  :28, minute2:4;	/* lower digit */
-  unsigned int  :28, minute1:4;	/* upper digit */
-  unsigned int  :28, hour2:4;	/* lower digit */
-  unsigned int  :28, hour1:4;	/* upper digit */
+  unsigned int  :28, second2:4;	
+  unsigned int  :28, second1:4;	
+  unsigned int  :28, minute2:4;	
+  unsigned int  :28, minute1:4;	
+  unsigned int  :28, hour2:4;	
+  unsigned int  :28, hour1:4;	
   unsigned int  :28, weekday:4;
-  unsigned int  :28, day2:4;	/* lower digit */
-  unsigned int  :28, day1:4;	/* upper digit */
-  unsigned int  :28, month2:4;	/* lower digit */
-  unsigned int  :28, month1:4;	/* upper digit */
-  unsigned int  :28, year2:4;	/* lower digit */
-  unsigned int  :28, year1:4;	/* upper digit */
-  unsigned int  :28, cntrl1:4;	/* control-byte 1 */
-  unsigned int  :28, cntrl2:4;	/* control-byte 2 */
-  unsigned int  :28, cntrl3:4;	/* control-byte 3 */
+  unsigned int  :28, day2:4;	
+  unsigned int  :28, day1:4;	
+  unsigned int  :28, month2:4;	
+  unsigned int  :28, month1:4;	
+  unsigned int  :28, year2:4;	
+  unsigned int  :28, year1:4;	
+  unsigned int  :28, cntrl1:4;	
+  unsigned int  :28, cntrl2:4;	
+  unsigned int  :28, cntrl3:4;	
 };
 #define TOD3000_CNTRL1_HOLD	0
 #define TOD3000_CNTRL1_FREE	9
 #define tod_3000 ((*(volatile struct tod3000 *)(zTwoBase+0xDC0000)))
 
 struct tod2000 {
-  unsigned int  :28, second2:4;	/* lower digit */
-  unsigned int  :28, second1:4;	/* upper digit */
-  unsigned int  :28, minute2:4;	/* lower digit */
-  unsigned int  :28, minute1:4;	/* upper digit */
-  unsigned int  :28, hour2:4;	/* lower digit */
-  unsigned int  :28, hour1:4;	/* upper digit */
-  unsigned int  :28, day2:4;	/* lower digit */
-  unsigned int  :28, day1:4;	/* upper digit */
-  unsigned int  :28, month2:4;	/* lower digit */
-  unsigned int  :28, month1:4;	/* upper digit */
-  unsigned int  :28, year2:4;	/* lower digit */
-  unsigned int  :28, year1:4;	/* upper digit */
+  unsigned int  :28, second2:4;	
+  unsigned int  :28, second1:4;	
+  unsigned int  :28, minute2:4;	
+  unsigned int  :28, minute1:4;	
+  unsigned int  :28, hour2:4;	
+  unsigned int  :28, hour1:4;	
+  unsigned int  :28, day2:4;	
+  unsigned int  :28, day1:4;	
+  unsigned int  :28, month2:4;	
+  unsigned int  :28, month1:4;	
+  unsigned int  :28, year2:4;	
+  unsigned int  :28, year1:4;	
   unsigned int  :28, weekday:4;
-  unsigned int  :28, cntrl1:4;	/* control-byte 1 */
-  unsigned int  :28, cntrl2:4;	/* control-byte 2 */
-  unsigned int  :28, cntrl3:4;	/* control-byte 3 */
+  unsigned int  :28, cntrl1:4;	
+  unsigned int  :28, cntrl2:4;	
+  unsigned int  :28, cntrl3:4;	
 };
 
 #define TOD2000_CNTRL1_HOLD	(1<<0)
@@ -346,4 +334,4 @@ struct tod2000 {
 #define TOD2000_HOUR1_PM	(1<<2)
 #define tod_2000 ((*(volatile struct tod2000 *)(zTwoBase+0xDC0000)))
 
-#endif /* _M68K_AMIGAHW_H */
+#endif 

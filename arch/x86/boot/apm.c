@@ -12,9 +12,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Get APM BIOS information
- */
 
 #include "boot.h"
 
@@ -22,25 +19,25 @@ int query_apm_bios(void)
 {
 	struct biosregs ireg, oreg;
 
-	/* APM BIOS installation check */
+	
 	initregs(&ireg);
 	ireg.ah = 0x53;
 	intcall(0x15, &ireg, &oreg);
 
 	if (oreg.flags & X86_EFLAGS_CF)
-		return -1;		/* No APM BIOS */
+		return -1;		
 
-	if (oreg.bx != 0x504d)		/* "PM" signature */
+	if (oreg.bx != 0x504d)		
 		return -1;
 
-	if (!(oreg.cx & 0x02))		/* 32 bits supported? */
+	if (!(oreg.cx & 0x02))		
 		return -1;
 
-	/* Disconnect first, just in case */
+	
 	ireg.al = 0x04;
 	intcall(0x15, &ireg, NULL);
 
-	/* 32-bit connect */
+	
 	ireg.al = 0x03;
 	intcall(0x15, &ireg, &oreg);
 
@@ -55,14 +52,12 @@ int query_apm_bios(void)
 	if (oreg.flags & X86_EFLAGS_CF)
 		return -1;
 
-	/* Redo the installation check as the 32-bit connect;
-	   some BIOSes return different flags this way... */
 
 	ireg.al = 0x00;
 	intcall(0x15, &ireg, &oreg);
 
 	if ((oreg.eflags & X86_EFLAGS_CF) || oreg.bx != 0x504d) {
-		/* Failure with 32-bit connect, try to disconect and ignore */
+		
 		ireg.al = 0x04;
 		intcall(0x15, &ireg, NULL);
 		return -1;

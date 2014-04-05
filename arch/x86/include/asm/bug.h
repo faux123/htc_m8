@@ -33,11 +33,11 @@ do {								\
 } while (0)
 #endif
 
-#endif /* !CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
 
 
 extern void show_regs_common(void);
 
-#endif /* _ASM_X86_BUG_H */
+#endif 

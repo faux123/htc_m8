@@ -29,7 +29,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/* Crude resource management */
 #include <linux/kernel.h>
 #include <linux/random.h>
 #include <linux/slab.h>
@@ -136,7 +135,6 @@ void cxio_hal_destroy_rhdl_resource(void)
 	kfifo_free(&rhdl_fifo);
 }
 
-/* nr_* must be power of 2 */
 int cxio_hal_init_resource(struct cxio_rdev *rdev_p,
 			   u32 nr_tpt, u32 nr_pbl,
 			   u32 nr_rqt, u32 nr_qpid, u32 nr_cqid, u32 nr_pdid)
@@ -175,16 +173,13 @@ tpt_err:
 	return -ENOMEM;
 }
 
-/*
- * returns 0 if no resource available
- */
 static u32 cxio_hal_get_resource(struct kfifo *fifo, spinlock_t * lock)
 {
 	u32 entry;
 	if (kfifo_out_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock))
 		return entry;
 	else
-		return 0;	/* fifo emptry */
+		return 0;	
 }
 
 static void cxio_hal_put_resource(struct kfifo *fifo, spinlock_t * lock,
@@ -248,11 +243,8 @@ void cxio_hal_destroy_resource(struct cxio_hal_resource *rscp)
 	kfree(rscp);
 }
 
-/*
- * PBL Memory Manager.  Uses Linux generic allocator.
- */
 
-#define MIN_PBL_SHIFT 8			/* 256B == min PBL size (32 entries) */
+#define MIN_PBL_SHIFT 8			
 
 u32 cxio_hal_pblpool_alloc(struct cxio_rdev *rdev_p, int size)
 {
@@ -305,11 +297,8 @@ void cxio_hal_pblpool_destroy(struct cxio_rdev *rdev_p)
 	gen_pool_destroy(rdev_p->pbl_pool);
 }
 
-/*
- * RQT Memory Manager.  Uses Linux generic allocator.
- */
 
-#define MIN_RQT_SHIFT 10	/* 1KB == mini RQT size (16 entries) */
+#define MIN_RQT_SHIFT 10	
 #define RQT_CHUNK 2*1024*1024
 
 u32 cxio_hal_rqtpool_alloc(struct cxio_rdev *rdev_p, int size)

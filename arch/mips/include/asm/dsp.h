@@ -82,4 +82,4 @@ do {									\
 	tsk->thread.dsp.dspr;						\
 })
 
-#endif /* _ASM_DSP_H */
+#endif 

@@ -1,21 +1,6 @@
 #ifndef __ASM_SH_PTRACE_32_H
 #define __ASM_SH_PTRACE_32_H
 
-/*
- * GCC defines register number like this:
- * -----------------------------
- *	 0 - 15 are integer registers
- *	17 - 22 are control/special registers
- *	24 - 39 fp registers
- *	40 - 47 xd registers
- *	48 -    fpscr register
- * -----------------------------
- *
- * We follows above, except:
- *	16 --- program counter (PC)
- *	22 --- syscall #
- *	23 --- floating point communication register
- */
 #define REG_REG0	 0
 #define REG_REG15	15
 
@@ -37,10 +22,6 @@
 #define REG_FPSCR	55
 #define REG_FPUL	56
 
-/*
- * This struct defines the way the registers are stored on the
- * kernel stack during a system call or other kernel entry.
- */
 struct pt_regs {
 	unsigned long regs[16];
 	unsigned long pc;
@@ -52,10 +33,6 @@ struct pt_regs {
 	long tra;
 };
 
-/*
- * This struct defines the way the DSP registers are stored on the
- * kernel stack during a system call or other kernel entry.
- */
 struct pt_dspregs {
 	unsigned long	a1;
 	unsigned long	a0g;
@@ -81,6 +58,6 @@ static inline long regs_return_value(struct pt_regs *regs)
 	return regs->regs[0];
 }
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __ASM_SH_PTRACE_32_H */
+#endif 

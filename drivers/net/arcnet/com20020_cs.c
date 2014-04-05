@@ -67,7 +67,7 @@ static void regdump(struct net_device *dev)
     pr_cont("\n");
     
     netdev_dbg(dev, "buffer0 dump:\n");
-	/* set up the address register */
+	
         count = 0;
 	outb((count >> 8) | RDDATAflag | AUTOINCflag, _ADDR_HI);
 	outb(count & 0xff, _ADDR_LO);
@@ -77,7 +77,7 @@ static void regdump(struct net_device *dev)
 	if (!(count % 16))
 	    pr_cont("%04X:", count);
 	
-	/* copy the data */
+	
 	pr_cont(" %02X", inb(_MEMDATA));
     }
     pr_cont("\n");
@@ -86,9 +86,7 @@ static void regdump(struct net_device *dev)
 
 
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
 static int node;
 static int timeout = 3;
@@ -104,14 +102,12 @@ module_param(clockm, int, 0);
 
 MODULE_LICENSE("GPL");
 
-/*====================================================================*/
 
 static int com20020_config(struct pcmcia_device *link);
 static void com20020_release(struct pcmcia_device *link);
 
 static void com20020_detach(struct pcmcia_device *p_dev);
 
-/*====================================================================*/
 
 typedef struct com20020_dev_t {
     struct net_device       *dev;
@@ -125,7 +121,7 @@ static int com20020_probe(struct pcmcia_device *p_dev)
 
     dev_dbg(&p_dev->dev, "com20020_attach()\n");
 
-    /* Create new network device */
+    
     info = kzalloc(sizeof(struct com20020_dev_t), GFP_KERNEL);
     if (!info)
 	goto fail_alloc_info;
@@ -141,7 +137,7 @@ static int com20020_probe(struct pcmcia_device *p_dev)
     lp->clockm = clockm & 3;
     lp->hw.owner = THIS_MODULE;
 
-    /* fill in our module parameters as defaults */
+    
     dev->dev_addr[0] = node;
 
     p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_8;
@@ -157,7 +153,7 @@ fail_alloc_dev:
     kfree(info);
 fail_alloc_info:
     return -ENOMEM;
-} /* com20020_attach */
+} 
 
 static void com20020_detach(struct pcmcia_device *link)
 {
@@ -172,16 +168,12 @@ static void com20020_detach(struct pcmcia_device *link)
 
     unregister_netdev(dev);
 
-    /*
-     * this is necessary because we register our IRQ separately
-     * from card services.
-     */
     if (dev->irq)
 	    free_irq(dev->irq, dev);
 
     com20020_release(link);
 
-    /* Unlink device structure, free bits */
+    
     dev_dbg(&link->dev, "unlinking...\n");
     if (link->priv)
     {
@@ -195,7 +187,7 @@ static void com20020_detach(struct pcmcia_device *link)
 	kfree(info);
     }
 
-} /* com20020_detach */
+} 
 
 static int com20020_config(struct pcmcia_device *link)
 {
@@ -262,11 +254,11 @@ static int com20020_config(struct pcmcia_device *link)
     
     lp = netdev_priv(dev);
     lp->card_name = "PCMCIA COM20020";
-    lp->card_flags = ARC_CAN_10MBIT; /* pretend all of them can 10Mbit */
+    lp->card_flags = ARC_CAN_10MBIT; 
 
     SET_NETDEV_DEV(dev, &link->dev);
 
-    i = com20020_found(dev, 0);	/* calls register_netdev */
+    i = com20020_found(dev, 0);	
     
     if (i != 0) {
 	dev_notice(&link->dev,
@@ -282,7 +274,7 @@ failed:
     dev_dbg(&link->dev, "com20020_config failed...\n");
     com20020_release(link);
     return -ENODEV;
-} /* com20020_config */
+} 
 
 static void com20020_release(struct pcmcia_device *link)
 {

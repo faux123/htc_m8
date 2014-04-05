@@ -24,7 +24,7 @@ extern void pcc_ioread_byte(int, unsigned long, void *, size_t, size_t, int);
 extern void pcc_ioread_word(int, unsigned long, void *, size_t, size_t, int);
 extern void pcc_iowrite_byte(int, unsigned long, void *, size_t, size_t, int);
 extern void pcc_iowrite_word(int, unsigned long, void *, size_t, size_t, int);
-#endif /* CONFIG_PCMCIA && CONFIG_M32R_CFC */
+#endif 
 
 #define PORT2ADDR(port)      _port2addr(port)
 #define PORT2ADDR_NE(port)   _port2addr_ne(port)
@@ -41,7 +41,7 @@ static inline void *__port2addr_ata(unsigned long port)
 	static int	dummy_reg;
 
 	switch (port) {
-	  /* IDE0 CF */
+	  
 	case 0x1f0:	return (void *)(0x14002000 | NONCACHE_OFFSET);
 	case 0x1f1:	return (void *)(0x14012800 | NONCACHE_OFFSET);
 	case 0x1f2:	return (void *)(0x14012002 | NONCACHE_OFFSET);
@@ -51,24 +51,24 @@ static inline void *__port2addr_ata(unsigned long port)
 	case 0x1f6:	return (void *)(0x14012006 | NONCACHE_OFFSET);
 	case 0x1f7:	return (void *)(0x14012806 | NONCACHE_OFFSET);
 	case 0x3f6:	return (void *)(0x1401200e | NONCACHE_OFFSET);
-	  /* IDE1 IDE */
-	case 0x170:	/* Data 16bit */
+	  
+	case 0x170:	
 			return (void *)(0x14810000 | NONCACHE_OFFSET);
-	case 0x171:	/* Features / Error */
+	case 0x171:	
 			return (void *)(0x14810002 | NONCACHE_OFFSET);
-	case 0x172:	/* Sector count */
+	case 0x172:	
 			return (void *)(0x14810004 | NONCACHE_OFFSET);
-	case 0x173:	/* Sector number */
+	case 0x173:	
 			return (void *)(0x14810006 | NONCACHE_OFFSET);
-	case 0x174:	/* Cylinder low */
+	case 0x174:	
 			return (void *)(0x14810008 | NONCACHE_OFFSET);
-	case 0x175:	/* Cylinder high */
+	case 0x175:	
 			return (void *)(0x1481000a | NONCACHE_OFFSET);
-	case 0x176:	/* Device head */
+	case 0x176:	
 			return (void *)(0x1481000c | NONCACHE_OFFSET);
-	case 0x177:	/* Command     */
+	case 0x177:	
 			return (void *)(0x1481000e | NONCACHE_OFFSET);
-	case 0x376:	/* Device control / Alt status */
+	case 0x376:	
 			return (void *)(0x1480800c | NONCACHE_OFFSET);
 
 	default: 	return (void *)&dummy_reg;
@@ -92,9 +92,6 @@ static inline void delay(void)
 	__asm__ __volatile__ ("push r0; \n\t pop r0;" : : :"memory");
 }
 
-/*
- * NIC I/O function
- */
 
 static inline unsigned char _ne_inb(void *portp)
 {

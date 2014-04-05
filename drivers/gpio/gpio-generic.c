@@ -102,7 +102,7 @@ static unsigned long bgpio_read64(void __iomem *reg)
 {
 	return readq(reg);
 }
-#endif /* BITS_PER_LONG >= 64 */
+#endif 
 
 static unsigned long bgpio_pin2mask(struct bgpio_chip *bgc, unsigned int pin)
 {
@@ -270,7 +270,7 @@ static int bgpio_setup_accessors(struct device *dev,
 		bgc->read_reg	= bgpio_read64;
 		bgc->write_reg	= bgpio_write64;
 		break;
-#endif /* BITS_PER_LONG >= 64 */
+#endif 
 	default:
 		dev_err(dev, "unsupported data width %u bits\n", bgc->bits);
 		return -EINVAL;
@@ -281,28 +281,6 @@ static int bgpio_setup_accessors(struct device *dev,
 	return 0;
 }
 
-/*
- * Create the device and allocate the resources.  For setting GPIO's there are
- * three supported configurations:
- *
- *	- single input/output register resource (named "dat").
- *	- set/clear pair (named "set" and "clr").
- *	- single output register resource and single input resource ("set" and
- *	dat").
- *
- * For the single output register, this drives a 1 by setting a bit and a zero
- * by clearing a bit.  For the set clr pair, this drives a 1 by setting a bit
- * in the set register and clears it by setting a bit in the clear register.
- * The configuration is detected by which resources are present.
- *
- * For setting the GPIO direction, there are three supported configurations:
- *
- *	- simple bidirection GPIO that requires no configuration.
- *	- an output direction register (named "dirout") where a 1 bit
- *	indicates the GPIO is an output.
- *	- an input direction register (named "dirin") where a 1 bit indicates
- *	the GPIO is an input.
- */
 static int bgpio_setup_io(struct bgpio_chip *bgc,
 			  void __iomem *dat,
 			  void __iomem *set,
@@ -526,7 +504,7 @@ static struct platform_driver bgpio_driver = {
 
 module_platform_driver(bgpio_driver);
 
-#endif /* CONFIG_GPIO_GENERIC_PLATFORM */
+#endif 
 
 MODULE_DESCRIPTION("Driver for basic memory-mapped GPIO controllers");
 MODULE_AUTHOR("Anton Vorontsov <cbouatmailru@gmail.com>");

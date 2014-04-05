@@ -27,9 +27,6 @@ static struct kmem_cache *iint_cache __read_mostly;
 
 int iint_initialized;
 
-/*
- * __integrity_iint_find - return the iint associated with an inode
- */
 static struct integrity_iint_cache *__integrity_iint_find(struct inode *inode)
 {
 	struct integrity_iint_cache *iint;
@@ -53,9 +50,6 @@ static struct integrity_iint_cache *__integrity_iint_find(struct inode *inode)
 	return iint;
 }
 
-/*
- * integrity_iint_find - return the iint associated with an inode
- */
 struct integrity_iint_cache *integrity_iint_find(struct inode *inode)
 {
 	struct integrity_iint_cache *iint;
@@ -78,10 +72,6 @@ static void iint_free(struct integrity_iint_cache *iint)
 	kmem_cache_free(iint_cache, iint);
 }
 
-/**
- * integrity_inode_alloc - allocate an iint associated with an inode
- * @inode: pointer to the inode
- */
 int integrity_inode_alloc(struct inode *inode)
 {
 	struct rb_node **p;
@@ -96,7 +86,7 @@ int integrity_inode_alloc(struct inode *inode)
 	new_iint->inode = inode;
 	new_node = &new_iint->rb_node;
 
-	mutex_lock(&inode->i_mutex);	/* i_flags */
+	mutex_lock(&inode->i_mutex);	
 	spin_lock(&integrity_iint_lock);
 
 	p = &integrity_iint_tree.rb_node;
@@ -118,23 +108,17 @@ int integrity_inode_alloc(struct inode *inode)
 	rb_insert_color(new_node, &integrity_iint_tree);
 
 	spin_unlock(&integrity_iint_lock);
-	mutex_unlock(&inode->i_mutex);	/* i_flags */
+	mutex_unlock(&inode->i_mutex);	
 
 	return 0;
 out_err:
 	spin_unlock(&integrity_iint_lock);
-	mutex_unlock(&inode->i_mutex);	/* i_flags */
+	mutex_unlock(&inode->i_mutex);	
 	iint_free(new_iint);
 
 	return rc;
 }
 
-/**
- * integrity_inode_free - called on security_inode_free
- * @inode: pointer to the inode
- *
- * Free the integrity information(iint) associated with an inode.
- */
 void integrity_inode_free(struct inode *inode)
 {
 	struct integrity_iint_cache *iint;

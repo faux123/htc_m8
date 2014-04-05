@@ -24,21 +24,21 @@
 #include <asm/byteorder.h>
 
 struct semid64_ds {
-	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+	struct ipc64_perm sem_perm;		
 #ifdef __XTENSA_EL__
-	__kernel_time_t	sem_otime;		/* last semop time */
+	__kernel_time_t	sem_otime;		
 	unsigned long	__unused1;
-	__kernel_time_t	sem_ctime;		/* last change time */
+	__kernel_time_t	sem_ctime;		
 	unsigned long	__unused2;
 #else
 	unsigned long	__unused1;
-	__kernel_time_t	sem_otime;		/* last semop time */
+	__kernel_time_t	sem_otime;		
 	unsigned long	__unused2;
-	__kernel_time_t	sem_ctime;		/* last change time */
+	__kernel_time_t	sem_ctime;		
 #endif
-	unsigned long	sem_nsems;		/* no. of semaphores in array */
+	unsigned long	sem_nsems;		
 	unsigned long	__unused3;
 	unsigned long	__unused4;
 };
 
-#endif /* __ASM_XTENSA_SEMBUF_H */
+#endif 

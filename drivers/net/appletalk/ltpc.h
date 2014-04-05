@@ -1,7 +1,3 @@
-/***   ltpc.h
- *
- *
- ***/
 
 #define LT_GETRESULT  0x00
 #define LT_WRITEMEM   0x01
@@ -12,7 +8,6 @@
 #define LT_SENDLAP    0x13
 #define LT_RCVLAP     0x14
 
-/* the flag that we care about */
 #define LT_FLAG_ALLLAP 0x04
 
 struct lt_getresult {
@@ -23,8 +18,8 @@ struct lt_getresult {
 struct lt_mem {
 	unsigned char command;
 	unsigned char mailbox;
-	unsigned short addr;	/* host order */
-	unsigned short length;	/* host order */
+	unsigned short addr;	
+	unsigned short length;	
 };
 
 struct lt_setflags {
@@ -49,7 +44,7 @@ struct lt_sendlap {
 	unsigned char mailbox;
 	unsigned char dnode;
 	unsigned char laptype;
-	unsigned short length;	/* host order */
+	unsigned short length;	
 };
 
 struct lt_rcvlap {
@@ -57,7 +52,7 @@ struct lt_rcvlap {
 	unsigned char dnode;
 	unsigned char snode;
 	unsigned char laptype;
-	unsigned short length;	/* host order */
+	unsigned short length;	
 };
 
 union lt_command {

@@ -47,7 +47,6 @@
 #include <asm/cacheflush.h>
 #include <linux/dma-mapping.h>
 
-/* TODO -- Remove, once BP defines them */
 #define INT_DSP_MMU_IRQ        28
 
 #define PRCM_VDD1 1

@@ -71,7 +71,7 @@ static void wait_for_dc_servo(struct snd_soc_codec *codec, unsigned int op)
 
 	val = op | WM8993_DCS_ENA_CHAN_0 | WM8993_DCS_ENA_CHAN_1;
 
-	/* Trigger the command */
+	
 	snd_soc_write(codec, WM8993_DC_SERVO_0, val);
 
 	dev_dbg(codec->dev, "Waiting for DC servo...\n");
@@ -109,9 +109,6 @@ irqreturn_t wm_hubs_dcs_done(int irq, void *data)
 }
 EXPORT_SYMBOL_GPL(wm_hubs_dcs_done);
 
-/*
- * Startup calibration of the DC servo
- */
 static void calibrate_dc_servo(struct snd_soc_codec *codec)
 {
 	struct wm_hubs_data *hubs = snd_soc_codec_get_drvdata(codec);
@@ -127,8 +124,6 @@ static void calibrate_dc_servo(struct snd_soc_codec *codec)
 		break;
 	}
 
-	/* If we're using a digital only path and have a previously
-	 * callibrated DC servo offset stored then use that. */
 	if (hubs->class_w && hubs->class_w_dcs) {
 		dev_dbg(codec->dev, "Using cached DC servo offset %x\n",
 			hubs->class_w_dcs);
@@ -140,7 +135,7 @@ static void calibrate_dc_servo(struct snd_soc_codec *codec)
 	}
 
 	if (hubs->series_startup) {
-		/* Set for 32 series updates */
+		
 		snd_soc_update_bits(codec, WM8993_DC_SERVO_1,
 				    WM8993_DCS_SERIES_NO_01_MASK,
 				    32 << WM8993_DCS_SERIES_NO_01_SHIFT);
@@ -153,9 +148,6 @@ static void calibrate_dc_servo(struct snd_soc_codec *codec)
 				  WM8993_DCS_TRIG_STARTUP_1);
 	}
 
-	/* Different chips in the family support different readback
-	 * methods.
-	 */
 	switch (hubs->dcs_readback_mode) {
 	case 0:
 		reg_l = snd_soc_read(codec, WM8993_DC_SERVO_READBACK_1)
@@ -177,25 +169,25 @@ static void calibrate_dc_servo(struct snd_soc_codec *codec)
 
 	dev_dbg(codec->dev, "DCS input: %x %x\n", reg_l, reg_r);
 
-	/* Apply correction to DC servo result */
+	
 	if (hubs->dcs_codes_l || hubs->dcs_codes_r) {
 		dev_dbg(codec->dev,
 			"Applying %d/%d code DC servo correction\n",
 			hubs->dcs_codes_l, hubs->dcs_codes_r);
 
-		/* HPOUT1R */
+		
 		offset = reg_r;
 		offset += hubs->dcs_codes_r;
 		dcs_cfg = (u8)offset << WM8993_DCS_DAC_WR_VAL_1_SHIFT;
 
-		/* HPOUT1L */
+		
 		offset = reg_l;
 		offset += hubs->dcs_codes_l;
 		dcs_cfg |= (u8)offset;
 
 		dev_dbg(codec->dev, "DCS result: %x\n", dcs_cfg);
 
-		/* Do it */
+		
 		snd_soc_write(codec, dcs_reg, dcs_cfg);
 		wait_for_dc_servo(codec,
 				  WM8993_DCS_TRIG_DAC_WR_0 |
@@ -205,15 +197,10 @@ static void calibrate_dc_servo(struct snd_soc_codec *codec)
 		dcs_cfg |= reg_l;
 	}
 
-	/* Save the callibrated offset if we're in class W mode and
-	 * therefore don't have any analogue signal mixed in. */
 	if (hubs->class_w && !hubs->no_cache_class_w)
 		hubs->class_w_dcs = dcs_cfg;
 }
 
-/*
- * Update the DC servo calibration on gain changes
- */
 static int wm8993_put_dc_servo(struct snd_kcontrol *kcontrol,
 			       struct snd_ctl_elem_value *ucontrol)
 {
@@ -223,15 +210,13 @@ static int wm8993_put_dc_servo(struct snd_kcontrol *kcontrol,
 
 	ret = snd_soc_put_volsw(kcontrol, ucontrol);
 
-	/* Updating the analogue gains invalidates the DC servo cache */
+	
 	hubs->class_w_dcs = 0;
 
-	/* If we're applying an offset correction then updating the
-	 * callibration would be likely to introduce further offsets. */
 	if (hubs->dcs_codes_l || hubs->dcs_codes_r || hubs->no_series_update)
 		return ret;
 
-	/* Only need to do this if the outputs are active */
+	
 	if (snd_soc_read(codec, WM8993_POWER_MANAGEMENT_1)
 	    & (WM8993_HPOUT1L_ENA | WM8993_HPOUT1R_ENA))
 		snd_soc_update_bits(codec,
@@ -394,14 +379,14 @@ static int hp_supply_event(struct snd_soc_dapm_widget *w,
 		case 0:
 			break;
 		case 1:
-			/* Enable the headphone amp */
+			
 			snd_soc_update_bits(codec, WM8993_POWER_MANAGEMENT_1,
 					    WM8993_HPOUT1L_ENA |
 					    WM8993_HPOUT1R_ENA,
 					    WM8993_HPOUT1L_ENA |
 					    WM8993_HPOUT1R_ENA);
 
-			/* Enable the second stage */
+			
 			snd_soc_update_bits(codec, WM8993_ANALOGUE_HP_0,
 					    WM8993_HPOUT1L_DLY |
 					    WM8993_HPOUT1R_DLY,
@@ -643,6 +628,8 @@ SND_SOC_DAPM_INPUT("IN2RP:VXRP"),
 SND_SOC_DAPM_SUPPLY("MICBIAS2", WM8993_POWER_MANAGEMENT_1, 5, 0, NULL, 0),
 SND_SOC_DAPM_SUPPLY("MICBIAS1", WM8993_POWER_MANAGEMENT_1, 4, 0, NULL, 0),
 
+SND_SOC_DAPM_SUPPLY("LINEOUT_VMID_BUF", WM8993_ANTIPOP1, 7, 0, NULL, 0),
+
 SND_SOC_DAPM_MIXER("IN1L PGA", WM8993_POWER_MANAGEMENT_2, 6, 0,
 		   in1l_pga, ARRAY_SIZE(in1l_pga)),
 SND_SOC_DAPM_MIXER("IN1R PGA", WM8993_POWER_MANAGEMENT_2, 4, 0,
@@ -867,9 +854,11 @@ static const struct snd_soc_dapm_route lineout1_diff_routes[] = {
 };
 
 static const struct snd_soc_dapm_route lineout1_se_routes[] = {
+	{ "LINEOUT1N Mixer", NULL, "LINEOUT_VMID_BUF" },
 	{ "LINEOUT1N Mixer", "Left Output Switch", "Left Output PGA" },
 	{ "LINEOUT1N Mixer", "Right Output Switch", "Right Output PGA" },
 
+	{ "LINEOUT1P Mixer", NULL, "LINEOUT_VMID_BUF" },
 	{ "LINEOUT1P Mixer", "Left Output Switch", "Left Output PGA" },
 
 	{ "LINEOUT1N Driver", NULL, "LINEOUT1N Mixer" },
@@ -886,9 +875,11 @@ static const struct snd_soc_dapm_route lineout2_diff_routes[] = {
 };
 
 static const struct snd_soc_dapm_route lineout2_se_routes[] = {
+	{ "LINEOUT2N Mixer", NULL, "LINEOUT_VMID_BUF" },
 	{ "LINEOUT2N Mixer", "Left Output Switch", "Left Output PGA" },
 	{ "LINEOUT2N Mixer", "Right Output Switch", "Right Output PGA" },
 
+	{ "LINEOUT2P Mixer", NULL, "LINEOUT_VMID_BUF" },
 	{ "LINEOUT2P Mixer", "Right Output Switch", "Right Output PGA" },
 
 	{ "LINEOUT2N Driver", NULL, "LINEOUT2N Mixer" },
@@ -899,7 +890,7 @@ int wm_hubs_add_analogue_controls(struct snd_soc_codec *codec)
 {
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 
-	/* Latch volume update bits & default ZC on */
+	
 	snd_soc_update_bits(codec, WM8993_LEFT_LINE_INPUT_1_2_VOLUME,
 			    WM8993_IN1_VU, WM8993_IN1_VU);
 	snd_soc_update_bits(codec, WM8993_RIGHT_LINE_INPUT_1_2_VOLUME,
@@ -1026,7 +1017,7 @@ void wm_hubs_vmid_ena(struct snd_soc_codec *codec)
 	if (hubs->lineout2_se)
 		val |= WM8993_LINEOUT2N_ENA | WM8993_LINEOUT2P_ENA;
 
-	/* Enable the line outputs while we power up */
+	
 	snd_soc_update_bits(codec, WM8993_POWER_MANAGEMENT_3, val, val);
 }
 EXPORT_SYMBOL_GPL(wm_hubs_vmid_ena);
@@ -1039,13 +1030,13 @@ void wm_hubs_set_bias_level(struct snd_soc_codec *codec,
 
 	switch (level) {
 	case SND_SOC_BIAS_STANDBY:
-		/* Clamp the inputs to VMID while we ramp to charge caps */
+		
 		snd_soc_update_bits(codec, WM8993_INPUTS_CLAMP_REG,
 				    WM8993_INPUTS_CLAMP, WM8993_INPUTS_CLAMP);
 		break;
 
 	case SND_SOC_BIAS_ON:
-		/* Turn off any unneded single ended outputs */
+		
 		val = 0;
 		mask = 0;
 
@@ -1070,7 +1061,7 @@ void wm_hubs_set_bias_level(struct snd_soc_codec *codec,
 		snd_soc_update_bits(codec, WM8993_POWER_MANAGEMENT_3,
 				    mask, val);
 
-		/* Remove the input clamps */
+		
 		snd_soc_update_bits(codec, WM8993_INPUTS_CLAMP_REG,
 				    WM8993_INPUTS_CLAMP, 0);
 		break;

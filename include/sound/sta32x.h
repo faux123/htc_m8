@@ -32,4 +32,4 @@ struct sta32x_platform_data {
 	int needs_esd_watchdog;
 };
 
-#endif /* __LINUX_SND__STA32X_H */
+#endif 

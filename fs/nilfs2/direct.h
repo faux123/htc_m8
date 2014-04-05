@@ -28,11 +28,6 @@
 #include "bmap.h"
 
 
-/**
- * struct nilfs_direct_node - direct node
- * @dn_flags: flags
- * @dn_pad: padding
- */
 struct nilfs_direct_node {
 	__u8 dn_flags;
 	__u8 pad[7];
@@ -48,4 +43,4 @@ int nilfs_direct_delete_and_convert(struct nilfs_bmap *, __u64, __u64 *,
 				    __u64 *, int);
 
 
-#endif	/* _NILFS_DIRECT_H */
+#endif	

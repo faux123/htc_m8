@@ -11,4 +11,4 @@
 
 #define arch_align_stack(x) (x)
 
-#endif /* _ASM_M32R_EXEC_H */
+#endif 

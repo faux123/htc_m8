@@ -3,12 +3,6 @@
 
 #include <asm/types.h>
 
-/**
- * __fls - find last (most-significant) set bit in a long word
- * @word: the word to search
- *
- * Undefined if no set bit exists, so code should check against 0 first.
- */
 static __always_inline unsigned long __fls(unsigned long word)
 {
 	int num = BITS_PER_LONG - 1;
@@ -40,4 +34,4 @@ static __always_inline unsigned long __fls(unsigned long word)
 	return num;
 }
 
-#endif /* _ASM_GENERIC_BITOPS___FLS_H_ */
+#endif 

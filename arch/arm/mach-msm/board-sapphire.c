@@ -30,6 +30,7 @@
 #include <mach/system.h>
 #include <mach/vreg.h>
 #include <mach/board.h>
+#include <mach/proc_comm.h>
 
 #include <asm/io.h>
 #include <asm/delay.h>
@@ -40,7 +41,6 @@
 
 #include "gpio_chip.h"
 #include "board-sapphire.h"
-#include "proc_comm.h"
 #include "devices.h"
 
 void msm_init_irq(void);
@@ -88,7 +88,7 @@ static void __init sapphire_fixup(struct tag *tags, char **cmdline,
 	} else if (smi_sz == 64) {
 		mi->bank[0].size = (101*1024*1024);
 	} else {
-		/* Give a default value when not get smi size */
+		
 		smi_sz = 64;
 		mi->bank[0].size = (101*1024*1024);
 	}
@@ -102,7 +102,6 @@ static void __init sapphire_map_io(void)
 }
 
 MACHINE_START(SAPPHIRE, "sapphire")
-/* Maintainer: Brian Swetland <swetland@google.com> */
 	.atag_offset    = 0x100,
 	.fixup          = sapphire_fixup,
 	.map_io         = sapphire_map_io,

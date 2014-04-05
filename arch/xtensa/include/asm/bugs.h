@@ -15,4 +15,4 @@
 
 static void check_bugs(void) { }
 
-#endif /* _XTENSA_BUGS_H */
+#endif 

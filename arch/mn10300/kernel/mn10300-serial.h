@@ -19,11 +19,10 @@
 #include <asm/page.h>
 #include <asm/serial-regs.h>
 
-#define NR_PORTS		3		/* should be set 3 or 9 or 16 */
+#define NR_PORTS		3		
 
 #define MNSC_BUFFER_SIZE	+(PAGE_SIZE / 2)
 
-/* intr_flags bits */
 #define MNSCx_RX_AVAIL		0x01
 #define MNSCx_RX_OVERF		0x02
 #define MNSCx_TX_SPACE		0x04
@@ -32,54 +31,52 @@
 #ifndef __ASSEMBLY__
 
 struct mn10300_serial_port {
-	char			*rx_buffer;	/* reception buffer base */
-	unsigned		rx_inp;		/* pointer to rx input offset */
-	unsigned		rx_outp;	/* pointer to rx output offset */
-	u8			tx_xchar;	/* high-priority XON/XOFF buffer */
-	u8			tx_break;	/* transmit break request */
-	u8			intr_flags;	/* interrupt flags */
-	volatile u16		*rx_icr;	/* Rx interrupt control register */
-	volatile u16		*tx_icr;	/* Tx interrupt control register */
-	int			rx_irq;		/* reception IRQ */
-	int			tx_irq;		/* transmission IRQ */
-	int			tm_irq;		/* timer IRQ */
+	char			*rx_buffer;	
+	unsigned		rx_inp;		
+	unsigned		rx_outp;	
+	u8			tx_xchar;	
+	u8			tx_break;	
+	u8			intr_flags;	
+	volatile u16		*rx_icr;	
+	volatile u16		*tx_icr;	
+	int			rx_irq;		
+	int			tx_irq;		
+	int			tm_irq;		
 
-	const char		*name;		/* name of serial port */
-	const char		*rx_name;	/* Rx interrupt handler name of serial port */
-	const char		*tx_name;	/* Tx interrupt handler name of serial port */
-	const char		*tm_name;	/* Timer interrupt handler name */
-	unsigned short		type;		/* type of serial port */
-	unsigned char		isconsole;	/* T if it's a console */
-	volatile void		*_iobase;	/* pointer to base of I/O control regs */
-	volatile u16		*_control;	/* control register pointer */
-	volatile u8		*_status;	/* status register pointer */
-	volatile u8		*_intr;		/* interrupt register pointer */
-	volatile void		*_rxb;		/* receive buffer register pointer */
-	volatile void		*_txb;		/* transmit buffer register pointer */
-	volatile u16		*_tmicr;	/* timer interrupt control register */
-	volatile u8		*_tmxmd;	/* baud rate timer mode register */
-	volatile u16		*_tmxbr;	/* baud rate timer base register */
+	const char		*name;		
+	const char		*rx_name;	
+	const char		*tx_name;	
+	const char		*tm_name;	
+	unsigned short		type;		
+	unsigned char		isconsole;	
+	volatile void		*_iobase;	
+	volatile u16		*_control;	
+	volatile u8		*_status;	
+	volatile u8		*_intr;		
+	volatile void		*_rxb;		
+	volatile void		*_txb;		
+	volatile u16		*_tmicr;	
+	volatile u8		*_tmxmd;	
+	volatile u16		*_tmxbr;	
 
-	/* this must come down here so that assembly can use BSET to access the
-	 * above fields */
 	struct uart_port	uart;
 
-	unsigned short		rx_brk;		/* current break reception status */
-	u16			tx_cts;		/* current CTS status */
-	int			gdbstub;	/* preemptively stolen by GDB stub */
+	unsigned short		rx_brk;		
+	u16			tx_cts;		
+	int			gdbstub;	
 
-	u8			clock_src;	/* clock source */
+	u8			clock_src;	
 #define MNSCx_CLOCK_SRC_IOCLK	0
 #define MNSCx_CLOCK_SRC_IOBCLK	1
 
-	u8			div_timer;	/* timer used as divisor */
+	u8			div_timer;	
 #define MNSCx_DIV_TIMER_16BIT	0
 #define MNSCx_DIV_TIMER_8BIT	1
 
-	u16			options;	/* options */
+	u16			options;	
 #define MNSCx_OPT_CTS		0x0001
 
-	unsigned long		ioclk;		/* base clock rate */
+	unsigned long		ioclk;		
 };
 
 #ifdef CONFIG_MN10300_TTYSM0
@@ -107,7 +104,7 @@ extern asmlinkage void mn10300_serial_vdma_interrupt(void);
 extern asmlinkage void mn10300_serial_vdma_rx_handler(void);
 extern asmlinkage void mn10300_serial_vdma_tx_handler(void);
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
 #if defined(CONFIG_GDBSTUB_ON_TTYSM0)
 #define SCgSTR SC0STR
@@ -123,4 +120,4 @@ extern asmlinkage void mn10300_serial_vdma_tx_handler(void);
 #define SCgRXIRQ SC2RXIRQ
 #endif
 
-#endif /* _MN10300_SERIAL_H */
+#endif 

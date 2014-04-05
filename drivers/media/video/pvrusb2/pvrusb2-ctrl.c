@@ -49,14 +49,12 @@ static int pvr2_ctrl_range_check(struct pvr2_ctrl *cptr,int val)
 }
 
 
-/* Set the given control. */
 int pvr2_ctrl_set_value(struct pvr2_ctrl *cptr,int val)
 {
 	return pvr2_ctrl_set_mask_value(cptr,~0,val);
 }
 
 
-/* Set/clear specific bits of the given control. */
 int pvr2_ctrl_set_mask_value(struct pvr2_ctrl *cptr,int mask,int val)
 {
 	int ret = 0;
@@ -81,7 +79,6 @@ int pvr2_ctrl_set_mask_value(struct pvr2_ctrl *cptr,int mask,int val)
 }
 
 
-/* Get the current value of the given control. */
 int pvr2_ctrl_get_value(struct pvr2_ctrl *cptr,int *valptr)
 {
 	int ret = 0;
@@ -93,7 +90,6 @@ int pvr2_ctrl_get_value(struct pvr2_ctrl *cptr,int *valptr)
 }
 
 
-/* Retrieve control's type */
 enum pvr2_ctl_type pvr2_ctrl_get_type(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return pvr2_ctl_int;
@@ -101,7 +97,6 @@ enum pvr2_ctl_type pvr2_ctrl_get_type(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve control's maximum value (int type) */
 int pvr2_ctrl_get_max(struct pvr2_ctrl *cptr)
 {
 	int ret = 0;
@@ -117,7 +112,6 @@ int pvr2_ctrl_get_max(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve control's minimum value (int type) */
 int pvr2_ctrl_get_min(struct pvr2_ctrl *cptr)
 {
 	int ret = 0;
@@ -133,7 +127,6 @@ int pvr2_ctrl_get_min(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve control's default value (any type) */
 int pvr2_ctrl_get_def(struct pvr2_ctrl *cptr, int *valptr)
 {
 	int ret = 0;
@@ -149,7 +142,6 @@ int pvr2_ctrl_get_def(struct pvr2_ctrl *cptr, int *valptr)
 }
 
 
-/* Retrieve control's enumeration count (enum only) */
 int pvr2_ctrl_get_cnt(struct pvr2_ctrl *cptr)
 {
 	int ret = 0;
@@ -163,7 +155,6 @@ int pvr2_ctrl_get_cnt(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve control's valid mask bits (bit mask only) */
 int pvr2_ctrl_get_mask(struct pvr2_ctrl *cptr)
 {
 	int ret = 0;
@@ -177,7 +168,6 @@ int pvr2_ctrl_get_mask(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve the control's name */
 const char *pvr2_ctrl_get_name(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return NULL;
@@ -185,7 +175,6 @@ const char *pvr2_ctrl_get_name(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve the control's desc */
 const char *pvr2_ctrl_get_desc(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return NULL;
@@ -193,7 +182,6 @@ const char *pvr2_ctrl_get_desc(struct pvr2_ctrl *cptr)
 }
 
 
-/* Retrieve a control enumeration or bit mask value */
 int pvr2_ctrl_get_valname(struct pvr2_ctrl *cptr,int val,
 			  char *bptr,unsigned int bmax,
 			  unsigned int *blen)
@@ -235,7 +223,6 @@ int pvr2_ctrl_get_valname(struct pvr2_ctrl *cptr,int val,
 }
 
 
-/* Return V4L ID for this control or zero if none */
 int pvr2_ctrl_get_v4lid(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return 0;
@@ -261,7 +248,6 @@ unsigned int pvr2_ctrl_get_v4lflags(struct pvr2_ctrl *cptr)
 }
 
 
-/* Return true if control is writable */
 int pvr2_ctrl_is_writable(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return 0;
@@ -269,7 +255,6 @@ int pvr2_ctrl_is_writable(struct pvr2_ctrl *cptr)
 }
 
 
-/* Return true if control has custom symbolic representation */
 int pvr2_ctrl_has_custom_symbols(struct pvr2_ctrl *cptr)
 {
 	if (!cptr) return 0;
@@ -279,7 +264,6 @@ int pvr2_ctrl_has_custom_symbols(struct pvr2_ctrl *cptr)
 }
 
 
-/* Convert a given mask/val to a custom symbolic value */
 int pvr2_ctrl_custom_value_to_sym(struct pvr2_ctrl *cptr,
 				  int mask,int val,
 				  char *buf,unsigned int maxlen,
@@ -291,7 +275,6 @@ int pvr2_ctrl_custom_value_to_sym(struct pvr2_ctrl *cptr,
 }
 
 
-/* Convert a symbolic value to a mask/value pair */
 int pvr2_ctrl_custom_sym_to_value(struct pvr2_ctrl *cptr,
 				  const char *buf,unsigned int len,
 				  int *maskptr,int *valptr)
@@ -486,7 +469,6 @@ static int parse_tlist(const char *ptr,unsigned int len,
 }
 
 
-/* Convert a symbolic value to a mask/value pair */
 int pvr2_ctrl_sym_to_value(struct pvr2_ctrl *cptr,
 			   const char *ptr,unsigned int len,
 			   int *maskptr,int *valptr)
@@ -543,7 +525,6 @@ int pvr2_ctrl_sym_to_value(struct pvr2_ctrl *cptr,
 }
 
 
-/* Convert a given mask/val to a symbolic value */
 int pvr2_ctrl_value_to_sym_internal(struct pvr2_ctrl *cptr,
 				    int mask,int val,
 				    char *buf,unsigned int maxlen,
@@ -583,7 +564,6 @@ int pvr2_ctrl_value_to_sym_internal(struct pvr2_ctrl *cptr,
 }
 
 
-/* Convert a given mask/val to a symbolic value */
 int pvr2_ctrl_value_to_sym(struct pvr2_ctrl *cptr,
 			   int mask,int val,
 			   char *buf,unsigned int maxlen,
@@ -598,12 +578,3 @@ int pvr2_ctrl_value_to_sym(struct pvr2_ctrl *cptr,
 }
 
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 75 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */

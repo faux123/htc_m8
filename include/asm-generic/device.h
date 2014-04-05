@@ -12,4 +12,4 @@ struct dev_archdata {
 struct pdev_archdata {
 };
 
-#endif /* _ASM_GENERIC_DEVICE_H */
+#endif 

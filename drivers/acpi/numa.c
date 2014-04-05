@@ -39,7 +39,6 @@ ACPI_MODULE_NAME("numa");
 
 static nodemask_t nodes_found_map = NODE_MASK_NONE;
 
-/* maps to convert between proximity domain and logical node ID */
 static int pxm_to_node_map[MAX_PXM_DOMAINS]
 			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
 static int node_to_pxm_map[MAX_NUMNODES]
@@ -107,7 +106,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
 					  "enabled" : "disabled"));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 
 	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
@@ -125,7 +124,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
 					  " hot-pluggable" : ""));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 
 	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
@@ -141,7 +140,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
 					  "enabled" : "disabled"));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 	default:
 		printk(KERN_WARNING PREFIX
@@ -151,12 +150,6 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 	}
 }
 
-/*
- * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
- * up the NUMA heuristics which wants the local node to have a smaller
- * distance than the others.
- * Do some quick checks here and only use the SLIT if it passes.
- */
 static __init int slit_valid(struct acpi_table_slit *slit)
 {
 	int i, j;
@@ -213,7 +206,7 @@ acpi_parse_x2apic_affinity(struct acpi_subtable_header *header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_x2apic_affinity_init(processor_affinity);
 
 	return 0;
@@ -231,7 +224,7 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_processor_affinity_init(processor_affinity);
 
 	return 0;
@@ -249,7 +242,7 @@ acpi_parse_memory_affinity(struct acpi_subtable_header * header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_memory_affinity_init(memory_affinity);
 
 	return 0;
@@ -264,7 +257,7 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
 	srat = (struct acpi_table_srat *)table;
 	acpi_srat_revision = srat->header.revision;
 
-	/* Real work done in acpi_table_parse_srat below. */
+	
 
 	return 0;
 }
@@ -282,13 +275,8 @@ int __init acpi_numa_init(void)
 {
 	int cnt = 0;
 
-	/*
-	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
-	 * SRAT cpu entries could have different order with that in MADT.
-	 * So go over all cpu entries in SRAT to get apicid to node mapping.
-	 */
 
-	/* SRAT: Static Resource Affinity Table */
+	
 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
 		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
 				     acpi_parse_x2apic_affinity, 0);
@@ -299,7 +287,7 @@ int __init acpi_numa_init(void)
 					    NR_NODE_MEMBLKS);
 	}
 
-	/* SLIT: System Locality Information Table */
+	
 	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
 
 	acpi_numa_arch_fixup();

@@ -4,9 +4,6 @@
 #include <linux/linkage.h>
 #include <linux/lockdep.h>
 
-/*
- * Mutexes - debugging helpers:
- */
 
 #define __DEBUG_MUTEX_INITIALIZER(lockname)				\
 	, .magic = &lockname

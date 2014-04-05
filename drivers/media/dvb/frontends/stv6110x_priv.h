@@ -73,4 +73,4 @@ struct stv6110x_state {
 	struct stv6110x_devctl		*devctl;
 };
 
-#endif /* __STV6110x_PRIV_H */
+#endif 

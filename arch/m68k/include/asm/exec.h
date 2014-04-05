@@ -3,4 +3,4 @@
 
 #define arch_align_stack(x) (x)
 
-#endif /* _M68K_EXEC_H */
+#endif 

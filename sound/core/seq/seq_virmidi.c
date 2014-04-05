@@ -20,20 +20,6 @@
  *
  */
 
-/*
- * Virtual Raw MIDI client
- *
- * The virtual rawmidi client is a sequencer client which associate
- * a rawmidi device file.  The created rawmidi device file can be
- * accessed as a normal raw midi, but its MIDI source and destination
- * are arbitrary.  For example, a user-client software synth connected
- * to this port can be used as a normal midi device as well.
- *
- * The virtual rawmidi device accepts also multiple opens.  Each file
- * has its own input buffer, so that no conflict would occur.  The drain
- * of input/output buffer acts only to the local buffer.
- *
- */
 
 #include <linux/init.h>
 #include <linux/wait.h>
@@ -52,9 +38,6 @@ MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
 MODULE_DESCRIPTION("Virtual Raw MIDI client on Sequencer");
 MODULE_LICENSE("GPL");
 
-/*
- * initialize an event record
- */
 static void snd_virmidi_init_event(struct snd_virmidi *vmidi,
 				   struct snd_seq_event *ev)
 {
@@ -65,7 +48,7 @@ static void snd_virmidi_init_event(struct snd_virmidi *vmidi,
 		ev->dest.client = SNDRV_SEQ_ADDRESS_SUBSCRIBERS;
 		break;
 	case SNDRV_VIRMIDI_SEQ_ATTACH:
-		/* FIXME: source and destination are same - not good.. */
+		
 		ev->dest.client = vmidi->client;
 		ev->dest.port = vmidi->port;
 		break;
@@ -73,9 +56,6 @@ static void snd_virmidi_init_event(struct snd_virmidi *vmidi,
 	ev->type = SNDRV_SEQ_EVENT_NONE;
 }
 
-/*
- * decode input event and put to read buffer of each opened file
- */
 static int snd_virmidi_dev_receive_event(struct snd_virmidi_dev *rdev,
 					 struct snd_seq_event *ev)
 {
@@ -102,13 +82,6 @@ static int snd_virmidi_dev_receive_event(struct snd_virmidi_dev *rdev,
 	return 0;
 }
 
-/*
- * receive an event from the remote virmidi port
- *
- * for rawmidi inputs, you can call this function from the event
- * handler of a remote port which is attached to the virmidi via
- * SNDRV_VIRMIDI_SEQ_ATTACH.
- */
 #if 0
 int snd_virmidi_receive(struct snd_rawmidi *rmidi, struct snd_seq_event *ev)
 {
@@ -117,11 +90,8 @@ int snd_virmidi_receive(struct snd_rawmidi *rmidi, struct snd_seq_event *ev)
 	rdev = rmidi->private_data;
 	return snd_virmidi_dev_receive_event(rdev, ev);
 }
-#endif  /*  0  */
+#endif  
 
-/*
- * event handler of virmidi port
- */
 static int snd_virmidi_event_input(struct snd_seq_event *ev, int direct,
 				   void *private_data, int atomic, int hop)
 {
@@ -129,13 +99,10 @@ static int snd_virmidi_event_input(struct snd_seq_event *ev, int direct,
 
 	rdev = private_data;
 	if (!(rdev->flags & SNDRV_VIRMIDI_USE))
-		return 0; /* ignored */
+		return 0; 
 	return snd_virmidi_dev_receive_event(rdev, ev);
 }
 
-/*
- * trigger rawmidi stream for input
- */
 static void snd_virmidi_input_trigger(struct snd_rawmidi_substream *substream, int up)
 {
 	struct snd_virmidi *vmidi = substream->runtime->private_data;
@@ -147,9 +114,6 @@ static void snd_virmidi_input_trigger(struct snd_rawmidi_substream *substream, i
 	}
 }
 
-/*
- * trigger rawmidi stream for output
- */
 static void snd_virmidi_output_trigger(struct snd_rawmidi_substream *substream, int up)
 {
 	struct snd_virmidi *vmidi = substream->runtime->private_data;
@@ -161,7 +125,7 @@ static void snd_virmidi_output_trigger(struct snd_rawmidi_substream *substream, 
 		if (vmidi->seq_mode == SNDRV_VIRMIDI_SEQ_DISPATCH &&
 		    !(vmidi->rdev->flags & SNDRV_VIRMIDI_SUBSCRIBE)) {
 			snd_rawmidi_transmit_ack(substream, substream->runtime->buffer_size - substream->runtime->avail);
-			return;		/* ignored */
+			return;		
 		}
 		if (vmidi->event.type != SNDRV_SEQ_EVENT_NONE) {
 			if (snd_seq_kernel_client_dispatch(vmidi->client, &vmidi->event, in_atomic(), 0) < 0)
@@ -194,9 +158,6 @@ static void snd_virmidi_output_trigger(struct snd_rawmidi_substream *substream, 
 	}
 }
 
-/*
- * open rawmidi handle for input
- */
 static int snd_virmidi_input_open(struct snd_rawmidi_substream *substream)
 {
 	struct snd_virmidi_dev *rdev = substream->rmidi->private_data;
@@ -223,9 +184,6 @@ static int snd_virmidi_input_open(struct snd_rawmidi_substream *substream)
 	return 0;
 }
 
-/*
- * open rawmidi handle for output
- */
 static int snd_virmidi_output_open(struct snd_rawmidi_substream *substream)
 {
 	struct snd_virmidi_dev *rdev = substream->rmidi->private_data;
@@ -249,9 +207,6 @@ static int snd_virmidi_output_open(struct snd_rawmidi_substream *substream)
 	return 0;
 }
 
-/*
- * close rawmidi handle for input
- */
 static int snd_virmidi_input_close(struct snd_rawmidi_substream *substream)
 {
 	struct snd_virmidi *vmidi = substream->runtime->private_data;
@@ -262,9 +217,6 @@ static int snd_virmidi_input_close(struct snd_rawmidi_substream *substream)
 	return 0;
 }
 
-/*
- * close rawmidi handle for output
- */
 static int snd_virmidi_output_close(struct snd_rawmidi_substream *substream)
 {
 	struct snd_virmidi *vmidi = substream->runtime->private_data;
@@ -274,9 +226,6 @@ static int snd_virmidi_output_close(struct snd_rawmidi_substream *substream)
 	return 0;
 }
 
-/*
- * subscribe callback - allow output to rawmidi device
- */
 static int snd_virmidi_subscribe(void *private_data,
 				 struct snd_seq_port_subscribe *info)
 {
@@ -289,9 +238,6 @@ static int snd_virmidi_subscribe(void *private_data,
 	return 0;
 }
 
-/*
- * unsubscribe callback - disallow output to rawmidi device
- */
 static int snd_virmidi_unsubscribe(void *private_data,
 				   struct snd_seq_port_subscribe *info)
 {
@@ -304,9 +250,6 @@ static int snd_virmidi_unsubscribe(void *private_data,
 }
 
 
-/*
- * use callback - allow input to rawmidi device
- */
 static int snd_virmidi_use(void *private_data,
 			   struct snd_seq_port_subscribe *info)
 {
@@ -319,9 +262,6 @@ static int snd_virmidi_use(void *private_data,
 	return 0;
 }
 
-/*
- * unuse callback - disallow input to rawmidi device
- */
 static int snd_virmidi_unuse(void *private_data,
 			     struct snd_seq_port_subscribe *info)
 {
@@ -334,9 +274,6 @@ static int snd_virmidi_unuse(void *private_data,
 }
 
 
-/*
- *  Register functions
- */
 
 static struct snd_rawmidi_ops snd_virmidi_input_ops = {
 	.open = snd_virmidi_input_open,
@@ -350,9 +287,6 @@ static struct snd_rawmidi_ops snd_virmidi_output_ops = {
 	.trigger = snd_virmidi_output_trigger,
 };
 
-/*
- * create a sequencer client and a port
- */
 static int snd_virmidi_dev_attach_seq(struct snd_virmidi_dev *rdev)
 {
 	int client;
@@ -379,10 +313,10 @@ static int snd_virmidi_dev_attach_seq(struct snd_virmidi_dev *rdev)
 	}
 	rdev->client = client;
 
-	/* create a port */
+	
 	pinfo->addr.client = client;
 	sprintf(pinfo->name, "VirMIDI %d-%d", rdev->card->number, rdev->device);
-	/* set all capabilities */
+	
 	pinfo->capability |= SNDRV_SEQ_PORT_CAP_WRITE | SNDRV_SEQ_PORT_CAP_SYNC_WRITE | SNDRV_SEQ_PORT_CAP_SUBS_WRITE;
 	pinfo->capability |= SNDRV_SEQ_PORT_CAP_READ | SNDRV_SEQ_PORT_CAP_SYNC_READ | SNDRV_SEQ_PORT_CAP_SUBS_READ;
 	pinfo->capability |= SNDRV_SEQ_PORT_CAP_DUPLEX;
@@ -407,7 +341,7 @@ static int snd_virmidi_dev_attach_seq(struct snd_virmidi_dev *rdev)
 	}
 
 	rdev->port = pinfo->addr.port;
-	err = 0; /* success */
+	err = 0; 
 
  __error:
 	kfree(pinfo);
@@ -415,9 +349,6 @@ static int snd_virmidi_dev_attach_seq(struct snd_virmidi_dev *rdev)
 }
 
 
-/*
- * release the sequencer client
- */
 static void snd_virmidi_dev_detach_seq(struct snd_virmidi_dev *rdev)
 {
 	if (rdev->client >= 0) {
@@ -426,9 +357,6 @@ static void snd_virmidi_dev_detach_seq(struct snd_virmidi_dev *rdev)
 	}
 }
 
-/*
- * register the device
- */
 static int snd_virmidi_dev_register(struct snd_rawmidi *rmidi)
 {
 	struct snd_virmidi_dev *rdev = rmidi->private_data;
@@ -443,7 +371,7 @@ static int snd_virmidi_dev_register(struct snd_rawmidi *rmidi)
 	case SNDRV_VIRMIDI_SEQ_ATTACH:
 		if (rdev->client == 0)
 			return -EINVAL;
-		/* should check presence of port more strictly.. */
+		
 		break;
 	default:
 		snd_printk(KERN_ERR "seq_mode is not set: %d\n", rdev->seq_mode);
@@ -453,9 +381,6 @@ static int snd_virmidi_dev_register(struct snd_rawmidi *rmidi)
 }
 
 
-/*
- * unregister the device
- */
 static int snd_virmidi_dev_unregister(struct snd_rawmidi *rmidi)
 {
 	struct snd_virmidi_dev *rdev = rmidi->private_data;
@@ -465,28 +390,17 @@ static int snd_virmidi_dev_unregister(struct snd_rawmidi *rmidi)
 	return 0;
 }
 
-/*
- *
- */
 static struct snd_rawmidi_global_ops snd_virmidi_global_ops = {
 	.dev_register = snd_virmidi_dev_register,
 	.dev_unregister = snd_virmidi_dev_unregister,
 };
 
-/*
- * free device
- */
 static void snd_virmidi_free(struct snd_rawmidi *rmidi)
 {
 	struct snd_virmidi_dev *rdev = rmidi->private_data;
 	kfree(rdev);
 }
 
-/*
- * create a new device
- *
- */
-/* exported */
 int snd_virmidi_new(struct snd_card *card, int device, struct snd_rawmidi **rrmidi)
 {
 	struct snd_rawmidi *rmidi;
@@ -495,8 +409,8 @@ int snd_virmidi_new(struct snd_card *card, int device, struct snd_rawmidi **rrmi
 	
 	*rrmidi = NULL;
 	if ((err = snd_rawmidi_new(card, "VirMidi", device,
-				   16,	/* may be configurable */
-				   16,	/* may be configurable */
+				   16,	
+				   16,	
 				   &rmidi)) < 0)
 		return err;
 	strcpy(rmidi->name, rmidi->id);
@@ -524,9 +438,6 @@ int snd_virmidi_new(struct snd_card *card, int device, struct snd_rawmidi **rrmi
 	return 0;
 }
 
-/*
- *  ENTRY functions
- */
 
 static int __init alsa_virmidi_init(void)
 {

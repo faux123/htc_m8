@@ -39,7 +39,7 @@
 
 unsigned long hpux_brk(unsigned long addr)
 {
-	/* Sigh.  Looks like HP/UX libc relies on kernel bugs. */
+	
 	return sys_brk(addr + PAGE_SIZE);
 }
 
@@ -48,7 +48,6 @@ int hpux_sbrk(void)
 	return -ENOSYS;
 }
 
-/* Random other syscalls */
 
 int hpux_nice(int priority_change)
 {
@@ -91,7 +90,6 @@ int hpux_sysconf(int which)
 	}
 }
 
-/*****************************************************************************/
 
 #define HPUX_UTSLEN 9
 #define HPUX_SNLEN 15
@@ -106,17 +104,13 @@ struct hpux_utsname {
 } ;
 
 struct hpux_ustat {
-	int32_t		f_tfree;	/* total free (daddr_t)  */
-	u_int32_t	f_tinode;	/* total inodes free (ino_t)  */
-	char		f_fname[6];	/* filsys name */
-	char		f_fpack[6];	/* filsys pack name */
-	u_int32_t	f_blksize;	/* filsys block size (int) */
+	int32_t		f_tfree;	
+	u_int32_t	f_tinode;	
+	char		f_fname[6];	
+	char		f_fpack[6];	
+	u_int32_t	f_blksize;	
 };
 
-/*
- * HPUX's utssys() call.  It's a collection of miscellaneous functions,
- * alas, so there's no nice way of splitting them up.
- */
 
 /*  This function is called from hpux_utssys(); HP-UX implements
  *  ustat() as an option to utssys().
@@ -136,7 +130,7 @@ struct hpux_ustat {
  */
 static int hpux_ustat(dev_t dev, struct hpux_ustat __user *ubuf)
 {
-	struct hpux_ustat tmp;  /* Changed to hpux_ustat */
+	struct hpux_ustat tmp;  
 	struct kstatfs sbuf;
 	int err = vfs_ustat(dev, &sbuf);
 	if (err)
@@ -146,35 +140,30 @@ static int hpux_ustat(dev_t dev, struct hpux_ustat __user *ubuf)
 
 	tmp.f_tfree = (int32_t)sbuf.f_bfree;
 	tmp.f_tinode = (u_int32_t)sbuf.f_ffree;
-	tmp.f_blksize = (u_int32_t)sbuf.f_bsize;  /*  Added this line  */
+	tmp.f_blksize = (u_int32_t)sbuf.f_bsize;  
 
 	err = copy_to_user(ubuf, &tmp, sizeof(tmp)) ? -EFAULT : 0;
 out:
 	return err;
 }
 
-/*
- * Wrapper for hpux statfs call. At the moment, just calls the linux native one
- * and ignores the extra fields at the end of the hpux statfs struct.
- *
- */
 
-typedef int32_t hpux_fsid_t[2];              /* file system ID type */
+typedef int32_t hpux_fsid_t[2];              
 typedef uint16_t hpux_site_t;
 
 struct hpux_statfs {
-     int32_t f_type;                    /* type of info, zero for now */
-     int32_t f_bsize;                   /* fundamental file system block size */
-     int32_t f_blocks;                  /* total blocks in file system */
-     int32_t f_bfree;                   /* free block in fs */
-     int32_t f_bavail;                  /* free blocks avail to non-superuser */
-     int32_t f_files;                   /* total file nodes in file system */
-     int32_t f_ffree;                   /* free file nodes in fs */
-     hpux_fsid_t  f_fsid;                    /* file system ID */
-     int32_t f_magic;                   /* file system magic number */
-     int32_t f_featurebits;             /* file system features */
-     int32_t f_spare[4];                /* spare for later */
-     hpux_site_t  f_cnode;                   /* cluster node where mounted */
+     int32_t f_type;                    
+     int32_t f_bsize;                   
+     int32_t f_blocks;                  
+     int32_t f_bfree;                   
+     int32_t f_bavail;                  
+     int32_t f_files;                   
+     int32_t f_ffree;                   
+     hpux_fsid_t  f_fsid;                    
+     int32_t f_magic;                   
+     int32_t f_featurebits;             
+     int32_t f_spare[4];                
+     hpux_site_t  f_cnode;                   
      int16_t f_pad;
 };
 
@@ -196,7 +185,6 @@ static int do_statfs_hpux(struct kstatfs *st, struct hpux_statfs __user *p)
 	return 0;
 }
 
-/* hpux statfs */
 asmlinkage long hpux_statfs(const char __user *pathname,
 						struct hpux_statfs __user *buf)
 {
@@ -217,15 +205,6 @@ asmlinkage long hpux_fstatfs(unsigned int fd, struct hpux_statfs __user * buf)
 }
 
 
-/*  This function is called from hpux_utssys(); HP-UX implements
- *  uname() as an option to utssys().
- *
- *  The form of this function is pretty much copied from sys_olduname(),
- *  defined in linux/arch/i386/kernel/sys_i386.c.
- */
-/*  TODO: Are these put_user calls OK?  Should they pass an int?
- *        (I copied it from sys_i386.c like this.)
- */
 static int hpux_uname(struct hpux_utsname __user *name)
 {
 	int error;
@@ -255,9 +234,9 @@ static int hpux_uname(struct hpux_utsname __user *name)
 
 	up_read(&uts_sem);
 
-	/*  HP-UX  utsname has no domainname field.  */
+	
 
-	/*  TODO:  Implement idnumber!!!  */
+	
 #if 0
 	error |= __put_user(0,name->idnumber);
 	error |= __put_user(0,name->idnumber+HPUX_SNLEN-1);
@@ -268,86 +247,60 @@ static int hpux_uname(struct hpux_utsname __user *name)
 	return error;
 }
 
-/*  Note: HP-UX just uses the old suser() function to check perms
- *  in this system call.  We'll use capable(CAP_SYS_ADMIN).
- */
 int hpux_utssys(char __user *ubuf, int n, int type)
 {
 	int len;
 	int error;
 	switch( type ) {
 	case 0:
-		/*  uname():  */
+		
 		return hpux_uname((struct hpux_utsname __user *)ubuf);
 		break ;
 	case 1:
-		/*  Obsolete (used to be umask().)  */
+		
 		return -EFAULT ;
 		break ;
 	case 2:
-		/*  ustat():  */
+		
 		return hpux_ustat(new_decode_dev(n),
 				  (struct hpux_ustat __user *)ubuf);
 		break;
 	case 3:
-		/*  setuname():
-		 *
-		 *  On linux (unlike HP-UX), utsname.nodename
-		 *  is the same as the hostname.
-		 *
-		 *  sys_sethostname() is defined in linux/kernel/sys.c.
-		 */
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
-		/*  Unlike Linux, HP-UX returns an error if n==0:  */
+		
 		if ( n <= 0 )
 			return -EINVAL ;
-		/*  Unlike Linux, HP-UX truncates it if n is too big:  */
+		
 		len = (n <= __NEW_UTS_LEN) ? n : __NEW_UTS_LEN ;
 		return sys_sethostname(ubuf, len);
 		break ;
 	case 4:
-		/*  sethostname():
-		 *
-		 *  sys_sethostname() is defined in linux/kernel/sys.c.
-		 */
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
-		/*  Unlike Linux, HP-UX returns an error if n==0:  */
+		
 		if ( n <= 0 )
 			return -EINVAL ;
-		/*  Unlike Linux, HP-UX truncates it if n is too big:  */
+		
 		len = (n <= __NEW_UTS_LEN) ? n : __NEW_UTS_LEN ;
 		return sys_sethostname(ubuf, len);
 		break ;
 	case 5:
-		/*  gethostname():
-		 *
-		 *  sys_gethostname() is defined in linux/kernel/sys.c.
-		 */
-		/*  Unlike Linux, HP-UX returns an error if n==0:  */
+		
 		if ( n <= 0 )
 			return -EINVAL ;
 		return sys_gethostname(ubuf, n);
 		break ;
 	case 6:
-		/*  Supposedly called from setuname() in libc.
-		 *  TODO: When and why is this called?
-		 *        Is it ever even called?
-		 *
-		 *  This code should look a lot like sys_sethostname(),
-		 *  defined in linux/kernel/sys.c.  If that gets updated,
-		 *  update this code similarly.
-		 */
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
-		/*  Unlike Linux, HP-UX returns an error if n==0:  */
+		
 		if ( n <= 0 )
 			return -EINVAL ;
-		/*  Unlike Linux, HP-UX truncates it if n is too big:  */
+		
 		len = (n <= __NEW_UTS_LEN) ? n : __NEW_UTS_LEN ;
-		/**/
-		/*  TODO:  print a warning about using this?  */
+		
+		
 		down_write(&uts_sem);
 		error = -EFAULT;
 		if (!copy_from_user(utsname()->sysname, ubuf, len)) {
@@ -358,23 +311,15 @@ int hpux_utssys(char __user *ubuf, int n, int type)
 		return error;
 		break ;
 	case 7:
-		/*  Sets utsname.release, if you're allowed.
-		 *  Undocumented.  Used by swinstall to change the
-		 *  OS version, during OS updates.  Yuck!!!
-		 *
-		 *  This code should look a lot like sys_sethostname()
-		 *  in linux/kernel/sys.c.  If that gets updated, update
-		 *  this code similarly.
-		 */
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
-		/*  Unlike Linux, HP-UX returns an error if n==0:  */
+		
 		if ( n <= 0 )
 			return -EINVAL ;
-		/*  Unlike Linux, HP-UX truncates it if n is too big:  */
+		
 		len = (n <= __NEW_UTS_LEN) ? n : __NEW_UTS_LEN ;
-		/**/
-		/*  TODO:  print a warning about this?  */
+		
+		
 		down_write(&uts_sem);
 		error = -EFAULT;
 		if (!copy_from_user(utsname()->release, ubuf, len)) {
@@ -385,9 +330,6 @@ int hpux_utssys(char __user *ubuf, int n, int type)
 		return error;
 		break ;
 	default:
-		/*  This system call returns -EFAULT if given an unknown type.
-	 	 *  Why not -EINVAL?  I don't know, it's just not what they did.
-	 	 */
 		return -EFAULT ;
 	}
 }
@@ -419,7 +361,6 @@ int hpux_pipe(int *kstack_fildes)
 	return do_pipe_flags(kstack_fildes, 0);
 }
 
-/* lies - says it works, but it really didn't lock anything */
 int hpux_lockf(int fildes, int function, off_t size)
 {
 	return 0;
@@ -431,13 +372,11 @@ int hpux_sysfs(int opcode, unsigned long arg1, unsigned long arg2)
 	int len = 0;
 	int fstype;
 
-/*Unimplemented HP-UX syscall emulation. Syscall #334 (sysfs)
-  Args: 1 80057bf4 0 400179f0 0 0 0 */
 	printk(KERN_DEBUG "in hpux_sysfs\n");
 	printk(KERN_DEBUG "hpux_sysfs called with opcode = %d\n", opcode);
 	printk(KERN_DEBUG "hpux_sysfs called with arg1='%lx'\n", arg1);
 
-	if ( opcode == 1 ) { /* GETFSIND */	
+	if ( opcode == 1 ) { 	
 		char __user *user_fsname = (char __user *)arg1;
 		len = strlen_user(user_fsname);
 		printk(KERN_DEBUG "len of arg1 = %d\n", len);
@@ -455,7 +394,7 @@ int hpux_sysfs(int opcode, unsigned long arg1, unsigned long arg2)
 			return 0;
 		}
 
-		/* String could be altered by userspace after strlen_user() */
+		
 		fsname[len] = '\0';
 
 		printk(KERN_DEBUG "that is '%s' as (char *)\n", fsname);
@@ -468,7 +407,7 @@ int hpux_sysfs(int opcode, unsigned long arg1, unsigned long arg2)
 		kfree(fsname);
 
 		printk(KERN_DEBUG "returning fstype=%d\n", fstype);
-		return fstype; /* something other than default */
+		return fstype; 
 	}
 
 
@@ -476,459 +415,458 @@ int hpux_sysfs(int opcode, unsigned long arg1, unsigned long arg2)
 }
 
 
-/* Table of syscall names and handle for unimplemented routines */
 static const char * const syscall_names[] = {
-	"nosys",                  /* 0 */
+	"nosys",                  
 	"exit",                  
 	"fork",                  
 	"read",                  
 	"write",                 
-	"open",                   /* 5 */
+	"open",                   
 	"close",                 
 	"wait",                  
 	"creat",                 
 	"link",                  
-	"unlink",                 /* 10 */
+	"unlink",                 
 	"execv",                 
 	"chdir",                 
 	"time",                  
 	"mknod",                 
-	"chmod",                  /* 15 */
+	"chmod",                  
 	"chown",                 
 	"brk",                   
 	"lchmod",                
 	"lseek",                 
-	"getpid",                 /* 20 */
+	"getpid",                 
 	"mount",                 
 	"umount",                
 	"setuid",                
 	"getuid",                
-	"stime",                  /* 25 */
+	"stime",                  
 	"ptrace",                
 	"alarm",                 
 	NULL,                    
 	"pause",                 
-	"utime",                  /* 30 */
+	"utime",                  
 	"stty",                  
 	"gtty",                  
 	"access",                
 	"nice",                  
-	"ftime",                  /* 35 */
+	"ftime",                  
 	"sync",                  
 	"kill",                  
 	"stat",                  
 	"setpgrp3",              
-	"lstat",                  /* 40 */
+	"lstat",                  
 	"dup",                   
 	"pipe",                  
 	"times",                 
 	"profil",                
-	"ki_call",                /* 45 */
+	"ki_call",                
 	"setgid",                
 	"getgid",                
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 50 */
+	NULL,                     
 	"acct",                  
 	"set_userthreadid",      
 	NULL,                    
 	"ioctl",                 
-	"reboot",                 /* 55 */
+	"reboot",                 
 	"symlink",               
 	"utssys",                
 	"readlink",              
 	"execve",                
-	"umask",                  /* 60 */
+	"umask",                  
 	"chroot",                
 	"fcntl",                 
 	"ulimit",                
 	NULL,                    
-	NULL,                     /* 65 */
+	NULL,                     
 	"vfork",                 
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 70 */
+	NULL,                     
 	"mmap",                  
 	NULL,                    
 	"munmap",                
 	"mprotect",              
-	"madvise",                /* 75 */
+	"madvise",                
 	"vhangup",               
 	"swapoff",               
 	NULL,                    
 	"getgroups",             
-	"setgroups",              /* 80 */
+	"setgroups",              
 	"getpgrp2",              
 	"setpgid/setpgrp2",      
 	"setitimer",             
 	"wait3",                 
-	"swapon",                 /* 85 */
+	"swapon",                 
 	"getitimer",             
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	"dup2",                   /* 90 */
+	"dup2",                   
 	NULL,                    
 	"fstat",                 
 	"select",                
 	NULL,                    
-	"fsync",                  /* 95 */
+	"fsync",                  
 	"setpriority",           
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	"getpriority",            /* 100 */
+	"getpriority",            
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 105 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	"sigvector",             
 	"sigblock",              
-	"sigsetmask",             /* 110 */
+	"sigsetmask",             
 	"sigpause",              
 	"sigstack",              
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 115 */
+	NULL,                     
 	"gettimeofday",          
 	"getrusage",             
 	NULL,                    
 	NULL,                    
-	"readv",                  /* 120 */
+	"readv",                  
 	"writev",                
 	"settimeofday",          
 	"fchown",                
 	"fchmod",                
-	NULL,                     /* 125 */
+	NULL,                     
 	"setresuid",             
 	"setresgid",             
 	"rename",                
 	"truncate",              
-	"ftruncate",              /* 130 */
+	"ftruncate",              
 	NULL,                    
 	"sysconf",               
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 135 */
+	NULL,                     
 	"mkdir",                 
 	"rmdir",                 
 	NULL,                    
 	"sigcleanup",            
-	"setcore",                /* 140 */
+	"setcore",                
 	NULL,                    
 	"gethostid",             
 	"sethostid",             
 	"getrlimit",             
-	"setrlimit",              /* 145 */
+	"setrlimit",              
 	NULL,                    
 	NULL,                    
 	"quotactl",              
 	"get_sysinfo",           
-	NULL,                     /* 150 */
+	NULL,                     
 	"privgrp",               
 	"rtprio",                
 	"plock",                 
 	NULL,                    
-	"lockf",                  /* 155 */
+	"lockf",                  
 	"semget",                
 	NULL,                    
 	"semop",                 
 	"msgget",                
-	NULL,                     /* 160 */
+	NULL,                     
 	"msgsnd",                
 	"msgrcv",                
 	"shmget",                
 	NULL,                    
-	"shmat",                  /* 165 */
+	"shmat",                  
 	"shmdt",                 
 	NULL,                    
 	"csp/nsp_init",          
 	"cluster",               
-	"mkrnod",                 /* 170 */
+	"mkrnod",                 
 	"test",                  
 	"unsp_open",             
 	NULL,                    
 	"getcontext",            
-	"osetcontext",            /* 175 */
+	"osetcontext",            
 	"bigio",                 
 	"pipenode",              
 	"lsync",                 
 	"getmachineid",          
-	"cnodeid/mysite",         /* 180 */
+	"cnodeid/mysite",         
 	"cnodes/sitels",         
 	"swapclients",           
 	"rmtprocess",            
 	"dskless_stats",         
-	"sigprocmask",            /* 185 */
+	"sigprocmask",            
 	"sigpending",            
 	"sigsuspend",            
 	"sigaction",             
 	NULL,                    
-	"nfssvc",                 /* 190 */
+	"nfssvc",                 
 	"getfh",                 
 	"getdomainname",         
 	"setdomainname",         
 	"async_daemon",          
-	"getdirentries",          /* 195 */
+	"getdirentries",          
 	NULL,                
 	NULL,               
 	"vfsmount",              
 	NULL,                    
-	"waitpid",                /* 200 */
+	"waitpid",                
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 205 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 210 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 215 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 220 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	"sigsetreturn",          
-	"sigsetstatemask",        /* 225 */
+	"sigsetstatemask",        
 	"bfactl",                
 	"cs",                    
 	"cds",                   
 	NULL,                    
-	"pathconf",               /* 230 */
+	"pathconf",               
 	"fpathconf",             
 	NULL,                    
 	NULL,                    
 	"nfs_fcntl",             
-	"ogetacl",                /* 235 */
+	"ogetacl",                
 	"ofgetacl",              
 	"osetacl",               
 	"ofsetacl",              
 	"pstat",                 
-	"getaudid",               /* 240 */
+	"getaudid",               
 	"setaudid",              
 	"getaudproc",            
 	"setaudproc",            
 	"getevent",              
-	"setevent",               /* 245 */
+	"setevent",               
 	"audwrite",              
 	"audswitch",             
 	"audctl",                
 	"ogetaccess",            
-	"fsctl",                  /* 250 */
+	"fsctl",                  
 	"ulconnect",             
 	"ulcontrol",             
 	"ulcreate",              
 	"uldest",                
-	"ulrecv",                 /* 255 */
+	"ulrecv",                 
 	"ulrecvcn",              
 	"ulsend",                
 	"ulshutdown",            
 	"swapfs",                
-	"fss",                    /* 260 */
+	"fss",                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 265 */
+	NULL,                     
 	NULL,                    
 	"tsync",                 
 	"getnumfds",             
 	"poll",                  
-	"getmsg",                 /* 270 */
+	"getmsg",                 
 	"putmsg",                
 	"fchdir",                
 	"getmount_cnt",          
 	"getmount_entry",        
-	"accept",                 /* 275 */
+	"accept",                 
 	"bind",                  
 	"connect",               
 	"getpeername",           
 	"getsockname",           
-	"getsockopt",             /* 280 */
+	"getsockopt",             
 	"listen",                
 	"recv",                  
 	"recvfrom",              
 	"recvmsg",               
-	"send",                   /* 285 */
+	"send",                   
 	"sendmsg",               
 	"sendto",                
 	"setsockopt",            
 	"shutdown",              
-	"socket",                 /* 290 */
+	"socket",                 
 	"socketpair",            
 	"proc_open",             
 	"proc_close",            
 	"proc_send",             
-	"proc_recv",              /* 295 */
+	"proc_recv",              
 	"proc_sendrecv",         
 	"proc_syscall",          
 	"ipccreate",             
 	"ipcname",               
-	"ipcnamerase",            /* 300 */
+	"ipcnamerase",            
 	"ipclookup",             
 	"ipcselect",             
 	"ipcconnect",            
 	"ipcrecvcn",             
-	"ipcsend",                /* 305 */
+	"ipcsend",                
 	"ipcrecv",               
 	"ipcgetnodename",        
 	"ipcsetnodename",        
 	"ipccontrol",            
-	"ipcshutdown",            /* 310 */
+	"ipcshutdown",            
 	"ipcdest",               
 	"semctl",                
 	"msgctl",                
 	"shmctl",                
-	"mpctl",                  /* 315 */
+	"mpctl",                  
 	"exportfs",              
 	"getpmsg",               
 	"putpmsg",               
 	"strioctl",              
-	"msync",                  /* 320 */
+	"msync",                  
 	"msleep",                
 	"mwakeup",               
 	"msem_init",             
 	"msem_remove",           
-	"adjtime",                /* 325 */
+	"adjtime",                
 	"kload",                 
 	"fattach",               
 	"fdetach",               
 	"serialize",             
-	"statvfs",                /* 330 */
+	"statvfs",                
 	"fstatvfs",              
 	"lchown",                
 	"getsid",                
 	"sysfs",                 
-	NULL,                     /* 335 */
+	NULL,                     
 	NULL,                    
 	"sched_setparam",        
 	"sched_getparam",        
 	"sched_setscheduler",    
-	"sched_getscheduler",     /* 340 */
+	"sched_getscheduler",     
 	"sched_yield",           
 	"sched_get_priority_max",
 	"sched_get_priority_min",
 	"sched_rr_get_interval", 
-	"clock_settime",          /* 345 */
+	"clock_settime",          
 	"clock_gettime",         
 	"clock_getres",          
 	"timer_create",          
 	"timer_delete",          
-	"timer_settime",          /* 350 */
+	"timer_settime",          
 	"timer_gettime",         
 	"timer_getoverrun",      
 	"nanosleep",             
 	"toolbox",               
-	NULL,                     /* 355 */
+	NULL,                     
 	"getdents",              
 	"getcontext",            
 	"sysinfo",               
 	"fcntl64",               
-	"ftruncate64",            /* 360 */
+	"ftruncate64",            
 	"fstat64",               
 	"getdirentries64",       
 	"getrlimit64",           
 	"lockf64",               
-	"lseek64",                /* 365 */
+	"lseek64",                
 	"lstat64",               
 	"mmap64",                
 	"setrlimit64",           
 	"stat64",                
-	"truncate64",             /* 370 */
+	"truncate64",             
 	"ulimit64",              
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	NULL,                     /* 375 */
+	NULL,                     
 	NULL,                    
 	NULL,                    
 	NULL,                    
 	NULL,                    
-	"setcontext",             /* 380 */
+	"setcontext",             
 	"sigaltstack",           
 	"waitid",                
 	"setpgrp",               
 	"recvmsg2",              
-	"sendmsg2",               /* 385 */
+	"sendmsg2",               
 	"socket2",               
 	"socketpair2",           
 	"setregid",              
 	"lwp_create",            
-	"lwp_terminate",          /* 390 */
+	"lwp_terminate",          
 	"lwp_wait",              
 	"lwp_suspend",           
 	"lwp_resume",            
 	"lwp_self",              
-	"lwp_abort_syscall",      /* 395 */
+	"lwp_abort_syscall",      
 	"lwp_info",              
 	"lwp_kill",              
 	"ksleep",                
 	"kwakeup",               
-	"ksleep_abort",           /* 400 */
+	"ksleep_abort",           
 	"lwp_proc_info",         
 	"lwp_exit",              
 	"lwp_continue",          
 	"getacl",                
-	"fgetacl",                /* 405 */
+	"fgetacl",                
 	"setacl",                
 	"fsetacl",               
 	"getaccess",             
 	"lwp_mutex_init",        
-	"lwp_mutex_lock_sys",     /* 410 */
+	"lwp_mutex_lock_sys",     
 	"lwp_mutex_unlock",      
 	"lwp_cond_init",         
 	"lwp_cond_signal",       
 	"lwp_cond_broadcast",    
-	"lwp_cond_wait_sys",      /* 415 */
+	"lwp_cond_wait_sys",      
 	"lwp_getscheduler",      
 	"lwp_setscheduler",      
 	"lwp_getprivate",        
 	"lwp_setprivate",        
-	"lwp_detach",             /* 420 */
+	"lwp_detach",             
 	"mlock",                 
 	"munlock",               
 	"mlockall",              
 	"munlockall",            
-	"shm_open",               /* 425 */
+	"shm_open",               
 	"shm_unlink",            
 	"sigqueue",              
 	"sigwaitinfo",           
 	"sigtimedwait",          
-	"sigwait",                /* 430 */
+	"sigwait",                
 	"aio_read",              
 	"aio_write",             
 	"lio_listio",            
 	"aio_error",             
-	"aio_return",             /* 435 */
+	"aio_return",             
 	"aio_cancel",            
 	"aio_suspend",           
 	"aio_fsync",             
 	"mq_open",               
-	"mq_unlink",              /* 440 */
+	"mq_unlink",              
 	"mq_send",               
 	"mq_receive",            
 	"mq_notify",             
 	"mq_setattr",            
-	"mq_getattr",             /* 445 */
+	"mq_getattr",             
 	"ksem_open",             
 	"ksem_unlink",           
 	"ksem_close",            
 	"ksem_destroy",          
-	"lw_sem_incr",            /* 450 */
+	"lw_sem_incr",            
 	"lw_sem_decr",           
 	"lw_sem_read",           
 	"mq_close",              
@@ -940,9 +878,6 @@ hpux_unimplemented(unsigned long arg1,unsigned long arg2,unsigned long arg3,
 		   unsigned long arg4,unsigned long arg5,unsigned long arg6,
 		   unsigned long arg7,unsigned long sc_num)
 {
-	/* NOTE: sc_num trashes arg8 for the few syscalls that actually
-	 * have a valid 8th argument.
-	 */
 	const char *name = NULL;
 	if ( sc_num <= syscall_names_max && sc_num >= 0 ) {
 		name = syscall_names[sc_num];

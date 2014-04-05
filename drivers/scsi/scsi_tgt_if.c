@@ -49,7 +49,6 @@ struct tgt_ring {
 	spinlock_t tr_lock;
 };
 
-/* tx_ring : kernel->user, rx_ring : user->kernel */
 static struct tgt_ring tx_ring, rx_ring;
 static DECLARE_WAIT_QUEUE_HEAD(tgt_poll_wait);
 
@@ -190,7 +189,7 @@ int scsi_tgt_uspace_send_it_nexus_request(int host_no, u64 itn_id,
 	ev.p.it_nexus_req.itn_id = itn_id;
 	if (initiator_id)
 		strncpy(ev.p.it_nexus_req.initiator_id, initiator_id,
-			sizeof(ev.p.it_nexus_req.initiator_id));
+			sizeof(ev.p.it_nexus_req.initiator_id) - 1);
 
 	dprintk("%d %x %llx\n", host_no, function, (unsigned long long)itn_id);
 
@@ -244,7 +243,7 @@ static ssize_t tgt_write(struct file *file, const char __user * buffer,
 
 	while (1) {
 		ev = tgt_head_event(ring, ring->tr_idx);
-		/* do we need this? */
+		
 		flush_dcache_page(virt_to_page(ev));
 
 		if (!ev->hdr.status)

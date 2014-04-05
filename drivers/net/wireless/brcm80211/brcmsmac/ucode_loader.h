@@ -16,9 +16,9 @@
 #ifndef	_BRCM_UCODE_H_
 #define	_BRCM_UCODE_H_
 
-#include "types.h"		/* forward structure declarations */
+#include "types.h"		
 
-#define MIN_FW_SIZE 40000	/* minimum firmware file size in bytes */
+#define MIN_FW_SIZE 40000	
 #define MAX_FW_SIZE 150000
 
 #define UCODE_LOADER_API_VER 0
@@ -55,4 +55,4 @@ extern int brcms_ucode_init_uint(struct brcms_info *wl, size_t *n_bytes,
 extern void brcms_ucode_free_buf(void *);
 extern int  brcms_check_firmwares(struct brcms_info *wl);
 
-#endif	/* _BRCM_UCODE_H_ */
+#endif	

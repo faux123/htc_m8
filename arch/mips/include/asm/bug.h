@@ -34,10 +34,10 @@ static inline void  __BUG_ON(unsigned long condition)
 
 #define HAVE_ARCH_BUG_ON
 
-#endif /* _MIPS_ISA > _MIPS_ISA_MIPS1 */
+#endif 
 
 #endif
 
 #include <asm-generic/bug.h>
 
-#endif /* __ASM_BUG_H */
+#endif 

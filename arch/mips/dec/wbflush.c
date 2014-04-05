@@ -30,26 +30,22 @@ void __init wbflush_setup(void)
 {
 	switch (mips_machtype) {
 	case MACH_DS23100:
-	case MACH_DS5000_200:	/* DS5000 3max */
+	case MACH_DS5000_200:	
 		__wbflush = wbflush_kn01;
 		break;
-	case MACH_DS5100:	/* DS5100 MIPSMATE */
+	case MACH_DS5100:	
 		__wbflush = wbflush_kn210;
 		break;
-	case MACH_DS5000_1XX:	/* DS5000/100 3min */
-	case MACH_DS5000_XX:	/* Personal DS5000/2x */
-	case MACH_DS5000_2X0:	/* DS5000/240 3max+ */
-	case MACH_DS5900:	/* DS5900 bigmax */
+	case MACH_DS5000_1XX:	
+	case MACH_DS5000_XX:	
+	case MACH_DS5000_2X0:	
+	case MACH_DS5900:	
 	default:
 		__wbflush = wbflush_mips;
 		break;
 	}
 }
 
-/*
- * For the DS3100 and DS5000/200 the R2020/R3220 writeback buffer functions
- * as part of Coprocessor 0.
- */
 static void wbflush_kn01(void)
 {
     asm(".set\tpush\n\t"
@@ -59,10 +55,6 @@ static void wbflush_kn01(void)
 	".set\tpop");
 }
 
-/*
- * For the DS5100 the writeback buffer seems to be a part of Coprocessor 3.
- * But CP3 has to enabled first.
- */
 static void wbflush_kn210(void)
 {
     asm(".set\tpush\n\t"
@@ -80,10 +72,6 @@ static void wbflush_kn210(void)
 	: : : "$2", "$3");
 }
 
-/*
- * I/O ASIC systems use a standard writeback buffer that gets flushed
- * upon an uncached read.
- */
 static void wbflush_mips(void)
 {
 	__fast_iob();

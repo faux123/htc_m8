@@ -50,9 +50,8 @@ do {									     \
 #define IWM_DEBUG_MODULE(i, level, module, f, a...)
 #define IWM_HEXDUMP(i, level, module, pref, buf, len)
 
-#endif /* CONFIG_IWM_DEBUG */
+#endif 
 
-/* Debug modules */
 enum iwm_debug_module_id {
 	IWM_DM_BOOT = 0,
 	IWM_DM_FW,
@@ -77,7 +76,6 @@ enum iwm_debug_module_id {
 #define IWM_DBG_CMD(i, l, f, a...)  IWM_DEBUG_MODULE(i, l, CMD, f, ## a)
 #define IWM_DBG_WEXT(i, l, f, a...) IWM_DEBUG_MODULE(i, l, WEXT, f, ## a)
 
-/* Debug levels */
 enum iwm_debug_level {
 	IWM_DL_NONE = 0,
 	IWM_DL_ERR,

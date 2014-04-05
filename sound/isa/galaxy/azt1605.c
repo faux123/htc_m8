@@ -28,9 +28,6 @@
 
 #define GALAXY_CONFIG_SIZE		3
 
-/*
- * 24-bit config register
- */
 
 #define GALAXY_CONFIG_SBA_220		(0 << 0)
 #define GALAXY_CONFIG_SBA_240		(1 << 0)

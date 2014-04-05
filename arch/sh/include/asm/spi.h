@@ -10,4 +10,4 @@ struct sh_spi_info {
 	void (*chip_select)(struct sh_spi_info *spi, int cs, int state);
 };
 
-#endif /* __ASM_SPI_H__ */
+#endif 

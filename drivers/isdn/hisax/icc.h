@@ -13,7 +13,6 @@
  * written by Karsten Keil.
  */
 
-/* All Registers original Siemens Spec  */
 
 #define ICC_MASK 0x20
 #define ICC_ISTA 0x20

@@ -126,11 +126,6 @@ static void lowlevel_buffer_deallocate(struct drm_device *dev,
 {
 	DRM_DEBUG_KMS("%s.\n", __FILE__);
 
-	/*
-	 * release only physically continuous memory and
-	 * non-continuous memory would be released by exynos
-	 * gem framework.
-	 */
 	if (IS_NONCONTIG_BUFFER(flags)) {
 		DRM_DEBUG_KMS("not support allocation type.\n");
 		return;
@@ -195,10 +190,6 @@ int exynos_drm_alloc_buf(struct drm_device *dev,
 		struct exynos_drm_gem_buf *buf, unsigned int flags)
 {
 
-	/*
-	 * allocate memory region and set the memory information
-	 * to vaddr and dma_addr of a buffer object.
-	 */
 	if (lowlevel_buffer_allocate(dev, flags, buf) < 0)
 		return -ENOMEM;
 

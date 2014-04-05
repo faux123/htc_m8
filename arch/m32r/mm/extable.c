@@ -1,6 +1,3 @@
-/*
- * linux/arch/m32r/mm/extable.c
- */
 
 #include <linux/module.h>
 #include <asm/uaccess.h>

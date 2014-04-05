@@ -14,19 +14,18 @@ struct gsm_config
 	unsigned int mtu;
 	unsigned int k;
 	unsigned int i;
-	unsigned int unused[8];		/* Padding for expansion without
-					   breaking stuff */
+	unsigned int unused[8];		
 };
 
 #define GSMIOC_GETCONF		_IOR('G', 0, struct gsm_config)
 #define GSMIOC_SETCONF		_IOW('G', 1, struct gsm_config)
 
 struct gsm_netconfig {
-	unsigned int adaption;  /* Adaption to use in network mode */
-	unsigned short protocol;/* Protocol to use - only ETH_P_IP supported */
+	unsigned int adaption;  
+	unsigned short protocol;
 	unsigned short unused2;
-	char if_name[IFNAMSIZ];	/* interface name format string */
-	__u8 unused[28];        /* For future use */
+	char if_name[IFNAMSIZ];	
+	__u8 unused[28];        
 };
 
 #define GSMIOC_ENABLE_NET      _IOW('G', 2, struct gsm_netconfig)

@@ -31,14 +31,10 @@
 #include <linux/usb/input.h>
 #include <linux/hid.h>
 
-/* for apple IDs */
 #ifdef CONFIG_USB_HID_MODULE
 #include "../hid-ids.h"
 #endif
 
-/*
- * Version Information
- */
 #define DRIVER_VERSION "v1.6"
 #define DRIVER_AUTHOR "Vojtech Pavlik <vojtech@ucw.cz>"
 #define DRIVER_DESC "USB HID Boot Protocol mouse driver"
@@ -67,14 +63,14 @@ static void usb_mouse_irq(struct urb *urb)
 	int status;
 
 	switch (urb->status) {
-	case 0:			/* success */
+	case 0:			
 		break;
-	case -ECONNRESET:	/* unlink */
+	case -ECONNRESET:	
 	case -ENOENT:
 	case -ESHUTDOWN:
 		return;
-	/* -EPIPE:  should clear the halt */
-	default:		/* error */
+	
+	default:		
 		goto resubmit;
 	}
 
@@ -229,7 +225,7 @@ static void usb_mouse_disconnect(struct usb_interface *intf)
 static struct usb_device_id usb_mouse_id_table [] = {
 	{ USB_INTERFACE_INFO(USB_INTERFACE_CLASS_HID, USB_INTERFACE_SUBCLASS_BOOT,
 		USB_INTERFACE_PROTOCOL_MOUSE) },
-	{ }	/* Terminating entry */
+	{ }	
 };
 
 MODULE_DEVICE_TABLE (usb, usb_mouse_id_table);

@@ -45,9 +45,6 @@ static inline void __down_read(struct rw_semaphore *sem)
 		rwsem_down_read_failed(sem);
 }
 
-/*
- * trylock for reading -- returns 1 if successful, 0 if contention
- */
 static inline int __down_read_trylock(struct rw_semaphore *sem)
 {
 	long old, new, res;
@@ -87,9 +84,6 @@ static inline void __down_write(struct rw_semaphore *sem)
 		rwsem_down_write_failed(sem);
 }
 
-/*
- * trylock for writing -- returns 1 if successful, 0 if contention
- */
 static inline int __down_write_trylock(struct rw_semaphore *sem)
 {
 	long ret = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
@@ -150,9 +144,6 @@ static inline void __up_write(struct rw_semaphore *sem)
 			rwsem_wake(sem);
 }
 
-/*
- * downgrade write lock to read lock
- */
 static inline void __downgrade_write(struct rw_semaphore *sem)
 {
 	long oldcount;
@@ -219,5 +210,5 @@ static inline long rwsem_atomic_update(long val, struct rw_semaphore *sem)
 #endif
 }
 
-#endif /* __KERNEL__ */
-#endif /* _ALPHA_RWSEM_H */
+#endif 
+#endif 

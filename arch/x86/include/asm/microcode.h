@@ -20,12 +20,6 @@ struct microcode_ops {
 
 	void (*microcode_fini_cpu) (int cpu);
 
-	/*
-	 * The generic 'microcode_core' part guarantees that
-	 * the callbacks below run on a target cpu when they
-	 * are being called.
-	 * See also the "Synchronization" section in microcode_core.c.
-	 */
 	int (*apply_microcode) (int cpu);
 	int (*collect_cpu_info) (int cpu, struct cpu_signature *csig);
 };
@@ -44,7 +38,7 @@ static inline struct microcode_ops * __init init_intel_microcode(void)
 {
 	return NULL;
 }
-#endif /* CONFIG_MICROCODE_INTEL */
+#endif 
 
 #ifdef CONFIG_MICROCODE_AMD
 extern struct microcode_ops * __init init_amd_microcode(void);
@@ -63,4 +57,4 @@ static inline struct microcode_ops * __init init_amd_microcode(void)
 static inline void __exit exit_amd_microcode(void) {}
 #endif
 
-#endif /* _ASM_X86_MICROCODE_H */
+#endif 

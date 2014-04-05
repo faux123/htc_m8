@@ -1,11 +1,3 @@
-/*
- * drivers/atm/suni.c - S/UNI PHY driver
- *
- * Supports the following:
- * 	PMC PM5346 S/UNI LITE
- * 	PMC PM5350 S/UNI 155 ULTRA
- * 	PMC PM5355 S/UNI 622
- */
  
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
 
@@ -62,7 +54,7 @@ static void suni_hz(unsigned long from_timer)
 	for (walk = sunis; walk; walk = walk->next) {
 		dev = walk->dev;
 		stats = &walk->sonet_stats;
-		PUT(0,MRI); /* latch counters */
+		PUT(0,MRI); 
 		udelay(1);
 		ADD_LIMITED(section_bip,(GET(RSOP_SBL) & 0xff) |
 		    ((GET(RSOP_SBM) & 0xff) << 8));
@@ -140,7 +132,7 @@ static int get_diag(struct atm_dev *dev,void __user *arg)
 	if (GET(TSOP_DIAG) & SUNI_TSOP_DIAG_DBIP8) set |= SONET_INS_SBIP;
 	if (GET(TLOP_DIAG) & SUNI_TLOP_DIAG_DBIP) set |= SONET_INS_LBIP;
 	if (GET(TPOP_CD) & SUNI_TPOP_DIAG_DB3) set |= SONET_INS_PBIP;
-	/* SONET_INS_FRAME is one-shot only */
+	
 	if (GET(TSOP_CTRL) & SUNI_TSOP_CTRL_LAIS) set |= SONET_INS_LAIS;
 	if (GET(TPOP_CD) & SUNI_TPOP_DIAG_PAIS) set |= SONET_INS_PAIS;
 	if (GET(TSOP_DIAG) & SUNI_TSOP_DIAG_DLOS) set |= SONET_INS_LOS;
@@ -182,15 +174,6 @@ static int set_loopback(struct atm_dev *dev,int mode)
 	return 0;
 }
 
-/*
- * SONET vs. SDH Configuration
- *
- * Z0INS (register 0x06): 0 for SONET, 1 for SDH
- * ENSS (register 0x3D): 0 for SONET, 1 for SDH
- * LEN16 (register 0x28): 0 for SONET, 1 for SDH (n/a for S/UNI 155 QUAD)
- * LEN16 (register 0x50): 0 for SONET, 1 for SDH (n/a for S/UNI 155 QUAD)
- * S[1:0] (register 0x46): 00 for SONET, 10 for SDH
- */
 
 static int set_sonet(struct atm_dev *dev)
 {
@@ -316,14 +299,14 @@ static int suni_start(struct atm_dev *dev)
 	spin_unlock_irqrestore(&sunis_lock,flags);
 	memset(&PRIV(dev)->sonet_stats,0,sizeof(struct k_sonet_stats));
 	PUT(GET(RSOP_CIE) | SUNI_RSOP_CIE_LOSE,RSOP_CIE);
-		/* interrupt on loss of signal */
-	poll_los(dev); /* ... and clear SUNI interrupts */
+		
+	poll_los(dev); 
 	if (dev->signal == ATM_PHY_SIG_LOST)
 		printk(KERN_WARNING "%s(itf %d): no signal\n",dev->type,
 		    dev->number);
 	PRIV(dev)->loop_mode = ATM_LM_NONE;
-	suni_hz(0); /* clear SUNI counters */
-	(void) fetch_stats(dev,NULL,1); /* clear kernel counters */
+	suni_hz(0); 
+	(void) fetch_stats(dev,NULL,1); 
 	if (first) {
 		init_timer(&poll_timer);
 		poll_timer.expires = jiffies+HZ;
@@ -344,7 +327,7 @@ static int suni_stop(struct atm_dev *dev)
 	struct suni_priv **walk;
 	unsigned long flags;
 
-	/* let SAR driver worry about stopping interrupts */
+	
 	spin_lock_irqsave(&sunis_lock,flags);
 	for (walk = &sunis; *walk != PRIV(dev);
 	    walk = &PRIV((*walk)->dev)->next);
@@ -373,14 +356,14 @@ int suni_init(struct atm_dev *dev)
 		return -ENOMEM;
 	PRIV(dev)->dev = dev;
 
-	mri = GET(MRI); /* reset SUNI */
+	mri = GET(MRI); 
 	PRIV(dev)->type = (mri & SUNI_MRI_TYPE) >> SUNI_MRI_TYPE_SHIFT;
 	PUT(mri | SUNI_MRI_RESET,MRI);
 	PUT(mri,MRI);
-	PUT((GET(MT) & SUNI_MT_DS27_53),MT); /* disable all tests */
+	PUT((GET(MT) & SUNI_MT_DS27_53),MT); 
         set_sonet(dev);
 	REG_CHANGE(SUNI_TACP_IUCHP_CLP,0,SUNI_TACP_IUCHP_CLP,
-	    TACP_IUCHP); /* idle cells */
+	    TACP_IUCHP); 
 	PUT(SUNI_IDLE_PATTERN,TACP_IUCPOP);
 	dev->phy = &suni_ops;
 

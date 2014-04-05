@@ -3,4 +3,4 @@
 
 #include <asm-generic/percpu.h>
 
-#endif /* __ARCH_SH_PERCPU */
+#endif 

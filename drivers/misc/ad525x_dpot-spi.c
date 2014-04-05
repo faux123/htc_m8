@@ -11,7 +11,6 @@
 
 #include "ad525x_dpot.h"
 
-/* SPI bus functions */
 static int write8(void *client, u8 val)
 {
 	u8 data = val;

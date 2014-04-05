@@ -21,8 +21,6 @@
 
 #ifndef __ASSEMBLY__
 
-/* Macros to enable and disable HW exceptions in the MSR */
-/* Define MSR enable bit for HW exceptions */
 #define HWEX_MSR_BIT (1 << 8)
 
 #if CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR
@@ -39,7 +37,7 @@
 				:					\
 				: "i" (HWEX_MSR_BIT)			\
 				: "memory")
-#else /* !CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR */
+#else 
 #define __enable_hw_exceptions()					\
 	__asm__ __volatile__ ("						\
 				mfs	r12, rmsr;			\
@@ -61,7 +59,7 @@
 				:					\
 				: "i" (HWEX_MSR_BIT)			\
 				: "memory", "r12")
-#endif /* CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR */
+#endif 
 
 asmlinkage void full_exception(struct pt_regs *regs, unsigned int type,
 							int fsr, int addr);
@@ -72,6 +70,6 @@ void bad_page_fault(struct pt_regs *regs, unsigned long address, int sig);
 void die(const char *str, struct pt_regs *fp, long err);
 void _exception(int signr, struct pt_regs *regs, int code, unsigned long addr);
 
-#endif /*__ASSEMBLY__ */
-#endif /* __KERNEL__ */
-#endif /* _ASM_MICROBLAZE_EXCEPTIONS_H */
+#endif 
+#endif 
+#endif 

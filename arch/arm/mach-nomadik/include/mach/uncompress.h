@@ -23,7 +23,6 @@
 #include <asm/io.h>
 #include <mach/hardware.h>
 
-/* we need the constants in amba/serial.h, but it refers to amba_device */
 struct amba_device;
 #include <linux/amba/serial.h>
 
@@ -34,7 +33,7 @@ struct amba_device;
 
 static void putc(const char c)
 {
-	/* Do nothing if the UART is not enabled. */
+	
 	if (!(readb(NOMADIK_UART_CR) & UART01x_CR_UARTEN))
 		return;
 
@@ -58,6 +57,6 @@ static inline void arch_decomp_setup(void)
 {
 }
 
-#define arch_decomp_wdog() /* nothing to do here */
+#define arch_decomp_wdog() 
 
-#endif /* __ASM_ARCH_UNCOMPRESS_H */
+#endif 

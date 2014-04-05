@@ -13,4 +13,4 @@ void handle_unaligned(struct pt_regs *regs);
 int check_unaligned(struct pt_regs *regs);
 #endif
 
-#endif /* _ASM_PARISC_UNALIGNED_H */
+#endif 

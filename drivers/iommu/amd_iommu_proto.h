@@ -32,7 +32,6 @@ extern void amd_iommu_uninit_devices(void);
 extern void amd_iommu_init_notifier(void);
 extern void amd_iommu_init_api(void);
 
-/* IOMMUv2 specific functions */
 struct iommu_domain;
 
 extern bool amd_iommu_v2_supported(void);
@@ -59,7 +58,7 @@ extern int amd_iommu_complete_ppr(struct pci_dev *pdev, int pasid,
 
 static inline void amd_iommu_stats_init(void) { }
 
-#endif /* !CONFIG_AMD_IOMMU_STATS */
+#endif 
 
 static inline bool is_rd890_iommu(struct pci_dev *pdev)
 {
@@ -75,4 +74,4 @@ static inline bool iommu_feature(struct amd_iommu *iommu, u64 f)
 	return !!(iommu->features & f);
 }
 
-#endif /* _ASM_X86_AMD_IOMMU_PROTO_H  */
+#endif 

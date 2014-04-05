@@ -15,13 +15,10 @@
 
 #include <linux/jiffies.h>
 
-/* Runtime PM flag argument bits */
-#define RPM_ASYNC		0x01	/* Request is asynchronous */
-#define RPM_NOWAIT		0x02	/* Don't wait for concurrent
-					    state change */
-#define RPM_GET_PUT		0x04	/* Increment/decrement the
-					    usage_count */
-#define RPM_AUTO		0x08	/* Use autosuspend_delay */
+#define RPM_ASYNC		0x01	
+#define RPM_NOWAIT		0x02	
+#define RPM_GET_PUT		0x04	
+#define RPM_AUTO		0x08	
 
 #ifdef CONFIG_PM_RUNTIME
 
@@ -100,7 +97,7 @@ static inline void pm_runtime_mark_last_busy(struct device *dev)
 	ACCESS_ONCE(dev->power.last_busy) = jiffies;
 }
 
-#else /* !CONFIG_PM_RUNTIME */
+#else 
 
 static inline int __pm_runtime_idle(struct device *dev, int rpmflags)
 {
@@ -153,7 +150,7 @@ static inline unsigned long pm_runtime_autosuspend_expiration(
 static inline void pm_runtime_update_max_time_suspended(struct device *dev,
 							s64 delta_ns) {}
 
-#endif /* !CONFIG_PM_RUNTIME */
+#endif 
 
 static inline int pm_runtime_idle(struct device *dev)
 {

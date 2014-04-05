@@ -12,11 +12,6 @@
 #include <asm/cacheflush.h>
 #include "cache-smp.h"
 
-/**
- * mn10300_dcache_flush - Globally flush data cache
- *
- * Flush the data cache on all CPUs.
- */
 void mn10300_dcache_flush(void)
 {
 	unsigned long flags;
@@ -27,13 +22,6 @@ void mn10300_dcache_flush(void)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_page - Globally flush a page of data cache
- * @start: The address of the page of memory to be flushed.
- *
- * Flush a range of addresses in the data cache on all CPUs covering
- * the page that includes the given address.
- */
 void mn10300_dcache_flush_page(unsigned long start)
 {
 	unsigned long flags;
@@ -46,14 +34,6 @@ void mn10300_dcache_flush_page(unsigned long start)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_range - Globally flush range of data cache
- * @start: The start address of the region to be flushed.
- * @end: The end address of the region to be flushed.
- *
- * Flush a range of addresses in the data cache on all CPUs, between start and
- * end-1 inclusive.
- */
 void mn10300_dcache_flush_range(unsigned long start, unsigned long end)
 {
 	unsigned long flags;
@@ -64,14 +44,6 @@ void mn10300_dcache_flush_range(unsigned long start, unsigned long end)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_range2 - Globally flush range of data cache
- * @start: The start address of the region to be flushed.
- * @size: The size of the region to be flushed.
- *
- * Flush a range of addresses in the data cache on all CPUs, between start and
- * start+size-1 inclusive.
- */
 void mn10300_dcache_flush_range2(unsigned long start, unsigned long size)
 {
 	unsigned long flags;
@@ -82,11 +54,6 @@ void mn10300_dcache_flush_range2(unsigned long start, unsigned long size)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_inv - Globally flush and invalidate data cache
- *
- * Flush and invalidate the data cache on all CPUs.
- */
 void mn10300_dcache_flush_inv(void)
 {
 	unsigned long flags;
@@ -97,14 +64,6 @@ void mn10300_dcache_flush_inv(void)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_inv_page - Globally flush and invalidate a page of data
- *	cache
- * @start: The address of the page of memory to be flushed and invalidated.
- *
- * Flush and invalidate a range of addresses in the data cache on all CPUs
- * covering the page that includes the given address.
- */
 void mn10300_dcache_flush_inv_page(unsigned long start)
 {
 	unsigned long flags;
@@ -117,15 +76,6 @@ void mn10300_dcache_flush_inv_page(unsigned long start)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_inv_range - Globally flush and invalidate range of data
- *	cache
- * @start: The start address of the region to be flushed and invalidated.
- * @end: The end address of the region to be flushed and invalidated.
- *
- * Flush and invalidate a range of addresses in the data cache on all CPUs,
- * between start and end-1 inclusive.
- */
 void mn10300_dcache_flush_inv_range(unsigned long start, unsigned long end)
 {
 	unsigned long flags;
@@ -136,15 +86,6 @@ void mn10300_dcache_flush_inv_range(unsigned long start, unsigned long end)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_flush_inv_range2 - Globally flush and invalidate range of data
- *	cache
- * @start: The start address of the region to be flushed and invalidated.
- * @size: The size of the region to be flushed and invalidated.
- *
- * Flush and invalidate a range of addresses in the data cache on all CPUs,
- * between start and start+size-1 inclusive.
- */
 void mn10300_dcache_flush_inv_range2(unsigned long start, unsigned long size)
 {
 	unsigned long flags;

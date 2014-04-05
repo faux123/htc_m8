@@ -4,7 +4,6 @@
 #include <linux/types.h>
 
 #if defined(__sparc__) && defined(__arch64__)
-/* 64 bit sparc */
 struct stat {
 	unsigned   st_dev;
 	ino_t   st_ino;
@@ -47,7 +46,6 @@ struct stat64 {
 };
 
 #else
-/* 32 bit sparc */
 struct stat {
 	unsigned short	st_dev;
 	ino_t		st_ino;
@@ -103,5 +101,5 @@ struct stat64 {
 	unsigned int	__unused4;
 	unsigned int	__unused5;
 };
-#endif /* defined(__sparc__) && defined(__arch64__) */
-#endif /* __SPARC_STAT_H */
+#endif 
+#endif 

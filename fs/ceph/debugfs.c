@@ -43,9 +43,6 @@ static int mdsmap_show(struct seq_file *s, void *p)
 	return 0;
 }
 
-/*
- * mdsc debugfs
- */
 static int mdsc_show(struct seq_file *s, void *p)
 {
 	struct ceph_fs_client *fsc = s->private;
@@ -161,9 +158,6 @@ CEPH_DEFINE_SHOW_FUNC(caps_show)
 CEPH_DEFINE_SHOW_FUNC(dentry_lru_show)
 
 
-/*
- * debugfs
- */
 static int congestion_kb_set(void *data, u64 val)
 {
 	struct ceph_fs_client *fsc = (struct ceph_fs_client *)data;
@@ -259,7 +253,7 @@ out:
 }
 
 
-#else  /* CONFIG_DEBUG_FS */
+#else  
 
 int ceph_fs_debugfs_init(struct ceph_fs_client *fsc)
 {
@@ -270,4 +264,4 @@ void ceph_fs_debugfs_cleanup(struct ceph_fs_client *fsc)
 {
 }
 
-#endif  /* CONFIG_DEBUG_FS */
+#endif  

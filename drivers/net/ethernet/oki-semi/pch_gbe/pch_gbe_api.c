@@ -20,14 +20,12 @@
 #include "pch_gbe.h"
 #include "pch_gbe_phy.h"
 
-/* bus type values */
 #define pch_gbe_bus_type_unknown	0
 #define pch_gbe_bus_type_pci		1
 #define pch_gbe_bus_type_pcix		2
 #define pch_gbe_bus_type_pci_express	3
 #define pch_gbe_bus_type_reserved	4
 
-/* bus speed values */
 #define pch_gbe_bus_speed_unknown	0
 #define pch_gbe_bus_speed_33		1
 #define pch_gbe_bus_speed_66		2
@@ -37,7 +35,6 @@
 #define pch_gbe_bus_speed_2500		6
 #define pch_gbe_bus_speed_reserved	7
 
-/* bus width values */
 #define pch_gbe_bus_width_unknown	0
 #define pch_gbe_bus_width_pcie_x1	1
 #define pch_gbe_bus_width_pcie_x2	2
@@ -46,10 +43,6 @@
 #define pch_gbe_bus_width_64		6
 #define pch_gbe_bus_width_reserved	7
 
-/**
- * pch_gbe_plat_get_bus_info - Obtain bus information for adapter
- * @hw:	Pointer to the HW structure
- */
 static void pch_gbe_plat_get_bus_info(struct pch_gbe_hw *hw)
 {
 	hw->bus.type  = pch_gbe_bus_type_pci_express;
@@ -57,13 +50,6 @@ static void pch_gbe_plat_get_bus_info(struct pch_gbe_hw *hw)
 	hw->bus.width = pch_gbe_bus_width_pcie_x1;
 }
 
-/**
- * pch_gbe_plat_init_hw - Initialize hardware
- * @hw:	Pointer to the HW structure
- * Returns
- *	0:		Successfully
- *	Negative value:	Failed-EBUSY
- */
 static s32 pch_gbe_plat_init_hw(struct pch_gbe_hw *hw)
 {
 	s32 ret_val;
@@ -74,7 +60,7 @@ static s32 pch_gbe_plat_init_hw(struct pch_gbe_hw *hw)
 		return ret_val;
 	}
 	pch_gbe_phy_init_setting(hw);
-	/* Setup Mac interface option RGMII */
+	
 #ifdef PCH_GBE_MAC_IFOP_RGMII
 	pch_gbe_phy_set_rgmii(hw);
 #endif
@@ -93,25 +79,14 @@ static const struct pch_gbe_functions pch_gbe_ops = {
 	.read_mac_addr     = pch_gbe_mac_read_mac_addr
 };
 
-/**
- * pch_gbe_plat_init_function_pointers - Init func ptrs
- * @hw:	Pointer to the HW structure
- */
 static void pch_gbe_plat_init_function_pointers(struct pch_gbe_hw *hw)
 {
-	/* Set PHY parameter */
+	
 	hw->phy.reset_delay_us     = PCH_GBE_PHY_RESET_DELAY_US;
-	/* Set function pointers */
+	
 	hw->func = &pch_gbe_ops;
 }
 
-/**
- * pch_gbe_hal_setup_init_funcs - Initializes function pointers
- * @hw:	Pointer to the HW structure
- * Returns
- *	0:	Successfully
- *	ENOSYS:	Function is not registered
- */
 inline s32 pch_gbe_hal_setup_init_funcs(struct pch_gbe_hw *hw)
 {
 	if (!hw->reg) {
@@ -122,10 +97,6 @@ inline s32 pch_gbe_hal_setup_init_funcs(struct pch_gbe_hw *hw)
 	return 0;
 }
 
-/**
- * pch_gbe_hal_get_bus_info - Obtain bus information for adapter
- * @hw:	Pointer to the HW structure
- */
 inline void pch_gbe_hal_get_bus_info(struct pch_gbe_hw *hw)
 {
 	if (!hw->func->get_bus_info)
@@ -134,13 +105,6 @@ inline void pch_gbe_hal_get_bus_info(struct pch_gbe_hw *hw)
 		hw->func->get_bus_info(hw);
 }
 
-/**
- * pch_gbe_hal_init_hw - Initialize hardware
- * @hw:	Pointer to the HW structure
- * Returns
- *	0:	Successfully
- *	ENOSYS:	Function is not registered
- */
 inline s32 pch_gbe_hal_init_hw(struct pch_gbe_hw *hw)
 {
 	if (!hw->func->init_hw) {
@@ -150,15 +114,6 @@ inline s32 pch_gbe_hal_init_hw(struct pch_gbe_hw *hw)
 	return hw->func->init_hw(hw);
 }
 
-/**
- * pch_gbe_hal_read_phy_reg - Reads PHY register
- * @hw:	    Pointer to the HW structure
- * @offset: The register to read
- * @data:   The buffer to store the 16-bit read.
- * Returns
- *	0:	Successfully
- *	Negative value:	Failed
- */
 inline s32 pch_gbe_hal_read_phy_reg(struct pch_gbe_hw *hw, u32 offset,
 					u16 *data)
 {
@@ -167,15 +122,6 @@ inline s32 pch_gbe_hal_read_phy_reg(struct pch_gbe_hw *hw, u32 offset,
 	return hw->func->read_phy_reg(hw, offset, data);
 }
 
-/**
- * pch_gbe_hal_write_phy_reg - Writes PHY register
- * @hw:	    Pointer to the HW structure
- * @offset: The register to read
- * @data:   The value to write.
- * Returns
- *	0:	Successfully
- *	Negative value:	Failed
- */
 inline s32 pch_gbe_hal_write_phy_reg(struct pch_gbe_hw *hw, u32 offset,
 					u16 data)
 {
@@ -184,10 +130,6 @@ inline s32 pch_gbe_hal_write_phy_reg(struct pch_gbe_hw *hw, u32 offset,
 	return hw->func->write_phy_reg(hw, offset, data);
 }
 
-/**
- * pch_gbe_hal_phy_hw_reset - Hard PHY reset
- * @hw:	    Pointer to the HW structure
- */
 inline void pch_gbe_hal_phy_hw_reset(struct pch_gbe_hw *hw)
 {
 	if (!hw->func->reset_phy)
@@ -196,10 +138,6 @@ inline void pch_gbe_hal_phy_hw_reset(struct pch_gbe_hw *hw)
 		hw->func->reset_phy(hw);
 }
 
-/**
- * pch_gbe_hal_phy_sw_reset - Soft PHY reset
- * @hw:	    Pointer to the HW structure
- */
 inline void pch_gbe_hal_phy_sw_reset(struct pch_gbe_hw *hw)
 {
 	if (!hw->func->sw_reset_phy)
@@ -208,13 +146,6 @@ inline void pch_gbe_hal_phy_sw_reset(struct pch_gbe_hw *hw)
 		hw->func->sw_reset_phy(hw);
 }
 
-/**
- * pch_gbe_hal_read_mac_addr - Reads MAC address
- * @hw:	Pointer to the HW structure
- * Returns
- *	0:	Successfully
- *	ENOSYS:	Function is not registered
- */
 inline s32 pch_gbe_hal_read_mac_addr(struct pch_gbe_hw *hw)
 {
 	if (!hw->func->read_mac_addr) {
@@ -224,20 +155,12 @@ inline s32 pch_gbe_hal_read_mac_addr(struct pch_gbe_hw *hw)
 	return hw->func->read_mac_addr(hw);
 }
 
-/**
- * pch_gbe_hal_power_up_phy - Power up PHY
- * @hw:	Pointer to the HW structure
- */
 inline void pch_gbe_hal_power_up_phy(struct pch_gbe_hw *hw)
 {
 	if (hw->func->power_up_phy)
 		hw->func->power_up_phy(hw);
 }
 
-/**
- * pch_gbe_hal_power_down_phy - Power down PHY
- * @hw:	Pointer to the HW structure
- */
 inline void pch_gbe_hal_power_down_phy(struct pch_gbe_hw *hw)
 {
 	if (hw->func->power_down_phy)

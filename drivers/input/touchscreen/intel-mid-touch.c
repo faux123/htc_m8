@@ -38,39 +38,30 @@
 #include <linux/delay.h>
 #include <asm/intel_scu_ipc.h>
 
-/* PMIC Interrupt registers */
-#define PMIC_REG_ID1		0x00 /* PMIC ID1 register */
+#define PMIC_REG_ID1		0x00 
 
-/* PMIC Interrupt registers */
-#define PMIC_REG_INT		0x04 /* PMIC interrupt register */
-#define PMIC_REG_MINT		0x05 /* PMIC interrupt mask register */
+#define PMIC_REG_INT		0x04 
+#define PMIC_REG_MINT		0x05 
 
-/* ADC Interrupt registers */
-#define PMIC_REG_ADCINT		0x5F /* ADC interrupt register */
-#define PMIC_REG_MADCINT	0x60 /* ADC interrupt mask register */
+#define PMIC_REG_ADCINT		0x5F 
+#define PMIC_REG_MADCINT	0x60 
 
-/* ADC Control registers */
-#define PMIC_REG_ADCCNTL1	0x61 /* ADC control register */
+#define PMIC_REG_ADCCNTL1	0x61 
 
-/* ADC Channel Selection registers */
 #define PMICADDR0		0xA4
 #define END_OF_CHANNEL		0x1F
 
-/* ADC Result register */
 #define PMIC_REG_ADCSNS0H	0x64
 
-/* ADC channels for touch screen */
-#define MRST_TS_CHAN10		0xA /* Touch screen X+ connection */
-#define MRST_TS_CHAN11		0xB /* Touch screen X- connection */
-#define MRST_TS_CHAN12		0xC /* Touch screen Y+ connection */
-#define MRST_TS_CHAN13		0xD /* Touch screen Y- connection */
+#define MRST_TS_CHAN10		0xA 
+#define MRST_TS_CHAN11		0xB 
+#define MRST_TS_CHAN12		0xC 
+#define MRST_TS_CHAN13		0xD 
 
-/* Touch screen channel BIAS constants */
 #define MRST_XBIAS		0x20
 #define MRST_YBIAS		0x40
 #define MRST_ZBIAS		0x80
 
-/* Touch screen coordinates */
 #define MRST_X_MIN		10
 #define MRST_X_MAX		1024
 #define MRST_X_FUZZ		5
@@ -81,27 +72,24 @@
 #define MRST_PRESSURE_NOMINAL	50
 #define MRST_PRESSURE_MAX	100
 
-#define WAIT_ADC_COMPLETION	10 /* msec */
+#define WAIT_ADC_COMPLETION	10 
 
-/* PMIC ADC round robin delays */
-#define ADC_LOOP_DELAY0		0x0 /* Continuous loop */
-#define ADC_LOOP_DELAY1		0x1 /* 4.5  ms approximate */
+#define ADC_LOOP_DELAY0		0x0 
+#define ADC_LOOP_DELAY1		0x1 
 
-/* PMIC Vendor Identifiers */
-#define PMIC_VENDOR_FS		0 /* PMIC vendor FreeScale */
-#define PMIC_VENDOR_MAXIM	1 /* PMIC vendor MAXIM */
-#define PMIC_VENDOR_NEC		2 /* PMIC vendor NEC */
-#define MRSTOUCH_MAX_CHANNELS	32 /* Maximum ADC channels */
+#define PMIC_VENDOR_FS		0 
+#define PMIC_VENDOR_MAXIM	1 
+#define PMIC_VENDOR_NEC		2 
+#define MRSTOUCH_MAX_CHANNELS	32 
 
-/* Touch screen device structure */
 struct mrstouch_dev {
-	struct device *dev; /* device associated with touch screen */
+	struct device *dev; 
 	struct input_dev *input;
 	char phys[32];
-	u16 asr;		/* Address selection register */
+	u16 asr;		
 	int irq;
-	unsigned int vendor;	/* PMIC vendor */
-	unsigned int rev;	/* PMIC revision */
+	unsigned int vendor;	
+	unsigned int rev;	
 
 	int (*read_prepare)(struct mrstouch_dev *tsdev);
 	int (*read)(struct mrstouch_dev *tsdev, u16 *x, u16 *y, u16 *z);
@@ -109,16 +97,12 @@ struct mrstouch_dev {
 };
 
 
-/*************************** NEC and Maxim Interface ************************/
 
 static int mrstouch_nec_adc_read_prepare(struct mrstouch_dev *tsdev)
 {
 	return intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0, 0x20);
 }
 
-/*
- * Enables PENDET interrupt.
- */
 static int mrstouch_nec_adc_read_finish(struct mrstouch_dev *tsdev)
 {
 	int err;
@@ -130,11 +114,6 @@ static int mrstouch_nec_adc_read_finish(struct mrstouch_dev *tsdev)
 	return err;
 }
 
-/*
- * Reads PMIC ADC touch screen result
- * Reads ADC storage registers for higher 7 and lower 3 bits and
- * converts the two readings into a single value and turns off gain bit
- */
 static int mrstouch_ts_chan_read(u16 offset, u16 chan, u16 *vp, u16 *vm)
 {
 	int err;
@@ -150,25 +129,21 @@ static int mrstouch_ts_chan_read(u16 offset, u16 chan, u16 *vp, u16 *vm)
 	if (err)
 		return err;
 
-	/* Mash the bits up */
+	
 
-	*vp = (res & 0xFF) << 3;	/* Highest 7 bits */
-	*vp |= (res >> 8) & 0x07;	/* Lower 3 bits */
+	*vp = (res & 0xFF) << 3;	
+	*vp |= (res >> 8) & 0x07;	
 	*vp &= 0x3FF;
 
 	res >>= 16;
 
-	*vm = (res & 0xFF) << 3;	/* Highest 7 bits */
-	*vm |= (res >> 8) & 0x07;	/* Lower 3 bits */
+	*vm = (res & 0xFF) << 3;	
+	*vm |= (res >> 8) & 0x07;	
 	*vm &= 0x3FF;
 
 	return 0;
 }
 
-/*
- * Enables X, Y and Z bias values
- * Enables YPYM for X channels and XPXM for Y channels
- */
 static int mrstouch_ts_bias_set(uint offset, uint bias)
 {
 	int count;
@@ -187,45 +162,44 @@ static int mrstouch_ts_bias_set(uint offset, uint bias)
 	return intel_scu_ipc_writev(reg, data, 4);
 }
 
-/* To read touch screen channel values */
 static int mrstouch_nec_adc_read(struct mrstouch_dev *tsdev,
 				 u16 *x, u16 *y, u16 *z)
 {
 	int err;
 	u16 xm, ym, zm;
 
-	/* configure Y bias for X channels */
+	
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_YBIAS);
 	if (err)
 		goto ipc_error;
 
 	msleep(WAIT_ADC_COMPLETION);
 
-	/* read x+ and x- channels */
+	
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN10, x, &xm);
 	if (err)
 		goto ipc_error;
 
-	/* configure x bias for y channels */
+	
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_XBIAS);
 	if (err)
 		goto ipc_error;
 
 	msleep(WAIT_ADC_COMPLETION);
 
-	/* read y+ and y- channels */
+	
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN12, y, &ym);
 	if (err)
 		goto ipc_error;
 
-	/* configure z bias for x and y channels */
+	
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_ZBIAS);
 	if (err)
 		goto ipc_error;
 
 	msleep(WAIT_ADC_COMPLETION);
 
-	/* read z+ and z- channels */
+	
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN10, z, &zm);
 	if (err)
 		goto ipc_error;
@@ -238,7 +212,6 @@ ipc_error:
 }
 
 
-/*************************** Freescale Interface ************************/
 
 static int mrstouch_fs_adc_read_prepare(struct mrstouch_dev *tsdev)
 {
@@ -247,19 +220,19 @@ static int mrstouch_fs_adc_read_prepare(struct mrstouch_dev *tsdev)
 	u16 reg[5];
 	u8 data[5];
 
-	/* Stop the ADC */
+	
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0x00, 0x02);
 	if (err)
 		goto ipc_error;
 
 	chan = PMICADDR0 + tsdev->asr;
 
-	/* Set X BIAS */
+	
 	for (count = 0; count <= 3; count++) {
 		reg[count] = chan++;
 		data[count] = 0x2A;
 	}
-	reg[count] =  chan++; /* Dummy */
+	reg[count] =  chan++; 
 	data[count] = 0;
 
 	err = intel_scu_ipc_writev(reg, data, 5);
@@ -268,12 +241,12 @@ static int mrstouch_fs_adc_read_prepare(struct mrstouch_dev *tsdev)
 
 	msleep(WAIT_ADC_COMPLETION);
 
-	/* Set Y BIAS */
+	
 	for (count = 0; count <= 3; count++) {
 		reg[count] = chan++;
 		data[count] = 0x4A;
 	}
-	reg[count] = chan++; /* Dummy */
+	reg[count] = chan++; 
 	data[count] = 0;
 
 	err = intel_scu_ipc_writev(reg, data, 5);
@@ -282,7 +255,7 @@ static int mrstouch_fs_adc_read_prepare(struct mrstouch_dev *tsdev)
 
 	msleep(WAIT_ADC_COMPLETION);
 
-	/* Set Z BIAS */
+	
 	err = intel_scu_ipc_iowrite32(chan + 2, 0x8A8A8A8A);
 	if (err)
 		goto ipc_error;
@@ -315,15 +288,15 @@ static int mrstouch_fs_adc_read(struct mrstouch_dev *tsdev,
 	if (err)
 		goto ipc_error;
 
-	*x = data[0] << 3; /* Higher 7 bits */
-	*x |= data[1] & 0x7; /* Lower 3 bits */
+	*x = data[0] << 3; 
+	*x |= data[1] & 0x7; 
 	*x &= 0x3FF;
 
-	*y = data[2] << 3; /* Higher 7 bits */
-	*y |= data[3] & 0x7; /* Lower 3 bits */
+	*y = data[2] << 3; 
+	*y |= data[3] & 0x7; 
 	*y &= 0x3FF;
 
-	/* Read Z value */
+	
 	reg[0] = result + 28;
 	reg[1] = result + 29;
 
@@ -331,8 +304,8 @@ static int mrstouch_fs_adc_read(struct mrstouch_dev *tsdev,
 	if (err)
 		goto ipc_error;
 
-	*z = data[0] << 3; /* Higher 7 bits */
-	*z |= data[1] & 0x7; /* Lower 3 bits */
+	*z = data[0] << 3; 
+	*z |= data[1] & 0x7; 
 	*z &= 0x3FF;
 
 	return 0;
@@ -349,7 +322,7 @@ static int mrstouch_fs_adc_read_finish(struct mrstouch_dev *tsdev)
 	u16 reg[5];
 	u8 data[5];
 
-	/* Clear all TS channels */
+	
 	chan = PMICADDR0 + tsdev->asr;
 	for (count = 0; count <= 4; count++) {
 		reg[count] = chan++;
@@ -371,7 +344,7 @@ static int mrstouch_fs_adc_read_finish(struct mrstouch_dev *tsdev)
 	if (err)
 		goto ipc_error;
 
-	/* Start ADC */
+	
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0x02, 0x02);
 	if (err)
 		goto ipc_error;
@@ -387,7 +360,7 @@ static void mrstouch_report_event(struct input_dev *input,
 			unsigned int x, unsigned int y, unsigned int z)
 {
 	if (z > MRST_PRESSURE_NOMINAL) {
-		/* Pen touched, report button touch and coordinates */
+		
 		input_report_key(input, BTN_TOUCH, 1);
 		input_report_abs(input, ABS_X, x);
 		input_report_abs(input, ABS_Y, y);
@@ -399,16 +372,11 @@ static void mrstouch_report_event(struct input_dev *input,
 	input_sync(input);
 }
 
-/* PENDET interrupt handler */
 static irqreturn_t mrstouch_pendet_irq(int irq, void *dev_id)
 {
 	struct mrstouch_dev *tsdev = dev_id;
 	u16 x, y, z;
 
-	/*
-	 * Should we lower thread priority? Probably not, since we are
-	 * not spinning but sleeping...
-	 */
 
 	if (tsdev->read_prepare(tsdev))
 		goto out;
@@ -426,7 +394,6 @@ out:
 	return IRQ_HANDLED;
 }
 
-/* Utility to read PMIC ID */
 static int __devinit mrstouch_read_pmic_id(uint *vendor, uint *rev)
 {
 	int err;
@@ -442,10 +409,6 @@ static int __devinit mrstouch_read_pmic_id(uint *vendor, uint *rev)
 	return 0;
 }
 
-/*
- * Parse ADC channels to find end of the channel configured by other ADC user
- * NEC and MAXIM requires 4 channels and FreeScale needs 18 channels
- */
 static int __devinit mrstouch_chan_parse(struct mrstouch_dev *tsdev)
 {
 	int found = 0;
@@ -475,9 +438,6 @@ static int __devinit mrstouch_chan_parse(struct mrstouch_dev *tsdev)
 }
 
 
-/*
- * Writes touch screen channels to ADC address selection registers
- */
 static int __devinit mrstouch_ts_chan_set(uint offset)
 {
 	u16 chan;
@@ -493,7 +453,6 @@ static int __devinit mrstouch_ts_chan_set(uint offset)
 	return intel_scu_ipc_iowrite8(chan++, END_OF_CHANNEL);
 }
 
-/* Initialize ADC */
 static int __devinit mrstouch_adc_init(struct mrstouch_dev *tsdev)
 {
 	int err, start;
@@ -533,23 +492,16 @@ static int __devinit mrstouch_adc_init(struct mrstouch_dev *tsdev)
 
 	tsdev->asr = start;
 
-	/*
-	 * ADC power on, start, enable PENDET and set loop delay
-	 * ADC loop delay is set to 4.5 ms approximately
-	 * Loop delay more than this results in jitter in adc readings
-	 * Setting loop delay to 0 (continuous loop) in MAXIM stops PENDET
-	 * interrupt generation sometimes.
-	 */
 
 	if (tsdev->vendor == PMIC_VENDOR_FS) {
 		ra = 0xE0 | ADC_LOOP_DELAY0;
 		rm = 0x5;
 	} else {
-		/* NEC and MAXIm not consistent with loop delay 0 */
+		
 		ra = 0xE0 | ADC_LOOP_DELAY1;
 		rm = 0x0;
 
-		/* configure touch screen channels */
+		
 		err = mrstouch_ts_chan_set(tsdev->asr);
 		if (err)
 			return err;
@@ -567,7 +519,6 @@ static int __devinit mrstouch_adc_init(struct mrstouch_dev *tsdev)
 }
 
 
-/* Probe function for touch screen driver */
 static int __devinit mrstouch_probe(struct platform_device *pdev)
 {
 	struct mrstouch_dev *tsdev;

@@ -24,7 +24,6 @@
 #define MAX_DEV		3
 #define IRQ_LINES	3
 
-/* PCI controller GPIO to IRQ pin mappings */
 #define INTA		11
 #define INTB		10
 #define INTC		9
@@ -61,7 +60,7 @@ struct hw_pci __initdata nslu2_pci = {
 	.map_irq	= nslu2_map_irq,
 };
 
-int __init nslu2_pci_init(void) /* monkey see, monkey do */
+int __init nslu2_pci_init(void) 
 {
 	if (machine_is_nslu2())
 		pci_common_init(&nslu2_pci);

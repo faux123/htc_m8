@@ -54,27 +54,23 @@
 #include <asm/xen/hypervisor.h>
 
 struct per_user_data {
-	struct mutex bind_mutex; /* serialize bind/unbind operations */
+	struct mutex bind_mutex; 
 
-	/* Notification ring, accessed via /dev/xen/evtchn. */
+	
 #define EVTCHN_RING_SIZE     (PAGE_SIZE / sizeof(evtchn_port_t))
 #define EVTCHN_RING_MASK(_i) ((_i)&(EVTCHN_RING_SIZE-1))
 	evtchn_port_t *ring;
 	unsigned int ring_cons, ring_prod, ring_overflow;
-	struct mutex ring_cons_mutex; /* protect against concurrent readers */
+	struct mutex ring_cons_mutex; 
 
-	/* Processes wait on this queue when ring is empty. */
+	
 	wait_queue_head_t evtchn_wait;
 	struct fasync_struct *evtchn_async_queue;
 	const char *name;
 };
 
-/*
- * Who's bound to each port?  This is logically an array of struct
- * per_user_data *, but we encode the current enabled-state in bit 0.
- */
 static unsigned long *port_user;
-static DEFINE_SPINLOCK(port_user_lock); /* protects port_user[] and ring_prod */
+static DEFINE_SPINLOCK(port_user_lock); 
 
 static inline struct per_user_data *get_port_user(unsigned port)
 {
@@ -117,7 +113,7 @@ static irqreturn_t evtchn_interrupt(int irq, void *data)
 
 	if ((u->ring_prod - u->ring_cons) < EVTCHN_RING_SIZE) {
 		u->ring[EVTCHN_RING_MASK(u->ring_prod)] = port;
-		wmb(); /* Ensure ring contents visible */
+		wmb(); 
 		if (u->ring_cons == u->ring_prod++) {
 			wake_up_interruptible(&u->evtchn_wait);
 			kill_fasync(&u->evtchn_async_queue,
@@ -138,7 +134,7 @@ static ssize_t evtchn_read(struct file *file, char __user *buf,
 	unsigned int c, p, bytes1 = 0, bytes2 = 0;
 	struct per_user_data *u = file->private_data;
 
-	/* Whole number of ports. */
+	
 	count &= ~(sizeof(evtchn_port_t)-1);
 
 	if (count == 0)
@@ -170,7 +166,7 @@ static ssize_t evtchn_read(struct file *file, char __user *buf,
 			return rc;
 	}
 
-	/* Byte lengths of two chunks. Chunk split (if any) is at ring wrap. */
+	
 	if (((c ^ p) & EVTCHN_RING_SIZE) != 0) {
 		bytes1 = (EVTCHN_RING_SIZE - EVTCHN_RING_MASK(c)) *
 			sizeof(evtchn_port_t);
@@ -180,7 +176,7 @@ static ssize_t evtchn_read(struct file *file, char __user *buf,
 		bytes2 = 0;
 	}
 
-	/* Truncate chunks according to caller's maximum byte count. */
+	
 	if (bytes1 > count) {
 		bytes1 = count;
 		bytes2 = 0;
@@ -189,7 +185,7 @@ static ssize_t evtchn_read(struct file *file, char __user *buf,
 	}
 
 	rc = -EFAULT;
-	rmb(); /* Ensure that we see the port before we copy it. */
+	rmb(); 
 	if (copy_to_user(buf, &u->ring[EVTCHN_RING_MASK(c)], bytes1) ||
 	    ((bytes2 != 0) &&
 	     copy_to_user(&buf[bytes1], &u->ring[0], bytes2)))
@@ -213,7 +209,7 @@ static ssize_t evtchn_write(struct file *file, const char __user *buf,
 	if (kbuf == NULL)
 		return -ENOMEM;
 
-	/* Whole number of ports. */
+	
 	count &= ~(sizeof(evtchn_port_t)-1);
 
 	rc = 0;
@@ -253,17 +249,9 @@ static int evtchn_bind_to_user(struct per_user_data *u, int port)
 {
 	int rc = 0;
 
-	/*
-	 * Ports are never reused, so every caller should pass in a
-	 * unique port.
-	 *
-	 * (Locking not necessary because we haven't registered the
-	 * interrupt handler yet, and our caller has already
-	 * serialized bind operations.)
-	 */
 	BUG_ON(get_port_user(port) != NULL);
 	set_port_user(port, u);
-	set_port_enabled(port, true); /* start enabled */
+	set_port_enabled(port, true); 
 
 	rc = bind_evtchn_to_irqhandler(port, evtchn_interrupt, IRQF_DISABLED,
 				       u->name, (void *)(unsigned long)port);
@@ -289,7 +277,7 @@ static long evtchn_ioctl(struct file *file,
 	struct per_user_data *u = file->private_data;
 	void __user *uarg = (void __user *) arg;
 
-	/* Prevent bind from racing with unbind */
+	
 	mutex_lock(&u->bind_mutex);
 
 	switch (cmd) {
@@ -404,7 +392,7 @@ static long evtchn_ioctl(struct file *file,
 	}
 
 	case IOCTL_EVTCHN_RESET: {
-		/* Initialise the ring to empty. Clear errors. */
+		
 		mutex_lock(&u->ring_cons_mutex);
 		spin_lock_irq(&port_user_lock);
 		u->ring_cons = u->ring_prod = u->ring_overflow = 0;
@@ -534,7 +522,7 @@ static int __init evtchn_init(void)
 
 	spin_lock_init(&port_user_lock);
 
-	/* Create '/dev/misc/evtchn'. */
+	
 	err = misc_register(&evtchn_miscdev);
 	if (err != 0) {
 		printk(KERN_ALERT "Could not register /dev/misc/evtchn\n");

@@ -172,10 +172,8 @@
 #define SSI_SACCEN	0x54
 #define SSI_SACCDIS	0x58
 
-/* SSI clock sources */
 #define IMX_SSP_SYS_CLK		0
 
-/* SSI audio dividers */
 #define IMX_SSI_TX_DIV_2	0
 #define IMX_SSI_TX_DIV_PSR	1
 #define IMX_SSI_TX_DIV_PM	2
@@ -213,4 +211,4 @@ struct imx_ssi {
 	struct platform_device *soc_platform_pdev_fiq;
 };
 
-#endif /* _IMX_SSI_H */
+#endif 

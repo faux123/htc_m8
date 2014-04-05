@@ -12,7 +12,6 @@
 #if !defined(__UNICORE_UNISTD_H__) || defined(__SYSCALL)
 #define __UNICORE_UNISTD_H__
 
-/* Use the standard ABI for syscalls. */
 #include <asm-generic/unistd.h>
 
-#endif /* __UNICORE_UNISTD_H__ */
+#endif 

@@ -19,18 +19,12 @@
 #ifndef __ASM_ARCH_HARDWARE_H__
 #define __ASM_ARCH_HARDWARE_H__
 
-#include "ixp2000-regs.h"	/* Chipset Registers */
+#include "ixp2000-regs.h"	
 
-/*
- * Platform helper functions
- */
 #include "platform.h"
 
-/*
- * Platform-specific bits
- */
-#include "enp2611.h"		/* ENP-2611 */
-#include "ixdp2x00.h"		/* IXDP2400/2800 */
-#include "ixdp2x01.h"		/* IXDP2401/2801 */
+#include "enp2611.h"		
+#include "ixdp2x00.h"		
+#include "ixdp2x01.h"		
 
-#endif  /* _ASM_ARCH_HARDWARE_H__ */
+#endif  

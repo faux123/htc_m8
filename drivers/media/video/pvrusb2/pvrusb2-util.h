@@ -49,14 +49,5 @@
      ((u32)((t)[i+3])))
 
 
-#endif /* __PVRUSB2_UTIL_H */
+#endif 
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 75 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */

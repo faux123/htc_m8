@@ -5,7 +5,7 @@
  * Kevin Kissell, kevink@mips.com and Carsten Langgaard, carstenl@mips.com
  * Copyright (C) 2000 MIPS Technologies, Inc.
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -31,13 +31,11 @@
 #include <asm/ptrace.h>
 #include <asm/processor.h>
 
-/*  This file is used to produce asm/linkerscript constants from header
-    files typically used in c.  Specifically, it generates asm-offsets.h  */
 
 int main(void)
 {
 	COMMENT("This is a comment.");
-	/*  might get these from somewhere else.  */
+	
 	DEFINE(_PAGE_SIZE, PAGE_SIZE);
 	DEFINE(_PAGE_SHIFT, PAGE_SHIFT);
 	BLANK();

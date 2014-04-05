@@ -34,13 +34,12 @@
 #define INTEG0_BASE_ADDR	0x18030030
 
 struct integ {
-	u32 errcs;			/* sticky use ERRCS_ */
-	u32 wtcount;			/* Watchdog timer count reg. */
-	u32 wtcompare;			/* Watchdog timer timeout value. */
-	u32 wtc;			/* Watchdog timer control. use WTC_ */
+	u32 errcs;			
+	u32 wtcount;			
+	u32 wtcompare;			
+	u32 wtc;			
 };
 
-/* Error counters */
 #define RC32434_ERR_WTO		0
 #define RC32434_ERR_WNE		1
 #define RC32434_ERR_UCW		2
@@ -52,8 +51,7 @@ struct integ {
 #define RC32434_ERR_SAE		8
 #define RC32434_ERR_WRE		9
 
-/* Watchdog control bits */
 #define RC32434_WTC_EN		0
 #define RC32434_WTC_TO		1
 
-#endif	/* __RC32434_INTEG_H__ */
+#endif	

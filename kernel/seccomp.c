@@ -11,23 +11,17 @@
 #include <linux/sched.h>
 #include <linux/compat.h>
 
-/* #define SECCOMP_DEBUG 1 */
 #define NR_SECCOMP_MODES 1
 
-/*
- * Secure computing mode 1 allows only read/write/exit/sigreturn.
- * To be fully secure this must be combined with rlimit
- * to limit the stack allocations too.
- */
 static int mode1_syscalls[] = {
 	__NR_seccomp_read, __NR_seccomp_write, __NR_seccomp_exit, __NR_seccomp_sigreturn,
-	0, /* null terminated */
+	0, 
 };
 
 #ifdef CONFIG_COMPAT
 static int mode1_syscalls_32[] = {
 	__NR_seccomp_read_32, __NR_seccomp_write_32, __NR_seccomp_exit_32, __NR_seccomp_sigreturn_32,
-	0, /* null terminated */
+	0, 
 };
 #endif
 
@@ -68,7 +62,7 @@ long prctl_set_seccomp(unsigned long seccomp_mode)
 {
 	long ret;
 
-	/* can set it only once to be even more secure */
+	
 	ret = -EPERM;
 	if (unlikely(current->seccomp.mode))
 		goto out;

@@ -1,15 +1,3 @@
-/*                                              -*- linux-c -*-
- * dtlk.c - DoubleTalk PC driver for Linux
- *
- * Original author: Chris Pallotta <chris@allmedia.com>
- * Current maintainer: Jim Van Zandt <jrv@vanzandt.mv.com>
- * 
- * 2000-03-18 Jim Van Zandt: Fix polling.
- *  Eliminate dtlk_timer_active flag and separate dtlk_stop_timer
- *  function.  Don't restart timer in dtlk_timer_tick.  Restart timer
- *  in dtlk_poll after every poll.  dtlk_poll returns mask (duh).
- *  Eliminate unused function dtlk_write_byte.  Misc. code cleanups.
- */
 
 /* This driver is for the DoubleTalk PC, a speech synthesizer
    manufactured by RC Systems (http://www.rcsys.com/).  It was written
@@ -53,25 +41,25 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/mm.h>
-#include <linux/errno.h>	/* for -EBUSY */
-#include <linux/ioport.h>	/* for request_region */
-#include <linux/delay.h>	/* for loops_per_jiffy */
+#include <linux/errno.h>	
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
 #include <linux/sched.h>
 #include <linux/mutex.h>
-#include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc. */
-#include <asm/uaccess.h>	/* for get_user, etc. */
-#include <linux/wait.h>		/* for wait_queue */
-#include <linux/init.h>		/* for __init, module_{init,exit} */
-#include <linux/poll.h>		/* for POLLIN, etc. */
-#include <linux/dtlk.h>		/* local header file for DoubleTalk values */
+#include <asm/io.h>		
+#include <asm/uaccess.h>	
+#include <linux/wait.h>		
+#include <linux/init.h>		
+#include <linux/poll.h>		
+#include <linux/dtlk.h>		
 
 #ifdef TRACING
 #define TRACE_TEXT(str) printk(str);
 #define TRACE_RET printk(")")
-#else				/* !TRACING */
+#else				
 #define TRACE_TEXT(str) ((void) 0)
 #define TRACE_RET ((void) 0)
-#endif				/* TRACING */
+#endif				
 
 static DEFINE_MUTEX(dtlk_mutex);
 static void dtlk_timer_tick(unsigned long data);
@@ -86,7 +74,6 @@ static unsigned int dtlk_portlist[] =
 static wait_queue_head_t dtlk_process_list;
 static DEFINE_TIMER(dtlk_timer, dtlk_timer_tick, 0, 0);
 
-/* prototypes for file_operations struct */
 static ssize_t dtlk_read(struct file *, char __user *,
 			 size_t nbytes, loff_t * ppos);
 static ssize_t dtlk_write(struct file *, const char __user *,
@@ -109,7 +96,6 @@ static const struct file_operations dtlk_fops =
 	.llseek		= no_llseek,
 };
 
-/* local prototypes */
 static int dtlk_dev_probe(void);
 static struct dtlk_settings *dtlk_interrogate(void);
 static int dtlk_readable(void);
@@ -118,9 +104,6 @@ static char dtlk_read_tts(void);
 static int dtlk_writeable(void);
 static char dtlk_write_bytes(const char *buf, int n);
 static char dtlk_write_tts(char);
-/*
-   static void dtlk_handle_error(char, char, unsigned int);
- */
 
 static ssize_t dtlk_read(struct file *file, char __user *buf,
 			 size_t count, loff_t * ppos)
@@ -130,7 +113,7 @@ static ssize_t dtlk_read(struct file *file, char __user *buf,
 	int i = 0, retries;
 
 	TRACE_TEXT("(dtlk_read");
-	/*  printk("DoubleTalk PC - dtlk_read()\n"); */
+	
 
 	if (minor != DTLK_MINOR || !dtlk_has_indexing)
 		return -EINVAL;
@@ -138,7 +121,7 @@ static ssize_t dtlk_read(struct file *file, char __user *buf,
 	for (retries = 0; retries < loops_per_jiffy; retries++) {
 		while (i < count && dtlk_readable()) {
 			ch = dtlk_read_lpc();
-			/*        printk("dtlk_read() reads 0x%02x\n", ch); */
+			
 			if (put_user(ch, buf++))
 				return -EFAULT;
 			i++;
@@ -187,18 +170,8 @@ static ssize_t dtlk_write(struct file *file, const char __user *buf,
 			buf++;
 			i++;
 			if (i % 5 == 0)
-				/* We yield our time until scheduled
-				   again.  This reduces the transfer
-				   rate to 500 bytes/sec, but that's
-				   still enough to keep up with the
-				   speech synthesizer. */
 				msleep_interruptible(1);
 			else {
-				/* the RDY bit goes zero 2-3 usec
-				   after writing, and goes 1 again
-				   180-190 usec later.  Here, we wait
-				   up to 250 usec for the RDY bit to
-				   go nonzero. */
 				for (retries = 0;
 				     retries < loops_per_jiffy / (4000/HZ);
 				     retries++)
@@ -215,8 +188,7 @@ static ssize_t dtlk_write(struct file *file, const char __user *buf,
 
 		msleep_interruptible(1);
 
-		if (++retries > 10 * HZ) { /* wait no more than 10 sec
-					      from last write */
+		if (++retries > 10 * HZ) { 
 			printk("dtlk: write timeout.  "
 			       "inb_p(dtlk_port_tts) = 0x%02x\n",
 			       inb_p(dtlk_port_tts));
@@ -234,12 +206,6 @@ static unsigned int dtlk_poll(struct file *file, poll_table * wait)
 	unsigned long expires;
 
 	TRACE_TEXT(" dtlk_poll");
-	/*
-	   static long int j;
-	   printk(".");
-	   printk("<%ld>", jiffies-j);
-	   j=jiffies;
-	 */
 	poll_wait(file, &dtlk_process_list, wait);
 
 	if (dtlk_has_indexing && dtlk_readable()) {
@@ -250,9 +216,9 @@ static unsigned int dtlk_poll(struct file *file, poll_table * wait)
 	        del_timer(&dtlk_timer);
 		mask |= POLLOUT | POLLWRNORM;
 	}
-	/* there are no exception conditions */
+	
 
-	/* There won't be any interrupts, so we set a timer instead. */
+	
 	expires = jiffies + 3*HZ / 100;
 	mod_timer(&dtlk_timer, expires);
 
@@ -293,7 +259,6 @@ static long dtlk_ioctl(struct file *file,
 	}
 }
 
-/* Note that nobody ever sets dtlk_busy... */
 static int dtlk_open(struct inode *inode, struct file *file)
 {
 	TRACE_TEXT("(dtlk_open");
@@ -355,10 +320,7 @@ static int __init dtlk_init(void)
 static void __exit dtlk_cleanup (void)
 {
 	dtlk_write_bytes("goodbye", 8);
-	msleep_interruptible(500);		/* nap 0.50 sec but
-						   could be awakened
-						   earlier by
-						   signals... */
+	msleep_interruptible(500);		
 
 	dtlk_write_tts(DTLK_CLEAR);
 	unregister_chrdev(dtlk_major, "dtlk");
@@ -368,7 +330,6 @@ static void __exit dtlk_cleanup (void)
 module_init(dtlk_init);
 module_exit(dtlk_cleanup);
 
-/* ------------------------------------------------------------------------ */
 
 static int dtlk_readable(void)
 {
@@ -380,7 +341,7 @@ static int dtlk_readable(void)
 
 static int dtlk_writeable(void)
 {
-	/* TRACE_TEXT(" dtlk_writeable"); */
+	
 #ifdef TRACINGMORE
 	printk(" dtlk_writeable=%u", (inb_p(dtlk_port_tts) & TTS_WRITABLE)!=0);
 #endif
@@ -417,15 +378,10 @@ static int __init dtlk_dev_probe(void)
 			       DTLK_IO_EXTENT - 1,
 			       sp->rom_version, sp->serial_number);
 
-                        /* put LPC port into known state, so
-			   dtlk_readable() gives valid result */
 			outb_p(0xff, dtlk_port_lpc); 
 
-                        /* INIT string and index marker */
+                        
 			dtlk_write_bytes("\036\1@\0\0012I\r", 8);
-			/* posting an index takes 18 msec.  Here, we
-			   wait up to 100 msec to see whether it
-			   appears. */
 			msleep_interruptible(100);
 			dtlk_has_indexing = dtlk_readable();
 #ifdef TRACING
@@ -433,7 +389,6 @@ static int __init dtlk_dev_probe(void)
 #endif
 #ifdef INSCOPE
 			{
-/* This macro records ten samples read from the LPC port, for later display */
 #define LOOK					\
 for (i = 0; i < 10; i++)			\
   {						\
@@ -459,21 +414,20 @@ for (i = 0; i < 10; i++)			\
 					printk(" %02x", buffer[j]);
 				printk("\n");
 			}
-#endif				/* INSCOPE */
+#endif				
 
 #ifdef OUTSCOPE
 			{
-/* This macro records ten samples read from the TTS port, for later display */
 #define LOOK					\
 for (i = 0; i < 10; i++)			\
   {						\
     buffer[b++] = inb_p(dtlk_port_tts);		\
-    __delay(loops_per_jiffy/(1000000/HZ));  /* 1 us */ \
+    __delay(loops_per_jiffy/(1000000/HZ));   \
   }
 				char buffer[1000];
 				int b = 0, i, j;
 
-				mdelay(10);	/* 10 ms */
+				mdelay(10);	
 				LOOK
 				outb_p(0x03, dtlk_port_tts);
 				buffer[b++] = 0;
@@ -485,7 +439,7 @@ for (i = 0; i < 10; i++)			\
 					printk(" %02x", buffer[j]);
 				printk("\n");
 			}
-#endif				/* OUTSCOPE */
+#endif				
 
 			dtlk_write_bytes("Double Talk found", 18);
 
@@ -498,16 +452,7 @@ for (i = 0; i < 10; i++)			\
 	return -ENODEV;
 }
 
-/*
-   static void dtlk_handle_error(char op, char rc, unsigned int minor)
-   {
-   printk(KERN_INFO"\nDoubleTalk PC - MINOR: %d, OPCODE: %d, ERROR: %d\n", 
-   minor, op, rc);
-   return;
-   }
- */
 
-/* interrogate the DoubleTalk PC and return its settings */
 static struct dtlk_settings *dtlk_interrogate(void)
 {
 	unsigned char *t;
@@ -523,15 +468,8 @@ static struct dtlk_settings *dtlk_interrogate(void)
 		if (total < sizeof(struct dtlk_settings))
 			total++;
 	}
-	/*
-	   if (i==50) printk("interrogate() read overrun\n");
-	   for (i=0; i<sizeof(buf); i++)
-	   printk(" %02x", buf[i]);
-	   printk("\n");
-	 */
 	t = buf;
-	status.serial_number = t[0] + t[1] * 256; /* serial number is
-						     little endian */
+	status.serial_number = t[0] + t[1] * 256; 
 	t += 2;
 
 	i = 0;
@@ -569,7 +507,7 @@ static char dtlk_read_tts(void)
 	char ch;
 	TRACE_TEXT("(dtlk_read_tts");
 
-	/* verify DT is ready, read char, wait for ACK */
+	
 	do {
 		portval = inb_p(dtlk_port_tts);
 	} while ((portval & TTS_READABLE) == 0 &&
@@ -577,7 +515,7 @@ static char dtlk_read_tts(void)
 	if (retries > DTLK_MAX_RETRIES)
 		printk(KERN_ERR "dtlk_read_tts() timeout\n");
 
-	ch = inb_p(dtlk_port_tts);	/* input from TTS port */
+	ch = inb_p(dtlk_port_tts);	
 	ch &= 0x7f;
 	outb_p(ch, dtlk_port_tts);
 
@@ -599,15 +537,12 @@ static char dtlk_read_lpc(void)
 	char ch;
 	TRACE_TEXT("(dtlk_read_lpc");
 
-	/* no need to test -- this is only called when the port is readable */
+	
 
-	ch = inb_p(dtlk_port_lpc);	/* input from LPC port */
+	ch = inb_p(dtlk_port_lpc);	
 
 	outb_p(0xff, dtlk_port_lpc);
 
-	/* acknowledging a read takes 3-4
-	   usec.  Here, we wait up to 20 usec
-	   for the acknowledgement */
 	retries = (loops_per_jiffy * 20) / (1000000/HZ);
 	while (inb_p(dtlk_port_lpc) != 0x7f && --retries > 0);
 	if (retries == 0)
@@ -617,11 +552,10 @@ static char dtlk_read_lpc(void)
 	return ch;
 }
 
-/* write n bytes to tts port */
 static char dtlk_write_bytes(const char *buf, int n)
 {
 	char val = 0;
-	/*  printk("dtlk_write_bytes(\"%-*s\", %d)\n", n, buf, n); */
+	
 	TRACE_TEXT("(dtlk_write_bytes");
 	while (n-- > 0)
 		val = dtlk_write_tts(*buf++);
@@ -639,17 +573,14 @@ static char dtlk_write_tts(char ch)
 	else
 		printk("0x%02x", ch);
 #endif
-	if (ch != DTLK_CLEAR)	/* no flow control for CLEAR command */
+	if (ch != DTLK_CLEAR)	
 		while ((inb_p(dtlk_port_tts) & TTS_WRITABLE) == 0 &&
-		       retries++ < DTLK_MAX_RETRIES)	/* DT ready? */
+		       retries++ < DTLK_MAX_RETRIES)	
 			;
 	if (retries > DTLK_MAX_RETRIES)
 		printk(KERN_ERR "dtlk_write_tts() timeout\n");
 
-	outb_p(ch, dtlk_port_tts);	/* output to TTS port */
-	/* the RDY bit goes zero 2-3 usec after writing, and goes
-	   1 again 180-190 usec later.  Here, we wait up to 10
-	   usec for the RDY bit to go zero. */
+	outb_p(ch, dtlk_port_tts);	
 	for (retries = 0; retries < loops_per_jiffy / (100000/HZ); retries++)
 		if ((inb_p(dtlk_port_tts) & TTS_WRITABLE) == 0)
 			break;

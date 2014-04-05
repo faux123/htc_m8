@@ -42,11 +42,10 @@ MODULE_DESCRIPTION("CAPI4Linux: Userspace /dev/capi20 interface");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* -------- driver information -------------------------------------- */
 
 static DEFINE_MUTEX(capi_mutex);
 static struct class *capi_class;
-static int capi_major = 68;		/* allocated */
+static int capi_major = 68;		
 
 module_param_named(major, capi_major, uint, 0);
 
@@ -57,15 +56,13 @@ module_param_named(major, capi_major, uint, 0);
 static int capi_ttyminors = CAPINC_NR_PORTS;
 
 module_param_named(ttyminors, capi_ttyminors, uint, 0);
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 
-/* -------- defines ------------------------------------------------- */
 
 #define CAPINC_MAX_RECVQUEUE	10
 #define CAPINC_MAX_SENDQUEUE	10
 #define CAPI_MAX_BLKSIZE	2048
 
-/* -------- data structures ----------------------------------------- */
 
 struct capidev;
 struct capincci;
@@ -97,7 +94,7 @@ struct capiminor {
 	struct sk_buff		*outskb;
 	spinlock_t		outlock;
 
-	/* transmit path */
+	
 	struct list_head ackqueue;
 	int nack;
 	spinlock_t ackqlock;
@@ -109,7 +106,7 @@ struct capincci {
 	struct capidev	*cdev;
 #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
 	struct capiminor *minorp;
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 };
 
 struct capidev {
@@ -126,7 +123,6 @@ struct capidev {
 	struct mutex lock;
 };
 
-/* -------- global variables ---------------------------------------- */
 
 static DEFINE_MUTEX(capidev_list_lock);
 static LIST_HEAD(capidev_list);
@@ -138,7 +134,6 @@ static struct capiminor **capiminors;
 
 static struct tty_driver *capinc_tty_driver;
 
-/* -------- datahandles --------------------------------------------- */
 
 static int capiminor_add_ack(struct capiminor *mp, u16 datahandle)
 {
@@ -188,9 +183,8 @@ static void capiminor_del_all_ack(struct capiminor *mp)
 }
 
 
-/* -------- struct capiminor ---------------------------------------- */
 
-static const struct tty_port_operations capiminor_port_ops; /* we have none */
+static const struct tty_port_operations capiminor_port_ops; 
 
 static struct capiminor *capiminor_alloc(struct capi20_appl *ap, u32 ncci)
 {
@@ -218,7 +212,7 @@ static struct capiminor *capiminor_alloc(struct capi20_appl *ap, u32 ncci)
 	tty_port_init(&mp->port);
 	mp->port.ops = &capiminor_port_ops;
 
-	/* Allocate the least unused minor number. */
+	
 	spin_lock(&capiminors_lock);
 	for (minor = 0; minor < capi_ttyminors; minor++)
 		if (!capiminors[minor]) {
@@ -290,7 +284,6 @@ static void capiminor_free(struct capiminor *mp)
 	capiminor_put(mp);
 }
 
-/* -------- struct capincci ----------------------------------------- */
 
 static void capincci_alloc_minor(struct capidev *cdev, struct capincci *np)
 {
@@ -330,7 +323,7 @@ static inline unsigned int capincci_minor_opencount(struct capincci *np)
 	return count;
 }
 
-#else /* !CONFIG_ISDN_CAPI_MIDDLEWARE */
+#else 
 
 static inline void
 capincci_alloc_minor(struct capidev *cdev, struct capincci *np) { }
@@ -341,7 +334,7 @@ static inline unsigned int capincci_minor_opencount(struct capincci *np)
 	return 0;
 }
 
-#endif /* !CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 
 static struct capincci *capincci_alloc(struct capidev *cdev, u32 ncci)
 {
@@ -383,7 +376,6 @@ static struct capincci *capincci_find(struct capidev *cdev, u32 ncci)
 }
 
 #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
-/* -------- handle data queue --------------------------------------- */
 
 static struct sk_buff *
 gen_data_b3_resp_for(struct capiminor *mp, struct sk_buff *skb)
@@ -421,7 +413,7 @@ static int handle_recv_skb(struct capiminor *mp, struct sk_buff *skb)
 
 	ld = tty_ldisc_ref(tty);
 	if (!ld) {
-		/* fatal error, do not requeue */
+		
 		ret = 0;
 		kfree_skb(skb);
 		goto deref_tty;
@@ -429,7 +421,7 @@ static int handle_recv_skb(struct capiminor *mp, struct sk_buff *skb)
 
 	if (ld->ops->receive_buf == NULL) {
 		pr_debug("capi: ldisc has no receive_buf function\n");
-		/* fatal error, do not requeue */
+		
 		goto free_skb;
 	}
 	if (mp->ttyinstop) {
@@ -526,11 +518,11 @@ static void handle_minor_send(struct capiminor *mp)
 		capimsg_setu8 (skb->data, 4, CAPI_DATA_B3);
 		capimsg_setu8 (skb->data, 5, CAPI_REQ);
 		capimsg_setu16(skb->data, 6, atomic_inc_return(&mp->msgid));
-		capimsg_setu32(skb->data, 8, mp->ncci);	/* NCCI */
-		capimsg_setu32(skb->data, 12, (u32)(long)skb->data);/* Data32 */
-		capimsg_setu16(skb->data, 16, len);	/* Data length */
+		capimsg_setu32(skb->data, 8, mp->ncci);	
+		capimsg_setu32(skb->data, 12, (u32)(long)skb->data);
+		capimsg_setu16(skb->data, 16, len);	
 		capimsg_setu16(skb->data, 18, datahandle);
-		capimsg_setu16(skb->data, 20, 0);	/* Flags */
+		capimsg_setu16(skb->data, 20, 0);	
 
 		if (capiminor_add_ack(mp, datahandle) < 0) {
 			skb_pull(skb, CAPI_DATA_B3_REQ_LEN);
@@ -561,15 +553,14 @@ static void handle_minor_send(struct capiminor *mp)
 			break;
 		}
 
-		/* ups, drop packet */
+		
 		printk(KERN_ERR "capi: put_message = %x\n", errcode);
 		kfree_skb(skb);
 	}
 	tty_kref_put(tty);
 }
 
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
-/* -------- function called by lower level -------------------------- */
+#endif 
 
 static void capi_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 {
@@ -578,13 +569,13 @@ static void capi_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 	struct tty_struct *tty;
 	struct capiminor *mp;
 	u16 datahandle;
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 	struct capincci *np;
 
 	mutex_lock(&cdev->lock);
 
 	if (CAPIMSG_CMD(skb->data) == CAPI_CONNECT_B3_CONF) {
-		u16 info = CAPIMSG_U16(skb->data, 12); // Info field
+		u16 info = CAPIMSG_U16(skb->data, 12); 
 		if ((info & 0xff00) == 0)
 			capincci_alloc(cdev, CAPIMSG_NCCI(skb->data));
 	}
@@ -609,7 +600,7 @@ static void capi_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 	skb_queue_tail(&cdev->recvqueue, skb);
 	wake_up_interruptible(&cdev->recvwait);
 
-#else /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#else 
 
 	mp = np->minorp;
 	if (!mp) {
@@ -641,17 +632,16 @@ static void capi_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 		handle_minor_send(mp);
 
 	} else {
-		/* ups, let capi application handle it :-) */
+		
 		skb_queue_tail(&cdev->recvqueue, skb);
 		wake_up_interruptible(&cdev->recvwait);
 	}
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 
 unlock_out:
 	mutex_unlock(&cdev->lock);
 }
 
-/* -------- file_operations for capidev ----------------------------- */
 
 static ssize_t
 capi_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
@@ -938,7 +928,7 @@ register_out:
 		mutex_unlock(&cdev->lock);
 		return unit;
 	}
-#endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 
 	default:
 		return -EINVAL;
@@ -1008,7 +998,6 @@ static const struct file_operations capi_fops =
 };
 
 #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
-/* -------- tty_operations for capincci ----------------------------- */
 
 static int
 capinc_tty_install(struct tty_driver *driver, struct tty_struct *tty)
@@ -1320,7 +1309,7 @@ static void __exit capinc_tty_exit(void)
 	kfree(capiminors);
 }
 
-#else /* !CONFIG_ISDN_CAPI_MIDDLEWARE */
+#else 
 
 static inline int capinc_tty_init(void)
 {
@@ -1329,14 +1318,9 @@ static inline int capinc_tty_init(void)
 
 static inline void capinc_tty_exit(void) { }
 
-#endif /* !CONFIG_ISDN_CAPI_MIDDLEWARE */
+#endif 
 
-/* -------- /proc functions ----------------------------------------- */
 
-/*
- * /proc/capi/capi20:
- *  minor applid nrecvctlpkt nrecvdatapkt nsendctlpkt nsenddatapkt
- */
 static int capi20_proc_show(struct seq_file *m, void *v)
 {
 	struct capidev *cdev;
@@ -1369,10 +1353,6 @@ static const struct file_operations capi20_proc_fops = {
 	.release	= single_release,
 };
 
-/*
- * /proc/capi/capi20ncci:
- *  applid ncci
- */
 static int capi20ncci_proc_show(struct seq_file *m, void *v)
 {
 	struct capidev *cdev;
@@ -1414,7 +1394,6 @@ static void __exit proc_exit(void)
 	remove_proc_entry("capi/capi20ncci", NULL);
 }
 
-/* -------- init function and module interface ---------------------- */
 
 
 static int __init capi_init(void)

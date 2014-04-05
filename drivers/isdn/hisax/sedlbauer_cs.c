@@ -55,11 +55,9 @@ MODULE_AUTHOR("Marcus Niemann");
 MODULE_LICENSE("Dual MPL/GPL");
 
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
-static int protocol = 2;        /* EURO-ISDN Default */
+static int protocol = 2;        
 module_param(protocol, int, 0);
 
 static int sedlbauer_config(struct pcmcia_device *link) __devinit;
@@ -79,7 +77,7 @@ static int __devinit sedlbauer_probe(struct pcmcia_device *link)
 
 	dev_dbg(&link->dev, "sedlbauer_attach()\n");
 
-	/* Allocate space for private device-specific data */
+	
 	local = kzalloc(sizeof(local_info_t), GFP_KERNEL);
 	if (!local) return -ENOMEM;
 	local->cardnr = -1;
@@ -88,7 +86,7 @@ static int __devinit sedlbauer_probe(struct pcmcia_device *link)
 	link->priv = local;
 
 	return sedlbauer_config(link);
-} /* sedlbauer_attach */
+} 
 
 static void __devexit sedlbauer_detach(struct pcmcia_device *link)
 {
@@ -97,9 +95,9 @@ static void __devexit sedlbauer_detach(struct pcmcia_device *link)
 	((local_info_t *)link->priv)->stop = 1;
 	sedlbauer_release(link);
 
-	/* This points to the parent local_info_t struct */
+	
 	kfree(link->priv);
-} /* sedlbauer_detach */
+} 
 
 static int sedlbauer_config_check(struct pcmcia_device *p_dev, void *priv_data)
 {
@@ -149,7 +147,7 @@ failed:
 	sedlbauer_release(link);
 	return -ENODEV;
 
-} /* sedlbauer_config */
+} 
 
 static void sedlbauer_release(struct pcmcia_device *link)
 {
@@ -158,13 +156,13 @@ static void sedlbauer_release(struct pcmcia_device *link)
 
 	if (local) {
 		if (local->cardnr >= 0) {
-			/* no unregister function with hisax */
+			
 			HiSax_closecard(local->cardnr);
 		}
 	}
 
 	pcmcia_disable_device(link);
-} /* sedlbauer_release */
+} 
 
 static int sedlbauer_suspend(struct pcmcia_device *link)
 {
@@ -192,7 +190,7 @@ static const struct pcmcia_device_id sedlbauer_ids[] = {
 	PCMCIA_DEVICE_PROD_ID123("SEDLBAUER", "ISDN-Adapter", " (C) 93-94 VK", 0x81fb79f5, 0xe4e9bc12, 0x8db143fe),
 	PCMCIA_DEVICE_PROD_ID123("SEDLBAUER", "ISDN-Adapter", " (c) 93-95 VK", 0x81fb79f5, 0xe4e9bc12, 0xb391ab4c),
 	PCMCIA_DEVICE_PROD_ID12("HST High Soft Tech GmbH", "Saphir II B", 0xd79e0b84, 0x21d083ae),
-/*	PCMCIA_DEVICE_PROD_ID1234("SEDLBAUER", 0x81fb79f5), */ /* too generic*/
+ 
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, sedlbauer_ids);

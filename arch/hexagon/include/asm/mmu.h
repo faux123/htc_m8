@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,11 +21,6 @@
 
 #include <asm/vdso.h>
 
-/*
- * Architecture-specific state for a mm_struct.
- * For the Hexagon Virtual Machine, it can be a copy
- * of the pointer to the page table base.
- */
 struct mm_context {
 	unsigned long long generation;
 	unsigned long ptbase;

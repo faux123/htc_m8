@@ -183,7 +183,6 @@ static inline void __init ldp_init_smsc911x(void)
 	gpmc_smsc911x_init(&smsc911x_cfg);
 }
 
-/* LCD */
 
 static int ldp_backlight_gpio;
 static int ldp_lcd_enable_gpio;
@@ -285,7 +284,6 @@ static struct regulator_consumer_supply ldp_vmmc1_supply[] = {
 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
 };
 
-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
 static struct regulator_init_data ldp_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -300,12 +298,10 @@ static struct regulator_init_data ldp_vmmc1 = {
 	.consumer_supplies	= ldp_vmmc1_supply,
 };
 
-/* ads7846 on SPI */
 static struct regulator_consumer_supply ldp_vaux1_supplies[] = {
 	REGULATOR_SUPPLY("vcc", "spi1.0"),
 };
 
-/* VAUX1 */
 static struct regulator_init_data ldp_vaux1 = {
 	.constraints = {
 		.min_uV			= 3000000,
@@ -341,7 +337,7 @@ static struct regulator_init_data ldp_vpll2 = {
 };
 
 static struct twl4030_platform_data ldp_twldata = {
-	/* platform_data for children goes here */
+	
 	.vmmc1		= &ldp_vmmc1,
 	.vaux1		= &ldp_vaux1,
 	.vpll2		= &ldp_vpll2,
@@ -366,7 +362,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= -EINVAL,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct platform_device *ldp_devices[] __initdata = {
@@ -380,33 +376,33 @@ static struct omap_board_mux board_mux[] __initdata = {
 #endif
 
 static struct mtd_partition ldp_nand_partitions[] = {
-	/* All the partition sizes are listed in terms of NAND block size */
+	
 	{
 		.name		= "X-Loader-NAND",
 		.offset		= 0,
-		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.size		= 4 * (64 * 2048),	
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "U-Boot-NAND",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.offset		= MTDPART_OFS_APPEND,	
+		.size		= 10 * (64 * 2048),	
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "Boot Env-NAND",
-		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
-		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
+		.offset		= MTDPART_OFS_APPEND,   
+		.size		= 2 * (64 * 2048),	
 	},
 	{
 		.name		= "Kernel-NAND",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
-		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
+		.offset		= MTDPART_OFS_APPEND,	
+		.size		= 240 * (64 * 2048),	
 	},
 	{
 		.name		= "File System - NAND",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
-		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
+		.offset		= MTDPART_OFS_APPEND,	
+		.size		= MTDPART_SIZ_FULL,	
 	},
 
 };

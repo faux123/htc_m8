@@ -23,16 +23,8 @@
 
 #include <acpi/acpi.h>
 
-/*
- * Logical location of iSCSI Boot Format Table.
- * If the value is NULL there is no iBFT on the machine.
- */
 extern struct acpi_table_ibft *ibft_addr;
 
-/*
- * Routine used to find and reserve the iSCSI Boot Format Table. The
- * mapped address is set in the ibft_addr variable.
- */
 #ifdef CONFIG_ISCSI_IBFT_FIND
 unsigned long find_ibft_region(unsigned long *sizep);
 #else
@@ -43,4 +35,4 @@ static inline unsigned long find_ibft_region(unsigned long *sizep)
 }
 #endif
 
-#endif /* ISCSI_IBFT_H */
+#endif 

@@ -43,9 +43,6 @@
 #include "ngene.h"
 
 
-/****************************************************************************/
-/* COMMAND API interface ****************************************************/
-/****************************************************************************/
 
 static ssize_t ts_write(struct file *file, const char *buf,
 			size_t count, loff_t *ppos)
@@ -105,9 +102,6 @@ struct dvb_device ngene_dvbdev_ci = {
 };
 
 
-/****************************************************************************/
-/* DVB functions and API interface ******************************************/
-/****************************************************************************/
 
 static void swap_buffer(u32 *p, u32 len)
 {
@@ -118,10 +112,8 @@ static void swap_buffer(u32 *p, u32 len)
 	}
 }
 
-/* start of filler packet */
 static u8 fill_ts[] = { 0x47, 0x1f, 0xff, 0x10, TS_FILLER };
 
-/* #define DEBUG_CI_XFER */
 #ifdef DEBUG_CI_XFER
 static u32 ok;
 static u32 overflow;

@@ -31,7 +31,6 @@
 
 #define UDA1380_CACHEREGNUM 0x24
 
-/* Register flags */
 #define R00_EN_ADC	0x0800
 #define R00_EN_DEC	0x0400
 #define R00_EN_DAC	0x0200
@@ -72,8 +71,8 @@
 #define R22_SKIP_DCFIL	0x0002
 #define R23_AGC_EN	0x0001
 
-#define UDA1380_DAI_DUPLEX	0 /* playback and capture on single DAI */
-#define UDA1380_DAI_PLAYBACK	1 /* playback DAI */
-#define UDA1380_DAI_CAPTURE	2 /* capture DAI */
+#define UDA1380_DAI_DUPLEX	0 
+#define UDA1380_DAI_PLAYBACK	1 
+#define UDA1380_DAI_CAPTURE	2 
 
-#endif /* _UDA1380_H */
+#endif 

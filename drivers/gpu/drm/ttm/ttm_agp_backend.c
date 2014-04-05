@@ -24,10 +24,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- *          Keith Packard.
- */
 
 #define pr_fmt(fmt) "[TTM] " fmt
 

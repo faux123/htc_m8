@@ -1,11 +1,3 @@
-/*
- *  linux/arch/h8300/kernel/timer/itu.c
- *
- *  Yoshinori Sato <ysato@users.sourcefoge.jp>
- *
- *  ITU Timer Handler
- *
- */
 
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -73,7 +65,7 @@ void __init h8300_timer_setup(void)
 
 	setup_irq(ITUIRQ, &itu_irq);
 
-	/* initialize timer */
+	
 	ctrl_outb(0, TSTR);
 	ctrl_outb(CCLR0 | div, ITUBASE + TCR);
 	ctrl_outb(0x01, ITUBASE + TIER);

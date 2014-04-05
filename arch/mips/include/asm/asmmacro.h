@@ -60,11 +60,8 @@
 	mtc0	\reg, CP0_STATUS
 	irq_disable_hazard
 	.endm
-#endif /* CONFIG_MIPS_MT_SMTC */
+#endif 
 
-/*
- * Temporary until all gas have MT ASE support
- */
 	.macro	DMT	reg=0
 	.word	0x41600bc1 | (\reg << 16)
 	.endm
@@ -89,4 +86,4 @@
 	 .word	0x41800000 | (\rt << 16) | (\rd << 11) | (\u << 5) | (\sel)
 	.endm
 
-#endif /* _ASM_ASMMACRO_H */
+#endif 

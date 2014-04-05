@@ -47,7 +47,7 @@
 
 struct nuc900_gpio_chip {
 	struct gpio_chip	chip;
-	void __iomem		*regbase;	/* Base of group register*/
+	void __iomem		*regbase;	
 	spinlock_t 		gpio_lock;
 };
 

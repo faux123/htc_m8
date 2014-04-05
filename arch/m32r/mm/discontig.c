@@ -23,7 +23,6 @@ EXPORT_SYMBOL(node_data);
 
 pg_data_t m32r_node_data[MAX_NUMNODES];
 
-/* Memory profile */
 typedef struct {
 	unsigned long start_pfn;
 	unsigned long pages;
@@ -42,14 +41,14 @@ static void __init mem_prof_init(void)
 	unsigned long ul;
 	mem_prof_t *mp;
 
-	/* Node#0 SDRAM */
+	
 	mp = &mem_prof[0];
 	mp->start_pfn = PFN_UP(CONFIG_MEMORY_START);
 	mp->pages = PFN_DOWN(memory_end - memory_start);
 	mp->holes = 0;
 	mp->free_pfn = PFN_UP(__pa(_end));
 
-	/* Node#1 internal SRAM */
+	
 	mp = &mem_prof[1];
 	start_pfn = free_pfn = PFN_UP(CONFIG_IRAM_START);
 	holes = 0;
@@ -121,7 +120,7 @@ unsigned long __init setup_memory(void)
 			initrd_start = 0;
 		}
 	}
-#endif	/* CONFIG_BLK_DEV_INITRD */
+#endif	
 
 	return max_low_pfn;
 }
@@ -153,11 +152,6 @@ unsigned long __init zone_sizes_init(void)
 		free_area_init_node(nid, zones_size, start_pfn, zholes_size);
 	}
 
-	/*
-	 * For test
-	 *  Use all area of internal RAM.
-	 *  see __alloc_pages()
-	 */
 	NODE_DATA(1)->node_zones->watermark[WMARK_MIN] = 0;
 	NODE_DATA(1)->node_zones->watermark[WMARK_LOW] = 0;
 	NODE_DATA(1)->node_zones->watermark[WMARK_HIGH] = 0;

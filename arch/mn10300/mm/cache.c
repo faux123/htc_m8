@@ -41,9 +41,6 @@ EXPORT_SYMBOL(mn10300_dcache_flush_range2);
 EXPORT_SYMBOL(mn10300_dcache_flush_page);
 #endif
 
-/*
- * allow userspace to flush the instruction cache
- */
 asmlinkage long sys_cacheflush(unsigned long start, unsigned long end)
 {
 	if (end < start)

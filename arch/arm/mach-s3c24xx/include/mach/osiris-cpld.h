@@ -14,7 +14,6 @@
 #ifndef __ASM_ARCH_OSIRISCPLD_H
 #define __ASM_ARCH_OSIRISCPLD_H
 
-/* CTRL0 - NAND WP control */
 
 #define OSIRIS_CTRL0_NANDSEL		(0x3)
 #define OSIRIS_CTRL0_BOOT_INT		(1<<3)
@@ -27,4 +26,4 @@
 
 #define OSIRIS_ID_REVMASK		(0x7)
 
-#endif /* __ASM_ARCH_OSIRISCPLD_H */
+#endif 

@@ -32,7 +32,6 @@
 
 #include <net/nfc/nci.h>
 
-/* NCI status codes to Unix errno mapping */
 int nci_to_errno(__u8 code)
 {
 	switch (code) {

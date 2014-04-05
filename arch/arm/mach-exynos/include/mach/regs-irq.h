@@ -16,4 +16,4 @@
 #include <asm/hardware/gic.h>
 #include <mach/map.h>
 
-#endif /* __ASM_ARCH_REGS_IRQ_H */
+#endif 

@@ -3,16 +3,6 @@
 
 #include <asm/m32r.h>
 
-/*
- * TLB flushing:
- *
- *  - flush_tlb() flushes the current mm struct TLBs
- *  - flush_tlb_all() flushes all processes TLBs
- *  - flush_tlb_mm(mm) flushes the specified mm context TLB's
- *  - flush_tlb_page(vma, vmaddr) flushes one page
- *  - flush_tlb_range(vma, start, end) flushes a range of pages
- *  - flush_tlb_kernel_range(start, end) flushes a range of kernel pages
- */
 
 extern void local_flush_tlb_all(void);
 extern void local_flush_tlb_mm(struct mm_struct *);
@@ -28,13 +18,13 @@ extern void local_flush_tlb_range(struct vm_area_struct *, unsigned long,
 #define flush_tlb_range(vma, start, end)	\
 	local_flush_tlb_range(vma, start, end)
 #define flush_tlb_kernel_range(start, end)	local_flush_tlb_all()
-#else	/* CONFIG_MMU */
+#else	
 #define flush_tlb_all()			do { } while (0)
 #define flush_tlb_mm(mm)		do { } while (0)
 #define flush_tlb_page(vma, vmaddr)	do { } while (0)
 #define flush_tlb_range(vma, start, end)	do { } while (0)
-#endif	/* CONFIG_MMU */
-#else	/* CONFIG_SMP */
+#endif	
+#else	
 extern void smp_flush_tlb_all(void);
 extern void smp_flush_tlb_mm(struct mm_struct *);
 extern void smp_flush_tlb_page(struct vm_area_struct *, unsigned long);
@@ -47,7 +37,7 @@ extern void smp_flush_tlb_range(struct vm_area_struct *, unsigned long,
 #define flush_tlb_range(vma, start, end)	\
 	smp_flush_tlb_range(vma, start, end)
 #define flush_tlb_kernel_range(start, end)	smp_flush_tlb_all()
-#endif	/* CONFIG_SMP */
+#endif	
 
 static __inline__ void __flush_tlb_page(unsigned long page)
 {
@@ -94,4 +84,4 @@ static __inline__ void __flush_tlb_all(void)
 
 extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
 
-#endif	/* _ASM_M32R_TLBFLUSH_H */
+#endif	

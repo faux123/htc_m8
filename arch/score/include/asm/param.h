@@ -3,4 +3,4 @@
 
 #include <asm-generic/param.h>
 
-#endif /* _ASM_SCORE_PARAM_H */
+#endif 

@@ -68,9 +68,6 @@ static void mpu401_clear_rx(struct snd_emu10k1 *emu, struct snd_emu10k1_midi *mp
 #endif
 }
 
-/*
-
- */
 
 static void do_emu10k1_midi_interrupt(struct snd_emu10k1 *emu, struct snd_emu10k1_midi *midi, unsigned int status)
 {
@@ -122,7 +119,7 @@ static int snd_emu10k1_midi_cmd(struct snd_emu10k1 * emu, struct snd_emu10k1_mid
 
 	spin_lock_irqsave(&midi->input_lock, flags);
 	mpu401_write_data(emu, midi, 0x00);
-	/* mpu401_clear_rx(emu, midi); */
+	
 
 	mpu401_write_cmd(emu, midi, cmd);
 	if (ack) {
@@ -278,13 +275,13 @@ static void snd_emu10k1_midi_output_trigger(struct snd_rawmidi_substream *substr
 		int max = 4;
 		unsigned char byte;
 	
-		/* try to send some amount of bytes here before interrupts */
+		
 		spin_lock_irqsave(&midi->output_lock, flags);
 		while (max > 0) {
 			if (mpu401_output_ready(emu, midi)) {
 				if (!(midi->midi_mode & EMU10K1_MIDI_MODE_OUTPUT) ||
 				    snd_rawmidi_transmit(substream, &byte, 1) != 1) {
-					/* no more data */
+					
 					spin_unlock_irqrestore(&midi->output_lock, flags);
 					return;
 				}
@@ -301,9 +298,6 @@ static void snd_emu10k1_midi_output_trigger(struct snd_rawmidi_substream *substr
 	}
 }
 
-/*
-
- */
 
 static struct snd_rawmidi_ops snd_emu10k1_midi_output =
 {

@@ -50,11 +50,11 @@ static inline int pcibus_to_node(struct pci_bus *pbus)
 	.balance_interval	= 1,			\
 }
 
-#else /* CONFIG_NUMA */
+#else 
 
 #include <asm-generic/topology.h>
 
-#endif /* !(CONFIG_NUMA) */
+#endif 
 
 #ifdef CONFIG_SMP
 #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
@@ -63,7 +63,7 @@ static inline int pcibus_to_node(struct pci_bus *pbus)
 #define topology_thread_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
 #define mc_capable()				(sparc64_multi_core)
 #define smt_capable()				(sparc64_multi_core)
-#endif /* CONFIG_SMP */
+#endif 
 
 extern cpumask_t cpu_core_map[NR_CPUS];
 static inline const struct cpumask *cpu_coregroup_mask(int cpu)
@@ -71,4 +71,4 @@ static inline const struct cpumask *cpu_coregroup_mask(int cpu)
         return &cpu_core_map[cpu];
 }
 
-#endif /* _ASM_SPARC64_TOPOLOGY_H */
+#endif 

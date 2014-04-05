@@ -31,9 +31,6 @@
 #include <net/tcp_states.h>
 #include <net/x25.h>
 
-/*
- *	This routine purges all of the queues of frames.
- */
 void x25_clear_queues(struct sock *sk)
 {
 	struct x25_sock *x25 = x25_sk(sk);
@@ -46,20 +43,12 @@ void x25_clear_queues(struct sock *sk)
 }
 
 
-/*
- * This routine purges the input queue of those frames that have been
- * acknowledged. This replaces the boxes labelled "V(a) <- N(r)" on the
- * SDL diagram.
-*/
 void x25_frames_acked(struct sock *sk, unsigned short nr)
 {
 	struct sk_buff *skb;
 	struct x25_sock *x25 = x25_sk(sk);
 	int modulus = x25->neighbour->extended ? X25_EMODULUS : X25_SMODULUS;
 
-	/*
-	 * Remove all the ack-ed frames from the ack queue.
-	 */
 	if (x25->va != nr)
 		while (skb_peek(&x25->ack_queue) && x25->va != nr) {
 			skb = skb_dequeue(&x25->ack_queue);
@@ -72,11 +61,6 @@ void x25_requeue_frames(struct sock *sk)
 {
 	struct sk_buff *skb, *skb_prev = NULL;
 
-	/*
-	 * Requeue all the un-ack-ed frames on the output queue to be picked
-	 * up by x25_kick. This arrangement handles the possibility of an empty
-	 * output queue.
-	 */
 	while ((skb = skb_dequeue(&x25_sk(sk)->ack_queue)) != NULL) {
 		if (!skb_prev)
 			skb_queue_head(&sk->sk_write_queue, skb);
@@ -86,10 +70,6 @@ void x25_requeue_frames(struct sock *sk)
 	}
 }
 
-/*
- *	Validate that the value of nr is between va and vs. Return true or
- *	false for testing.
- */
 int x25_validate_nr(struct sock *sk, unsigned short nr)
 {
 	struct x25_sock *x25 = x25_sk(sk);
@@ -105,10 +85,6 @@ int x25_validate_nr(struct sock *sk, unsigned short nr)
 	return nr == x25->vs ? 1 : 0;
 }
 
-/*
- *  This routine is called when the packet layer internally generates a
- *  control frame.
- */
 void x25_write_internal(struct sock *sk, int frametype)
 {
 	struct x25_sock *x25 = x25_sk(sk);
@@ -117,19 +93,13 @@ void x25_write_internal(struct sock *sk, int frametype)
 	unsigned char  facilities[X25_MAX_FAC_LEN];
 	unsigned char  addresses[1 + X25_ADDR_LEN];
 	unsigned char  lci1, lci2;
-	/*
-	 *	Default safe frame size.
-	 */
 	int len = X25_MAX_L2_LEN + X25_EXT_MIN_LEN;
 
-	/*
-	 *	Adjust frame size.
-	 */
 	switch (frametype) {
 	case X25_CALL_REQUEST:
 		len += 1 + X25_ADDR_LEN + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
 		break;
-	case X25_CALL_ACCEPTED: /* fast sel with no restr on resp */
+	case X25_CALL_ACCEPTED: 
 		if (x25->facilities.reverse & 0x80) {
 			len += 1 + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
 		} else {
@@ -155,14 +125,8 @@ void x25_write_internal(struct sock *sk, int frametype)
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
 		return;
 
-	/*
-	 *	Space for Ethernet and 802.2 LLC headers.
-	 */
 	skb_reserve(skb, X25_MAX_L2_LEN);
 
-	/*
-	 *	Make space for the GFI and LCI, and fill them in.
-	 */
 	dptr = skb_put(skb, 2);
 
 	lci1 = (x25->lci >> 8) & 0x0F;
@@ -176,9 +140,6 @@ void x25_write_internal(struct sock *sk, int frametype)
 		*dptr++ = lci2;
 	}
 
-	/*
-	 *	Now fill in the frame type specific information.
-	 */
 	switch (frametype) {
 
 		case X25_CALL_REQUEST:
@@ -203,7 +164,7 @@ void x25_write_internal(struct sock *sk, int frametype)
 		case X25_CALL_ACCEPTED:
 			dptr    = skb_put(skb, 2);
 			*dptr++ = X25_CALL_ACCEPTED;
-			*dptr++ = 0x00;		/* Address lengths */
+			*dptr++ = 0x00;		
 			len     = x25_create_facilities(facilities,
 							&x25->facilities,
 							&x25->dte_facilities,
@@ -211,9 +172,6 @@ void x25_write_internal(struct sock *sk, int frametype)
 			dptr    = skb_put(skb, len);
 			memcpy(dptr, facilities, len);
 
-			/* fast select with no restriction on response
-				allows call user data. Userland must
-				ensure it is ours and not theirs */
 			if(x25->facilities.reverse & 0x80) {
 				dptr = skb_put(skb,
 					x25->calluserdata.cudlength);
@@ -233,8 +191,8 @@ void x25_write_internal(struct sock *sk, int frametype)
 		case X25_RESET_REQUEST:
 			dptr    = skb_put(skb, 3);
 			*dptr++ = frametype;
-			*dptr++ = 0x00;		/* XXX */
-			*dptr++ = 0x00;		/* XXX */
+			*dptr++ = 0x00;		
+			*dptr++ = 0x00;		
 			break;
 
 		case X25_RR:
@@ -262,9 +220,6 @@ void x25_write_internal(struct sock *sk, int frametype)
 	x25_transmit_link(skb, x25->neighbour);
 }
 
-/*
- *	Unpick the contents of the passed X.25 Packet Layer frame.
- */
 int x25_decode(struct sock *sk, struct sk_buff *skb, int *ns, int *nr, int *q,
 	       int *d, int *m)
 {
@@ -368,10 +323,6 @@ void x25_disconnect(struct sock *sk, int reason, unsigned char cause,
 	}
 }
 
-/*
- * Clear an own-rx-busy condition and tell the peer about this, provided
- * that there is a significant amount of free receive buffer space available.
- */
 void x25_check_rbuf(struct sock *sk)
 {
 	struct x25_sock *x25 = x25_sk(sk);

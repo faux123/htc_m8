@@ -21,15 +21,6 @@
 
 */
 
-/*
-Driver: serial2002
-Description: Driver for serial connected hardware
-Devices:
-Author: Anders Blomdell
-Updated: Fri,  7 Jun 2002 12:56:45 -0700
-Status: in development
-
-*/
 
 #include "../comedidev.h"
 
@@ -43,11 +34,6 @@ Status: in development
 #include <linux/serial.h>
 #include <linux/poll.h>
 
-/*
- * Board descriptions for two imaginary boards.  Describing the
- * boards in this way is optional, and completely driver-dependent.
- * Some drivers use arrays such as this, other do not.
- */
 struct serial2002_board {
 	const char *name;
 };
@@ -57,22 +43,19 @@ static const struct serial2002_board serial2002_boards[] = {
 	 .name = "serial2002"}
 };
 
-/*
- * Useful for shorthand access to the particular board structure
- */
 #define thisboard ((const struct serial2002_board *)dev->board_ptr)
 
 struct serial2002_range_table_t {
 
-	/*  HACK... */
+	
 	int length;
 	struct comedi_krange range;
 };
 
 struct serial2002_private {
 
-	int port;		/*  /dev/ttyS<port> */
-	int speed;		/*  baudrate */
+	int port;		
+	int speed;		
 	struct file *tty;
 	unsigned int ao_readback[32];
 	unsigned char digital_in_mapping[32];
@@ -83,10 +66,6 @@ struct serial2002_private {
 	struct serial2002_range_table_t in_range[32], out_range[32];
 };
 
-/*
- * most drivers define the following macro to make it easy to
- * access the private structure.
- */
 #define devpriv ((struct serial2002_private *)dev->private)
 
 static int serial2002_attach(struct comedi_device *dev,
@@ -146,10 +125,6 @@ static int tty_write(struct file *f, unsigned char *buf, int count)
 }
 
 #if 0
-/*
- * On 2.6.26.3 this occaisonally gave me page faults, worked around by
- * settings.c_cc[VMIN] = 0; settings.c_cc[VTIME] = 0
- */
 static int tty_available(struct file *f)
 {
 	long result = 0;
@@ -207,7 +182,7 @@ static int tty_read(struct file *f, int timeout)
 					result = ch;
 			}
 		} else {
-			/* Device does not support poll, busy wait */
+			
 			int retries = 0;
 			while (1) {
 				unsigned char ch;
@@ -236,11 +211,10 @@ static void tty_setspeed(struct file *f, int speed)
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
 	{
-		/*  Set speed */
+		
 		struct termios settings;
 
 		tty_ioctl(f, TCGETS, (unsigned long)&settings);
-/* printk("Speed: %d\n", settings.c_cflag & (CBAUD | CBAUDEX)); */
 		settings.c_iflag = 0;
 		settings.c_oflag = 0;
 		settings.c_lflag = 0;
@@ -282,10 +256,9 @@ static void tty_setspeed(struct file *f, int speed)
 			break;
 		}
 		tty_ioctl(f, TCSETS, (unsigned long)&settings);
-/* printk("Speed: %d\n", settings.c_cflag & (CBAUD | CBAUDEX)); */
 	}
 	{
-		/*  Set low latency */
+		
 		struct serial_struct settings;
 
 		tty_ioctl(f, TIOCGSERIAL, (unsigned long)&settings);
@@ -431,7 +404,7 @@ static int serial_2002_open(struct comedi_device *dev)
 		}
 
 		tty_setspeed(devpriv->tty, devpriv->speed);
-		poll_channel(devpriv->tty, 31);	/*  Start reading configuration */
+		poll_channel(devpriv->tty, 31);	
 		while (1) {
 			struct serial_data data;
 
@@ -564,7 +537,7 @@ static int serial_2002_open(struct comedi_device *dev)
 			}
 		}
 		for (i = 0; i <= 4; i++) {
-			/*  Fill in subdev data */
+			
 			struct config_t *c;
 			unsigned char *mapping = NULL;
 			struct serial2002_range_table_t *range = NULL;
@@ -628,7 +601,7 @@ static int serial_2002_open(struct comedi_device *dev)
 				    kmalloc(sizeof(unsigned int) * s->n_chan,
 					    GFP_KERNEL);
 				if (!s->maxdata_list)
-					break;	/* error handled below */
+					break;	
 				kfree(s->range_table_list);
 				s->range_table = NULL;
 				s->range_table_list = NULL;
@@ -639,7 +612,7 @@ static int serial_2002_open(struct comedi_device *dev)
 						     serial2002_range_table_t) *
 						    s->n_chan, GFP_KERNEL);
 					if (!s->range_table_list)
-						break;	/* err handled below */
+						break;	
 				}
 				for (chan = 0, j = 0; j < 32; j++) {
 					if (c[j].kind == kind) {
@@ -665,8 +638,6 @@ static int serial_2002_open(struct comedi_device *dev)
 			}
 		}
 		if (i <= 4) {
-			/* Failed to allocate maxdata_list or range_table_list
-			 * for a subdevice that needed it.  */
 			result = -ENOMEM;
 			for (i = 0; i <= 4; i++) {
 				struct comedi_subdevice *s;
@@ -838,7 +809,7 @@ static int serial2002_attach(struct comedi_device *dev,
 	if (alloc_subdevices(dev, 5) < 0)
 		return -ENOMEM;
 
-	/* digital input subdevice */
+	
 	s = dev->subdevices + 0;
 	s->type = COMEDI_SUBD_DI;
 	s->subdev_flags = SDF_READABLE;
@@ -847,7 +818,7 @@ static int serial2002_attach(struct comedi_device *dev,
 	s->range_table = &range_digital;
 	s->insn_read = &serial2002_di_rinsn;
 
-	/* digital output subdevice */
+	
 	s = dev->subdevices + 1;
 	s->type = COMEDI_SUBD_DO;
 	s->subdev_flags = SDF_WRITEABLE;
@@ -856,7 +827,7 @@ static int serial2002_attach(struct comedi_device *dev,
 	s->range_table = &range_digital;
 	s->insn_write = &serial2002_do_winsn;
 
-	/* analog input subdevice */
+	
 	s = dev->subdevices + 2;
 	s->type = COMEDI_SUBD_AI;
 	s->subdev_flags = SDF_READABLE | SDF_GROUND;
@@ -865,7 +836,7 @@ static int serial2002_attach(struct comedi_device *dev,
 	s->range_table = 0;
 	s->insn_read = &serial2002_ai_rinsn;
 
-	/* analog output subdevice */
+	
 	s = dev->subdevices + 3;
 	s->type = COMEDI_SUBD_AO;
 	s->subdev_flags = SDF_WRITEABLE;
@@ -875,7 +846,7 @@ static int serial2002_attach(struct comedi_device *dev,
 	s->insn_write = &serial2002_ao_winsn;
 	s->insn_read = &serial2002_ao_rinsn;
 
-	/* encoder input subdevice */
+	
 	s = dev->subdevices + 4;
 	s->type = COMEDI_SUBD_COUNTER;
 	s->subdev_flags = SDF_READABLE | SDF_LSAMPL;

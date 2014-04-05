@@ -15,9 +15,6 @@
 
 #include "adt7316.h"
 
-/*
- * adt7316 register access by I2C
- */
 static int adt7316_i2c_read(void *client, u8 reg, u8 *data)
 {
 	struct i2c_client *cl = client;
@@ -88,9 +85,6 @@ static int adt7316_i2c_multi_write(void *client, u8 reg, u8 count, u8 *data)
 	return 0;
 }
 
-/*
- * device probe and remove
- */
 
 static int __devinit adt7316_i2c_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)

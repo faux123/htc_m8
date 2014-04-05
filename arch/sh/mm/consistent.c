@@ -45,10 +45,6 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
 	if (!ret)
 		return NULL;
 
-	/*
-	 * Pages from the page allocator may have data present in
-	 * cache. So flush the cache before using uncached memory.
-	 */
 	dma_cache_sync(dev, ret, size, DMA_BIDIRECTIONAL);
 
 	ret_nocache = (void __force *)ioremap_nocache(virt_to_phys(ret), size);
@@ -87,13 +83,13 @@ void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
 	       (void *)CAC_ADDR((unsigned long)vaddr) : vaddr;
 
 	switch (direction) {
-	case DMA_FROM_DEVICE:		/* invalidate only */
+	case DMA_FROM_DEVICE:		
 		__flush_invalidate_region(addr, size);
 		break;
-	case DMA_TO_DEVICE:		/* writeback only */
+	case DMA_TO_DEVICE:		
 		__flush_wback_region(addr, size);
 		break;
-	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
+	case DMA_BIDIRECTIONAL:		
 		__flush_purge_region(addr, size);
 		break;
 	default:
@@ -104,7 +100,7 @@ EXPORT_SYMBOL(dma_cache_sync);
 
 static int __init memchunk_setup(char *str)
 {
-	return 1; /* accept anything that begins with "memchunk." */
+	return 1; 
 }
 __setup("memchunk.", memchunk_setup);
 
@@ -114,7 +110,7 @@ static void __init memchunk_cmdline_override(char *name, unsigned long *sizep)
 	int k = strlen(name);
 
 	while ((p = strstr(p, "memchunk."))) {
-		p += 9; /* strlen("memchunk.") */
+		p += 9; 
 		if (!strncmp(name, p, k) && p[k] == '=') {
 			p += k + 1;
 			*sizep = memparse(p, NULL);

@@ -56,4 +56,4 @@ extern int gfs2_shrink_qd_memory(struct shrinker *shrink,
 				 struct shrink_control *sc);
 extern const struct quotactl_ops gfs2_quotactl_ops;
 
-#endif /* __QUOTA_DOT_H__ */
+#endif 

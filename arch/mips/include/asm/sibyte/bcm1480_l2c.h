@@ -35,9 +35,6 @@
 
 #include "sb1250_defs.h"
 
-/*
- * Format of level 2 cache management address (Table 55)
- */
 
 #define S_BCM1480_L2C_MGMT_INDEX            5
 #define M_BCM1480_L2C_MGMT_INDEX            _SB_MAKEMASK(12, S_BCM1480_L2C_MGMT_INDEX)
@@ -63,9 +60,6 @@
 #define BCM1480_L2C_NUM_WAYS                8
 
 
-/*
- * Level 2 Cache Tag register (Table 59)
- */
 
 #define S_BCM1480_L2C_TAG_MBZ               0
 #define M_BCM1480_L2C_TAG_MBZ               _SB_MAKEMASK(5, S_BCM1480_L2C_TAG_MBZ)
@@ -75,7 +69,6 @@
 #define V_BCM1480_L2C_TAG_INDEX(x)          _SB_MAKEVALUE(x, S_BCM1480_L2C_TAG_INDEX)
 #define G_BCM1480_L2C_TAG_INDEX(x)          _SB_GETVALUE(x, S_BCM1480_L2C_TAG_INDEX, M_BCM1480_L2C_TAG_INDEX)
 
-/* Note that index bit 16 is also tag bit 40 */
 #define S_BCM1480_L2C_TAG_TAG               17
 #define M_BCM1480_L2C_TAG_TAG               _SB_MAKEMASK(23, S_BCM1480_L2C_TAG_TAG)
 #define V_BCM1480_L2C_TAG_TAG(x)            _SB_MAKEVALUE(x, S_BCM1480_L2C_TAG_TAG)
@@ -100,9 +93,6 @@
 #define G_BCM1480_L2C_DATA_ECC(x)           _SB_GETVALUE(x, S_BCM1480_L2C_DATA_ECC, M_BCM1480_L2C_DATA_ECC)
 
 
-/*
- * L2 Misc0 Value Register (Table 60)
- */
 
 #define S_BCM1480_L2C_MISC0_WAY_REMOTE      0
 #define M_BCM1480_L2C_MISC0_WAY_REMOTE      _SB_MAKEMASK(8, S_BCM1480_L2C_MISC0_WAY_REMOTE)
@@ -131,9 +121,6 @@
 #define M_BCM1480_L2C_MISC0_ECC_CLEANUP      _SB_MAKEMASK1(S_BCM1480_L2C_MISC0_ECC_CLEANUP)
 
 
-/*
- * L2 Misc1 Value Register (Table 60)
- */
 
 #define S_BCM1480_L2C_MISC1_WAY_AGENT_0      0
 #define M_BCM1480_L2C_MISC1_WAY_AGENT_0      _SB_MAKEMASK(8, S_BCM1480_L2C_MISC1_WAY_AGENT_0)
@@ -156,9 +143,6 @@
 #define G_BCM1480_L2C_MISC1_WAY_AGENT_4(x)   _SB_GETVALUE(x, S_BCM1480_L2C_MISC1_WAY_AGENT_4, M_BCM1480_L2C_MISC1_WAY_AGENT_4)
 
 
-/*
- * L2 Misc2 Value Register (Table 60)
- */
 
 #define S_BCM1480_L2C_MISC2_WAY_AGENT_8      0
 #define M_BCM1480_L2C_MISC2_WAY_AGENT_8      _SB_MAKEMASK(8, S_BCM1480_L2C_MISC2_WAY_AGENT_8)
@@ -173,4 +157,4 @@
 #define G_BCM1480_L2C_MISC2_WAY_AGENT_A(x)   _SB_GETVALUE(x, S_BCM1480_L2C_MISC2_WAY_AGENT_A, M_BCM1480_L2C_MISC2_WAY_AGENT_A)
 
 
-#endif /* _BCM1480_L2C_H */
+#endif 

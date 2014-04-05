@@ -39,7 +39,7 @@
 #include <asm/tlbflush.h>
 
 #include <asm/io.h>
-#include <asm/irq.h>		/* for CPU_IRQ_REGION and friends */
+#include <asm/irq.h>		
 #include <asm/mmu_context.h>
 #include <asm/page.h>
 #include <asm/pgtable.h>
@@ -57,11 +57,10 @@ static int smp_debug_lvl = 0;
 			printk(printargs);
 #else
 #define smp_debug(lvl, ...)	do { } while(0)
-#endif /* DEBUG_SMP */
+#endif 
 
 volatile struct task_struct *smp_init_current_idle_task;
 
-/* track which CPU is booting */
 static volatile int cpu_now_booting __cpuinitdata;
 
 static int parisc_max_cpus __cpuinitdata = 1;
@@ -79,14 +78,9 @@ enum ipi_message_type {
 };
 
 
-/********** SMP inter processor interrupt and communication routines */
 
 #undef PER_CPU_IRQ_REGION
 #ifdef PER_CPU_IRQ_REGION
-/* XXX REVISIT Ignore for now.
-**    *May* need this "hook" to register IPI handler
-**    once we have perCPU ExtIntr switch tables.
-*/
 static void
 ipi_init(int cpuid)
 {
@@ -102,15 +96,11 @@ ipi_init(int cpuid)
 #endif
 
 
-/*
-** Yoink this CPU from the runnable list... 
-**
-*/
 static void
 halt_processor(void) 
 {
-	/* REVISIT : redirect I/O Interrupts to another CPU? */
-	/* REVISIT : does PM *know* this CPU isn't available? */
+	
+	
 	set_cpu_online(smp_processor_id(), false);
 	local_irq_disable();
 	for (;;)
@@ -126,10 +116,10 @@ ipi_interrupt(int irq, void *dev_id)
 	unsigned long ops;
 	unsigned long flags;
 
-	/* Count this now; we may make a call that never returns. */
+	
 	p->ipi_count++;
 
-	mb();	/* Order interrupt and bit testing. */
+	mb();	
 
 	for (;;) {
 		spinlock_t *lock = &per_cpu(ipi_lock, this_cpu);
@@ -138,7 +128,7 @@ ipi_interrupt(int irq, void *dev_id)
 		p->pending_ipi = 0;
 		spin_unlock_irqrestore(lock, flags);
 
-		mb(); /* Order bit clearing and data access. */
+		mb(); 
 
 		if (!ops)
 		    break;
@@ -185,11 +175,11 @@ ipi_interrupt(int irq, void *dev_id)
 				printk(KERN_CRIT "Unknown IPI num on CPU%d: %lu\n",
 					this_cpu, which);
 				return IRQ_NONE;
-			} /* Switch */
-		/* let in any pending interrupts */
+			} 
+		
 		local_irq_enable();
 		local_irq_disable();
-		} /* while (ops) */
+		} 
 	}
 	return IRQ_HANDLED;
 }
@@ -262,10 +252,6 @@ void arch_send_call_function_single_ipi(int cpu)
 	send_IPI_single(cpu, IPI_CALL_FUNC_SINGLE);
 }
 
-/*
- * Flush all other CPU's tlb and then mine.  Do this with on_each_cpu()
- * as we want to ensure all TLB's flushed before proceeding.
- */
 
 void
 smp_flush_tlb_all(void)
@@ -273,26 +259,23 @@ smp_flush_tlb_all(void)
 	on_each_cpu(flush_tlb_all_local, NULL, 1);
 }
 
-/*
- * Called by secondaries to update state and initialize CPU registers.
- */
 static void __init
 smp_cpu_init(int cpunum)
 {
-	extern int init_per_cpu(int);  /* arch/parisc/kernel/processor.c */
-	extern void init_IRQ(void);    /* arch/parisc/kernel/irq.c */
-	extern void start_cpu_itimer(void); /* arch/parisc/kernel/time.c */
+	extern int init_per_cpu(int);  
+	extern void init_IRQ(void);    
+	extern void start_cpu_itimer(void); 
 
-	/* Set modes and Enable floating point coprocessor */
+	
 	(void) init_per_cpu(cpunum);
 
 	disable_sr_hashing();
 
 	mb();
 
-	/* Well, support 2.4 linux scheme as well. */
+	
 	if (cpu_online(cpunum))	{
-		extern void machine_halt(void); /* arch/parisc.../process.c */
+		extern void machine_halt(void); 
 
 		printk(KERN_CRIT "CPU#%d already initialized!\n", cpunum);
 		machine_halt();
@@ -304,21 +287,17 @@ smp_cpu_init(int cpunum)
 	set_cpu_online(cpunum, true);
 	ipi_call_unlock();
 
-	/* Initialise the idle task for this CPU */
+	
 	atomic_inc(&init_mm.mm_count);
 	current->active_mm = &init_mm;
 	BUG_ON(current->mm);
 	enter_lazy_tlb(&init_mm, current);
 
-	init_IRQ();   /* make sure no IRQs are enabled or pending */
+	init_IRQ();   
 	start_cpu_itimer();
 }
 
 
-/*
- * Slaves start using C here. Indirectly called from smp_slave_stext.
- * Do what start_kernel() and main() do for boot strap processor (aka monarch)
- */
 void __init smp_callin(void)
 {
 	int slave_id = cpu_now_booting;
@@ -326,35 +305,23 @@ void __init smp_callin(void)
 	smp_cpu_init(slave_id);
 	preempt_disable();
 
-	flush_cache_all_local(); /* start with known state */
+	flush_cache_all_local(); 
 	flush_tlb_all_local(NULL);
 
-	local_irq_enable();  /* Interrupts have been off until now */
+	local_irq_enable();  
 
-	cpu_idle();      /* Wait for timer to schedule some work */
+	cpu_idle();      
 
-	/* NOTREACHED */
+	
 	panic("smp_callin() AAAAaaaaahhhh....\n");
 }
 
-/*
- * Bring one cpu online.
- */
 int __cpuinit smp_boot_one_cpu(int cpuid)
 {
 	const struct cpuinfo_parisc *p = &per_cpu(cpu_data, cpuid);
 	struct task_struct *idle;
 	long timeout;
 
-	/* 
-	 * Create an idle task for this CPU.  Note the address wed* give 
-	 * to kernel_thread is irrelevant -- it's going to start
-	 * where OS_BOOT_RENDEVZ vector in SAL says to start.  But
-	 * this gets all the other task-y sort of data structures set
-	 * up like we wish.   We need to pull the just created idle task 
-	 * off the run queue and stuff it into the init_tasks[] array.  
-	 * Sheesh . . .
-	 */
 
 	idle = fork_idle(cpuid);
 	if (IS_ERR(idle))
@@ -362,40 +329,19 @@ int __cpuinit smp_boot_one_cpu(int cpuid)
 
 	task_thread_info(idle)->cpu = cpuid;
 
-	/* Let _start know what logical CPU we're booting
-	** (offset into init_tasks[],cpu_data[])
-	*/
 	cpu_now_booting = cpuid;
 
-	/* 
-	** boot strap code needs to know the task address since
-	** it also contains the process stack.
-	*/
 	smp_init_current_idle_task = idle ;
 	mb();
 
 	printk(KERN_INFO "Releasing cpu %d now, hpa=%lx\n", cpuid, p->hpa);
 
-	/*
-	** This gets PDC to release the CPU from a very tight loop.
-	**
-	** From the PA-RISC 2.0 Firmware Architecture Reference Specification:
-	** "The MEM_RENDEZ vector specifies the location of OS_RENDEZ which 
-	** is executed after receiving the rendezvous signal (an interrupt to 
-	** EIR{0}). MEM_RENDEZ is valid only when it is nonzero and the 
-	** contents of memory are valid."
-	*/
 	gsc_writel(TIMER_IRQ - CPU_IRQ_BASE, p->hpa);
 	mb();
 
-	/* 
-	 * OK, wait a bit for that CPU to finish staggering about. 
-	 * Slave will set a bit when it reaches smp_cpu_init().
-	 * Once the "monarch CPU" sees the bit change, it can move on.
-	 */
 	for (timeout = 0; timeout < 10000; timeout++) {
 		if(cpu_online(cpuid)) {
-			/* Which implies Slave has started up */
+			
 			cpu_now_booting = 0;
 			smp_init_current_idle_task = NULL;
 			goto alive ;
@@ -411,7 +357,7 @@ int __cpuinit smp_boot_one_cpu(int cpuid)
 	return -1;
 
 alive:
-	/* Remember the Slave data */
+	
 	smp_debug(100, KERN_DEBUG "SMP: CPU:%d came alive after %ld _us\n",
 		cpuid, timeout * 100);
 	return 0;
@@ -421,7 +367,7 @@ void __init smp_prepare_boot_cpu(void)
 {
 	int bootstrap_processor = per_cpu(cpu_data, 0).cpuid;
 
-	/* Setup BSP mappings */
+	
 	printk(KERN_INFO "SMP: bootstrap CPU ID is %d\n", bootstrap_processor);
 
 	set_cpu_online(bootstrap_processor, true);
@@ -430,10 +376,6 @@ void __init smp_prepare_boot_cpu(void)
 
 
 
-/*
-** inventory.c:do_inventory() hasn't yet been run and thus we
-** don't 'discover' the additional CPUs until later.
-*/
 void __init smp_prepare_cpus(unsigned int max_cpus)
 {
 	int cpu;

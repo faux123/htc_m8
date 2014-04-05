@@ -1,6 +1,3 @@
-/*
- * These are copied from glibc/stdlib/longlong.h
- */
 
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   do {                                                                  \
@@ -42,7 +39,7 @@
     if (__r1 < __m)							\
       {									\
 	__q1--, __r1 += (d);						\
-	if (__r1 >= (d)) /* i.e. we didn't get carry when adding to __r1 */\
+	if (__r1 >= (d)) \
 	  if (__r1 < __m)						\
 	    __q1--, __r1 += (d);					\
       }									\

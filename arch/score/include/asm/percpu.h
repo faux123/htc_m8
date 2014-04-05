@@ -3,4 +3,4 @@
 
 #include <asm-generic/percpu.h>
 
-#endif /* _ASM_SCORE_PERCPU_H */
+#endif 

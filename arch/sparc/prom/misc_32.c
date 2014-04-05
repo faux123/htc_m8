@@ -18,19 +18,17 @@ extern void restore_current(void);
 
 DEFINE_SPINLOCK(prom_lock);
 
-/* Reset and reboot the machine with the command 'bcommand'. */
 void
 prom_reboot(char *bcommand)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&prom_lock, flags);
 	(*(romvec->pv_reboot))(bcommand);
-	/* Never get here. */
+	
 	restore_current();
 	spin_unlock_irqrestore(&prom_lock, flags);
 }
 
-/* Forth evaluate the expression contained in 'fstring'. */
 void
 prom_feval(char *fstring)
 {
@@ -47,9 +45,6 @@ prom_feval(char *fstring)
 }
 EXPORT_SYMBOL(prom_feval);
 
-/* Drop into the prom, with the chance to continue with the 'go'
- * prom command.
- */
 void
 prom_cmdline(void)
 {
@@ -62,9 +57,6 @@ prom_cmdline(void)
 	set_auxio(AUXIO_LED, 0);
 }
 
-/* Drop into the prom, but completely terminate the program.
- * No chance of continuing.
- */
 void __noreturn
 prom_halt(void)
 {
@@ -72,15 +64,14 @@ prom_halt(void)
 again:
 	spin_lock_irqsave(&prom_lock, flags);
 	(*(romvec->pv_halt))();
-	/* Never get here. */
+	
 	restore_current();
 	spin_unlock_irqrestore(&prom_lock, flags);
-	goto again; /* PROM is out to get me -DaveM */
+	goto again; 
 }
 
 typedef void (*sfunc_t)(void);
 
-/* Set prom sync handler to call function 'funcp'. */
 void
 prom_setsync(sfunc_t funcp)
 {
@@ -88,10 +79,6 @@ prom_setsync(sfunc_t funcp)
 	*romvec->pv_synchook = funcp;
 }
 
-/* Get the idprom and stuff it into buffer 'idbuf'.  Returns the
- * format type.  'num_bytes' is the number of bytes that your idbuf
- * has space for.  Returns 0xff on error.
- */
 unsigned char
 prom_get_idprom(char *idbuf, int num_bytes)
 {
@@ -105,21 +92,18 @@ prom_get_idprom(char *idbuf, int num_bytes)
 	return 0xff;
 }
 
-/* Get the major prom version number. */
 int
 prom_version(void)
 {
 	return romvec->pv_romvers;
 }
 
-/* Get the prom plugin-revision. */
 int
 prom_getrev(void)
 {
 	return prom_rev;
 }
 
-/* Get the prom firmware print revision. */
 int
 prom_getprev(void)
 {

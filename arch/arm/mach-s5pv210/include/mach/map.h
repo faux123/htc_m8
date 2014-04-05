@@ -98,7 +98,6 @@
 #define S5PV210_PA_HDMI			0xFA100000
 #define S5PV210_PA_IIC_HDMIPHY		0xFA900000
 
-/* Compatibiltiy Defines */
 
 #define S3C_PA_FB			S5PV210_PA_FB
 #define S3C_PA_HSMMC0			S5PV210_PA_HSMMC(0)
@@ -140,7 +139,6 @@
 #define SAMSUNG_PA_CFCON		S5PV210_PA_CFCON
 #define SAMSUNG_PA_KEYPAD		S5PV210_PA_KEYPAD
 
-/* UART */
 
 #define S3C_VA_UARTx(x)			(S3C_VA_UART + ((x) * S3C_UART_OFFSET))
 
@@ -154,4 +152,4 @@
 
 #define S5P_SZ_UART			SZ_256
 
-#endif /* __ASM_ARCH_MAP_H */
+#endif 

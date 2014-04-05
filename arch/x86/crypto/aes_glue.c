@@ -1,7 +1,3 @@
-/*
- * Glue Code for the asm optimized version of the AES Cipher Algorithm
- *
- */
 
 #include <linux/module.h>
 #include <crypto/aes.h>

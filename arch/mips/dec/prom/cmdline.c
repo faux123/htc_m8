@@ -19,9 +19,6 @@ void __init prom_init_cmdline(s32 argc, s32 *argv, u32 magic)
 	char *arg;
 	int start_arg, i;
 
-	/*
-	 * collect args and prepare cmd_line
-	 */
 	if (!prom_is_rex(magic))
 		start_arg = 1;
 	else

@@ -13,6 +13,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/of.h>
+#include <linux/string.h>
 #include <linux/regulator/machine.h>
 
 static void of_get_regulation_constraints(struct device_node *np,
@@ -31,10 +32,10 @@ static void of_get_regulation_constraints(struct device_node *np,
 	if (max_uV)
 		constraints->max_uV = be32_to_cpu(*max_uV);
 
-	/* Voltage change possible? */
+	
 	if (constraints->min_uV != constraints->max_uV)
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
-	/* Only one voltage?  Then make sure it's set. */
+	
 	if (min_uV && max_uV && constraints->min_uV == constraints->max_uV)
 		constraints->apply_uV = true;
 
@@ -48,7 +49,7 @@ static void of_get_regulation_constraints(struct device_node *np,
 	if (max_uA)
 		constraints->max_uA = be32_to_cpu(*max_uA);
 
-	/* Current change possible? */
+	
 	if (constraints->min_uA != constraints->max_uA)
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
 
@@ -57,31 +58,92 @@ static void of_get_regulation_constraints(struct device_node *np,
 
 	if (of_find_property(np, "regulator-always-on", NULL))
 		constraints->always_on = true;
-	else /* status change should be possible if not always on. */
+	else 
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_STATUS;
 }
 
-/**
- * of_get_regulator_init_data - extract regulator_init_data structure info
- * @dev: device requesting for regulator_init_data
- *
- * Populates regulator_init_data structure by extracting data from device
- * tree node, returns a pointer to the populated struture or NULL if memory
- * alloc fails.
- */
+static const char *consumer_supply_prop_name = "qcom,consumer-supplies";
+#define MAX_DEV_NAME_LEN 256
+static int of_get_qcom_regulator_init_data(struct device *dev,
+					struct regulator_init_data **init_data)
+{
+	struct device_node *node = dev->of_node;
+	struct regulator_consumer_supply *consumer_supplies;
+	int i, rc, num_consumer_supplies, array_len;
+
+	array_len = of_property_count_strings(node, consumer_supply_prop_name);
+	if (array_len > 0) {
+		
+		if (array_len & 1) {
+			dev_err(dev, "error: %s device node property value "
+				"contains an odd number of elements: %d\n",
+				consumer_supply_prop_name, array_len);
+			return -EINVAL;
+		}
+		num_consumer_supplies = array_len / 2;
+
+		consumer_supplies = devm_kzalloc(dev,
+			sizeof(struct regulator_consumer_supply)
+			* num_consumer_supplies, GFP_KERNEL);
+		if (consumer_supplies == NULL) {
+			dev_err(dev, "devm_kzalloc failed\n");
+			return -ENOMEM;
+		}
+
+		for (i = 0; i < num_consumer_supplies; i++) {
+			rc = of_property_read_string_index(node,
+				consumer_supply_prop_name, i * 2,
+				&consumer_supplies[i].supply);
+			if (rc) {
+				dev_err(dev, "of_property_read_string_index "
+					"failed, rc=%d\n", rc);
+				devm_kfree(dev, consumer_supplies);
+				return rc;
+			}
+
+			rc = of_property_read_string_index(node,
+				consumer_supply_prop_name, (i * 2) + 1,
+				&consumer_supplies[i].dev_name);
+			if (rc) {
+				dev_err(dev, "of_property_read_string_index "
+					"failed, rc=%d\n", rc);
+				devm_kfree(dev, consumer_supplies);
+				return rc;
+			}
+
+			
+			if (strnlen(consumer_supplies[i].dev_name,
+					MAX_DEV_NAME_LEN) == 0)
+				consumer_supplies[i].dev_name = NULL;
+		}
+
+		(*init_data)->consumer_supplies = consumer_supplies;
+		(*init_data)->num_consumer_supplies = num_consumer_supplies;
+	}
+
+	return 0;
+}
+
 struct regulator_init_data *of_get_regulator_init_data(struct device *dev,
 						struct device_node *node)
 {
 	struct regulator_init_data *init_data;
+	int rc;
 
 	if (!node)
 		return NULL;
 
 	init_data = devm_kzalloc(dev, sizeof(*init_data), GFP_KERNEL);
 	if (!init_data)
-		return NULL; /* Out of memory? */
+		return NULL; 
 
 	of_get_regulation_constraints(node, &init_data);
+	rc = of_get_qcom_regulator_init_data(dev, &init_data);
+	if (rc) {
+		devm_kfree(dev, init_data);
+		return NULL;
+	}
+
 	return init_data;
 }
 EXPORT_SYMBOL_GPL(of_get_regulator_init_data);

@@ -24,7 +24,6 @@ struct pcap_keys {
 	struct input_dev *input;
 };
 
-/* PCAP2 interrupts us on keypress */
 static irqreturn_t pcap_keys_handler(int irq, void *_pcap_keys)
 {
 	struct pcap_keys *pcap_keys = _pcap_keys;

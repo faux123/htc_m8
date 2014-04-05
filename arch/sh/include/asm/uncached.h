@@ -12,10 +12,6 @@ extern int virt_addr_uncached(unsigned long kaddr);
 extern void uncached_init(void);
 extern void uncached_resize(unsigned long size);
 
-/*
- * Jump to uncached area.
- * When handling TLB or caches, we need to do it from an uncached area.
- */
 #define jump_to_uncached()			\
 do {						\
 	unsigned long __dummy;			\
@@ -31,9 +27,6 @@ do {						\
 		: "r" (cached_to_uncached));	\
 } while (0)
 
-/*
- * Back to cached area.
- */
 #define back_to_cached()				\
 do {							\
 	unsigned long __dummy;				\
@@ -55,4 +48,4 @@ do {							\
 #define back_to_cached()		do { } while (0)
 #endif
 
-#endif /* __ASM_SH_UNCACHED_H */
+#endif 

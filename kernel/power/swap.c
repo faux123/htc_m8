@@ -51,18 +51,11 @@
 
 #define MAP_PAGE_ENTRIES	(PAGE_SIZE / sizeof(sector_t) - 1)
 
-/*
- * Number of free pages that are not high.
- */
 static inline unsigned long low_free_pages(void)
 {
 	return nr_free_pages() - nr_free_highpages();
 }
 
-/*
- * Number of pages required to be kept free while writing the image. Always
- * half of all available low pages before the writing starts.
- */
 static inline unsigned long reqd_free_pages(void)
 {
 	return low_free_pages() / 2;
@@ -78,10 +71,6 @@ struct swap_map_page_list {
 	struct swap_map_page_list *next;
 };
 
-/**
- *	The swap_map_handle structure is used for handling swap in
- *	a file-alike way
- */
 
 struct swap_map_handle {
 	struct swap_map_page *cur;
@@ -98,17 +87,13 @@ struct swsusp_header {
 	              sizeof(u32)];
 	u32	crc32;
 	sector_t image;
-	unsigned int flags;	/* Flags to pass to the "boot" kernel */
+	unsigned int flags;	
 	char	orig_sig[10];
 	char	sig[10];
 } __attribute__((packed));
 
 static struct swsusp_header *swsusp_header;
 
-/**
- *	The following functions are used for tracing the allocated
- *	swap pages, so that they can be freed in case of an error.
- */
 
 struct swsusp_extent {
 	struct rb_node node;
@@ -124,30 +109,30 @@ static int swsusp_extents_insert(unsigned long swap_offset)
 	struct rb_node *parent = NULL;
 	struct swsusp_extent *ext;
 
-	/* Figure out where to put the new node */
+	
 	while (*new) {
 		ext = container_of(*new, struct swsusp_extent, node);
 		parent = *new;
 		if (swap_offset < ext->start) {
-			/* Try to merge */
+			
 			if (swap_offset == ext->start - 1) {
 				ext->start--;
 				return 0;
 			}
 			new = &((*new)->rb_left);
 		} else if (swap_offset > ext->end) {
-			/* Try to merge */
+			
 			if (swap_offset == ext->end + 1) {
 				ext->end++;
 				return 0;
 			}
 			new = &((*new)->rb_right);
 		} else {
-			/* It already is in the tree */
+			
 			return -EINVAL;
 		}
 	}
-	/* Add the new node and rebalance the tree. */
+	
 	ext = kzalloc(sizeof(struct swsusp_extent), GFP_KERNEL);
 	if (!ext)
 		return -ENOMEM;
@@ -159,10 +144,6 @@ static int swsusp_extents_insert(unsigned long swap_offset)
 	return 0;
 }
 
-/**
- *	alloc_swapdev_block - allocate a swap page and register that it has
- *	been allocated, so that it can be freed in case of an error.
- */
 
 sector_t alloc_swapdev_block(int swap)
 {
@@ -178,11 +159,6 @@ sector_t alloc_swapdev_block(int swap)
 	return 0;
 }
 
-/**
- *	free_all_swap_pages - free swap pages allocated for saving image data.
- *	It also frees the extents used to register which swap entries had been
- *	allocated.
- */
 
 void free_all_swap_pages(int swap)
 {
@@ -206,16 +182,10 @@ int swsusp_swap_in_use(void)
 	return (swsusp_extents.rb_node != NULL);
 }
 
-/*
- * General things
- */
 
 static unsigned short root_swap = 0xffff;
 struct block_device *hib_resume_bdev;
 
-/*
- * Saving part
- */
 
 static int mark_swapfiles(struct swap_map_handle *handle, unsigned int flags)
 {
@@ -239,12 +209,6 @@ static int mark_swapfiles(struct swap_map_handle *handle, unsigned int flags)
 	return error;
 }
 
-/**
- *	swsusp_swap_check - check if the resume device is a swap device
- *	and get its index (if so)
- *
- *	This is called before saving image
- */
 static int swsusp_swap_check(void)
 {
 	int res;
@@ -266,12 +230,6 @@ static int swsusp_swap_check(void)
 	return res;
 }
 
-/**
- *	write_page - Write one page to given swap location.
- *	@buf:		Address we're writing.
- *	@offset:	Offset of the swap page we're writing to.
- *	@bio_chain:	Link the next write BIO here
- */
 
 static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 {
@@ -286,7 +244,7 @@ static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 		if (src) {
 			copy_page(src, buf);
 		} else {
-			ret = hib_wait_on_bio_chain(bio_chain); /* Free pages */
+			ret = hib_wait_on_bio_chain(bio_chain); 
 			if (ret)
 				return ret;
 			src = (void *)__get_free_page(__GFP_WAIT | __GFP_HIGH);
@@ -294,7 +252,7 @@ static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 				copy_page(src, buf);
 			} else {
 				WARN_ON_ONCE(1);
-				bio_chain = NULL;	/* Go synchronous */
+				bio_chain = NULL;	
 				src = buf;
 			}
 		}
@@ -404,28 +362,20 @@ static int swap_writer_finish(struct swap_map_handle *handle,
 	return error;
 }
 
-/* We need to remember how much compressed data we need to read. */
 #define LZO_HEADER	sizeof(size_t)
 
-/* Number of pages/bytes we'll compress at one time. */
 #define LZO_UNC_PAGES	32
 #define LZO_UNC_SIZE	(LZO_UNC_PAGES * PAGE_SIZE)
 
-/* Number of pages/bytes we need for compressed data (worst case). */
 #define LZO_CMP_PAGES	DIV_ROUND_UP(lzo1x_worst_compress(LZO_UNC_SIZE) + \
 			             LZO_HEADER, PAGE_SIZE)
 #define LZO_CMP_SIZE	(LZO_CMP_PAGES * PAGE_SIZE)
 
-/* Maximum number of threads for compression/decompression. */
 #define LZO_THREADS	3
 
-/* Maximum number of pages for read buffering. */
 #define LZO_READ_PAGES	(MAP_PAGE_ENTRIES * 8)
 
 
-/**
- *	save_image - save the suspend image data
- */
 
 static int save_image(struct swap_map_handle *handle,
                       struct snapshot_handle *snapshot,
@@ -470,24 +420,18 @@ static int save_image(struct swap_map_handle *handle,
 	return ret;
 }
 
-/**
- * Structure used for CRC32.
- */
 struct crc_data {
-	struct task_struct *thr;                  /* thread */
-	atomic_t ready;                           /* ready to start flag */
-	atomic_t stop;                            /* ready to stop flag */
-	unsigned run_threads;                     /* nr current threads */
-	wait_queue_head_t go;                     /* start crc update */
-	wait_queue_head_t done;                   /* crc update done */
-	u32 *crc32;                               /* points to handle's crc32 */
-	size_t *unc_len[LZO_THREADS];             /* uncompressed lengths */
-	unsigned char *unc[LZO_THREADS];          /* uncompressed data */
+	struct task_struct *thr;                  
+	atomic_t ready;                           
+	atomic_t stop;                            
+	unsigned run_threads;                     
+	wait_queue_head_t go;                     
+	wait_queue_head_t done;                   
+	u32 *crc32;                               
+	size_t *unc_len[LZO_THREADS];             
+	unsigned char *unc[LZO_THREADS];          
 };
 
-/**
- * CRC32 update function that runs in its own thread.
- */
 static int crc32_threadfn(void *data)
 {
 	struct crc_data *d = data;
@@ -512,26 +456,20 @@ static int crc32_threadfn(void *data)
 	}
 	return 0;
 }
-/**
- * Structure used for LZO data compression.
- */
 struct cmp_data {
-	struct task_struct *thr;                  /* thread */
-	atomic_t ready;                           /* ready to start flag */
-	atomic_t stop;                            /* ready to stop flag */
-	int ret;                                  /* return code */
-	wait_queue_head_t go;                     /* start compression */
-	wait_queue_head_t done;                   /* compression done */
-	size_t unc_len;                           /* uncompressed length */
-	size_t cmp_len;                           /* compressed length */
-	unsigned char unc[LZO_UNC_SIZE];          /* uncompressed buffer */
-	unsigned char cmp[LZO_CMP_SIZE];          /* compressed buffer */
-	unsigned char wrk[LZO1X_1_MEM_COMPRESS];  /* compression workspace */
+	struct task_struct *thr;                  
+	atomic_t ready;                           
+	atomic_t stop;                            
+	int ret;                                  
+	wait_queue_head_t go;                     
+	wait_queue_head_t done;                   
+	size_t unc_len;                           
+	size_t cmp_len;                           
+	unsigned char unc[LZO_UNC_SIZE];          
+	unsigned char cmp[LZO_CMP_SIZE];          
+	unsigned char wrk[LZO1X_1_MEM_COMPRESS];  
 };
 
-/**
- * Compression function that runs in its own thread.
- */
 static int lzo_compress_threadfn(void *data)
 {
 	struct cmp_data *d = data;
@@ -557,12 +495,6 @@ static int lzo_compress_threadfn(void *data)
 	return 0;
 }
 
-/**
- * save_image_lzo - Save the suspend image data compressed with LZO.
- * @handle: Swap mam handle to use for saving the image.
- * @snapshot: Image to read data from.
- * @nr_to_write: Number of pages to save.
- */
 static int save_image_lzo(struct swap_map_handle *handle,
                           struct snapshot_handle *snapshot,
                           unsigned int nr_to_write)
@@ -580,10 +512,6 @@ static int save_image_lzo(struct swap_map_handle *handle,
 	struct cmp_data *data = NULL;
 	struct crc_data *crc = NULL;
 
-	/*
-	 * We'll limit the number of threads for compression to limit memory
-	 * footprint.
-	 */
 	nr_threads = num_online_cpus() - 1;
 	nr_threads = clamp_val(nr_threads, 1, LZO_THREADS);
 
@@ -611,9 +539,6 @@ static int save_image_lzo(struct swap_map_handle *handle,
 	}
 	memset(crc, 0, offsetof(struct crc_data, go));
 
-	/*
-	 * Start the compression threads.
-	 */
 	for (thr = 0; thr < nr_threads; thr++) {
 		init_waitqueue_head(&data[thr].go);
 		init_waitqueue_head(&data[thr].done);
@@ -630,15 +555,8 @@ static int save_image_lzo(struct swap_map_handle *handle,
 		}
 	}
 
-	/*
-	 * Adjust number of free pages after all allocations have been done.
-	 * We don't want to run out of pages when writing.
-	 */
 	handle->reqd_free_pages = reqd_free_pages();
 
-	/*
-	 * Start the CRC32 thread.
-	 */
 	init_waitqueue_head(&crc->go);
 	init_waitqueue_head(&crc->done);
 
@@ -724,14 +642,6 @@ static int save_image_lzo(struct swap_map_handle *handle,
 
 			*(size_t *)data[thr].cmp = data[thr].cmp_len;
 
-			/*
-			 * Given we are writing one page at a time to disk, we
-			 * copy that much from the buffer, although the last
-			 * bit will likely be smaller than full page. This is
-			 * OK - we saved the length of the compressed data, so
-			 * any garbage at the end will be discarded when we
-			 * read it.
-			 */
 			for (off = 0;
 			     off < LZO_HEADER + data[thr].cmp_len;
 			     off += PAGE_SIZE) {
@@ -775,12 +685,6 @@ out_clean:
 	return ret;
 }
 
-/**
- *	enough_swap - Make sure we have enough swap to save the image.
- *
- *	Returns TRUE or FALSE after checking the total amount of swap
- *	space avaiable from the resume partition.
- */
 
 static int enough_swap(unsigned int nr_pages, unsigned int flags)
 {
@@ -793,15 +697,6 @@ static int enough_swap(unsigned int nr_pages, unsigned int flags)
 	return free_swap > required;
 }
 
-/**
- *	swsusp_write - Write entire image and metadata.
- *	@flags: flags to pass to the "boot" kernel in the image header
- *
- *	It is important _NOT_ to umount filesystems at this point. We want
- *	them synced (in case something goes wrong) but we DO not want to mark
- *	filesystem clean: it is not. (And it does not matter, if we resume
- *	correctly, we'll mark system clean, anyway.)
- */
 
 int swsusp_write(unsigned int flags)
 {
@@ -844,10 +739,6 @@ out_finish:
 	return error;
 }
 
-/**
- *	The following functions allow us to read data using a swap map
- *	in a file-alike way
- */
 
 static void release_swap_reader(struct swap_map_handle *handle)
 {
@@ -872,7 +763,7 @@ static int get_swap_reader(struct swap_map_handle *handle,
 
 	*flags_p = swsusp_header->flags;
 
-	if (!swsusp_header->image) /* how can this happen? */
+	if (!swsusp_header->image) 
 		return -EINVAL;
 
 	handle->cur = NULL;
@@ -946,11 +837,6 @@ static int swap_reader_finish(struct swap_map_handle *handle)
 	return 0;
 }
 
-/**
- *	load_image - load the image using the swap map handle
- *	@handle and the snapshot handle @snapshot
- *	(assume there are @nr_pages pages to load)
- */
 
 static int load_image(struct swap_map_handle *handle,
                       struct snapshot_handle *snapshot,
@@ -1002,25 +888,19 @@ static int load_image(struct swap_map_handle *handle,
 	return ret;
 }
 
-/**
- * Structure used for LZO data decompression.
- */
 struct dec_data {
-	struct task_struct *thr;                  /* thread */
-	atomic_t ready;                           /* ready to start flag */
-	atomic_t stop;                            /* ready to stop flag */
-	int ret;                                  /* return code */
-	wait_queue_head_t go;                     /* start decompression */
-	wait_queue_head_t done;                   /* decompression done */
-	size_t unc_len;                           /* uncompressed length */
-	size_t cmp_len;                           /* compressed length */
-	unsigned char unc[LZO_UNC_SIZE];          /* uncompressed buffer */
-	unsigned char cmp[LZO_CMP_SIZE];          /* compressed buffer */
+	struct task_struct *thr;                  
+	atomic_t ready;                           
+	atomic_t stop;                            
+	int ret;                                  
+	wait_queue_head_t go;                     
+	wait_queue_head_t done;                   
+	size_t unc_len;                           
+	size_t cmp_len;                           
+	unsigned char unc[LZO_UNC_SIZE];          
+	unsigned char cmp[LZO_CMP_SIZE];          
 };
 
-/**
- * Deompression function that runs in its own thread.
- */
 static int lzo_decompress_threadfn(void *data)
 {
 	struct dec_data *d = data;
@@ -1046,12 +926,6 @@ static int lzo_decompress_threadfn(void *data)
 	return 0;
 }
 
-/**
- * load_image_lzo - Load compressed image data and decompress them with LZO.
- * @handle: Swap map handle to use for loading data.
- * @snapshot: Image to copy uncompressed data into.
- * @nr_to_read: Number of pages to load.
- */
 static int load_image_lzo(struct swap_map_handle *handle,
                           struct snapshot_handle *snapshot,
                           unsigned int nr_to_read)
@@ -1072,10 +946,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 	struct dec_data *data = NULL;
 	struct crc_data *crc = NULL;
 
-	/*
-	 * We'll limit the number of threads for decompression to limit memory
-	 * footprint.
-	 */
 	nr_threads = num_online_cpus() - 1;
 	nr_threads = clamp_val(nr_threads, 1, LZO_THREADS);
 
@@ -1103,9 +973,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 	}
 	memset(crc, 0, offsetof(struct crc_data, go));
 
-	/*
-	 * Start the decompression threads.
-	 */
 	for (thr = 0; thr < nr_threads; thr++) {
 		init_waitqueue_head(&data[thr].go);
 		init_waitqueue_head(&data[thr].done);
@@ -1122,9 +989,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 		}
 	}
 
-	/*
-	 * Start the CRC32 thread.
-	 */
 	init_waitqueue_head(&crc->go);
 	init_waitqueue_head(&crc->done);
 
@@ -1143,9 +1007,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 		goto out_clean;
 	}
 
-	/*
-	 * Adjust number of pages for read buffering, in case we are short.
-	 */
 	read_pages = (nr_free_pages() - snapshot_get_image_size()) >> 1;
 	read_pages = clamp_val(read_pages, LZO_CMP_PAGES, LZO_READ_PAGES);
 
@@ -1186,10 +1047,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 		for (i = 0; !eof && i < want; i++) {
 			ret = swap_read_page(handle, page[ring], &bio);
 			if (ret) {
-				/*
-				 * On real read error, finish. On end of data,
-				 * set EOF flag and just exit the read loop.
-				 */
 				if (handle->cur &&
 				    handle->cur->entries[handle->k]) {
 					goto out_finish;
@@ -1204,9 +1061,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 		asked += i;
 		want -= i;
 
-		/*
-		 * We are out of data, wait for some more.
-		 */
 		if (!have) {
 			if (!asked)
 				break;
@@ -1262,9 +1116,6 @@ static int load_image_lzo(struct swap_map_handle *handle,
 			wake_up(&data[thr].go);
 		}
 
-		/*
-		 * Wait for more data while we are decompressing.
-		 */
 		if (have < LZO_CMP_PAGES && asked) {
 			ret = hib_wait_on_bio_chain(&bio);
 			if (ret)
@@ -1400,9 +1251,6 @@ end:
 	return error;
 }
 
-/**
- *      swsusp_check - Check for swsusp signature in the resume device
- */
 
 int swsusp_check(void)
 {
@@ -1420,7 +1268,7 @@ int swsusp_check(void)
 
 		if (!memcmp(HIBERNATE_SIG, swsusp_header->sig, 10)) {
 			memcpy(swsusp_header->sig, swsusp_header->orig_sig, 10);
-			/* Reset swap signature now */
+			
 			error = hib_bio_write_page(swsusp_resume_block,
 						swsusp_header, NULL);
 		} else {
@@ -1442,9 +1290,6 @@ put:
 	return error;
 }
 
-/**
- *	swsusp_close - close swap device.
- */
 
 void swsusp_close(fmode_t mode)
 {

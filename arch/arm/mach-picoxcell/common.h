@@ -14,4 +14,4 @@
 
 extern struct sys_timer picoxcell_timer;
 
-#endif /* __PICOXCELL_COMMON_H__ */
+#endif 

@@ -15,7 +15,6 @@
 #ifndef _ASM_TILE_SIGFRAME_H
 #define _ASM_TILE_SIGFRAME_H
 
-/* Indicate that syscall return should not examine r0 */
 #define INT_SWINT_1_SIGRETURN (~0)
 
 #ifndef __ASSEMBLY__
@@ -23,11 +22,11 @@
 #include <arch/abi.h>
 
 struct rt_sigframe {
-	unsigned char save_area[C_ABI_SAVE_AREA_SIZE]; /* caller save area */
+	unsigned char save_area[C_ABI_SAVE_AREA_SIZE]; 
 	struct siginfo info;
 	struct ucontext uc;
 };
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* _ASM_TILE_SIGFRAME_H */
+#endif 

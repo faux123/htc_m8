@@ -121,7 +121,6 @@ enum mt352_reg_addr {
 	ADC_CTL_0          = 0x8F
 };
 
-/* here we assume 1/6MHz == 166.66kHz stepsize */
-#define IF_FREQUENCYx6 217    /* 6 * 36.16666666667MHz */
+#define IF_FREQUENCYx6 217    
 
-#endif                          /* _MT352_PRIV_ */
+#endif                          

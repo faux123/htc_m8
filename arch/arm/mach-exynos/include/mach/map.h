@@ -15,10 +15,6 @@
 
 #include <plat/map-base.h>
 
-/*
- * EXYNOS4 UART offset is 0x10000 but the older S5P SoCs are 0x400.
- * So need to define it, and here is to avoid redefinition warning.
- */
 #define S3C_UART_OFFSET			(0x10000)
 
 #include <plat/map-s5p.h>
@@ -167,7 +163,6 @@
 #define EXYNOS4_PA_SDRAM		0x40000000
 #define EXYNOS5_PA_SDRAM		0x40000000
 
-/* Compatibiltiy Defines */
 
 #define S3C_PA_HSMMC0			EXYNOS4_PA_HSMMC(0)
 #define S3C_PA_HSMMC1			EXYNOS4_PA_HSMMC(1)
@@ -211,7 +206,6 @@
 #define SAMSUNG_PA_ADC1			EXYNOS4_PA_ADC1
 #define SAMSUNG_PA_KEYPAD		EXYNOS4_PA_KEYPAD
 
-/* Compatibility UART */
 
 #define EXYNOS4_PA_UART0		0x13800000
 #define EXYNOS4_PA_UART1		0x13810000
@@ -227,4 +221,4 @@
 
 #define S3C_VA_UARTx(x)			(S3C_VA_UART + ((x) * S3C_UART_OFFSET))
 
-#endif /* __ASM_ARCH_MAP_H */
+#endif 

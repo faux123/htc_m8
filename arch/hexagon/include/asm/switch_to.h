@@ -1,7 +1,7 @@
 /*
  * Task switching definitions for the Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -31,4 +31,4 @@ extern struct task_struct *__switch_to(struct task_struct *,
 	r = __switch_to((p), (n), (r));\
 } while (0)
 
-#endif /* _ASM_SWITCH_TO_H */
+#endif 

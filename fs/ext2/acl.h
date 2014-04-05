@@ -1,8 +1,3 @@
-/*
-  File: fs/ext2/acl.h
-
-  (C) 2001 Andreas Gruenbacher, <a.gruenbacher@computer.org>
-*/
 
 #include <linux/posix_acl_xattr.h>
 
@@ -53,7 +48,6 @@ static inline int ext2_acl_count(size_t size)
 
 #ifdef CONFIG_EXT2_FS_POSIX_ACL
 
-/* acl.c */
 extern struct posix_acl *ext2_get_acl(struct inode *inode, int type);
 extern int ext2_acl_chmod (struct inode *);
 extern int ext2_init_acl (struct inode *, struct inode *);

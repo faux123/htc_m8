@@ -24,17 +24,16 @@
 #include <linux/spinlock.h>
 #include <linux/list.h>
 
-/* Define the descriptor of a daio resource */
 enum DAIOTYP {
 	LINEO1,
 	LINEO2,
 	LINEO3,
 	LINEO4,
-	SPDIFOO,	/* S/PDIF Out (Flexijack/Optical) */
+	SPDIFOO,	
 	LINEIM,
-	SPDIFIO,	/* S/PDIF In (Flexijack/Optical) on the card */
-	MIC,		/* Dedicated mic on Titanium HD */
-	SPDIFI1,	/* S/PDIF In on internal Drive Bay */
+	SPDIFIO,	
+	MIC,		
+	SPDIFI1,	
 	NUM_DAIOTYP
 };
 
@@ -43,14 +42,14 @@ struct dai_rsc_ops;
 struct daio_mgr;
 
 struct daio {
-	struct rsc rscl;	/* Basic resource info for left TX/RX */
-	struct rsc rscr;	/* Basic resource info for right TX/RX */
+	struct rsc rscl;	
+	struct rsc rscr;	
 	enum DAIOTYP type;
 };
 
 struct dao {
 	struct daio daio;
-	struct dao_rsc_ops *ops;	/* DAO specific operations */
+	struct dao_rsc_ops *ops;	
 	struct imapper **imappers;
 	struct daio_mgr *mgr;
 	void *hw;
@@ -59,7 +58,7 @@ struct dao {
 
 struct dai {
 	struct daio daio;
-	struct dai_rsc_ops *ops;	/* DAI specific operations */
+	struct dai_rsc_ops *ops;	
 	void *hw;
 	void *ctrl_blk;
 };
@@ -89,7 +88,6 @@ struct dai_rsc_ops {
 	int (*commit_write)(struct dai *dai);
 };
 
-/* Define daio resource request description info */
 struct daio_desc {
 	unsigned int type:4;
 	unsigned int msr:4;
@@ -97,17 +95,17 @@ struct daio_desc {
 };
 
 struct daio_mgr {
-	struct rsc_mgr mgr;	/* Basic resource manager info */
+	struct rsc_mgr mgr;	
 	spinlock_t mgr_lock;
 	spinlock_t imap_lock;
 	struct list_head imappers;
 	struct imapper *init_imap;
 	unsigned int init_imap_added;
 
-	 /* request one daio resource */
+	 
 	int (*get_daio)(struct daio_mgr *mgr,
 			const struct daio_desc *desc, struct daio **rdaio);
-	/* return one daio resource */
+	
 	int (*put_daio)(struct daio_mgr *mgr, struct daio *daio);
 	int (*daio_enable)(struct daio_mgr *mgr, struct daio *daio);
 	int (*daio_disable)(struct daio_mgr *mgr, struct daio *daio);
@@ -116,8 +114,7 @@ struct daio_mgr {
 	int (*commit_write)(struct daio_mgr *mgr);
 };
 
-/* Constructor and destructor of daio resource manager */
 int daio_mgr_create(void *hw, struct daio_mgr **rdaio_mgr);
 int daio_mgr_destroy(struct daio_mgr *daio_mgr);
 
-#endif /* CTDAIO_H */
+#endif 

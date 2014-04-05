@@ -36,11 +36,9 @@ struct wm831x_wdt_drvdata {
 	int update_state;
 };
 
-/* We can't use the sub-second values here but they're included
- * for completeness.  */
 static struct {
-	unsigned int time;  /* Seconds */
-	u16 val;            /* WDOG_TO value */
+	unsigned int time;  
+	u16 val;            
 } wm831x_wdt_cfgs[] = {
 	{  1, 2 },
 	{  2, 3 },
@@ -48,7 +46,7 @@ static struct {
 	{  8, 5 },
 	{ 16, 6 },
 	{ 32, 7 },
-	{ 33, 7 },  /* Actually 32.768s so include both, others round down */
+	{ 33, 7 },  
 };
 
 static int wm831x_wdt_start(struct watchdog_device *wdt_dev)
@@ -230,7 +228,7 @@ static int __devinit wm831x_wdt_probe(struct platform_device *pdev)
 	else
 		wm831x_wdt->timeout = wm831x_wdt_cfgs[i].time;
 
-	/* Apply any configuration */
+	
 	if (pdev->dev.parent->platform_data) {
 		chip_pdata = pdev->dev.parent->platform_data;
 		pdata = chip_pdata->watchdog;
@@ -266,7 +264,7 @@ static int __devinit wm831x_wdt_probe(struct platform_device *pdev)
 
 			driver_data->update_gpio = pdata->update_gpio;
 
-			/* Make sure the watchdog takes hardware updates */
+			
 			reg |= WM831X_WDOG_RST_SRC;
 		}
 

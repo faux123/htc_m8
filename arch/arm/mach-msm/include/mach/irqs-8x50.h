@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,7 +13,6 @@
 #ifndef __ASM_ARCH_MSM_IRQS_8XXX_H
 #define __ASM_ARCH_MSM_IRQS_8XXX_H
 
-/* MSM ACPU Interrupt Numbers */
 
 #define INT_A9_M2A_0         0
 #define INT_A9_M2A_1         1
@@ -57,7 +56,7 @@
 #define INT_TCSR_MPRPH_SC2   (32 + 6)
 #define INT_OP_PEN           (32 + 7)
 #define INT_AD_HSSD          (32 + 8)
-#define INT_ARM11_PM         (32 + 9)
+#define INT_ARMQC_PERFMON    (32 + 9)
 #define INT_SDMA_NON_SECURE  (32 + 10)
 #define INT_TSIF_IRQ         (32 + 11)
 #define INT_UART1DM_IRQ      (32 + 12)
@@ -85,4 +84,5 @@
 #define NR_MSM_IRQS 64
 #define NR_BOARD_IRQS 64
 
+#define INT_ADSP_A11_SMSM    INT_ADSP_A11
 #endif

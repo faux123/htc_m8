@@ -23,43 +23,24 @@
 
 asmlinkage void ret_from_fork(void);
 
-/* Points to the SDRAM backup memory for the stack that is currently in
- * L1 scratchpad memory.
- */
 void *current_l1_stack_save;
 
-/* The number of tasks currently using a L1 stack area.  The SRAM is
- * allocated/deallocated whenever this changes from/to zero.
- */
 int nr_l1stack_tasks;
 
-/* Start and length of the area in L1 scratchpad memory which we've allocated
- * for process stacks.
- */
 void *l1_stack_base;
 unsigned long l1_stack_len;
 
-/*
- * Powermanagement idle function, if any..
- */
 void (*pm_idle)(void) = NULL;
 EXPORT_SYMBOL(pm_idle);
 
 void (*pm_power_off)(void) = NULL;
 EXPORT_SYMBOL(pm_power_off);
 
-/*
- * The idle loop on BFIN
- */
 #ifdef CONFIG_IDLE_L1
 static void default_idle(void)__attribute__((l1_text));
 void cpu_idle(void)__attribute__((l1_text));
 #endif
 
-/*
- * This is our default idle handler.  We need to disable
- * interrupts here to ensure we don't miss a wakeup call.
- */
 static void default_idle(void)
 {
 #ifdef CONFIG_IPIPE
@@ -72,14 +53,9 @@ static void default_idle(void)
 	hard_local_irq_enable();
 }
 
-/*
- * The idle thread.  We try to conserve power, while trying to keep
- * overall latency low.  The architecture specific idle is passed
- * a value to indicate the level of "idleness" of the system.
- */
 void cpu_idle(void)
 {
-	/* endless idle loop with no priority at all */
+	
 	while (1) {
 		void (*idle)(void) = pm_idle;
 
@@ -99,11 +75,6 @@ void cpu_idle(void)
 	}
 }
 
-/*
- * This gets run with P1 containing the
- * function to call, and R1 containing
- * the "args".  Note P0 is clobbered on the way here.
- */
 void kernel_thread_helper(void);
 __asm__(".section .text\n"
 	".align 4\n"
@@ -111,9 +82,6 @@ __asm__(".section .text\n"
 	"\tsp += -12;\n\t"
 	"\tr0 = r1;\n\t" "\tcall (p1);\n\t" "\tcall _do_exit;\n" ".previous");
 
-/*
- * Create a kernel thread.
- */
 pid_t kernel_thread(int (*fn) (void *), void *arg, unsigned long flags)
 {
 	struct pt_regs regs;
@@ -124,8 +92,6 @@ pid_t kernel_thread(int (*fn) (void *), void *arg, unsigned long flags)
 	regs.p1 = (unsigned long)fn;
 	regs.pc = (unsigned long)kernel_thread_helper;
 	regs.orig_p0 = -1;
-	/* Set bit 2 to tell ret_from_fork we should be returning to kernel
-	   mode.  */
 	regs.ipend = 0x8002;
 	__asm__ __volatile__("%0 = syscfg;":"=da"(regs.syscfg):);
 	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL,
@@ -133,12 +99,6 @@ pid_t kernel_thread(int (*fn) (void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
-/*
- * Do necessary setup to start up a newly executed thread.
- *
- * pass the data segment into user programs if it exists,
- * it can't hurt anything as far as I can tell
- */
 void start_thread(struct pt_regs *regs, unsigned long new_ip, unsigned long new_sp)
 {
 	regs->pc = new_ip;
@@ -175,7 +135,7 @@ asmlinkage int bfin_clone(struct pt_regs *regs)
 		set_cpus_allowed_ptr(current, cpumask_of(smp_processor_id()));
 #endif
 
-	/* syscall2 puts clone_flags in r0 and usp in r1 */
+	
 	clone_flags = regs->r0;
 	newsp = regs->r1;
 	if (!newsp)
@@ -203,9 +163,6 @@ copy_thread(unsigned long clone_flags,
 	return 0;
 }
 
-/*
- * sys_execve() executes a new program.
- */
 asmlinkage int sys_execve(const char __user *name,
 			  const char __user *const __user *argv,
 			  const char __user *const __user *envp)
@@ -252,7 +209,7 @@ void finish_atomic_sections (struct pt_regs *regs)
 
 	switch (regs->pc) {
 	default:
-		/* not in middle of an atomic step, so resume like normal */
+		
 		return;
 
 	case ATOMIC_XCHG32 + 2:
@@ -268,45 +225,40 @@ void finish_atomic_sections (struct pt_regs *regs)
 
 	case ATOMIC_ADD32 + 2:
 		regs->r0 = regs->r1 + regs->r0;
-		/* fall through */
+		
 	case ATOMIC_ADD32 + 4:
 		put_user(regs->r0, up0);
 		break;
 
 	case ATOMIC_SUB32 + 2:
 		regs->r0 = regs->r1 - regs->r0;
-		/* fall through */
+		
 	case ATOMIC_SUB32 + 4:
 		put_user(regs->r0, up0);
 		break;
 
 	case ATOMIC_IOR32 + 2:
 		regs->r0 = regs->r1 | regs->r0;
-		/* fall through */
+		
 	case ATOMIC_IOR32 + 4:
 		put_user(regs->r0, up0);
 		break;
 
 	case ATOMIC_AND32 + 2:
 		regs->r0 = regs->r1 & regs->r0;
-		/* fall through */
+		
 	case ATOMIC_AND32 + 4:
 		put_user(regs->r0, up0);
 		break;
 
 	case ATOMIC_XOR32 + 2:
 		regs->r0 = regs->r1 ^ regs->r0;
-		/* fall through */
+		
 	case ATOMIC_XOR32 + 4:
 		put_user(regs->r0, up0);
 		break;
 	}
 
-	/*
-	 * We've finished the atomic section, and the only thing left for
-	 * userspace is to do a RTS, so we might as well handle that too
-	 * since we need to update the PC anyways.
-	 */
 	regs->pc = regs->rets;
 }
 
@@ -335,14 +287,6 @@ int in_mem_const(unsigned long addr, unsigned long size,
 	bfin_read_EBIU_AMBCTL##bctlnum() & B##bnum##RDYEN ? 0 : \
 	1; \
 })
-/*
- * We can't read EBIU banks that aren't enabled or we end up hanging
- * on the access to the async space.  Make sure we validate accesses
- * that cross async banks too.
- *	0 - found, but unusable
- *	1 - found & usable
- *	2 - not found
- */
 static
 int in_async(unsigned long addr, unsigned long size)
 {
@@ -378,7 +322,7 @@ int in_async(unsigned long addr, unsigned long size)
 		return 0;
 	}
 
-	/* not within async bounds */
+	
 	return 2;
 }
 
@@ -386,7 +330,7 @@ int bfin_mem_access_type(unsigned long addr, unsigned long size)
 {
 	int cpu = raw_smp_processor_id();
 
-	/* Check that things do not wrap around */
+	
 	if (addr > ULONG_MAX - size)
 		return -EFAULT;
 
@@ -420,7 +364,7 @@ int bfin_mem_access_type(unsigned long addr, unsigned long size)
 	switch (in_async(addr, size)) {
 	case 0: return -EFAULT;
 	case 1: return BFIN_MEM_ACCESS_CORE;
-	case 2: /* fall through */;
+	case 2: ;
 	}
 
 	if (in_mem_const(addr, size, BOOT_ROM_START, BOOT_ROM_LENGTH))
@@ -435,14 +379,13 @@ int bfin_mem_access_type(unsigned long addr, unsigned long size)
 #ifdef CONFIG_ACCESS_OK_L1
 __attribute__((l1_text))
 #endif
-/* Return 1 if access to memory range is OK, 0 otherwise */
 int _access_ok(unsigned long addr, unsigned long size)
 {
 	int aret;
 
 	if (size == 0)
 		return 1;
-	/* Check that things do not wrap around */
+	
 	if (addr > ULONG_MAX - size)
 		return 0;
 	if (segment_eq(get_fs(), KERNEL_DS))
@@ -460,7 +403,7 @@ int _access_ok(unsigned long addr, unsigned long size)
 # ifndef CONFIG_ROMFS_ON_MTD
 		if (0)
 # endif
-			/* For XIP, allow user space to use pointers within the ROMFS.  */
+			
 			if (in_mem(addr, size, memory_mtd_start, memory_mtd_end))
 				return 1;
 	} else {
@@ -510,4 +453,4 @@ int _access_ok(unsigned long addr, unsigned long size)
 	return 0;
 }
 EXPORT_SYMBOL(_access_ok);
-#endif /* CONFIG_ACCESS_CHECK */
+#endif 

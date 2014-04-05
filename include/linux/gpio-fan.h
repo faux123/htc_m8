@@ -23,14 +23,10 @@ struct gpio_fan_speed {
 
 struct gpio_fan_platform_data {
 	int			num_ctrl;
-	unsigned		*ctrl;	/* fan control GPIOs. */
-	struct gpio_fan_alarm	*alarm;	/* fan alarm GPIO. */
-	/*
-	 * Speed conversion array: rpm from/to GPIO bit field.
-	 * This array _must_ be sorted in ascending rpm order.
-	 */
+	unsigned		*ctrl;	
+	struct gpio_fan_alarm	*alarm;	
 	int			num_speed;
 	struct gpio_fan_speed	*speed;
 };
 
-#endif /* __LINUX_GPIO_FAN_H */
+#endif 

@@ -1,7 +1,3 @@
-/*
- * Generic UP xchg and cmpxchg using interrupt disablement.  Does not
- * support SMP.
- */
 
 #ifndef __ASM_GENERIC_CMPXCHG_H
 #define __ASM_GENERIC_CMPXCHG_H
@@ -15,10 +11,6 @@
 
 #ifndef xchg
 
-/*
- * This function doesn't exist, so you'll get a linker error if
- * something tries to do an invalidly-sized xchg().
- */
 extern void __xchg_called_with_bad_pointer(void);
 
 static inline
@@ -36,7 +28,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u8 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u8 */
+#endif 
 
 	case 2:
 #ifdef __xchg_u16
@@ -47,7 +39,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u16 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u16 */
+#endif 
 
 	case 4:
 #ifdef __xchg_u32
@@ -58,7 +50,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u32 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u32 */
+#endif 
 
 #ifdef CONFIG_64BIT
 	case 8:
@@ -70,8 +62,8 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u64 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u64 */
-#endif /* CONFIG_64BIT */
+#endif 
+#endif 
 
 	default:
 		__xchg_called_with_bad_pointer();
@@ -82,17 +74,11 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 #define xchg(ptr, x) \
 	((__typeof__(*(ptr))) __xchg((unsigned long)(x), (ptr), sizeof(*(ptr))))
 
-#endif /* xchg */
+#endif 
 
-/*
- * Atomic compare and exchange.
- *
- * Do not define __HAVE_ARCH_CMPXCHG because we want to use it to check whether
- * a cmpxchg primitive faster than repeated local irq save/restore exists.
- */
 #include <asm-generic/cmpxchg-local.h>
 
 #define cmpxchg(ptr, o, n)	cmpxchg_local((ptr), (o), (n))
 #define cmpxchg64(ptr, o, n)	cmpxchg64_local((ptr), (o), (n))
 
-#endif /* __ASM_GENERIC_CMPXCHG_H */
+#endif 

@@ -13,9 +13,6 @@
 
 #include <linux/thread_info.h>
 
-/*
- * dedicate E2 to keeping the current task pointer
- */
 #ifdef CONFIG_MN10300_CURRENT_IN_E2
 
 register struct task_struct *const current asm("e2") __attribute__((used));
@@ -34,4 +31,4 @@ struct task_struct *get_current(void)
 #define current get_current()
 #endif
 
-#endif /* _ASM_CURRENT_H */
+#endif 

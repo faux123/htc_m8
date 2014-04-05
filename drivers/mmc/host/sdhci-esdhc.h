@@ -14,9 +14,6 @@
 #ifndef _DRIVERS_MMC_SDHCI_ESDHC_H
 #define _DRIVERS_MMC_SDHCI_ESDHC_H
 
-/*
- * Ops and quirks for the Freescale eSDHC controller.
- */
 
 #define ESDHC_DEFAULT_QUIRKS	(SDHCI_QUIRK_FORCE_BLK_SZ_2048 | \
 				SDHCI_QUIRK_NO_BUSY_IRQ | \
@@ -33,10 +30,8 @@
 #define ESDHC_CLOCK_HCKEN	0x00000002
 #define ESDHC_CLOCK_IPGEN	0x00000001
 
-/* pltfm-specific */
 #define ESDHC_HOST_CONTROL_LE	0x20
 
-/* OF-specific */
 #define ESDHC_DMA_SYSCTL	0x40c
 #define ESDHC_DMA_SNOOP		0x00000040
 
@@ -78,4 +73,4 @@ out:
 	host->clock = clock;
 }
 
-#endif /* _DRIVERS_MMC_SDHCI_ESDHC_H */
+#endif 

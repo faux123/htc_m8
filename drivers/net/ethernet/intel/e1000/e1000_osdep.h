@@ -27,9 +27,6 @@
 *******************************************************************************/
 
 
-/* glue for the OS independent part of e1000
- * includes register access macros
- */
 
 #ifndef _E1000_OSDEP_H_
 #define _E1000_OSDEP_H_
@@ -106,4 +103,4 @@
 #define E1000_READ_ICH_FLASH_REG16(a, reg) ( \
     readw((a)->flash_address + reg))
 
-#endif /* _E1000_OSDEP_H_ */
+#endif 

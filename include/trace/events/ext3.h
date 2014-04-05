@@ -858,7 +858,6 @@ TRACE_EVENT(ext3_load_inode,
 		  (unsigned long) __entry->ino)
 );
 
-#endif /* _TRACE_EXT3_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

@@ -20,21 +20,16 @@
 extern char system_call_common[];
 
 #ifdef CONFIG_PPC64
-/* Bits in SRR1 that are copied from MSR */
 #define MSR_MASK	0xffffffff87c0ffffUL
 #else
 #define MSR_MASK	0x87c0ffff
 #endif
 
-/* Bits in XER */
 #define XER_SO		0x80000000U
 #define XER_OV		0x40000000U
 #define XER_CA		0x20000000U
 
 #ifdef CONFIG_PPC_FPU
-/*
- * Functions in ldstfp.S
- */
 extern int do_lfs(int rn, unsigned long ea);
 extern int do_lfd(int rn, unsigned long ea);
 extern int do_stfs(int rn, unsigned long ea);
@@ -45,9 +40,6 @@ extern int do_lxvd2x(int rn, unsigned long ea);
 extern int do_stxvd2x(int rn, unsigned long ea);
 #endif
 
-/*
- * Emulate the truncation of 64 bit values in 32-bit mode.
- */
 static unsigned long truncate_if_32bit(unsigned long msr, unsigned long val)
 {
 #ifdef __powerpc64__
@@ -57,22 +49,19 @@ static unsigned long truncate_if_32bit(unsigned long msr, unsigned long val)
 	return val;
 }
 
-/*
- * Determine whether a conditional branch instruction would branch.
- */
 static int __kprobes branch_taken(unsigned int instr, struct pt_regs *regs)
 {
 	unsigned int bo = (instr >> 21) & 0x1f;
 	unsigned int bi;
 
 	if ((bo & 4) == 0) {
-		/* decrement counter */
+		
 		--regs->ctr;
 		if (((bo >> 1) & 1) ^ (regs->ctr == 0))
 			return 0;
 	}
 	if ((bo & 0x10) == 0) {
-		/* check bit from CR */
+		
 		bi = (instr >> 16) & 0x1f;
 		if (((regs->ccr >> (31 - bi)) & 1) != ((bo >> 3) & 1))
 			return 0;
@@ -88,19 +77,16 @@ static long __kprobes address_ok(struct pt_regs *regs, unsigned long ea, int nb)
 	return __access_ok(ea, nb, USER_DS);
 }
 
-/*
- * Calculate effective address for a D-form instruction
- */
 static unsigned long __kprobes dform_ea(unsigned int instr, struct pt_regs *regs)
 {
 	int ra;
 	unsigned long ea;
 
 	ra = (instr >> 16) & 0x1f;
-	ea = (signed short) instr;		/* sign-extend */
+	ea = (signed short) instr;		
 	if (ra) {
 		ea += regs->gpr[ra];
-		if (instr & 0x04000000)		/* update forms */
+		if (instr & 0x04000000)		
 			regs->gpr[ra] = ea;
 	}
 
@@ -108,29 +94,23 @@ static unsigned long __kprobes dform_ea(unsigned int instr, struct pt_regs *regs
 }
 
 #ifdef __powerpc64__
-/*
- * Calculate effective address for a DS-form instruction
- */
 static unsigned long __kprobes dsform_ea(unsigned int instr, struct pt_regs *regs)
 {
 	int ra;
 	unsigned long ea;
 
 	ra = (instr >> 16) & 0x1f;
-	ea = (signed short) (instr & ~3);	/* sign-extend */
+	ea = (signed short) (instr & ~3);	
 	if (ra) {
 		ea += regs->gpr[ra];
-		if ((instr & 3) == 1)		/* update forms */
+		if ((instr & 3) == 1)		
 			regs->gpr[ra] = ea;
 	}
 
 	return truncate_if_32bit(regs->msr, ea);
 }
-#endif /* __powerpc64 */
+#endif 
 
-/*
- * Calculate effective address for an X-form instruction
- */
 static unsigned long __kprobes xform_ea(unsigned int instr, struct pt_regs *regs,
 				     int do_update)
 {
@@ -142,21 +122,17 @@ static unsigned long __kprobes xform_ea(unsigned int instr, struct pt_regs *regs
 	ea = regs->gpr[rb];
 	if (ra) {
 		ea += regs->gpr[ra];
-		if (do_update)		/* update forms */
+		if (do_update)		
 			regs->gpr[ra] = ea;
 	}
 
 	return truncate_if_32bit(regs->msr, ea);
 }
 
-/*
- * Return the largest power of 2, not greater than sizeof(unsigned long),
- * such that x is a multiple of it.
- */
 static inline unsigned long max_align(unsigned long x)
 {
 	x |= sizeof(unsigned long);
-	return x & -x;		/* isolates rightmost bit */
+	return x & -x;		
 }
 
 
@@ -211,7 +187,7 @@ static int __kprobes read_mem_unaligned(unsigned long *dest, unsigned long ea,
 	int err;
 	unsigned long x, b, c;
 
-	/* unaligned, do this in pieces */
+	
 	x = 0;
 	for (; nb > 0; nb -= c) {
 		c = max_align(ea);
@@ -227,10 +203,6 @@ static int __kprobes read_mem_unaligned(unsigned long *dest, unsigned long ea,
 	return 0;
 }
 
-/*
- * Read memory at address ea for nb bytes, return 0 for success
- * or -EFAULT if an error occurred.
- */
 static int __kprobes read_mem(unsigned long *dest, unsigned long ea, int nb,
 			      struct pt_regs *regs)
 {
@@ -271,7 +243,7 @@ static int __kprobes write_mem_unaligned(unsigned long val, unsigned long ea,
 	int err;
 	unsigned long c;
 
-	/* unaligned or little-endian, do this in pieces */
+	
 	for (; nb > 0; nb -= c) {
 		c = max_align(ea);
 		if (c > nb)
@@ -284,10 +256,6 @@ static int __kprobes write_mem_unaligned(unsigned long val, unsigned long ea,
 	return 0;
 }
 
-/*
- * Write memory at address ea for nb bytes, return 0 for success
- * or -EFAULT if an error occurred.
- */
 static int __kprobes write_mem(unsigned long val, unsigned long ea, int nb,
 			       struct pt_regs *regs)
 {
@@ -299,10 +267,6 @@ static int __kprobes write_mem(unsigned long val, unsigned long ea, int nb,
 }
 
 #ifdef CONFIG_PPC_FPU
-/*
- * Check the address and alignment, and call func to do the actual
- * load or store.
- */
 static int __kprobes do_fp_load(int rn, int (*func)(int, unsigned long),
 				unsigned long ea, int nb,
 				struct pt_regs *regs)
@@ -320,7 +284,7 @@ static int __kprobes do_fp_load(int rn, int (*func)(int, unsigned long),
 		err = read_mem_unaligned(&val[0], ea, nb, regs);
 		ptr += sizeof(unsigned long) - nb;
 	} else {
-		/* reading a double on 32-bit */
+		
 		err = read_mem_unaligned(&val[0], ea, 4, regs);
 		if (!err)
 			err = read_mem_unaligned(&val[1], ea + 4, 4, regs);
@@ -350,7 +314,7 @@ static int __kprobes do_fp_store(int rn, int (*func)(int, unsigned long),
 			return err;
 		err = write_mem_unaligned(val[0], ea, nb, regs);
 	} else {
-		/* writing a double on 32-bit */
+		
 		err = (*func)(rn, ptr);
 		if (err)
 			return err;
@@ -363,7 +327,6 @@ static int __kprobes do_fp_store(int rn, int (*func)(int, unsigned long),
 #endif
 
 #ifdef CONFIG_ALTIVEC
-/* For Altivec/VMX, no need to worry about alignment */
 static int __kprobes do_vec_load(int rn, int (*func)(int, unsigned long),
 				 unsigned long ea, struct pt_regs *regs)
 {
@@ -379,7 +342,7 @@ static int __kprobes do_vec_store(int rn, int (*func)(int, unsigned long),
 		return -EFAULT;
 	return (*func)(rn, ea);
 }
-#endif /* CONFIG_ALTIVEC */
+#endif 
 
 #ifdef CONFIG_VSX
 static int __kprobes do_vsx_load(int rn, int (*func)(int, unsigned long),
@@ -418,7 +381,7 @@ static int __kprobes do_vsx_store(int rn, int (*func)(int, unsigned long),
 		err = write_mem_unaligned(val[1], ea + 8, 8, regs);
 	return err;
 }
-#endif /* CONFIG_VSX */
+#endif 
 
 #define __put_user_asmx(x, addr, err, op, cr)		\
 	__asm__ __volatile__(				\
@@ -509,7 +472,7 @@ static void __kprobes do_cmp_signed(struct pt_regs *regs, long v1, long v2,
 {
 	unsigned int crval, shift;
 
-	crval = (regs->xer >> 31) & 1;		/* get SO bit */
+	crval = (regs->xer >> 31) & 1;		
 	if (v1 < v2)
 		crval |= 8;
 	else if (v1 > v2)
@@ -525,7 +488,7 @@ static void __kprobes do_cmp_unsigned(struct pt_regs *regs, unsigned long v1,
 {
 	unsigned int crval, shift;
 
-	crval = (regs->xer >> 31) & 1;		/* get SO bit */
+	crval = (regs->xer >> 31) & 1;		
 	if (v1 < v2)
 		crval |= 8;
 	else if (v1 > v2)
@@ -536,9 +499,6 @@ static void __kprobes do_cmp_unsigned(struct pt_regs *regs, unsigned long v1,
 	regs->ccr = (regs->ccr & ~(0xf << shift)) | (crval << shift);
 }
 
-/*
- * Elements of 32-bit rotate and mask instructions.
- */
 #define MASK32(mb, me)	((0xffffffffUL >> (mb)) + \
 			 ((signed long)-0x80000000L >> (me)) + ((me) >= (mb)))
 #ifdef __powerpc64__
@@ -551,13 +511,6 @@ static void __kprobes do_cmp_unsigned(struct pt_regs *regs, unsigned long v1,
 #endif
 #define ROTATE(x, n)	((n) ? (((x) << (n)) | ((x) >> (8 * sizeof(long) - (n)))) : (x))
 
-/*
- * Emulate instructions that cause a transfer of control,
- * loads and stores, and a few other instructions.
- * Returns 1 if the step was emulated, 0 if not,
- * or -1 if the instruction is one that should not be stepped,
- * such as an rfid, or a mtmsrd that would clear MSR_RI.
- */
 int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 {
 	unsigned int opcode, ra, rb, rd, spr, u;
@@ -571,7 +524,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 
 	opcode = instr >> 26;
 	switch (opcode) {
-	case 16:	/* bc */
+	case 16:	
 		imm = (signed short)(instr & 0xfffc);
 		if ((instr & 2) == 0)
 			imm += regs->nip;
@@ -583,12 +536,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			regs->nip = imm;
 		return 1;
 #ifdef CONFIG_PPC64
-	case 17:	/* sc */
-		/*
-		 * N.B. this uses knowledge about how the syscall
-		 * entry code works.  If that is changed, this will
-		 * need to be changed also.
-		 */
+	case 17:	
 		if (regs->gpr[0] == 0x1ebe &&
 		    cpu_has_feature(CPU_FTR_REAL_LE)) {
 			regs->msr ^= MSR_LE;
@@ -603,7 +551,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		regs->msr = MSR_KERNEL;
 		return 1;
 #endif
-	case 18:	/* b */
+	case 18:	
 		imm = instr & 0x03fffffc;
 		if (imm & 0x02000000)
 			imm -= 0x04000000;
@@ -616,8 +564,8 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		return 1;
 	case 19:
 		switch ((instr >> 1) & 0x3ff) {
-		case 16:	/* bclr */
-		case 528:	/* bcctr */
+		case 16:	
+		case 528:	
 			imm = (instr & 0x400)? regs->ctr: regs->link;
 			regs->nip = truncate_if_32bit(regs->msr, regs->nip + 4);
 			imm = truncate_if_32bit(regs->msr, imm);
@@ -627,21 +575,21 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->nip = imm;
 			return 1;
 
-		case 18:	/* rfid, scary */
+		case 18:	
 			return -1;
 
-		case 150:	/* isync */
+		case 150:	
 			isync();
 			goto instr_done;
 
-		case 33:	/* crnor */
-		case 129:	/* crandc */
-		case 193:	/* crxor */
-		case 225:	/* crnand */
-		case 257:	/* crand */
-		case 289:	/* creqv */
-		case 417:	/* crorc */
-		case 449:	/* cror */
+		case 33:	
+		case 129:	
+		case 193:	
+		case 225:	
+		case 257:	
+		case 289:	
+		case 417:	
+		case 449:	
 			ra = (instr >> 16) & 0x1f;
 			rb = (instr >> 11) & 0x1f;
 			rd = (instr >> 21) & 0x1f;
@@ -655,13 +603,13 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		break;
 	case 31:
 		switch ((instr >> 1) & 0x3ff) {
-		case 598:	/* sync */
+		case 598:	
 #ifdef __powerpc64__
 			switch ((instr >> 21) & 3) {
-			case 1:		/* lwsync */
+			case 1:		
 				asm volatile("lwsync" : : : "memory");
 				goto instr_done;
-			case 2:		/* ptesync */
+			case 2:		
 				asm volatile("ptesync" : : : "memory");
 				goto instr_done;
 			}
@@ -669,14 +617,14 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			mb();
 			goto instr_done;
 
-		case 854:	/* eieio */
+		case 854:	
 			eieio();
 			goto instr_done;
 		}
 		break;
 	}
 
-	/* Following cases refer to regs->gpr[], so we need all regs */
+	
 	if (!FULL_REGS(regs))
 		return 0;
 
@@ -685,16 +633,16 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 	rb = (instr >> 11) & 0x1f;
 
 	switch (opcode) {
-	case 7:		/* mulli */
+	case 7:		
 		regs->gpr[rd] = regs->gpr[ra] * (short) instr;
 		goto instr_done;
 
-	case 8:		/* subfic */
+	case 8:		
 		imm = (short) instr;
 		add_with_carry(regs, rd, ~regs->gpr[ra], imm, 1);
 		goto instr_done;
 
-	case 10:	/* cmpli */
+	case 10:	
 		imm = (unsigned short) instr;
 		val = regs->gpr[ra];
 #ifdef __powerpc64__
@@ -704,7 +652,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		do_cmp_unsigned(regs, val, imm, rd >> 2);
 		goto instr_done;
 
-	case 11:	/* cmpi */
+	case 11:	
 		imm = (short) instr;
 		val = regs->gpr[ra];
 #ifdef __powerpc64__
@@ -714,32 +662,32 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		do_cmp_signed(regs, val, imm, rd >> 2);
 		goto instr_done;
 
-	case 12:	/* addic */
+	case 12:	
 		imm = (short) instr;
 		add_with_carry(regs, rd, regs->gpr[ra], imm, 0);
 		goto instr_done;
 
-	case 13:	/* addic. */
+	case 13:	
 		imm = (short) instr;
 		add_with_carry(regs, rd, regs->gpr[ra], imm, 0);
 		set_cr0(regs, rd);
 		goto instr_done;
 
-	case 14:	/* addi */
+	case 14:	
 		imm = (short) instr;
 		if (ra)
 			imm += regs->gpr[ra];
 		regs->gpr[rd] = imm;
 		goto instr_done;
 
-	case 15:	/* addis */
+	case 15:	
 		imm = ((short) instr) << 16;
 		if (ra)
 			imm += regs->gpr[ra];
 		regs->gpr[rd] = imm;
 		goto instr_done;
 
-	case 20:	/* rlwimi */
+	case 20:	
 		mb = (instr >> 6) & 0x1f;
 		me = (instr >> 1) & 0x1f;
 		val = DATA32(regs->gpr[rd]);
@@ -747,14 +695,14 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		regs->gpr[ra] = (regs->gpr[ra] & ~imm) | (ROTATE(val, rb) & imm);
 		goto logical_done;
 
-	case 21:	/* rlwinm */
+	case 21:	
 		mb = (instr >> 6) & 0x1f;
 		me = (instr >> 1) & 0x1f;
 		val = DATA32(regs->gpr[rd]);
 		regs->gpr[ra] = ROTATE(val, rb) & MASK32(mb, me);
 		goto logical_done;
 
-	case 23:	/* rlwnm */
+	case 23:	
 		mb = (instr >> 6) & 0x1f;
 		me = (instr >> 1) & 0x1f;
 		rb = regs->gpr[rb] & 0x1f;
@@ -762,56 +710,56 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		regs->gpr[ra] = ROTATE(val, rb) & MASK32(mb, me);
 		goto logical_done;
 
-	case 24:	/* ori */
+	case 24:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] | imm;
 		goto instr_done;
 
-	case 25:	/* oris */
+	case 25:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] | (imm << 16);
 		goto instr_done;
 
-	case 26:	/* xori */
+	case 26:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] ^ imm;
 		goto instr_done;
 
-	case 27:	/* xoris */
+	case 27:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] ^ (imm << 16);
 		goto instr_done;
 
-	case 28:	/* andi. */
+	case 28:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] & imm;
 		set_cr0(regs, ra);
 		goto instr_done;
 
-	case 29:	/* andis. */
+	case 29:	
 		imm = (unsigned short) instr;
 		regs->gpr[ra] = regs->gpr[rd] & (imm << 16);
 		set_cr0(regs, ra);
 		goto instr_done;
 
 #ifdef __powerpc64__
-	case 30:	/* rld* */
+	case 30:	
 		mb = ((instr >> 6) & 0x1f) | (instr & 0x20);
 		val = regs->gpr[rd];
 		if ((instr & 0x10) == 0) {
 			sh = rb | ((instr & 2) << 4);
 			val = ROTATE(val, sh);
 			switch ((instr >> 2) & 3) {
-			case 0:		/* rldicl */
+			case 0:		
 				regs->gpr[ra] = val & MASK64_L(mb);
 				goto logical_done;
-			case 1:		/* rldicr */
+			case 1:		
 				regs->gpr[ra] = val & MASK64_R(mb);
 				goto logical_done;
-			case 2:		/* rldic */
+			case 2:		
 				regs->gpr[ra] = val & MASK64(mb, 63 - sh);
 				goto logical_done;
-			case 3:		/* rldimi */
+			case 3:		
 				imm = MASK64(mb, 63 - sh);
 				regs->gpr[ra] = (regs->gpr[ra] & ~imm) |
 					(val & imm);
@@ -821,10 +769,10 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			sh = regs->gpr[rb] & 0x3f;
 			val = ROTATE(val, sh);
 			switch ((instr >> 1) & 7) {
-			case 0:		/* rldcl */
+			case 0:		
 				regs->gpr[ra] = val & MASK64_L(mb);
 				goto logical_done;
-			case 1:		/* rldcr */
+			case 1:		
 				regs->gpr[ra] = val & MASK64_R(mb);
 				goto logical_done;
 			}
@@ -833,41 +781,41 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 
 	case 31:
 		switch ((instr >> 1) & 0x3ff) {
-		case 83:	/* mfmsr */
+		case 83:	
 			if (regs->msr & MSR_PR)
 				break;
 			regs->gpr[rd] = regs->msr & MSR_MASK;
 			goto instr_done;
-		case 146:	/* mtmsr */
+		case 146:	
 			if (regs->msr & MSR_PR)
 				break;
 			imm = regs->gpr[rd];
 			if ((imm & MSR_RI) == 0)
-				/* can't step mtmsr that would clear MSR_RI */
+				
 				return -1;
 			regs->msr = imm;
 			goto instr_done;
 #ifdef CONFIG_PPC64
-		case 178:	/* mtmsrd */
-			/* only MSR_EE and MSR_RI get changed if bit 15 set */
-			/* mtmsrd doesn't change MSR_HV and MSR_ME */
+		case 178:	
+			
+			
 			if (regs->msr & MSR_PR)
 				break;
 			imm = (instr & 0x10000)? 0x8002: 0xefffffffffffefffUL;
 			imm = (regs->msr & MSR_MASK & ~imm)
 				| (regs->gpr[rd] & imm);
 			if ((imm & MSR_RI) == 0)
-				/* can't step mtmsrd that would clear MSR_RI */
+				
 				return -1;
 			regs->msr = imm;
 			goto instr_done;
 #endif
-		case 19:	/* mfcr */
+		case 19:	
 			regs->gpr[rd] = regs->ccr;
 			regs->gpr[rd] &= 0xffffffffUL;
 			goto instr_done;
 
-		case 144:	/* mtcrf */
+		case 144:	
 			imm = 0xf0000000UL;
 			val = regs->gpr[rd];
 			for (sh = 0; sh < 8; ++sh) {
@@ -878,46 +826,43 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			}
 			goto instr_done;
 
-		case 339:	/* mfspr */
+		case 339:	
 			spr = (instr >> 11) & 0x3ff;
 			switch (spr) {
-			case 0x20:	/* mfxer */
+			case 0x20:	
 				regs->gpr[rd] = regs->xer;
 				regs->gpr[rd] &= 0xffffffffUL;
 				goto instr_done;
-			case 0x100:	/* mflr */
+			case 0x100:	
 				regs->gpr[rd] = regs->link;
 				goto instr_done;
-			case 0x120:	/* mfctr */
+			case 0x120:	
 				regs->gpr[rd] = regs->ctr;
 				goto instr_done;
 			}
 			break;
 
-		case 467:	/* mtspr */
+		case 467:	
 			spr = (instr >> 11) & 0x3ff;
 			switch (spr) {
-			case 0x20:	/* mtxer */
+			case 0x20:	
 				regs->xer = (regs->gpr[rd] & 0xffffffffUL);
 				goto instr_done;
-			case 0x100:	/* mtlr */
+			case 0x100:	
 				regs->link = regs->gpr[rd];
 				goto instr_done;
-			case 0x120:	/* mtctr */
+			case 0x120:	
 				regs->ctr = regs->gpr[rd];
 				goto instr_done;
 			}
 			break;
 
-/*
- * Compare instructions
- */
-		case 0:	/* cmp */
+		case 0:	
 			val = regs->gpr[ra];
 			val2 = regs->gpr[rb];
 #ifdef __powerpc64__
 			if ((rd & 1) == 0) {
-				/* word (32-bit) compare */
+				
 				val = (int) val;
 				val2 = (int) val2;
 			}
@@ -925,12 +870,12 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			do_cmp_signed(regs, val, val2, rd >> 2);
 			goto instr_done;
 
-		case 32:	/* cmpl */
+		case 32:	
 			val = regs->gpr[ra];
 			val2 = regs->gpr[rb];
 #ifdef __powerpc64__
 			if ((rd & 1) == 0) {
-				/* word (32-bit) compare */
+				
 				val = (unsigned int) val;
 				val2 = (unsigned int) val2;
 			}
@@ -938,172 +883,163 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			do_cmp_unsigned(regs, val, val2, rd >> 2);
 			goto instr_done;
 
-/*
- * Arithmetic instructions
- */
-		case 8:	/* subfc */
+		case 8:	
 			add_with_carry(regs, rd, ~regs->gpr[ra],
 				       regs->gpr[rb], 1);
 			goto arith_done;
 #ifdef __powerpc64__
-		case 9:	/* mulhdu */
+		case 9:	
 			asm("mulhdu %0,%1,%2" : "=r" (regs->gpr[rd]) :
 			    "r" (regs->gpr[ra]), "r" (regs->gpr[rb]));
 			goto arith_done;
 #endif
-		case 10:	/* addc */
+		case 10:	
 			add_with_carry(regs, rd, regs->gpr[ra],
 				       regs->gpr[rb], 0);
 			goto arith_done;
 
-		case 11:	/* mulhwu */
+		case 11:	
 			asm("mulhwu %0,%1,%2" : "=r" (regs->gpr[rd]) :
 			    "r" (regs->gpr[ra]), "r" (regs->gpr[rb]));
 			goto arith_done;
 
-		case 40:	/* subf */
+		case 40:	
 			regs->gpr[rd] = regs->gpr[rb] - regs->gpr[ra];
 			goto arith_done;
 #ifdef __powerpc64__
-		case 73:	/* mulhd */
+		case 73:	
 			asm("mulhd %0,%1,%2" : "=r" (regs->gpr[rd]) :
 			    "r" (regs->gpr[ra]), "r" (regs->gpr[rb]));
 			goto arith_done;
 #endif
-		case 75:	/* mulhw */
+		case 75:	
 			asm("mulhw %0,%1,%2" : "=r" (regs->gpr[rd]) :
 			    "r" (regs->gpr[ra]), "r" (regs->gpr[rb]));
 			goto arith_done;
 
-		case 104:	/* neg */
+		case 104:	
 			regs->gpr[rd] = -regs->gpr[ra];
 			goto arith_done;
 
-		case 136:	/* subfe */
+		case 136:	
 			add_with_carry(regs, rd, ~regs->gpr[ra], regs->gpr[rb],
 				       regs->xer & XER_CA);
 			goto arith_done;
 
-		case 138:	/* adde */
+		case 138:	
 			add_with_carry(regs, rd, regs->gpr[ra], regs->gpr[rb],
 				       regs->xer & XER_CA);
 			goto arith_done;
 
-		case 200:	/* subfze */
+		case 200:	
 			add_with_carry(regs, rd, ~regs->gpr[ra], 0L,
 				       regs->xer & XER_CA);
 			goto arith_done;
 
-		case 202:	/* addze */
+		case 202:	
 			add_with_carry(regs, rd, regs->gpr[ra], 0L,
 				       regs->xer & XER_CA);
 			goto arith_done;
 
-		case 232:	/* subfme */
+		case 232:	
 			add_with_carry(regs, rd, ~regs->gpr[ra], -1L,
 				       regs->xer & XER_CA);
 			goto arith_done;
 #ifdef __powerpc64__
-		case 233:	/* mulld */
+		case 233:	
 			regs->gpr[rd] = regs->gpr[ra] * regs->gpr[rb];
 			goto arith_done;
 #endif
-		case 234:	/* addme */
+		case 234:	
 			add_with_carry(regs, rd, regs->gpr[ra], -1L,
 				       regs->xer & XER_CA);
 			goto arith_done;
 
-		case 235:	/* mullw */
+		case 235:	
 			regs->gpr[rd] = (unsigned int) regs->gpr[ra] *
 				(unsigned int) regs->gpr[rb];
 			goto arith_done;
 
-		case 266:	/* add */
+		case 266:	
 			regs->gpr[rd] = regs->gpr[ra] + regs->gpr[rb];
 			goto arith_done;
 #ifdef __powerpc64__
-		case 457:	/* divdu */
+		case 457:	
 			regs->gpr[rd] = regs->gpr[ra] / regs->gpr[rb];
 			goto arith_done;
 #endif
-		case 459:	/* divwu */
+		case 459:	
 			regs->gpr[rd] = (unsigned int) regs->gpr[ra] /
 				(unsigned int) regs->gpr[rb];
 			goto arith_done;
 #ifdef __powerpc64__
-		case 489:	/* divd */
+		case 489:	
 			regs->gpr[rd] = (long int) regs->gpr[ra] /
 				(long int) regs->gpr[rb];
 			goto arith_done;
 #endif
-		case 491:	/* divw */
+		case 491:	
 			regs->gpr[rd] = (int) regs->gpr[ra] /
 				(int) regs->gpr[rb];
 			goto arith_done;
 
 
-/*
- * Logical instructions
- */
-		case 26:	/* cntlzw */
+		case 26:	
 			asm("cntlzw %0,%1" : "=r" (regs->gpr[ra]) :
 			    "r" (regs->gpr[rd]));
 			goto logical_done;
 #ifdef __powerpc64__
-		case 58:	/* cntlzd */
+		case 58:	
 			asm("cntlzd %0,%1" : "=r" (regs->gpr[ra]) :
 			    "r" (regs->gpr[rd]));
 			goto logical_done;
 #endif
-		case 28:	/* and */
+		case 28:	
 			regs->gpr[ra] = regs->gpr[rd] & regs->gpr[rb];
 			goto logical_done;
 
-		case 60:	/* andc */
+		case 60:	
 			regs->gpr[ra] = regs->gpr[rd] & ~regs->gpr[rb];
 			goto logical_done;
 
-		case 124:	/* nor */
+		case 124:	
 			regs->gpr[ra] = ~(regs->gpr[rd] | regs->gpr[rb]);
 			goto logical_done;
 
-		case 284:	/* xor */
+		case 284:	
 			regs->gpr[ra] = ~(regs->gpr[rd] ^ regs->gpr[rb]);
 			goto logical_done;
 
-		case 316:	/* xor */
+		case 316:	
 			regs->gpr[ra] = regs->gpr[rd] ^ regs->gpr[rb];
 			goto logical_done;
 
-		case 412:	/* orc */
+		case 412:	
 			regs->gpr[ra] = regs->gpr[rd] | ~regs->gpr[rb];
 			goto logical_done;
 
-		case 444:	/* or */
+		case 444:	
 			regs->gpr[ra] = regs->gpr[rd] | regs->gpr[rb];
 			goto logical_done;
 
-		case 476:	/* nand */
+		case 476:	
 			regs->gpr[ra] = ~(regs->gpr[rd] & regs->gpr[rb]);
 			goto logical_done;
 
-		case 922:	/* extsh */
+		case 922:	
 			regs->gpr[ra] = (signed short) regs->gpr[rd];
 			goto logical_done;
 
-		case 954:	/* extsb */
+		case 954:	
 			regs->gpr[ra] = (signed char) regs->gpr[rd];
 			goto logical_done;
 #ifdef __powerpc64__
-		case 986:	/* extsw */
+		case 986:	
 			regs->gpr[ra] = (signed int) regs->gpr[rd];
 			goto logical_done;
 #endif
 
-/*
- * Shift instructions
- */
-		case 24:	/* slw */
+		case 24:	
 			sh = regs->gpr[rb] & 0x3f;
 			if (sh < 32)
 				regs->gpr[ra] = (regs->gpr[rd] << sh) & 0xffffffffUL;
@@ -1111,7 +1047,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[ra] = 0;
 			goto logical_done;
 
-		case 536:	/* srw */
+		case 536:	
 			sh = regs->gpr[rb] & 0x3f;
 			if (sh < 32)
 				regs->gpr[ra] = (regs->gpr[rd] & 0xffffffffUL) >> sh;
@@ -1119,7 +1055,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[ra] = 0;
 			goto logical_done;
 
-		case 792:	/* sraw */
+		case 792:	
 			sh = regs->gpr[rb] & 0x3f;
 			ival = (signed int) regs->gpr[rd];
 			regs->gpr[ra] = ival >> (sh < 32 ? sh : 31);
@@ -1129,7 +1065,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->xer &= ~XER_CA;
 			goto logical_done;
 
-		case 824:	/* srawi */
+		case 824:	
 			sh = rb;
 			ival = (signed int) regs->gpr[rd];
 			regs->gpr[ra] = ival >> sh;
@@ -1140,7 +1076,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			goto logical_done;
 
 #ifdef __powerpc64__
-		case 27:	/* sld */
+		case 27:	
 			sh = regs->gpr[rd] & 0x7f;
 			if (sh < 64)
 				regs->gpr[ra] = regs->gpr[rd] << sh;
@@ -1148,7 +1084,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[ra] = 0;
 			goto logical_done;
 
-		case 539:	/* srd */
+		case 539:	
 			sh = regs->gpr[rb] & 0x7f;
 			if (sh < 64)
 				regs->gpr[ra] = regs->gpr[rd] >> sh;
@@ -1156,7 +1092,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[ra] = 0;
 			goto logical_done;
 
-		case 794:	/* srad */
+		case 794:	
 			sh = regs->gpr[rb] & 0x7f;
 			ival = (signed long int) regs->gpr[rd];
 			regs->gpr[ra] = ival >> (sh < 64 ? sh : 63);
@@ -1166,8 +1102,8 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->xer &= ~XER_CA;
 			goto logical_done;
 
-		case 826:	/* sradi with sh_5 = 0 */
-		case 827:	/* sradi with sh_5 = 1 */
+		case 826:	
+		case 827:	
 			sh = rb | ((instr & 2) << 4);
 			ival = (signed long int) regs->gpr[rd];
 			regs->gpr[ra] = ival >> sh;
@@ -1176,12 +1112,9 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			else
 				regs->xer &= ~XER_CA;
 			goto logical_done;
-#endif /* __powerpc64__ */
+#endif 
 
-/*
- * Cache instructions
- */
-		case 54:	/* dcbst */
+		case 54:	
 			ea = xform_ea(instr, regs, 0);
 			if (!address_ok(regs, ea, 8))
 				return 0;
@@ -1191,7 +1124,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				return 0;
 			goto instr_done;
 
-		case 86:	/* dcbf */
+		case 86:	
 			ea = xform_ea(instr, regs, 0);
 			if (!address_ok(regs, ea, 8))
 				return 0;
@@ -1201,14 +1134,14 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				return 0;
 			goto instr_done;
 
-		case 246:	/* dcbtst */
+		case 246:	
 			if (rd == 0) {
 				ea = xform_ea(instr, regs, 0);
 				prefetchw((void *) ea);
 			}
 			goto instr_done;
 
-		case 278:	/* dcbt */
+		case 278:	
 			if (rd == 0) {
 				ea = xform_ea(instr, regs, 0);
 				prefetch((void *) ea);
@@ -1219,27 +1152,19 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		break;
 	}
 
-	/*
-	 * Following cases are for loads and stores, so bail out
-	 * if we're in little-endian mode.
-	 */
 	if (regs->msr & MSR_LE)
 		return 0;
 
-	/*
-	 * Save register RA in case it's an update form load or store
-	 * and the access faults.
-	 */
 	old_ra = regs->gpr[ra];
 
 	switch (opcode) {
 	case 31:
 		u = instr & 0x40;
 		switch ((instr >> 1) & 0x3ff) {
-		case 20:	/* lwarx */
+		case 20:	
 			ea = xform_ea(instr, regs, 0);
 			if (ea & 3)
-				break;		/* can't handle misaligned */
+				break;		
 			err = -EFAULT;
 			if (!address_ok(regs, ea, 4))
 				goto ldst_done;
@@ -1249,10 +1174,10 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[rd] = val;
 			goto ldst_done;
 
-		case 150:	/* stwcx. */
+		case 150:	
 			ea = xform_ea(instr, regs, 0);
 			if (ea & 3)
-				break;		/* can't handle misaligned */
+				break;		
 			err = -EFAULT;
 			if (!address_ok(regs, ea, 4))
 				goto ldst_done;
@@ -1265,10 +1190,10 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			goto ldst_done;
 
 #ifdef __powerpc64__
-		case 84:	/* ldarx */
+		case 84:	
 			ea = xform_ea(instr, regs, 0);
 			if (ea & 7)
-				break;		/* can't handle misaligned */
+				break;		
 			err = -EFAULT;
 			if (!address_ok(regs, ea, 8))
 				goto ldst_done;
@@ -1278,10 +1203,10 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 				regs->gpr[rd] = val;
 			goto ldst_done;
 
-		case 214:	/* stdcx. */
+		case 214:	
 			ea = xform_ea(instr, regs, 0);
 			if (ea & 7)
-				break;		/* can't handle misaligned */
+				break;		
 			err = -EFAULT;
 			if (!address_ok(regs, ea, 8))
 				goto ldst_done;
@@ -1293,72 +1218,72 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 					((regs->xer >> 3) & 0x10000000);
 			goto ldst_done;
 
-		case 21:	/* ldx */
-		case 53:	/* ldux */
+		case 21:	
+		case 53:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       8, regs);
 			goto ldst_done;
 #endif
 
-		case 23:	/* lwzx */
-		case 55:	/* lwzux */
+		case 23:	
+		case 55:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       4, regs);
 			goto ldst_done;
 
-		case 87:	/* lbzx */
-		case 119:	/* lbzux */
+		case 87:	
+		case 119:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       1, regs);
 			goto ldst_done;
 
 #ifdef CONFIG_ALTIVEC
-		case 103:	/* lvx */
-		case 359:	/* lvxl */
+		case 103:	
+		case 359:	
 			if (!(regs->msr & MSR_VEC))
 				break;
 			ea = xform_ea(instr, regs, 0);
 			err = do_vec_load(rd, do_lvx, ea, regs);
 			goto ldst_done;
 
-		case 231:	/* stvx */
-		case 487:	/* stvxl */
+		case 231:	
+		case 487:	
 			if (!(regs->msr & MSR_VEC))
 				break;
 			ea = xform_ea(instr, regs, 0);
 			err = do_vec_store(rd, do_stvx, ea, regs);
 			goto ldst_done;
-#endif /* CONFIG_ALTIVEC */
+#endif 
 
 #ifdef __powerpc64__
-		case 149:	/* stdx */
-		case 181:	/* stdux */
+		case 149:	
+		case 181:	
 			val = regs->gpr[rd];
 			err = write_mem(val, xform_ea(instr, regs, u), 8, regs);
 			goto ldst_done;
 #endif
 
-		case 151:	/* stwx */
-		case 183:	/* stwux */
+		case 151:	
+		case 183:	
 			val = regs->gpr[rd];
 			err = write_mem(val, xform_ea(instr, regs, u), 4, regs);
 			goto ldst_done;
 
-		case 215:	/* stbx */
-		case 247:	/* stbux */
+		case 215:	
+		case 247:	
 			val = regs->gpr[rd];
 			err = write_mem(val, xform_ea(instr, regs, u), 1, regs);
 			goto ldst_done;
 
-		case 279:	/* lhzx */
-		case 311:	/* lhzux */
+		case 279:	
+		case 311:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       2, regs);
 			goto ldst_done;
 
 #ifdef __powerpc64__
-		case 341:	/* lwax */
-		case 373:	/* lwaux */
+		case 341:	
+		case 373:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       4, regs);
 			if (!err)
@@ -1366,22 +1291,22 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			goto ldst_done;
 #endif
 
-		case 343:	/* lhax */
-		case 375:	/* lhaux */
+		case 343:	
+		case 375:	
 			err = read_mem(&regs->gpr[rd], xform_ea(instr, regs, u),
 				       2, regs);
 			if (!err)
 				regs->gpr[rd] = (signed short) regs->gpr[rd];
 			goto ldst_done;
 
-		case 407:	/* sthx */
-		case 439:	/* sthux */
+		case 407:	
+		case 439:	
 			val = regs->gpr[rd];
 			err = write_mem(val, xform_ea(instr, regs, u), 2, regs);
 			goto ldst_done;
 
 #ifdef __powerpc64__
-		case 532:	/* ldbrx */
+		case 532:	
 			err = read_mem(&val, xform_ea(instr, regs, 0), 8, regs);
 			if (!err)
 				regs->gpr[rd] = byterev_8(val);
@@ -1389,39 +1314,39 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 
 #endif
 
-		case 534:	/* lwbrx */
+		case 534:	
 			err = read_mem(&val, xform_ea(instr, regs, 0), 4, regs);
 			if (!err)
 				regs->gpr[rd] = byterev_4(val);
 			goto ldst_done;
 
 #ifdef CONFIG_PPC_CPU
-		case 535:	/* lfsx */
-		case 567:	/* lfsux */
+		case 535:	
+		case 567:	
 			if (!(regs->msr & MSR_FP))
 				break;
 			ea = xform_ea(instr, regs, u);
 			err = do_fp_load(rd, do_lfs, ea, 4, regs);
 			goto ldst_done;
 
-		case 599:	/* lfdx */
-		case 631:	/* lfdux */
+		case 599:	
+		case 631:	
 			if (!(regs->msr & MSR_FP))
 				break;
 			ea = xform_ea(instr, regs, u);
 			err = do_fp_load(rd, do_lfd, ea, 8, regs);
 			goto ldst_done;
 
-		case 663:	/* stfsx */
-		case 695:	/* stfsux */
+		case 663:	
+		case 695:	
 			if (!(regs->msr & MSR_FP))
 				break;
 			ea = xform_ea(instr, regs, u);
 			err = do_fp_store(rd, do_stfs, ea, 4, regs);
 			goto ldst_done;
 
-		case 727:	/* stfdx */
-		case 759:	/* stfdux */
+		case 727:	
+		case 759:	
 			if (!(regs->msr & MSR_FP))
 				break;
 			ea = xform_ea(instr, regs, u);
@@ -1430,31 +1355,31 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 #endif
 
 #ifdef __powerpc64__
-		case 660:	/* stdbrx */
+		case 660:	
 			val = byterev_8(regs->gpr[rd]);
 			err = write_mem(val, xform_ea(instr, regs, 0), 8, regs);
 			goto ldst_done;
 
 #endif
-		case 662:	/* stwbrx */
+		case 662:	
 			val = byterev_4(regs->gpr[rd]);
 			err = write_mem(val, xform_ea(instr, regs, 0), 4, regs);
 			goto ldst_done;
 
-		case 790:	/* lhbrx */
+		case 790:	
 			err = read_mem(&val, xform_ea(instr, regs, 0), 2, regs);
 			if (!err)
 				regs->gpr[rd] = byterev_2(val);
 			goto ldst_done;
 
-		case 918:	/* sthbrx */
+		case 918:	
 			val = byterev_2(regs->gpr[rd]);
 			err = write_mem(val, xform_ea(instr, regs, 0), 2, regs);
 			goto ldst_done;
 
 #ifdef CONFIG_VSX
-		case 844:	/* lxvd2x */
-		case 876:	/* lxvd2ux */
+		case 844:	
+		case 876:	
 			if (!(regs->msr & MSR_VSX))
 				break;
 			rd |= (instr & 1) << 5;
@@ -1462,8 +1387,8 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			err = do_vsx_load(rd, do_lxvd2x, ea, regs);
 			goto ldst_done;
 
-		case 972:	/* stxvd2x */
-		case 1004:	/* stxvd2ux */
+		case 972:	
+		case 1004:	
 			if (!(regs->msr & MSR_VSX))
 				break;
 			rd |= (instr & 1) << 5;
@@ -1471,54 +1396,54 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 			err = do_vsx_store(rd, do_stxvd2x, ea, regs);
 			goto ldst_done;
 
-#endif /* CONFIG_VSX */
+#endif 
 		}
 		break;
 
-	case 32:	/* lwz */
-	case 33:	/* lwzu */
+	case 32:	
+	case 33:	
 		err = read_mem(&regs->gpr[rd], dform_ea(instr, regs), 4, regs);
 		goto ldst_done;
 
-	case 34:	/* lbz */
-	case 35:	/* lbzu */
+	case 34:	
+	case 35:	
 		err = read_mem(&regs->gpr[rd], dform_ea(instr, regs), 1, regs);
 		goto ldst_done;
 
-	case 36:	/* stw */
-	case 37:	/* stwu */
+	case 36:	
+	case 37:	
 		val = regs->gpr[rd];
 		err = write_mem(val, dform_ea(instr, regs), 4, regs);
 		goto ldst_done;
 
-	case 38:	/* stb */
-	case 39:	/* stbu */
+	case 38:	
+	case 39:	
 		val = regs->gpr[rd];
 		err = write_mem(val, dform_ea(instr, regs), 1, regs);
 		goto ldst_done;
 
-	case 40:	/* lhz */
-	case 41:	/* lhzu */
+	case 40:	
+	case 41:	
 		err = read_mem(&regs->gpr[rd], dform_ea(instr, regs), 2, regs);
 		goto ldst_done;
 
-	case 42:	/* lha */
-	case 43:	/* lhau */
+	case 42:	
+	case 43:	
 		err = read_mem(&regs->gpr[rd], dform_ea(instr, regs), 2, regs);
 		if (!err)
 			regs->gpr[rd] = (signed short) regs->gpr[rd];
 		goto ldst_done;
 
-	case 44:	/* sth */
-	case 45:	/* sthu */
+	case 44:	
+	case 45:	
 		val = regs->gpr[rd];
 		err = write_mem(val, dform_ea(instr, regs), 2, regs);
 		goto ldst_done;
 
-	case 46:	/* lmw */
+	case 46:	
 		ra = (instr >> 16) & 0x1f;
 		if (ra >= rd)
-			break;		/* invalid form, ra in range to load */
+			break;		
 		ea = dform_ea(instr, regs);
 		do {
 			err = read_mem(&regs->gpr[rd], ea, 4, regs);
@@ -1528,7 +1453,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		} while (++rd < 32);
 		goto instr_done;
 
-	case 47:	/* stmw */
+	case 47:	
 		ea = dform_ea(instr, regs);
 		do {
 			err = write_mem(regs->gpr[rd], ea, 4, regs);
@@ -1539,32 +1464,32 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		goto instr_done;
 
 #ifdef CONFIG_PPC_FPU
-	case 48:	/* lfs */
-	case 49:	/* lfsu */
+	case 48:	
+	case 49:	
 		if (!(regs->msr & MSR_FP))
 			break;
 		ea = dform_ea(instr, regs);
 		err = do_fp_load(rd, do_lfs, ea, 4, regs);
 		goto ldst_done;
 
-	case 50:	/* lfd */
-	case 51:	/* lfdu */
+	case 50:	
+	case 51:	
 		if (!(regs->msr & MSR_FP))
 			break;
 		ea = dform_ea(instr, regs);
 		err = do_fp_load(rd, do_lfd, ea, 8, regs);
 		goto ldst_done;
 
-	case 52:	/* stfs */
-	case 53:	/* stfsu */
+	case 52:	
+	case 53:	
 		if (!(regs->msr & MSR_FP))
 			break;
 		ea = dform_ea(instr, regs);
 		err = do_fp_store(rd, do_stfs, ea, 4, regs);
 		goto ldst_done;
 
-	case 54:	/* stfd */
-	case 55:	/* stfdu */
+	case 54:	
+	case 55:	
 		if (!(regs->msr & MSR_FP))
 			break;
 		ea = dform_ea(instr, regs);
@@ -1573,17 +1498,17 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 #endif
 
 #ifdef __powerpc64__
-	case 58:	/* ld[u], lwa */
+	case 58:	
 		switch (instr & 3) {
-		case 0:		/* ld */
+		case 0:		
 			err = read_mem(&regs->gpr[rd], dsform_ea(instr, regs),
 				       8, regs);
 			goto ldst_done;
-		case 1:		/* ldu */
+		case 1:		
 			err = read_mem(&regs->gpr[rd], dsform_ea(instr, regs),
 				       8, regs);
 			goto ldst_done;
-		case 2:		/* lwa */
+		case 2:		
 			err = read_mem(&regs->gpr[rd], dsform_ea(instr, regs),
 				       4, regs);
 			if (!err)
@@ -1592,18 +1517,18 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
 		}
 		break;
 
-	case 62:	/* std[u] */
+	case 62:	
 		val = regs->gpr[rd];
 		switch (instr & 3) {
-		case 0:		/* std */
+		case 0:		
 			err = write_mem(val, dsform_ea(instr, regs), 8, regs);
 			goto ldst_done;
-		case 1:		/* stdu */
+		case 1:		
 			err = write_mem(val, dsform_ea(instr, regs), 8, regs);
 			goto ldst_done;
 		}
 		break;
-#endif /* __powerpc64__ */
+#endif 
 
 	}
 	err = -EINVAL;
@@ -1611,7 +1536,7 @@ int __kprobes emulate_step(struct pt_regs *regs, unsigned int instr)
  ldst_done:
 	if (err) {
 		regs->gpr[ra] = old_ra;
-		return 0;	/* invoke DSI if -EFAULT? */
+		return 0;	
 	}
  instr_done:
 	regs->nip = truncate_if_32bit(regs->msr, regs->nip + 4);

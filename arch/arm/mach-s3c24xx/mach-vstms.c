@@ -108,9 +108,6 @@ static struct s3c2410_nand_set __initdata vstms_nand_sets[] = {
 	},
 };
 
-/* choose a set of timings which should suit most 512Mbit
- * chips and beyond.
-*/
 
 static struct s3c2410_platform_nand __initdata vstms_nand_info = {
 	.tacls		= 20,

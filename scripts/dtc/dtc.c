@@ -23,14 +23,11 @@
 
 #include "version_gen.h"
 
-/*
- * Command line options
- */
-int quiet;		/* Level of quietness */
-int reservenum;		/* Number of memory reservation slots */
-int minsize;		/* Minimum blob size */
-int padsize;		/* Additional padding to blob */
-int phandle_format = PHANDLE_BOTH;	/* Use linux,phandle or phandle properties */
+int quiet;		
+int reservenum;		
+int minsize;		
+int padsize;		
+int phandle_format = PHANDLE_BOTH;	
 
 static void fill_fullpaths(struct node *tree, const char *prefix)
 {
@@ -82,6 +79,8 @@ static void  __attribute__ ((noreturn)) usage(void)
 	fprintf(stderr, "\t\tSet the physical boot cpu\n");
 	fprintf(stderr, "\t-f\n");
 	fprintf(stderr, "\t\tForce - try to produce output even if the input tree has errors\n");
+	fprintf(stderr, "\t-i\n");
+	fprintf(stderr, "\t\tAdd a path to search for include files\n");
 	fprintf(stderr, "\t-s\n");
 	fprintf(stderr, "\t\tSort nodes and properties before outputting (only useful for\n\t\tcomparing trees)\n");
 	fprintf(stderr, "\t-v\n");
@@ -91,6 +90,9 @@ static void  __attribute__ ((noreturn)) usage(void)
 	fprintf(stderr, "\t\t\tlegacy - \"linux,phandle\" properties only\n");
 	fprintf(stderr, "\t\t\tepapr - \"phandle\" properties only\n");
 	fprintf(stderr, "\t\t\tboth - Both \"linux,phandle\" and \"phandle\" properties\n");
+	fprintf(stderr, "\t-W [no-]<checkname>\n");
+	fprintf(stderr, "\t-E [no-]<checkname>\n");
+	fprintf(stderr, "\t\t\tenable or disable warnings and errors\n");
 	exit(3);
 }
 
@@ -113,7 +115,7 @@ int main(int argc, char *argv[])
 	minsize    = 0;
 	padsize    = 0;
 
-	while ((opt = getopt(argc, argv, "hI:O:o:V:d:R:S:p:fcqb:vH:s"))
+	while ((opt = getopt(argc, argv, "hI:O:o:V:d:R:S:p:fqb:i:vH:sW:E:"))
 			!= EOF) {
 		switch (opt) {
 		case 'I':
@@ -149,6 +151,9 @@ int main(int argc, char *argv[])
 		case 'b':
 			cmdline_boot_cpuid = strtoll(optarg, NULL, 0);
 			break;
+		case 'i':
+			srcfile_add_search_path(optarg);
+			break;
 		case 'v':
 			printf("Version: %s\n", DTC_VERSION);
 			exit(0);
@@ -168,6 +173,14 @@ int main(int argc, char *argv[])
 			sort = 1;
 			break;
 
+		case 'W':
+			parse_checks_option(true, false, optarg);
+			break;
+
+		case 'E':
+			parse_checks_option(false, true, optarg);
+			break;
+
 		case 'h':
 		default:
 			usage();
@@ -181,15 +194,12 @@ int main(int argc, char *argv[])
 	else
 		arg = argv[optind];
 
-	/* minsize and padsize are mutually exclusive */
+	
 	if (minsize && padsize)
 		die("Can't set both -p and -S\n");
 
 	if (minsize)
 		fprintf(stderr, "DTC: Use of \"-S\" is deprecated; it will be removed soon, use \"-p\" instead\n");
-
-	fprintf(stderr, "DTC: %s->%s  on file \"%s\"\n",
-		inform, outform, arg);
 
 	if (depname) {
 		depfile = fopen(depname, "w");
@@ -238,7 +248,7 @@ int main(int argc, char *argv[])
 	} else if (streq(outform, "asm")) {
 		dt_to_asm(outf, bi, outversion);
 	} else if (streq(outform, "null")) {
-		/* do nothing */
+		
 	} else {
 		die("Unknown output format \"%s\"\n", outform);
 	}

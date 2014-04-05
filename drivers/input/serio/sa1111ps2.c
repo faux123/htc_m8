@@ -54,11 +54,6 @@ struct ps2if {
 	unsigned char		buf[4];
 };
 
-/*
- * Read all bytes waiting in the PS2 port.  There should be
- * at the most one, but we loop for safety.  If there was a
- * framing error, we have to manually clear the status.
- */
 static irqreturn_t ps2_rxint(int irq, void *dev_id)
 {
 	struct ps2if *ps2if = dev_id;
@@ -85,9 +80,6 @@ static irqreturn_t ps2_rxint(int irq, void *dev_id)
         return IRQ_HANDLED;
 }
 
-/*
- * Completion of ps2 write
- */
 static irqreturn_t ps2_txint(int irq, void *dev_id)
 {
 	struct ps2if *ps2if = dev_id;
@@ -97,7 +89,7 @@ static irqreturn_t ps2_txint(int irq, void *dev_id)
 	status = sa1111_readl(ps2if->base + PS2STAT);
 	if (ps2if->head == ps2if->tail) {
 		disable_irq_nosync(irq);
-		/* done */
+		
 	} else if (status & PS2STAT_TXE) {
 		sa1111_writel(ps2if->buf[ps2if->tail], ps2if->base + PS2DATA);
 		ps2if->tail = (ps2if->tail + 1) & (sizeof(ps2if->buf) - 1);
@@ -107,10 +99,6 @@ static irqreturn_t ps2_txint(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * Write a byte to the PS2 port.  We have to wait for the
- * port to indicate that the transmitter is empty.
- */
 static int ps2_write(struct serio *io, unsigned char val)
 {
 	struct ps2if *ps2if = io->port_data;
@@ -119,9 +107,6 @@ static int ps2_write(struct serio *io, unsigned char val)
 
 	spin_lock_irqsave(&ps2if->lock, flags);
 
-	/*
-	 * If the TX register is empty, we can go straight out.
-	 */
 	if (sa1111_readl(ps2if->base + PS2STAT) & PS2STAT_TXE) {
 		sa1111_writel(val, ps2if->base + PS2DATA);
 	} else {
@@ -190,9 +175,6 @@ static void ps2_close(struct serio *io)
 	sa1111_disable_device(ps2if->dev);
 }
 
-/*
- * Clear the input buffer.
- */
 static void __devinit ps2_clear_input(struct ps2if *ps2if)
 {
 	int maxread = 100;
@@ -216,10 +198,6 @@ static unsigned int __devinit ps2_test_one(struct ps2if *ps2if,
 	return val & (PS2STAT_KBC | PS2STAT_KBD);
 }
 
-/*
- * Test the keyboard interface.  We basically check to make sure that
- * we can drive each line to the keyboard independently of each other.
- */
 static int __devinit ps2_test(struct ps2if *ps2if)
 {
 	unsigned int stat;
@@ -248,9 +226,6 @@ static int __devinit ps2_test(struct ps2if *ps2if)
 	return ret;
 }
 
-/*
- * Add one device to this driver.
- */
 static int __devinit ps2_probe(struct sa1111_dev *dev)
 {
 	struct ps2if *ps2if;
@@ -279,9 +254,6 @@ static int __devinit ps2_probe(struct sa1111_dev *dev)
 
 	spin_lock_init(&ps2if->lock);
 
-	/*
-	 * Request the physical region for this PS2 port.
-	 */
 	if (!request_mem_region(dev->res.start,
 				dev->res.end - dev->res.start + 1,
 				SA1111_DRIVER_NAME(dev))) {
@@ -289,32 +261,20 @@ static int __devinit ps2_probe(struct sa1111_dev *dev)
 		goto free;
 	}
 
-	/*
-	 * Our parent device has already mapped the region.
-	 */
 	ps2if->base = dev->mapbase;
 
 	sa1111_enable_device(ps2if->dev);
 
-	/* Incoming clock is 8MHz */
+	
 	sa1111_writel(0, ps2if->base + PS2CLKDIV);
 	sa1111_writel(127, ps2if->base + PS2PRECNT);
 
-	/*
-	 * Flush any pending input.
-	 */
 	ps2_clear_input(ps2if);
 
-	/*
-	 * Test the keyboard interface.
-	 */
 	ret = ps2_test(ps2if);
 	if (ret)
 		goto out;
 
-	/*
-	 * Flush any pending input.
-	 */
 	ps2_clear_input(ps2if);
 
 	sa1111_disable_device(ps2if->dev);
@@ -331,9 +291,6 @@ static int __devinit ps2_probe(struct sa1111_dev *dev)
 	return ret;
 }
 
-/*
- * Remove one device from this driver.
- */
 static int __devexit ps2_remove(struct sa1111_dev *dev)
 {
 	struct ps2if *ps2if = sa1111_get_drvdata(dev);
@@ -347,9 +304,6 @@ static int __devexit ps2_remove(struct sa1111_dev *dev)
 	return 0;
 }
 
-/*
- * Our device driver structure
- */
 static struct sa1111_driver ps2_driver = {
 	.drv = {
 		.name	= "sa1111-ps2",

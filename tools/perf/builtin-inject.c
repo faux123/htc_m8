@@ -1,10 +1,3 @@
-/*
- * builtin-inject.c
- *
- * Builtin inject command: Examine the live mode (stdin) event stream
- * and repipe it to stdout while optionally injecting additional
- * events into it.
- */
 #include "builtin.h"
 
 #include "perf.h"
@@ -182,10 +175,6 @@ static int perf_event__inject_buildid(struct perf_tool *tool,
 			al.map->dso->hit = 1;
 			if (map__load(al.map, NULL) >= 0) {
 				dso__inject_build_id(al.map->dso, tool, machine);
-				/*
-				 * If this fails, too bad, let the other side
-				 * account this as unresolved.
-				 */
 			} else
 				pr_warning("no symbols found in %s, maybe "
 					   "install a debug package?\n",
@@ -263,9 +252,6 @@ int cmd_inject(int argc, const char **argv, const char *prefix __used)
 {
 	argc = parse_options(argc, argv, options, report_usage, 0);
 
-	/*
-	 * Any (unrecognized) arguments left?
-	 */
 	if (argc)
 		usage_with_options(report_usage, options);
 

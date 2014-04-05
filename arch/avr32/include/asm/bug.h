@@ -10,10 +10,6 @@
 
 #ifdef CONFIG_BUG
 
-/*
- * According to our Chief Architect, this compact opcode is very
- * unlikely to ever be implemented.
- */
 #define AVR32_BUG_OPCODE	0x5df0
 
 #ifdef CONFIG_DEBUG_BUGVERBOSE
@@ -47,7 +43,7 @@
 		: "i"(AVR32_BUG_OPCODE), "i"(flags),			\
 		  "i"(sizeof(struct bug_entry)))
 
-#endif /* CONFIG_DEBUG_BUGVERBOSE */
+#endif 
 
 #define BUG()								\
 	do {								\
@@ -66,7 +62,7 @@
 #define HAVE_ARCH_BUG
 #define HAVE_ARCH_WARN_ON
 
-#endif /* CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
 
@@ -75,4 +71,4 @@ void die(const char *str, struct pt_regs *regs, long err);
 void _exception(long signr, struct pt_regs *regs, int code,
 		unsigned long addr);
 
-#endif /* __ASM_AVR32_BUG_H */
+#endif 

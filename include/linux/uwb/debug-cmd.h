@@ -21,13 +21,6 @@
 
 #include <linux/types.h>
 
-/*
- * Debug interface commands
- *
- * UWB_DBG_CMD_RSV_ESTABLISH: Establish a new unicast reservation.
- *
- * UWB_DBG_CMD_RSV_TERMINATE: Terminate the Nth reservation.
- */
 
 enum uwb_dbg_cmd_type {
 	UWB_DBG_CMD_RSV_ESTABLISH = 1,
@@ -65,4 +58,4 @@ struct uwb_dbg_cmd {
 	};
 };
 
-#endif /* #ifndef __LINUX__UWB__DEBUG_CMD_H__ */
+#endif 

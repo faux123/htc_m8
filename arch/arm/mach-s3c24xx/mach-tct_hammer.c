@@ -67,7 +67,7 @@ static struct mtd_partition tct_hammer_mtd_partitions[] = {
 		.name		= "System",
 		.size		= 0x240000,
 		.offset		= 0,
-		.mask_flags 	= MTD_WRITEABLE,  /* force read-only */
+		.mask_flags 	= MTD_WRITEABLE,  
 	}, {
 		.name		= "JFFS2",
 		.size		= MTDPART_SIZ_FULL,

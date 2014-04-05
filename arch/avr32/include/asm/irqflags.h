@@ -16,13 +16,6 @@ static inline unsigned long arch_local_save_flags(void)
 	return sysreg_read(SR);
 }
 
-/*
- * This will restore ALL status register flags, not only the interrupt
- * mask flag.
- *
- * The empty asm statement informs the compiler of this fact while
- * also serving as a barrier.
- */
 static inline void arch_local_irq_restore(unsigned long flags)
 {
 	sysreg_write(SR, flags);
@@ -58,4 +51,4 @@ static inline unsigned long arch_local_irq_save(void)
 	return flags;
 }
 
-#endif /* __ASM_AVR32_IRQFLAGS_H */
+#endif 

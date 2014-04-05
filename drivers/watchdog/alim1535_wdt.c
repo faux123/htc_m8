@@ -24,16 +24,14 @@
 #include <linux/io.h>
 
 #define WATCHDOG_NAME "ALi_M1535"
-#define WATCHDOG_TIMEOUT 60	/* 60 sec default timeout */
+#define WATCHDOG_TIMEOUT 60	
 
-/* internal variables */
 static unsigned long ali_is_open;
 static char ali_expect_release;
 static struct pci_dev *ali_pci;
-static u32 ali_timeout_bits;		/* stores the computed timeout */
-static DEFINE_SPINLOCK(ali_lock);	/* Guards the hardware */
+static u32 ali_timeout_bits;		
+static DEFINE_SPINLOCK(ali_lock);	
 
-/* module parameters */
 static int timeout = WATCHDOG_TIMEOUT;
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
@@ -46,12 +44,6 @@ MODULE_PARM_DESC(nowayout,
 		"Watchdog cannot be stopped once started (default="
 				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-/*
- *	ali_start	-	start watchdog countdown
- *
- *	Starts the timer running providing the timer has a counter
- *	configuration set.
- */
 
 static void ali_start(void)
 {
@@ -60,18 +52,13 @@ static void ali_start(void)
 	spin_lock(&ali_lock);
 
 	pci_read_config_dword(ali_pci, 0xCC, &val);
-	val &= ~0x3F;	/* Mask count */
+	val &= ~0x3F;	
 	val |= (1 << 25) | ali_timeout_bits;
 	pci_write_config_dword(ali_pci, 0xCC, val);
 
 	spin_unlock(&ali_lock);
 }
 
-/*
- *	ali_stop	-	stop the timer countdown
- *
- *	Stop the ALi watchdog countdown
- */
 
 static void ali_stop(void)
 {
@@ -80,30 +67,19 @@ static void ali_stop(void)
 	spin_lock(&ali_lock);
 
 	pci_read_config_dword(ali_pci, 0xCC, &val);
-	val &= ~0x3F;		/* Mask count to zero (disabled) */
-	val &= ~(1 << 25);	/* and for safety mask the reset enable */
+	val &= ~0x3F;		
+	val &= ~(1 << 25);	
 	pci_write_config_dword(ali_pci, 0xCC, val);
 
 	spin_unlock(&ali_lock);
 }
 
-/*
- *	ali_keepalive	-	send a keepalive to the watchdog
- *
- *	Send a keepalive to the timer (actually we restart the timer).
- */
 
 static void ali_keepalive(void)
 {
 	ali_start();
 }
 
-/*
- *	ali_settimer	-	compute the timer reload value
- *	@t: time in seconds
- *
- *	Computes the timeout values needed
- */
 
 static int ali_settimer(int t)
 {
@@ -122,36 +98,18 @@ static int ali_settimer(int t)
 	return 0;
 }
 
-/*
- *	/dev/watchdog handling
- */
 
-/*
- *	ali_write	-	writes to ALi watchdog
- *	@file: file from VFS
- *	@data: user address of data
- *	@len: length of data
- *	@ppos: pointer to the file offset
- *
- *	Handle a write to the ALi watchdog. Writing to the file pings
- *	the watchdog and resets it. Writing the magic 'V' sequence allows
- *	the next close to turn off the watchdog.
- */
 
 static ssize_t ali_write(struct file *file, const char __user *data,
 						size_t len, loff_t *ppos)
 {
-	/* See if we got the magic character 'V' and reload the timer */
+	
 	if (len) {
 		if (!nowayout) {
 			size_t i;
 
-			/* note: just in case someone wrote the
-			   magic character five months ago... */
 			ali_expect_release = 0;
 
-			/* scan to see whether or not we got
-			   the magic character */
 			for (i = 0; i != len; i++) {
 				char c;
 				if (get_user(c, data + i))
@@ -161,21 +119,12 @@ static ssize_t ali_write(struct file *file, const char __user *data,
 			}
 		}
 
-		/* someone wrote to us, we should reload the timer */
+		
 		ali_start();
 	}
 	return len;
 }
 
-/*
- *	ali_ioctl	-	handle watchdog ioctls
- *	@file: VFS file pointer
- *	@cmd: ioctl number
- *	@arg: arguments to the ioctl
- *
- *	Handle the watchdog ioctls supported by the ALi driver. Really
- *	we want an extension to enable irq ack monitoring and the like
- */
 
 static long ali_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -223,7 +172,7 @@ static long ali_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		if (ali_settimer(new_timeout))
 			return -EINVAL;
 		ali_keepalive();
-		/* Fall */
+		
 	}
 	case WDIOC_GETTIMEOUT:
 		return put_user(timeout, p);
@@ -232,40 +181,21 @@ static long ali_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	}
 }
 
-/*
- *	ali_open	-	handle open of ali watchdog
- *	@inode: inode from VFS
- *	@file: file from VFS
- *
- *	Open the ALi watchdog device. Ensure only one person opens it
- *	at a time. Also start the watchdog running.
- */
 
 static int ali_open(struct inode *inode, struct file *file)
 {
-	/* /dev/watchdog can only be opened once */
+	
 	if (test_and_set_bit(0, &ali_is_open))
 		return -EBUSY;
 
-	/* Activate */
+	
 	ali_start();
 	return nonseekable_open(inode, file);
 }
 
-/*
- *	ali_release	-	close an ALi watchdog
- *	@inode: inode from VFS
- *	@file: file from VFS
- *
- *	Close the ALi watchdog device. Actual shutdown of the timer
- *	only occurs if the magic sequence has been set.
- */
 
 static int ali_release(struct inode *inode, struct file *file)
 {
-	/*
-	 *      Shut off the timer.
-	 */
 	if (ali_expect_release == 42)
 		ali_stop();
 	else {
@@ -277,29 +207,16 @@ static int ali_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- *	ali_notify_sys	-	System down notifier
- *
- *	Notifier for system down
- */
 
 
 static int ali_notify_sys(struct notifier_block *this,
 					unsigned long code, void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
-		ali_stop();		/* Turn the WDT off */
+		ali_stop();		
 	return NOTIFY_DONE;
 }
 
-/*
- *	Data for PCI driver interface
- *
- *	This data only exists for exporting the supported
- *	PCI ids via MODULE_DEVICE_TABLE.  We do not actually
- *	register a pci_driver, because someone else might one day
- *	want to register another driver on the same PCI id.
- */
 
 static DEFINE_PCI_DEVICE_TABLE(ali_pci_tbl) __used = {
 	{ PCI_VENDOR_ID_AL, 0x1533, PCI_ANY_ID, PCI_ANY_ID,},
@@ -308,19 +225,13 @@ static DEFINE_PCI_DEVICE_TABLE(ali_pci_tbl) __used = {
 };
 MODULE_DEVICE_TABLE(pci, ali_pci_tbl);
 
-/*
- *	ali_find_watchdog	-	find a 1535 and 7101
- *
- *	Scans the PCI hardware for a 1535 series bridge and matching 7101
- *	watchdog device. This may be overtight but it is better to be safe
- */
 
 static int __init ali_find_watchdog(void)
 {
 	struct pci_dev *pdev;
 	u32 wdog;
 
-	/* Check for a 1533/1535 series bridge */
+	
 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1535, NULL);
 	if (pdev == NULL)
 		pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1533, NULL);
@@ -328,7 +239,7 @@ static int __init ali_find_watchdog(void)
 		return -ENODEV;
 	pci_dev_put(pdev);
 
-	/* Check for the a 7101 PMU */
+	
 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x7101, NULL);
 	if (pdev == NULL)
 		return -ENODEV;
@@ -340,16 +251,13 @@ static int __init ali_find_watchdog(void)
 
 	ali_pci = pdev;
 
-	/*
-	 *	Initialize the timer bits
-	 */
 	pci_read_config_dword(pdev, 0xCC, &wdog);
 
-	/* Timer bits */
+	
 	wdog &= ~0x3F;
-	/* Issued events */
+	
 	wdog &= ~((1 << 27)|(1 << 26)|(1 << 25)|(1 << 24));
-	/* No monitor bits */
+	
 	wdog &= ~((1 << 16)|(1 << 13)|(1 << 12)|(1 << 11)|(1 << 10)|(1 << 9));
 
 	pci_write_config_dword(pdev, 0xCC, wdog);
@@ -357,9 +265,6 @@ static int __init ali_find_watchdog(void)
 	return 0;
 }
 
-/*
- *	Kernel Interfaces
- */
 
 static const struct file_operations ali_fops = {
 	.owner		=	THIS_MODULE,
@@ -380,30 +285,22 @@ static struct notifier_block ali_notifier = {
 	.notifier_call =	ali_notify_sys,
 };
 
-/*
- *	watchdog_init	-	module initialiser
- *
- *	Scan for a suitable watchdog and if so initialize it. Return an error
- *	if we cannot, the error causes the module to unload
- */
 
 static int __init watchdog_init(void)
 {
 	int ret;
 
-	/* Check whether or not the hardware watchdog is there */
+	
 	if (ali_find_watchdog() != 0)
 		return -ENODEV;
 
-	/* Check that the timeout value is within it's range;
-	   if not reset to the default */
 	if (timeout < 1 || timeout >= 18000) {
 		timeout = WATCHDOG_TIMEOUT;
 		pr_info("timeout value must be 0 < timeout < 18000, using %d\n",
 			timeout);
 	}
 
-	/* Calculate the watchdog's timeout */
+	
 	ali_settimer(timeout);
 
 	ret = register_reboot_notifier(&ali_notifier);
@@ -429,18 +326,13 @@ unreg_reboot:
 	goto out;
 }
 
-/*
- *	watchdog_exit	-	module de-initialiser
- *
- *	Called while unloading a successfully installed watchdog module.
- */
 
 static void __exit watchdog_exit(void)
 {
-	/* Stop the timer before we leave */
+	
 	ali_stop();
 
-	/* Deregister */
+	
 	misc_deregister(&ali_miscdev);
 	unregister_reboot_notifier(&ali_notifier);
 	pci_dev_put(ali_pci);

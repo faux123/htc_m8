@@ -1,13 +1,9 @@
-/* apollohw.h : some structures to access apollo HW */
 
 #ifndef _ASMm68k_APOLLOHW_H_
 #define _ASMm68k_APOLLOHW_H_
 
 #include <linux/types.h>
 
-/*
-   apollo models
-*/
 
 extern u_long apollo_model;
 
@@ -18,10 +14,6 @@ extern u_long apollo_model;
 #define APOLLO_DN4000 (4)
 #define APOLLO_DN4500 (5)
 
-/*
-   see scn2681 data sheet for more info.
-   member names are read_write.
-*/
 
 #define DECLARE_2681_FIELD(x) unsigned char x; unsigned char dummy##x
 

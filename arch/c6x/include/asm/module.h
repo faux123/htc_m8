@@ -19,9 +19,6 @@
 #define Elf_Addr	Elf32_Addr
 #define Elf_Word	Elf32_Word
 
-/*
- * This file contains the C6x architecture specific module code.
- */
 struct mod_arch_specific {
 };
 
@@ -30,4 +27,4 @@ struct loaded_sections {
 	unsigned int loaded;
 };
 
-#endif /* _ASM_C6X_MODULE_H */
+#endif 

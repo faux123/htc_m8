@@ -20,7 +20,6 @@
 #ifndef __MACH_DMA_H
 #define __MACH_DMA_H
 
-/* This platform uses the common common DMA API driver for PL330 */
 #include <plat/dma-pl330.h>
 
-#endif /* __MACH_DMA_H */
+#endif 

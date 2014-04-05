@@ -18,7 +18,6 @@
 
 #include <asm/io.h>
 
-/* EIC register offsets */
 #define EIC_IER					0x0000
 #define EIC_IDR					0x0004
 #define EIC_IMR					0x0008
@@ -29,10 +28,8 @@
 #define EIC_LEVEL				0x001c
 #define EIC_NMIC				0x0024
 
-/* Bitfields in NMIC */
 #define EIC_NMIC_ENABLE				(1 << 0)
 
-/* Bit manipulation macros */
 #define EIC_BIT(name)					\
 	(1 << EIC_##name##_OFFSET)
 #define EIC_BF(name,value)				\
@@ -46,7 +43,6 @@
 		    << EIC_##name##_OFFSET))		\
 	 | EIC_BF(name,value))
 
-/* Register access macros */
 #define eic_readl(port,reg)				\
 	__raw_readl((port)->regs + EIC_##reg)
 #define eic_writel(port,reg,value)			\
@@ -210,16 +206,12 @@ static int __init eic_probe(struct platform_device *pdev)
 		goto err_ioremap;
 	}
 
-	/*
-	 * Find out how many interrupt lines that are actually
-	 * implemented in hardware.
-	 */
 	eic_writel(eic, IDR, ~0UL);
 	eic_writel(eic, MODE, ~0UL);
 	pattern = eic_readl(eic, MODE);
 	nr_of_irqs = fls(pattern);
 
-	/* Trigger on low level unless overridden by driver */
+	
 	eic_writel(eic, EDGE, 0UL);
 	eic_writel(eic, LEVEL, 0UL);
 
@@ -237,10 +229,6 @@ static int __init eic_probe(struct platform_device *pdev)
 	if (pdev->id == 0) {
 		nmi_eic = eic;
 		if (nmi_enabled)
-			/*
-			 * Someone tried to enable NMI before we were
-			 * ready. Do it now.
-			 */
 			nmi_enable();
 	}
 

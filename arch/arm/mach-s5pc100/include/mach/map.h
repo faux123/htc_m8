@@ -84,7 +84,6 @@
 
 #define S5PC100_PA_KEYPAD		0xF3100000
 
-/* Compatibiltiy Defines */
 
 #define S3C_PA_FB			S5PC100_PA_FB
 #define S3C_PA_HSMMC0			S5PC100_PA_HSMMC(0)
@@ -121,7 +120,6 @@
 
 #define S3C_SZ_ONENAND_BUF		(SZ_256M - SZ_32M)
 
-/* UART */
 
 #define S3C_PA_UART			S5PC100_PA_UART
 
@@ -133,4 +131,4 @@
 
 #define S5P_SZ_UART			SZ_256
 
-#endif /* __ASM_ARCH_MAP_H */
+#endif 

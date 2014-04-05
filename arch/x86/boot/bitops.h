@@ -8,13 +8,10 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Very simple bitops for the boot code.
- */
 
 #ifndef BOOT_BITOPS_H
 #define BOOT_BITOPS_H
-#define _LINUX_BITOPS_H		/* Inhibit inclusion of <linux/bitops.h> */
+#define _LINUX_BITOPS_H		
 
 static inline int constant_test_bit(int nr, const void *addr)
 {
@@ -40,4 +37,4 @@ static inline void set_bit(int nr, void *addr)
 	asm("btsl %1,%0" : "+m" (*(u32 *)addr) : "Ir" (nr));
 }
 
-#endif /* BOOT_BITOPS_H */
+#endif 

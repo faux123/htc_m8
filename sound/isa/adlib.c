@@ -1,6 +1,3 @@
-/*
- * AdLib FM card driver.
- */
 
 #include <linux/kernel.h>
 #include <linux/module.h>

@@ -42,7 +42,6 @@
 
 #define VIA_REG_INTERRUPT       0x200
 
-/* VIA_REG_INTERRUPT */
 #define VIA_IRQ_GLOBAL	  (1 << 31)
 #define VIA_IRQ_VBLANK_ENABLE   (1 << 19)
 #define VIA_IRQ_VBLANK_PENDING  (1 << 3)
@@ -60,11 +59,6 @@
 #define VIA_IRQ_DMA1_TD_PENDING (1 << 7)
 
 
-/*
- * Device-specific IRQs go here. This type might need to be extended with
- * the register if there are multiple IRQ control registers.
- * Currently we activate the HQV interrupts of  Unichrome Pro group A.
- */
 
 static maskarray_t via_pro_group_a_irqs[] = {
 	{VIA_IRQ_HQV0_ENABLE, VIA_IRQ_HQV0_PENDING, 0x000003D0, 0x00008010,
@@ -149,7 +143,7 @@ irqreturn_t via_driver_irq_handler(DRM_IRQ_ARGS)
 		cur_irq++;
 	}
 
-	/* Acknowledge interrupts */
+	
 	VIA_WRITE(VIA_REG_INTERRUPT, status);
 
 
@@ -164,7 +158,7 @@ static __inline__ void viadrv_acknowledge_irqs(drm_via_private_t *dev_priv)
 	u32 status;
 
 	if (dev_priv) {
-		/* Acknowledge interrupts */
+		
 		status = VIA_READ(VIA_REG_INTERRUPT);
 		VIA_WRITE(VIA_REG_INTERRUPT, status |
 			  dev_priv->irq_pending_mask);
@@ -255,9 +249,6 @@ via_driver_irq_wait(struct drm_device *dev, unsigned int irq, int force_sequence
 }
 
 
-/*
- * drm_dma.h hooks
- */
 
 void via_driver_irq_preinstall(struct drm_device *dev)
 {
@@ -298,12 +289,12 @@ void via_driver_irq_preinstall(struct drm_device *dev)
 
 		dev_priv->last_vblank_valid = 0;
 
-		/* Clear VSync interrupt regs */
+		
 		status = VIA_READ(VIA_REG_INTERRUPT);
 		VIA_WRITE(VIA_REG_INTERRUPT, status &
 			  ~(dev_priv->irq_enable_mask));
 
-		/* Clear bits if they're already high */
+		
 		viadrv_acknowledge_irqs(dev_priv);
 	}
 }
@@ -321,7 +312,7 @@ int via_driver_irq_postinstall(struct drm_device *dev)
 	VIA_WRITE(VIA_REG_INTERRUPT, status | VIA_IRQ_GLOBAL
 		  | dev_priv->irq_enable_mask);
 
-	/* Some magic, oh for some data sheets ! */
+	
 	VIA_WRITE8(0x83d4, 0x11);
 	VIA_WRITE8(0x83d5, VIA_READ8(0x83d5) | 0x30);
 
@@ -336,7 +327,7 @@ void via_driver_irq_uninstall(struct drm_device *dev)
 	DRM_DEBUG("\n");
 	if (dev_priv) {
 
-		/* Some more magic, oh for some data sheets ! */
+		
 
 		VIA_WRITE8(0x83d4, 0x11);
 		VIA_WRITE8(0x83d5, VIA_READ8(0x83d5) & ~0x30);

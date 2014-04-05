@@ -4,13 +4,8 @@
 
 #include <asm/asm-compat.h>
 
-/*
- * Define an illegal instr to trap on the bug.
- * We don't use 0 because that marks the end of a function
- * in the ELF ABI.  That's "Boo Boo" in case you wonder...
- */
-#define BUG_OPCODE .long 0x00b00b00  /* For asm */
-#define BUG_ILLEGAL_INSTR "0x00b00b00" /* For BUG macro */
+#define BUG_OPCODE .long 0x00b00b00  
+#define BUG_ILLEGAL_INSTR "0x00b00b00" 
 
 #ifdef CONFIG_BUG
 
@@ -35,11 +30,9 @@
 	 .org 5001b+BUG_ENTRY_SIZE
 	 .previous
 .endm
-#endif /* verbose */
+#endif 
 
-#else /* !__ASSEMBLY__ */
-/* _EMIT_BUG_ENTRY expects args %0,%1,%2,%3 to be FILE, LINE, flags and
-   sizeof(struct bug_entry), respectively */
+#else 
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 #define _EMIT_BUG_ENTRY				\
 	".section __bug_table,\"a\"\n"		\
@@ -56,11 +49,6 @@
 	".previous\n"
 #endif
 
-/*
- * BUG_ON() and WARN_ON() do their best to cooperate with compile-time
- * optimisations. However depending on the complexity of the condition
- * some compiler versions may not produce optimal results.
- */
 
 #define BUG() do {						\
 	__asm__ __volatile__(					\
@@ -114,15 +102,15 @@
 #define HAVE_ARCH_BUG
 #define HAVE_ARCH_BUG_ON
 #define HAVE_ARCH_WARN_ON
-#endif /* __ASSEMBLY __ */
+#endif 
 #else
 #ifdef __ASSEMBLY__
 .macro EMIT_BUG_ENTRY addr,file,line,flags
 .endm
-#else /* !__ASSEMBLY__ */
+#else 
 #define _EMIT_BUG_ENTRY
 #endif
-#endif /* CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
 
@@ -135,7 +123,7 @@ extern void _exception(int, struct pt_regs *, int, unsigned long);
 extern void die(const char *, struct pt_regs *, long);
 extern void print_backtrace(unsigned long *);
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* __KERNEL__ */
-#endif /* _ASM_POWERPC_BUG_H */
+#endif 
+#endif 

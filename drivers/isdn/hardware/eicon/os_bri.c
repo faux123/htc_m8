@@ -1,4 +1,3 @@
-/* $Id: os_bri.c,v 1.21 2004/03/21 17:26:01 armin Exp $ */
 
 #include "platform.h"
 #include "debuglib.h"
@@ -18,16 +17,10 @@
 #include "pc_maint.h"
 #include "dsrv_bri.h"
 
-/*
-**  IMPORTS
-*/
 extern void prepare_maestra_functions(PISDN_ADAPTER IoAdapter);
 extern void diva_xdi_display_adapter_features(int card);
 extern int diva_card_read_xlog(diva_os_xdi_adapter_t *a);
 
-/*
-**  LOCALS
-*/
 static int bri_bar_length[3] = {
 	0x80,
 	0x80,
@@ -64,14 +57,9 @@ static void diva_bri_set_addresses(diva_os_xdi_adapter_t *a)
 
 	a->xdi_adapter.ctlReg = a->xdi_adapter.port + M_PCI_RESET;
 
-	a->xdi_adapter.reset += 0x4C;	/* PLX 9050 !! */
+	a->xdi_adapter.reset += 0x4C;	
 }
 
-/*
-**  BAR0 - MEM Addr  - 0x80  - NOT USED
-**  BAR1 - I/O Addr  - 0x80
-**  BAR2 - I/O Addr  - 0x20
-*/
 int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 {
 	int bar;
@@ -81,15 +69,9 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 	void *hdev;
 	byte __iomem *p;
 
-	/*
-	  Set properties
-	*/
 	a->xdi_adapter.Properties = CardProperties[a->CardOrdinal];
 	DBG_LOG(("Load %s", a->xdi_adapter.Properties.Name))
 
-		/*
-		  Get resources
-		*/
 		for (bar = 0; bar < 3; bar++) {
 			a->resources.pci.bar[bar] =
 				divasa_get_pci_bar(a->resources.pci.bus,
@@ -110,40 +92,21 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 		return (-1);
 	}
 
-	/*
-	  Get length of I/O bar 2 - it is different by older
-	  EEPROM version
-	*/
 	Bus = a->resources.pci.bus;
 	Slot = a->resources.pci.func;
 	hdev = a->resources.pci.hdev;
 
-	/*
-	  Get plain original values of the BAR2 CDM registers
-	*/
 	PCIread(Bus, Slot, 0x18, &bar2, sizeof(bar2), hdev);
 	PCIread(Bus, Slot, 0x04, &cmd_org, sizeof(cmd_org), hdev);
-	/*
-	  Disable device and get BAR2 length
-	*/
 	PCIwrite(Bus, Slot, 0x04, &cmd, sizeof(cmd), hdev);
 	PCIwrite(Bus, Slot, 0x18, &bar2_length, sizeof(bar2_length), hdev);
 	PCIread(Bus, Slot, 0x18, &bar2_length, sizeof(bar2_length), hdev);
-	/*
-	  Restore BAR2 and CMD registers
-	*/
 	PCIwrite(Bus, Slot, 0x18, &bar2, sizeof(bar2), hdev);
 	PCIwrite(Bus, Slot, 0x04, &cmd_org, sizeof(cmd_org), hdev);
 
-	/*
-	  Calculate BAR2 length
-	*/
 	bar2_length = (~(bar2_length & ~7)) + 1;
 	DBG_LOG(("BAR[2] length=%lx", bar2_length))
 
-		/*
-		  Map and register resources
-		*/
 		if (!(a->resources.pci.addr[0] =
 		      divasa_remap_pci_bar(a, 0, a->resources.pci.bar[0],
 					   bri_bar_length[0]))) {
@@ -173,27 +136,15 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 	a->resources.pci.addr[2] = (void *) (unsigned long) a->resources.pci.bar[2];
 	a->resources.pci.length[2] = bar2_length;
 
-	/*
-	  Set all memory areas
-	*/
 	diva_bri_set_addresses(a);
 
-	/*
-	  Get Serial Number
-	*/
 	a->xdi_adapter.serialNo = diva_bri_get_serial_number(a);
 
-	/*
-	  Register I/O ports with correct name now
-	*/
 	if (diva_bri_reregister_io(a)) {
 		diva_bri_cleanup_adapter(a);
 		return (-1);
 	}
 
-	/*
-	  Initialize OS dependent objects
-	*/
 	if (diva_os_initialize_spin_lock
 	    (&a->xdi_adapter.isr_spin_lock, "isr")) {
 		diva_bri_cleanup_adapter(a);
@@ -212,14 +163,8 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 		diva_bri_cleanup_adapter(a);
 		return (-1);
 	}
-	/*
-	  Do not initialize second DPC - only one thread will be created
-	*/
 	a->xdi_adapter.isr_soft_isr.object = a->xdi_adapter.req_soft_isr.object;
 
-	/*
-	  Create entity table
-	*/
 	a->xdi_adapter.Channels = CardProperties[a->CardOrdinal].Channels;
 	a->xdi_adapter.e_max = CardProperties[a->CardOrdinal].E_info;
 	a->xdi_adapter.e_tbl = diva_os_malloc(0, a->xdi_adapter.e_max * sizeof(E_INFO));
@@ -229,9 +174,6 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 	}
 	memset(a->xdi_adapter.e_tbl, 0x00, a->xdi_adapter.e_max * sizeof(E_INFO));
 
-	/*
-	  Set up interface
-	*/
 	a->xdi_adapter.a.io = &a->xdi_adapter;
 	a->xdi_adapter.DIRequest = request;
 	a->interface.cleanup_adapter_proc = diva_bri_cleanup_adapter;
@@ -245,9 +187,6 @@ int diva_bri_init_card(diva_os_xdi_adapter_t *a)
 
 	a->dsp_mask = 0x00000003;
 
-	/*
-	  Set IRQ handler
-	*/
 	a->xdi_adapter.irq_info.irq_nr = a->resources.pci.irq;
 	sprintf(a->xdi_adapter.irq_info.irq_name, "DIVA BRI %ld",
 		(long) a->xdi_adapter.serialNo);
@@ -273,9 +212,6 @@ static int diva_bri_cleanup_adapter(diva_os_xdi_adapter_t *a)
 		diva_bri_stop_adapter(a);
 	}
 
-	/*
-	  Remove ISR Handler
-	*/
 	if (a->xdi_adapter.irq_info.registered) {
 		diva_os_remove_irq(a, a->xdi_adapter.irq_info.irq_nr);
 	}
@@ -299,9 +235,6 @@ static int diva_bri_cleanup_adapter(diva_os_xdi_adapter_t *a)
 		}
 	}
 
-	/*
-	  Free OS objects
-	*/
 	diva_os_cancel_soft_isr(&a->xdi_adapter.req_soft_isr);
 	diva_os_cancel_soft_isr(&a->xdi_adapter.isr_soft_isr);
 
@@ -311,9 +244,6 @@ static int diva_bri_cleanup_adapter(diva_os_xdi_adapter_t *a)
 	diva_os_destroy_spin_lock(&a->xdi_adapter.isr_spin_lock, "rm");
 	diva_os_destroy_spin_lock(&a->xdi_adapter.data_spin_lock, "rm");
 
-	/*
-	  Free memory
-	*/
 	if (a->xdi_adapter.e_tbl) {
 		diva_os_free(0, a->xdi_adapter.e_tbl);
 		a->xdi_adapter.e_tbl = NULL;
@@ -326,9 +256,6 @@ void diva_os_prepare_maestra_functions(PISDN_ADAPTER IoAdapter)
 {
 }
 
-/*
-**  Get serial number
-*/
 static dword diva_bri_get_serial_number(diva_os_xdi_adapter_t *a)
 {
 	dword serNo = 0;
@@ -357,10 +284,6 @@ static dword diva_bri_get_serial_number(diva_os_xdi_adapter_t *a)
 		return (serNo);
 }
 
-/*
-**  Unregister I/O and register it with new name,
-**  based on Serial Number
-*/
 static int diva_bri_reregister_io(diva_os_xdi_adapter_t *a)
 {
 	int i;
@@ -389,9 +312,6 @@ static int diva_bri_reregister_io(diva_os_xdi_adapter_t *a)
 	return (0);
 }
 
-/*
-**  Process command from user mode
-*/
 static int
 diva_bri_cmd_card_proc(struct _diva_os_xdi_adapter *a,
 		       diva_xdi_um_cfg_cmd_t *cmd, int length)
@@ -533,15 +453,9 @@ static int diva_bri_reset_adapter(PISDN_ADAPTER IoAdapter)
 		((IoAdapter->Properties.Bus == BUS_PCI) ? M_PCI_ADDRH : ADDRH);
 	addrLo = Port + ADDR;
 	ioaddr = Port + DATA;
-	/*
-	  recover
-	*/
 	outpp(addrHi, (byte) 0);
 	outppw(addrLo, (word) 0);
 	outppw(ioaddr, (word) 0);
-	/*
-	  clear shared memory
-	*/
 	outpp(addrHi,
 	      (byte) (
 		      (IoAdapter->MemoryBase + IoAdapter->MemorySize -
@@ -550,9 +464,6 @@ static int diva_bri_reset_adapter(PISDN_ADAPTER IoAdapter)
 	for (i = 0; i < 0x8000; outppw(ioaddr, 0), ++i);
 	diva_os_wait(100);
 
-	/*
-	  clear signature
-	*/
 	outpp(addrHi,
 	      (byte) (
 		      (IoAdapter->MemoryBase + IoAdapter->MemorySize -
@@ -567,9 +478,6 @@ static int diva_bri_reset_adapter(PISDN_ADAPTER IoAdapter)
 
 	DIVA_OS_MEM_DETACH_PORT(IoAdapter, Port);
 
-	/*
-	  Forget all outstanding entities
-	*/
 	IoAdapter->e_count = 0;
 	if (IoAdapter->e_tbl) {
 		memset(IoAdapter->e_tbl, 0x00,
@@ -665,9 +573,6 @@ diva_bri_start_adapter(PISDN_ADAPTER IoAdapter,
 	outppw(ioaddr, 0x00);
 	DIVA_OS_MEM_DETACH_PORT(IoAdapter, Port);
 
-	/*
-	  start the protocol code
-	*/
 	Port = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
 	outpp(Port, 0x08);
 	DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, Port);
@@ -677,9 +582,6 @@ diva_bri_start_adapter(PISDN_ADAPTER IoAdapter,
 		((IoAdapter->Properties.Bus == BUS_PCI) ? M_PCI_ADDRH : ADDRH);
 	addrLo = Port + ADDR;
 	ioaddr = Port + DATA;
-	/*
-	  wait for signature (max. 3 seconds)
-	*/
 	for (i = 0; i < 300; ++i) {
 		diva_os_wait(10);
 		outpp(addrHi,
@@ -709,9 +611,6 @@ diva_bri_start_adapter(PISDN_ADAPTER IoAdapter,
 
 	IoAdapter->Initialized = 1;
 
-	/*
-	  Check Interrupt
-	*/
 	IoAdapter->IrqCount = 0;
 	a->ReadyInt = 1;
 
@@ -737,9 +636,6 @@ diva_bri_start_adapter(PISDN_ADAPTER IoAdapter,
 	IoAdapter->Properties.Features = (word) features;
 	diva_xdi_display_adapter_features(IoAdapter->ANum);
 	DBG_LOG(("A(%d) BRI adapter successfully started", IoAdapter->ANum))
-		/*
-		  Register with DIDD
-		*/
 		diva_xdi_didd_register_adapter(IoAdapter->ANum);
 
 	return (0);
@@ -749,25 +645,16 @@ static void diva_bri_clear_interrupts(diva_os_xdi_adapter_t *a)
 {
 	PISDN_ADAPTER IoAdapter = &a->xdi_adapter;
 
-	/*
-	  clear any pending interrupt
-	*/
 	IoAdapter->disIrq(IoAdapter);
 
 	IoAdapter->tst_irq(&IoAdapter->a);
 	IoAdapter->clr_irq(&IoAdapter->a);
 	IoAdapter->tst_irq(&IoAdapter->a);
 
-	/*
-	  kill pending dpcs
-	*/
 	diva_os_cancel_soft_isr(&IoAdapter->req_soft_isr);
 	diva_os_cancel_soft_isr(&IoAdapter->isr_soft_isr);
 }
 
-/*
-**  Stop card
-*/
 static int diva_bri_stop_adapter(diva_os_xdi_adapter_t *a)
 {
 	PISDN_ADAPTER IoAdapter = &a->xdi_adapter;
@@ -779,18 +666,12 @@ static int diva_bri_stop_adapter(diva_os_xdi_adapter_t *a)
 	if (!IoAdapter->Initialized) {
 		DBG_ERR(("A: A(%d) can't stop BRI adapter - not running",
 			 IoAdapter->ANum))
-			return (-1);	/* nothing to stop */
+			return (-1);	
 	}
 	IoAdapter->Initialized = 0;
 
-	/*
-	  Disconnect Adapter from DIDD
-	*/
 	diva_xdi_didd_remove_adapter(IoAdapter->ANum);
 
-	/*
-	  Stop interrupts
-	*/
 	a->clear_interrupts_proc = diva_bri_clear_interrupts;
 	IoAdapter->a.ReadyInt = 1;
 	IoAdapter->a.ram_inc(&IoAdapter->a, &PR_RAM->ReadyInt);
@@ -805,9 +686,6 @@ static int diva_bri_stop_adapter(diva_os_xdi_adapter_t *a)
 			}
 	IoAdapter->a.ReadyInt = 0;
 
-	/*
-	  Stop and reset adapter
-	*/
 	IoAdapter->stop(IoAdapter);
 
 	return (0);

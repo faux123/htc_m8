@@ -69,7 +69,6 @@ extern int initrd_below_start_ok;
 unsigned char aux_device_present;
 extern unsigned long loops_per_jiffy;
 
-/* Command line specified as configuration option. */
 
 static char __initdata command_line[COMMAND_LINE_SIZE];
 
@@ -91,14 +90,6 @@ static inline void init_mmu(void) { }
 
 extern void zones_init(void);
 
-/*
- * Boot parameter parsing.
- *
- * The Xtensa port uses a list of variable-sized tags to pass data to
- * the kernel. The first tag must be a BP_TAG_FIRST tag for the list
- * to be recognised. The list is terminated with a zero-sized
- * BP_TAG_LAST tag.
- */
 
 typedef struct tagtable {
 	u32 tag;
@@ -108,7 +99,6 @@ typedef struct tagtable {
 #define __tagtable(tag, fn) static tagtable_t __tagtable_##fn 		\
 	__attribute__((unused, __section__(".taglist"))) = { tag, fn }
 
-/* parse current tag */
 
 static int __init parse_tag_mem(const bp_tag_t *tag)
 {
@@ -148,7 +138,7 @@ static int __init parse_tag_initrd(const bp_tag_t* tag)
 
 __tagtable(BP_TAG_INITRD, parse_tag_initrd);
 
-#endif /* CONFIG_BLK_DEV_INITRD */
+#endif 
 
 static int __init parse_tag_cmdline(const bp_tag_t* tag)
 {
@@ -164,7 +154,7 @@ static int __init parse_bootparam(const bp_tag_t* tag)
 	extern tagtable_t __tagtable_begin, __tagtable_end;
 	tagtable_t *t;
 
-	/* Boot parameters must start with a BP_TAG_FIRST tag. */
+	
 
 	if (tag->id != BP_TAG_FIRST) {
 		printk(KERN_WARNING "Invalid boot parameters!\n");
@@ -173,7 +163,7 @@ static int __init parse_bootparam(const bp_tag_t* tag)
 
 	tag = (bp_tag_t*)((unsigned long)tag + sizeof(bp_tag_t) + tag->size);
 
-	/* Parse all tags. */
+	
 
 	while (tag != NULL && tag->id != BP_TAG_LAST) {
 	 	for (t = &__tagtable_begin; t < &__tagtable_end; t++) {
@@ -191,9 +181,6 @@ static int __init parse_bootparam(const bp_tag_t* tag)
 	return 0;
 }
 
-/*
- * Initialize architecture. (Early stage)
- */
 
 void __init init_arch(bp_tag_t *bp_start)
 {
@@ -209,7 +196,7 @@ void __init init_arch(bp_tag_t *bp_start)
 	strcpy(command_line, default_command_line);
 #endif
 
-	/* Parse boot parameters */
+	
 
         if (bp_start)
 	  parse_bootparam(bp_start);
@@ -221,18 +208,15 @@ void __init init_arch(bp_tag_t *bp_start)
 				     + PLATFORM_DEFAULT_MEM_SIZE;
 	}
 
-	/* Early hook for platforms */
+	
 
 	platform_init(bp_start);
 
-	/* Initialize MMU. */
+	
 
 	init_mmu();
 }
 
-/*
- * Initialize system. Setup memory and reserve regions.
- */
 
 extern char _end;
 extern char _stext;
@@ -256,7 +240,7 @@ void __init setup_arch(char **cmdline_p)
 	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
 	*cmdline_p = command_line;
 
-	/* Reserve some memory regions */
+	
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	if (initrd_start < initrd_end) {
@@ -324,14 +308,11 @@ void machine_power_off(void)
 }
 #ifdef CONFIG_PROC_FS
 
-/*
- * Display some core information through /proc/cpuinfo.
- */
 
 static int
 c_show(struct seq_file *f, void *slot)
 {
-	/* high-level stuff */
+	
 	seq_printf(f,"processor\t: 0\n"
 		     "vendor_id\t: Tensilica\n"
 		     "model\t\t: Xtensa " XCHAL_HW_VERSION_NAME "\n"
@@ -395,7 +376,7 @@ c_show(struct seq_file *f, void *slot)
 #endif
 		     "\n");
 
-	/* Registers. */
+	
 	seq_printf(f,"physical aregs\t: %d\n"
 		     "misc regs\t: %d\n"
 		     "ibreak\t\t: %d\n"
@@ -406,7 +387,7 @@ c_show(struct seq_file *f, void *slot)
 		     XCHAL_NUM_DBREAK);
 
 
-	/* Interrupt. */
+	
 	seq_printf(f,"num ints\t: %d\n"
 		     "ext ints\t: %d\n"
 		     "int levels\t: %d\n"
@@ -418,7 +399,7 @@ c_show(struct seq_file *f, void *slot)
 		     XCHAL_NUM_TIMERS,
 		     XCHAL_DEBUGLEVEL);
 
-	/* Cache */
+	
 	seq_printf(f,"icache line size: %d\n"
 		     "icache ways\t: %d\n"
 		     "icache size\t: %d\n"
@@ -448,9 +429,6 @@ c_show(struct seq_file *f, void *slot)
 	return 0;
 }
 
-/*
- * We show only CPU #0 info.
- */
 static void *
 c_start(struct seq_file *f, loff_t *pos)
 {
@@ -476,5 +454,5 @@ const struct seq_operations cpuinfo_op =
 	show:   c_show
 };
 
-#endif /* CONFIG_PROC_FS */
+#endif 
 

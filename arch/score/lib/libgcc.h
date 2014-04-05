@@ -34,4 +34,4 @@ typedef union {
 	long long ll;
 } DWunion;
 
-#endif /* __ASM_LIBGCC_H */
+#endif 

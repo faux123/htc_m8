@@ -1,7 +1,6 @@
 #ifndef __SUPP_REG_H__
 #define __SUPP_REG_H__
 
-/* Macros for reading and writing support/special registers. */
 
 #ifndef STRINGIFYFY
 #define STRINGIFYFY(i) #i
@@ -75,4 +74,4 @@ __asm__ __volatile__ ("move %0, $S" STRINGIFYFY(r) "\n\t"	\
 #define SUPP_REG_RD(r,v) \
 __asm__ __volatile__ ("move $S" STRINGIFYFY(r) ",%0" : "=r" (v));
 
-#endif /* __SUPP_REG_H__ */
+#endif 

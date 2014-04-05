@@ -18,11 +18,7 @@
 
 char *isdn_audio_revision = "$Revision: 1.1.2.2 $";
 
-/*
- * Misc. lookup-tables.
- */
 
-/* ulaw -> signed 16-bit */
 static short isdn_audio_ulaw_to_s16[] =
 {
 	0x8284, 0x8684, 0x8a84, 0x8e84, 0x9284, 0x9684, 0x9a84, 0x9e84,
@@ -59,7 +55,6 @@ static short isdn_audio_ulaw_to_s16[] =
 	0x0038, 0x0030, 0x0028, 0x0020, 0x0018, 0x0010, 0x0008, 0x0000
 };
 
-/* alaw -> signed 16-bit */
 static short isdn_audio_alaw_to_s16[] =
 {
 	0x13fc, 0xec04, 0x0144, 0xfebc, 0x517c, 0xae84, 0x051c, 0xfae4,
@@ -96,7 +91,6 @@ static short isdn_audio_alaw_to_s16[] =
 	0x0cbc, 0xf344, 0x0094, 0xff6c, 0x327c, 0xcd84, 0x032c, 0xfcd4
 };
 
-/* alaw -> ulaw */
 static char isdn_audio_alaw_to_ulaw[] =
 {
 	0xab, 0x2b, 0xe3, 0x63, 0x8b, 0x0b, 0xc9, 0x49,
@@ -133,7 +127,6 @@ static char isdn_audio_alaw_to_ulaw[] =
 	0xb5, 0x35, 0xee, 0x6e, 0x96, 0x16, 0xd2, 0x52
 };
 
-/* ulaw -> alaw */
 static char isdn_audio_ulaw_to_alaw[] =
 {
 	0xab, 0x55, 0xd5, 0x15, 0x95, 0x75, 0xf5, 0x35,
@@ -170,16 +163,13 @@ static char isdn_audio_ulaw_to_alaw[] =
 	0x8a, 0x8a, 0x6a, 0x6a, 0xea, 0xea, 0x2a, 0x2a
 };
 
-#define NCOEFF            8     /* number of frequencies to be analyzed       */
-#define DTMF_TRESH     4000     /* above this is dtmf                         */
-#define SILENCE_TRESH   200     /* below this is silence                      */
-#define AMP_BITS          9     /* bits per sample, reduced to avoid overflow */
+#define NCOEFF            8     
+#define DTMF_TRESH     4000     
+#define SILENCE_TRESH   200     
+#define AMP_BITS          9     
 #define LOGRP             0
 #define HIGRP             1
 
-/* For DTMF recognition:
- * 2 * cos(2 * PI * k / N) precalculated for all k
- */
 static int cos2pik[NCOEFF] =
 {
 	55813, 53604, 51193, 48591, 38114, 33057, 25889, 18332
@@ -225,17 +215,11 @@ isdn_audio_alaw2ulaw(unsigned char *buff, unsigned long len)
 	isdn_audio_tlookup(isdn_audio_alaw_to_ulaw, buff, len);
 }
 
-/*
- * linear <-> adpcm conversion stuff
- * Most parts from the mgetty-package.
- * (C) by Gert Doering and Klaus Weidner
- * Used by permission of Gert Doering
- */
 
 
-#define ZEROTRAP                /* turn on the trap as per the MIL-STD */
+#define ZEROTRAP                
 #undef ZEROTRAP
-#define BIAS 0x84               /* define the add-in bias for 16 bit samples */
+#define BIAS 0x84               
 #define CLIP 32635
 
 static unsigned char
@@ -265,20 +249,20 @@ isdn_audio_linear2ulaw(int sample)
 		mantissa;
 	unsigned char ulawbyte;
 
-	/* Get the sample into sign-magnitude. */
-	sign = (sample >> 8) & 0x80;	/* set aside the sign  */
+	
+	sign = (sample >> 8) & 0x80;	
 	if (sign != 0)
-		sample = -sample;	/* get magnitude       */
+		sample = -sample;	
 	if (sample > CLIP)
-		sample = CLIP;  /* clip the magnitude  */
+		sample = CLIP;  
 
-	/* Convert from 16 bit linear to ulaw. */
+	
 	sample = sample + BIAS;
 	exponent = exp_lut[(sample >> 7) & 0xFF];
 	mantissa = (sample >> (exponent + 3)) & 0x0F;
 	ulawbyte = ~(sign | (exponent << 4) | mantissa);
 #ifdef ZEROTRAP
-	/* optional CCITT trap */
+	
 	if (ulawbyte == 0)
 		ulawbyte = 0x02;
 #endif
@@ -352,10 +336,6 @@ isdn_audio_dtmf_init(dtmf_state *s)
 	return s;
 }
 
-/*
- * Decompression of adpcm data to a/u-law
- *
- */
 
 int
 isdn_audio_adpcm2xlaw(adpcm_state *s, int fmt, unsigned char *in,
@@ -437,13 +417,6 @@ isdn_audio_xlaw2adpcm(adpcm_state *s, int fmt, unsigned char *in,
 	return olen;
 }
 
-/*
- * Goertzel algorithm.
- * See http://ptolemy.eecs.berkeley.edu/papers/96/dtmf_ict/
- * for more info.
- * Result is stored into an sk_buff and queued up for later
- * evaluation.
- */
 static void
 isdn_audio_goertzel(int *sample, modem_info *info)
 {
@@ -470,12 +443,12 @@ isdn_audio_goertzel(int *sample, modem_info *info)
 			sk2 = sk1;
 			sk1 = sk;
 		}
-		/* Avoid overflows */
+		
 		sk >>= 1;
 		sk2 >>= 1;
-		/* compute |X(k)|**2 */
-		/* report overflows. This should not happen. */
-		/* Comment this out if desired */
+		
+		
+		
 		if (sk < -32768 || sk > 32767)
 			printk(KERN_DEBUG
 			       "isdn_audio: dtmf goertzel overflow, sk=%d\n", sk);
@@ -524,23 +497,23 @@ isdn_audio_eval_dtmf(modem_info *info)
 			what = ' ';
 		else {
 			if (thresh > 0)	{
-				thresh = thresh >> 4;  /* touchtones must match within 12 dB */
+				thresh = thresh >> 4;  
 				for (i = 0; i < NCOEFF; i++) {
 					if (result[i] < thresh)
-						continue;  /* ignore */
-					/* good level found. This is allowed only one time per group */
+						continue;  
+					
 					if (i < NCOEFF / 2) {
-						/* lowgroup*/
+						
 						if (grp[LOGRP] >= 0) {
-							// Bad. Another tone found. */
+							
 							grp[LOGRP] = -1;
 							break;
 						}
 						else
 							grp[LOGRP] = i;
 					}
-					else { /* higroup */
-						if (grp[HIGRP] >= 0) { // Bad. Another tone found. */
+					else { 
+						if (grp[HIGRP] >= 0) { 
 							grp[HIGRP] = -1;
 							break;
 						}
@@ -551,7 +524,7 @@ isdn_audio_eval_dtmf(modem_info *info)
 				if ((grp[LOGRP] >= 0) && (grp[HIGRP] >= 0)) {
 					what = dtmf_matrix[grp[LOGRP]][grp[HIGRP]];
 					if (s->last != ' ' && s->last != '.')
-						s->last = what;	/* min. 1 non-DTMF between DTMF */
+						s->last = what;	
 				} else
 					what = '.';
 			}
@@ -570,7 +543,7 @@ isdn_audio_eval_dtmf(modem_info *info)
 			ch = info->isdn_channel;
 			__skb_queue_tail(&dev->drv[di]->rpqueue[ch], skb);
 			dev->drv[di]->rcvcount[ch] += 2;
-			/* Schedule dequeuing */
+			
 			if ((dev->modempoll) && (info->rcvsched))
 				isdn_timer_ctrl(ISDN_TIMER_MODEMREAD, 1);
 			wake_up_interruptible(&dev->drv[di]->rcv_waitq[ch]);
@@ -580,15 +553,6 @@ isdn_audio_eval_dtmf(modem_info *info)
 	}
 }
 
-/*
- * Decode DTMF tones, queue result in separate sk_buf for
- * later examination.
- * Parameters:
- *   s    = pointer to state-struct.
- *   buf  = input audio data
- *   len  = size of audio data.
- *   fmt  = audio data format (0 = ulaw, 1 = alaw)
- */
 void
 isdn_audio_calc_dtmf(modem_info *info, unsigned char *buf, int len, int fmt)
 {
@@ -681,7 +645,7 @@ isdn_audio_put_dle_code(modem_info *info, u_char code)
 	ch = info->isdn_channel;
 	__skb_queue_tail(&dev->drv[di]->rpqueue[ch], skb);
 	dev->drv[di]->rcvcount[ch] += 2;
-	/* Schedule dequeuing */
+	
 	if ((dev->modempoll) && (info->rcvsched))
 		isdn_timer_ctrl(ISDN_TIMER_MODEMREAD, 1);
 	wake_up_interruptible(&dev->drv[di]->rcv_waitq[ch]);
@@ -697,7 +661,7 @@ isdn_audio_eval_silence(modem_info *info)
 
 	if (s->idx > (info->emu.vpar[2] * 800)) {
 		s->idx = 0;
-		if (!s->state) {	/* silence from beginning of rec */
+		if (!s->state) {	
 			what = 's';
 		} else {
 			what = 'q';

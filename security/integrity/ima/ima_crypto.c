@@ -39,9 +39,6 @@ static int init_desc(struct hash_desc *desc)
 	return rc;
 }
 
-/*
- * Calculate the MD5/SHA1 file digest
- */
 int ima_calc_hash(struct file *file, char *digest)
 {
 	struct hash_desc desc;
@@ -85,9 +82,6 @@ out:
 	return rc;
 }
 
-/*
- * Calculate the hash of a given template
- */
 int ima_calc_template_hash(int template_len, void *template, char *digest)
 {
 	struct hash_desc desc;
@@ -115,9 +109,6 @@ static void __init ima_pcrread(int idx, u8 *pcr)
 		pr_err("IMA: Error Communicating to TPM chip\n");
 }
 
-/*
- * Calculate the boot aggregate hash
- */
 int __init ima_calc_boot_aggregate(char *digest)
 {
 	struct hash_desc desc;
@@ -129,10 +120,10 @@ int __init ima_calc_boot_aggregate(char *digest)
 	if (rc != 0)
 		return rc;
 
-	/* cumulative sha1 over tpm registers 0-7 */
+	
 	for (i = TPM_PCR0; i < TPM_PCR8; i++) {
 		ima_pcrread(i, pcr_i);
-		/* now accumulate with current aggregate */
+		
 		sg_init_one(&sg, pcr_i, IMA_DIGEST_SIZE);
 		rc = crypto_hash_update(&desc, &sg, IMA_DIGEST_SIZE);
 	}

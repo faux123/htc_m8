@@ -16,12 +16,6 @@
 #define _ASM_DEBUG_H
 
 
-/*
- * run-time macros for catching spurious errors.  Eable CONFIG_RUNTIME_DEBUG in
- * kernel hacking config menu to use them.
- *
- * Use them as run-time debugging aid.  NEVER USE THEM AS ERROR HANDLING CODE!!!
- */
 
 #ifdef CONFIG_RUNTIME_DEBUG
 
@@ -45,4 +39,4 @@
 
 #endif
 
-#endif /* _ASM_DEBUG_H */
+#endif 

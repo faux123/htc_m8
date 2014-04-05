@@ -28,4 +28,4 @@
 
 void dlmfs_print_version(void);
 
-#endif /* DLMFS_VER_H */
+#endif 

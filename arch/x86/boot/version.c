@@ -8,9 +8,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Kernel version string
- */
 
 #include "boot.h"
 #include <generated/utsrelease.h>

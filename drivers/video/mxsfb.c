@@ -19,25 +19,6 @@
 
 #define DRIVER_NAME "mxsfb"
 
-/**
- * @file
- * @brief LCDIF driver for i.MX23 and i.MX28
- *
- * The LCDIF support four modes of operation
- * - MPU interface (to drive smart displays) -> not supported yet
- * - VSYNC interface (like MPU interface plus Vsync) -> not supported yet
- * - Dotclock interface (to drive LC displays with RGB data and sync signals)
- * - DVI (to drive ITU-R BT656)  -> not supported yet
- *
- * This driver depends on a correct setup of the pins used for this purpose
- * (platform specific).
- *
- * For the developer: Don't forget to set the data bus width to the display
- * in the imx_fb_videomode structure. You will else end up with ugly colours.
- * If you fight against jitter you can vary the clock delay. This is a feature
- * of the i.MX28 and you can vary it between 2 ns ... 8 ns in 2 ns steps. Give
- * the required value in the imx_fb_videomode structure.
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -123,8 +104,8 @@
 #define SET_VERT_WAIT_CNT(x)		((x) & 0xffff)
 #define GET_VERT_WAIT_CNT(x)		((x) & 0xffff)
 
-#define VDCTRL4_SET_DOTCLK_DLY(x)	(((x) & 0x7) << 29) /* v4 only */
-#define VDCTRL4_GET_DOTCLK_DLY(x)	(((x) >> 29) & 0x7) /* v4 only */
+#define VDCTRL4_SET_DOTCLK_DLY(x)	(((x) & 0x7) << 29) 
+#define VDCTRL4_GET_DOTCLK_DLY(x)	(((x) >> 29) & 0x7) 
 #define VDCTRL4_SYNC_SIGNALS_ON		(1 << 18)
 #define SET_DOTCLK_H_VALID_DATA_CNT(x)	((x) & 0x3ffff)
 
@@ -144,7 +125,6 @@ enum mxsfb_devtype {
 	MXSFB_V4,
 };
 
-/* CPU dependent register offsets */
 struct mxsfb_devdata {
 	unsigned transfer_count;
 	unsigned cur_buf;
@@ -159,7 +139,7 @@ struct mxsfb_info {
 	struct fb_info fb_info;
 	struct platform_device *pdev;
 	struct clk *clk;
-	void __iomem *base;	/* registers */
+	void __iomem *base;	
 	unsigned allocated_size;
 	int enabled;
 	unsigned ld_intf_width;
@@ -194,7 +174,6 @@ static const struct mxsfb_devdata mxsfb_devdata[] = {
 
 #define to_imxfb_host(x) (container_of(x, struct mxsfb_info, fb_info))
 
-/* mask and shift depends on architecture */
 static inline u32 set_hsync_pulse_width(struct mxsfb_info *host, unsigned val)
 {
 	return (val & host->devdata->hs_wdth_mask) <<
@@ -220,7 +199,7 @@ static const struct fb_bitfield def_rgb565[] = {
 		.offset = 0,
 		.length = 5,
 	},
-	[TRANSP] = {	/* no support for transparency */
+	[TRANSP] = {	
 		.length = 0,
 	}
 };
@@ -238,7 +217,7 @@ static const struct fb_bitfield def_rgb666[] = {
 		.offset = 0,
 		.length = 6,
 	},
-	[TRANSP] = {	/* no support for transparency */
+	[TRANSP] = {	
 		.length = 0,
 	}
 };
@@ -256,7 +235,7 @@ static const struct fb_bitfield def_rgb888[] = {
 		.offset = 0,
 		.length = 8,
 	},
-	[TRANSP] = {	/* no support for transparency */
+	[TRANSP] = {	
 		.length = 0,
 	}
 };
@@ -285,7 +264,7 @@ static int mxsfb_check_var(struct fb_var_screeninfo *var,
 
 	switch (var->bits_per_pixel) {
 	case 16:
-		/* always expect RGB 565 */
+		
 		rgb = def_rgb565;
 		break;
 	case 32:
@@ -295,11 +274,11 @@ static int mxsfb_check_var(struct fb_var_screeninfo *var,
 			break;
 		case STMLCDIF_16BIT:
 		case STMLCDIF_18BIT:
-			/* 24 bit to 18 bit mapping */
+			
 			rgb = def_rgb666;
 			break;
 		case STMLCDIF_24BIT:
-			/* real 24 bit */
+			
 			rgb = def_rgb888;
 			break;
 		}
@@ -309,10 +288,6 @@ static int mxsfb_check_var(struct fb_var_screeninfo *var,
 		return -EINVAL;
 	}
 
-	/*
-	 * Copy the RGB parameters for this display
-	 * from the machine specific parameters.
-	 */
 	var->red    = rgb[RED];
 	var->green  = rgb[GREEN];
 	var->blue   = rgb[BLUE];
@@ -331,10 +306,10 @@ static void mxsfb_enable_controller(struct fb_info *fb_info)
 	clk_prepare_enable(host->clk);
 	clk_set_rate(host->clk, PICOS2KHZ(fb_info->var.pixclock) * 1000U);
 
-	/* if it was disabled, re-enable the mode again */
+	
 	writel(CTRL_DOTCLK_MODE, host->base + LCDC_CTRL + REG_SET);
 
-	/* enable the SYNC signals first, then the DMA engine */
+	
 	reg = readl(host->base + LCDC_VDCTRL4);
 	reg |= VDCTRL4_SYNC_SIGNALS_ON;
 	writel(reg, host->base + LCDC_VDCTRL4);
@@ -352,10 +327,6 @@ static void mxsfb_disable_controller(struct fb_info *fb_info)
 
 	dev_dbg(&host->pdev->dev, "%s\n", __func__);
 
-	/*
-	 * Even if we disable the controller here, it will still continue
-	 * until its FIFOs are running out of data
-	 */
 	writel(CTRL_DOTCLK_MODE, host->base + LCDC_CTRL + REG_CLR);
 
 	loop = 1000;
@@ -388,17 +359,12 @@ static int mxsfb_set_par(struct fb_info *fb_info)
 
 	fb_info->fix.line_length = line_size;
 
-	/*
-	 * It seems, you can't re-program the controller if it is still running.
-	 * This may lead into shifted pictures (FIFO issue?).
-	 * So, first stop the controller and drain its FIFOs
-	 */
 	if (host->enabled) {
 		reenable = 1;
 		mxsfb_disable_controller(fb_info);
 	}
 
-	/* clear the FIFOs */
+	
 	writel(CTRL1_FIFO_CLEAR, host->base + LCDC_CTRL1 + REG_SET);
 
 	ctrl = CTRL_BYPASS_COUNT | CTRL_MASTER |
@@ -420,16 +386,14 @@ static int mxsfb_set_par(struct fb_info *fb_info)
 			return -EINVAL;
 		case STMLCDIF_16BIT:
 		case STMLCDIF_18BIT:
-			/* 24 bit to 18 bit mapping */
-			ctrl |= CTRL_DF24; /* ignore the upper 2 bits in
-					    *  each colour component
-					    */
+			
+			ctrl |= CTRL_DF24; 
 			break;
 		case STMLCDIF_24BIT:
-			/* real 24 bit */
+			
 			break;
 		}
-		/* do not use packed pixels = one pixel per word instead */
+		
 		writel(CTRL1_SET_BYTE_PACKAGING(0x7), host->base + LCDC_CTRL1);
 		break;
 	default:
@@ -444,7 +408,7 @@ static int mxsfb_set_par(struct fb_info *fb_info)
 			TRANSFER_COUNT_SET_HCOUNT(fb_info->var.xres),
 			host->base + host->devdata->transfer_count);
 
-	vdctrl0 = VDCTRL0_ENABLE_PRESENT |	/* always in DOTCLOCK mode */
+	vdctrl0 = VDCTRL0_ENABLE_PRESENT |	
 		VDCTRL0_VSYNC_PERIOD_UNIT |
 		VDCTRL0_VSYNC_PULSE_WIDTH_UNIT |
 		VDCTRL0_SET_VSYNC_PULSE_WIDTH(fb_info->var.vsync_len);
@@ -459,12 +423,12 @@ static int mxsfb_set_par(struct fb_info *fb_info)
 
 	writel(vdctrl0, host->base + LCDC_VDCTRL0);
 
-	/* frame length in lines */
+	
 	writel(fb_info->var.upper_margin + fb_info->var.vsync_len +
 		fb_info->var.lower_margin + fb_info->var.yres,
 		host->base + LCDC_VDCTRL1);
 
-	/* line length in units of clocks or pixels */
+	
 	writel(set_hsync_pulse_width(host, fb_info->var.hsync_len) |
 		VDCTRL2_SET_HSYNC_PERIOD(fb_info->var.left_margin +
 		fb_info->var.hsync_len + fb_info->var.right_margin +
@@ -498,20 +462,12 @@ static int mxsfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 	unsigned int val;
 	int ret = -EINVAL;
 
-	/*
-	 * If greyscale is true, then we convert the RGB value
-	 * to greyscale no matter what visual we are using.
-	 */
 	if (fb_info->var.grayscale)
 		red = green = blue = (19595 * red + 38470 * green +
 					7471 * blue) >> 16;
 
 	switch (fb_info->fix.visual) {
 	case FB_VISUAL_TRUECOLOR:
-		/*
-		 * 12 or 16-bit True Colour.  We encode the RGB value
-		 * according to the RGB bitfield information.
-		 */
 		if (regno < 16) {
 			u32 *pal = fb_info->pseudo_palette;
 
@@ -564,7 +520,7 @@ static int mxsfb_pan_display(struct fb_var_screeninfo *var,
 
 	offset = fb_info->fix.line_length * var->yoffset;
 
-	/* update on next VSYNC */
+	
 	writel(fb_info->fix.smem_start + offset,
 			host->base + host->devdata->next_buf);
 
@@ -593,7 +549,7 @@ static int __devinit mxsfb_restore_mode(struct mxsfb_info *host)
 	u32 transfer_count, vdctrl0, vdctrl2, vdctrl3, vdctrl4, ctrl;
 	struct fb_videomode vmode;
 
-	/* Only restore the mode when the controller is running */
+	
 	ctrl = readl(host->base + LCDC_CTRL);
 	if (!(ctrl & CTRL_RUN))
 		return -EINVAL;
@@ -700,7 +656,7 @@ static int __devinit mxsfb_init_fbinfo(struct mxsfb_info *host)
 	host->dotclk_delay = pdata->dotclk_delay;
 	host->ld_intf_width = pdata->ld_intf_width;
 
-	/* Memory allocation for framebuffer */
+	
 	if (pdata->fb_phys) {
 		if (!fb_size)
 			return -EINVAL;
@@ -718,7 +674,7 @@ static int __devinit mxsfb_init_fbinfo(struct mxsfb_info *host)
 		host->mapped = 1;
 	} else {
 		if (!fb_size)
-			fb_size = SZ_2M; /* default */
+			fb_size = SZ_2M; 
 		fb_virt = alloc_pages_exact(fb_size, GFP_DMA);
 		if (!fb_virt)
 			return -ENOMEM;
@@ -818,7 +774,7 @@ static int __devinit mxsfb_probe(struct platform_device *pdev)
 			struct fb_modelist, list);
 	fb_videomode_to_var(&fb_info->var, &modelist->mode);
 
-	/* init the color fields */
+	
 	mxsfb_check_var(&fb_info->var, fb_info);
 
 	platform_set_drvdata(pdev, fb_info);
@@ -888,7 +844,7 @@ static struct platform_device_id mxsfb_devtype[] = {
 		.name = "imx28-fb",
 		.driver_data = MXSFB_V4,
 	}, {
-		/* sentinel */
+		
 	}
 };
 MODULE_DEVICE_TABLE(platform, mxsfb_devtype);

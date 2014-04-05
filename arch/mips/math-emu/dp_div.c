@@ -1,6 +1,3 @@
-/* IEEE754 floating point arithmetic
- * double precision: common utilities
- */
 /*
  * MIPS floating point support
  * Copyright (C) 1994-2000 Algorithmics Ltd.
@@ -68,8 +65,6 @@ ieee754dp ieee754dp_div(ieee754dp x, ieee754dp y)
 		return x;
 
 
-		/* Infinity handling
-		 */
 
 	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_INF):
 		SETCX(IEEE754_INVALID_OPERATION);
@@ -85,8 +80,6 @@ ieee754dp ieee754dp_div(ieee754dp x, ieee754dp y)
 	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_DNORM):
 		return ieee754dp_inf(xs ^ ys);
 
-		/* Zero handling
-		 */
 
 	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_ZERO):
 		SETCX(IEEE754_INVALID_OPERATION);
@@ -118,12 +111,12 @@ ieee754dp ieee754dp_div(ieee754dp x, ieee754dp y)
 	assert(xm & DP_HIDDEN_BIT);
 	assert(ym & DP_HIDDEN_BIT);
 
-	/* provide rounding space */
+	
 	xm <<= 3;
 	ym <<= 3;
 
 	{
-		/* now the dirty work */
+		
 
 		u64 rm = 0;
 		int re = xe - ye;
@@ -140,12 +133,10 @@ ieee754dp ieee754dp_div(ieee754dp x, ieee754dp y)
 		}
 		rm <<= 1;
 		if (xm)
-			rm |= 1;	/* have remainder, set sticky */
+			rm |= 1;	
 
 		assert(rm);
 
-		/* normalise rm to rounding precision ?
-		 */
 		while ((rm >> (DP_MBITS + 3)) == 0) {
 			rm <<= 1;
 			re--;

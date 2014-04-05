@@ -53,20 +53,16 @@
 #include "nv_dma.h"
 #include "nv_local.h"
 
-/* There is a HW race condition with videoram command buffers.
-   You can't jump to the location of your put offset.  We write put
-   at the jump offset + SKIPS dwords with noop padding in between
-   to solve this problem */
 #define SKIPS  8
 
 static const int NVCopyROP[16] = {
-	0xCC,			/* copy   */
-	0x55			/* invert */
+	0xCC,			
+	0x55			
 };
 
 static const int NVCopyROP_PM[16] = {
-	0xCA,			/* copy  */
-	0x5A,			/* invert */
+	0xCA,			
+	0x5A,			
 };
 
 static inline void nvidiafb_safe_mode(struct fb_info *info)
@@ -268,7 +264,7 @@ void NVResetGraphics(struct fb_info *info)
 	NVDmaStart(info, par, LINE_FORMAT, 1);
 	NVDmaNext(par, lineFormat);
 
-	par->currentRop = ~0;	/* set to something invalid */
+	par->currentRop = ~0;	
 	NVSetRopSolid(info, ROP_COPY, ~0);
 
 	NVSetClippingRectangle(info, 0, 0, info->var.xres_virtual,

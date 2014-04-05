@@ -20,117 +20,85 @@
 
 #include "jfs_logmgr.h"
 
-/*
- * Hide implementation of TxBlock and TxLock
- */
 #define tid_to_tblock(tid) (&TxBlock[tid])
 
 #define lid_to_tlock(lid) (&TxLock[lid])
 
-/*
- *	transaction block
- */
 struct tblock {
-	/*
-	 * tblock and jbuf_t common area: struct logsyncblk
-	 *
-	 * the following 5 fields are the same as struct logsyncblk
-	 * which is common to tblock and jbuf to form logsynclist
-	 */
-	u16 xflag;		/* tx commit type */
-	u16 flag;		/* tx commit state */
-	lid_t dummy;		/* Must keep structures common */
-	s32 lsn;		/* recovery lsn */
-	struct list_head synclist;	/* logsynclist link */
+	u16 xflag;		
+	u16 flag;		
+	lid_t dummy;		
+	s32 lsn;		
+	struct list_head synclist;	
 
-	/* lock management */
-	struct super_block *sb;	/* super block */
-	lid_t next;		/* index of first tlock of tid */
-	lid_t last;		/* index of last tlock of tid */
-	wait_queue_head_t waitor;	/* tids waiting on this tid */
+	
+	struct super_block *sb;	
+	lid_t next;		
+	lid_t last;		
+	wait_queue_head_t waitor;	
 
-	/* log management */
-	u32 logtid;		/* log transaction id */
+	
+	u32 logtid;		
 
-	/* commit management */
-	struct list_head cqueue;	/* commit queue list */
-	s32 clsn;		/* commit lsn */
+	
+	struct list_head cqueue;	
+	s32 clsn;		
 	struct lbuf *bp;
-	s32 pn;			/* commit record log page number */
-	s32 eor;		/* commit record eor */
-	wait_queue_head_t gcwait;	/* group commit event list:
-					 * ready transactions wait on this
-					 * event for group commit completion.
-					 */
+	s32 pn;			
+	s32 eor;		
+	wait_queue_head_t gcwait;	
 	union {
-		struct inode *ip; /* inode being deleted */
-		pxd_t ixpxd;	/* pxd of inode extent for created inode */
+		struct inode *ip; 
+		pxd_t ixpxd;	
 	} u;
-	u32 ino;		/* inode number being created */
+	u32 ino;		
 };
 
-extern struct tblock *TxBlock;	/* transaction block table */
+extern struct tblock *TxBlock;	
 
-/* commit flags: tblk->xflag */
-#define	COMMIT_SYNC	0x0001	/* synchronous commit */
-#define	COMMIT_FORCE	0x0002	/* force pageout at end of commit */
-#define	COMMIT_FLUSH	0x0004	/* init flush at end of commit */
+#define	COMMIT_SYNC	0x0001	
+#define	COMMIT_FORCE	0x0002	
+#define	COMMIT_FLUSH	0x0004	
 #define COMMIT_MAP	0x00f0
-#define	COMMIT_PMAP	0x0010	/* update pmap */
-#define	COMMIT_WMAP	0x0020	/* update wmap */
-#define	COMMIT_PWMAP	0x0040	/* update pwmap */
+#define	COMMIT_PMAP	0x0010	
+#define	COMMIT_WMAP	0x0020	
+#define	COMMIT_PWMAP	0x0040	
 #define	COMMIT_FREE	0x0f00
-#define	COMMIT_DELETE	0x0100	/* inode delete */
-#define	COMMIT_TRUNCATE	0x0200	/* file truncation */
-#define	COMMIT_CREATE	0x0400	/* inode create */
-#define	COMMIT_LAZY	0x0800	/* lazy commit */
-#define COMMIT_PAGE	0x1000	/* Identifies element as metapage */
-#define COMMIT_INODE	0x2000	/* Identifies element as inode */
+#define	COMMIT_DELETE	0x0100	
+#define	COMMIT_TRUNCATE	0x0200	
+#define	COMMIT_CREATE	0x0400	
+#define	COMMIT_LAZY	0x0800	
+#define COMMIT_PAGE	0x1000	
+#define COMMIT_INODE	0x2000	
 
-/* group commit flags tblk->flag: see jfs_logmgr.h */
 
-/*
- *	transaction lock
- */
 struct tlock {
-	lid_t next;		/* 2: index next lockword on tid locklist
-				 *	    next lockword on freelist
-				 */
-	tid_t tid;		/* 2: transaction id holding lock */
+	lid_t next;		
+	tid_t tid;		
 
-	u16 flag;		/* 2: lock control */
-	u16 type;		/* 2: log type */
+	u16 flag;		
+	u16 type;		
 
-	struct metapage *mp;	/* 4/8: object page buffer locked */
-	struct inode *ip;	/* 4/8: object */
-	/* (16) */
+	struct metapage *mp;	
+	struct inode *ip;	
+	
 
-	s16 lock[24];		/* 48: overlay area */
-};				/* (64) */
+	s16 lock[24];		
+};				
 
-extern struct tlock *TxLock;	/* transaction lock table */
+extern struct tlock *TxLock;	
 
-/*
- * tlock flag
- */
-/* txLock state */
 #define tlckPAGELOCK		0x8000
 #define tlckINODELOCK		0x4000
 #define tlckLINELOCK		0x2000
 #define tlckINLINELOCK		0x1000
-/* lmLog state */
 #define tlckLOG			0x0800
-/* updateMap state */
 #define	tlckUPDATEMAP		0x0080
 #define	tlckDIRECTORY		0x0040
-/* freeLock state */
 #define tlckFREELOCK		0x0008
 #define tlckWRITEPAGE		0x0004
 #define tlckFREEPAGE		0x0002
 
-/*
- * tlock type
- */
 #define	tlckTYPE		0xfe00
 #define	tlckINODE		0x8000
 #define	tlckXTREE		0x4000
@@ -142,93 +110,76 @@ extern struct tlock *TxLock;	/* transaction lock table */
 #define	tlckBTROOT		0x0100
 
 #define	tlckOPERATION		0x00ff
-#define tlckGROW		0x0001	/* file grow */
-#define tlckREMOVE		0x0002	/* file delete */
-#define tlckTRUNCATE		0x0004	/* file truncate */
-#define tlckRELOCATE		0x0008	/* file/directory relocate */
-#define tlckENTRY		0x0001	/* directory insert/delete */
-#define tlckEXTEND		0x0002	/* directory extend in-line */
-#define tlckSPLIT		0x0010	/* splited page */
-#define tlckNEW			0x0020	/* new page from split */
-#define tlckFREE		0x0040	/* free page */
-#define tlckRELINK		0x0080	/* update sibling pointer */
+#define tlckGROW		0x0001	
+#define tlckREMOVE		0x0002	
+#define tlckTRUNCATE		0x0004	
+#define tlckRELOCATE		0x0008	
+#define tlckENTRY		0x0001	
+#define tlckEXTEND		0x0002	
+#define tlckSPLIT		0x0010	
+#define tlckNEW			0x0020	
+#define tlckFREE		0x0040	
+#define tlckRELINK		0x0080	
 
-/*
- *	linelock for lmLog()
- *
- * note: linelock and its variations are overlaid
- * at tlock.lock: watch for alignment;
- */
 struct lv {
-	u8 offset;		/* 1: */
-	u8 length;		/* 1: */
-};				/* (2) */
+	u8 offset;		
+	u8 length;		
+};				
 
 #define	TLOCKSHORT	20
 #define	TLOCKLONG	28
 
 struct linelock {
-	lid_t next;		/* 2: next linelock */
+	lid_t next;		
 
-	s8 maxcnt;		/* 1: */
-	s8 index;		/* 1: */
+	s8 maxcnt;		
+	s8 index;		
 
-	u16 flag;		/* 2: */
-	u8 type;		/* 1: */
-	u8 l2linesize;		/* 1: log2 of linesize */
-	/* (8) */
+	u16 flag;		
+	u8 type;		
+	u8 l2linesize;		
+	
 
-	struct lv lv[20];	/* 40: */
-};				/* (48) */
+	struct lv lv[20];	
+};				
 
 #define dt_lock	linelock
 
 struct xtlock {
-	lid_t next;		/* 2: */
+	lid_t next;		
 
-	s8 maxcnt;		/* 1: */
-	s8 index;		/* 1: */
+	s8 maxcnt;		
+	s8 index;		
 
-	u16 flag;		/* 2: */
-	u8 type;		/* 1: */
-	u8 l2linesize;		/* 1: log2 of linesize */
-				/* (8) */
+	u16 flag;		
+	u8 type;		
+	u8 l2linesize;		
+				
 
-	struct lv header;	/* 2: */
-	struct lv lwm;		/* 2: low water mark */
-	struct lv hwm;		/* 2: high water mark */
-	struct lv twm;		/* 2: */
-				/* (16) */
+	struct lv header;	
+	struct lv lwm;		
+	struct lv hwm;		
+	struct lv twm;		
+				
 
-	s32 pxdlock[8];		/* 32: */
-};				/* (48) */
+	s32 pxdlock[8];		
+};				
 
 
-/*
- *	maplock for txUpdateMap()
- *
- * note: maplock and its variations are overlaid
- * at tlock.lock/linelock: watch for alignment;
- * N.B. next field may be set by linelock, and should not
- * be modified by maplock;
- * N.B. index of the first pxdlock specifies index of next
- * free maplock (i.e., number of maplock) in the tlock;
- */
 struct maplock {
-	lid_t next;		/* 2: */
+	lid_t next;		
 
-	u8 maxcnt;		/* 2: */
-	u8 index;		/* 2: next free maplock index */
+	u8 maxcnt;		
+	u8 index;		
 
-	u16 flag;		/* 2: */
-	u8 type;		/* 1: */
-	u8 count;		/* 1: number of pxd/xad */
-				/* (8) */
+	u16 flag;		
+	u8 type;		
+	u8 count;		
+				
 
-	pxd_t pxd;		/* 8: */
-};				/* (16): */
+	pxd_t pxd;		
+};				
 
-/* maplock flag */
 #define	mlckALLOC		0x00f0
 #define	mlckALLOCXADLIST	0x0080
 #define	mlckALLOCPXDLIST	0x0040
@@ -243,49 +194,37 @@ struct maplock {
 #define	pxd_lock	maplock
 
 struct xdlistlock {
-	lid_t next;		/* 2: */
+	lid_t next;		
 
-	u8 maxcnt;		/* 2: */
-	u8 index;		/* 2: */
+	u8 maxcnt;		
+	u8 index;		
 
-	u16 flag;		/* 2: */
-	u8 type;		/* 1: */
-	u8 count;		/* 1: number of pxd/xad */
-				/* (8) */
+	u16 flag;		
+	u8 type;		
+	u8 count;		
+				
 
-	/*
-	 * We need xdlist to be 64 bits (8 bytes), regardless of
-	 * whether void * is 32 or 64 bits
-	 */
 	union {
-		void *_xdlist;	/* pxd/xad list */
-		s64 pad;	/* 8: Force 64-bit xdlist size */
+		void *_xdlist;	
+		s64 pad;	
 	} union64;
-};				/* (16): */
+};				
 
 #define xdlist union64._xdlist
 
-/*
- *	commit
- *
- * parameter to the commit manager routines
- */
 struct commit {
-	tid_t tid;		/* tid = index of tblock */
-	int flag;		/* flags */
-	struct jfs_log *log;	/* log */
-	struct super_block *sb;	/* superblock */
+	tid_t tid;		
+	int flag;		
+	struct jfs_log *log;	
+	struct super_block *sb;	
 
-	int nip;		/* number of entries in iplist */
-	struct inode **iplist;	/* list of pointers to inodes */
+	int nip;		
+	struct inode **iplist;	
 
-	/* log record descriptor on 64-bit boundary */
-	struct lrd lrd;		/* : log record descriptor */
+	
+	struct lrd lrd;		
 };
 
-/*
- * external declarations
- */
 extern int jfs_tlocks_low;
 
 extern int txInit(void);
@@ -308,4 +247,4 @@ extern void txResume(struct super_block *);
 extern void txLazyUnlock(struct tblock *);
 extern int jfs_lazycommit(void *);
 extern int jfs_sync(void *);
-#endif				/* _H_JFS_TXNMGR */
+#endif				

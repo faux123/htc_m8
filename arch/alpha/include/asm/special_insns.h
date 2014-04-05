@@ -13,7 +13,6 @@ enum implver_enum {
    __asm__ ("implver %0" : "=r"(__implver));	\
    (enum implver_enum) __implver; })
 #else
-/* Try to eliminate some dead code.  */
 #ifdef CONFIG_ALPHA_EV4
 #define implver() IMPLVER_EV4
 #endif
@@ -38,4 +37,4 @@ enum amask_enum {
    __asm__ ("amask %1,%0" : "=r"(__amask) : "rI"(__input));	\
    __amask; })
 
-#endif /* __ALPHA_SPECIAL_INSNS_H */
+#endif 

@@ -1,6 +1,3 @@
-/*
- * ISA bus.
- */
 
 #include <linux/device.h>
 #include <linux/kernel.h>

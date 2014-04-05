@@ -12,11 +12,6 @@
 #include <asm/cacheflush.h>
 #include "cache-smp.h"
 
-/**
- * mn10300_icache_inv - Globally invalidate instruction cache
- *
- * Invalidate the instruction cache on all CPUs.
- */
 void mn10300_icache_inv(void)
 {
 	unsigned long flags;
@@ -27,13 +22,6 @@ void mn10300_icache_inv(void)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_icache_inv_page - Globally invalidate a page of instruction cache
- * @start: The address of the page of memory to be invalidated.
- *
- * Invalidate a range of addresses in the instruction cache on all CPUs
- * covering the page that includes the given address.
- */
 void mn10300_icache_inv_page(unsigned long start)
 {
 	unsigned long flags;
@@ -46,14 +34,6 @@ void mn10300_icache_inv_page(unsigned long start)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_icache_inv_range - Globally invalidate range of instruction cache
- * @start: The start address of the region to be invalidated.
- * @end: The end address of the region to be invalidated.
- *
- * Invalidate a range of addresses in the instruction cache on all CPUs,
- * between start and end-1 inclusive.
- */
 void mn10300_icache_inv_range(unsigned long start, unsigned long end)
 {
 	unsigned long flags;
@@ -64,14 +44,6 @@ void mn10300_icache_inv_range(unsigned long start, unsigned long end)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_icache_inv_range2 - Globally invalidate range of instruction cache
- * @start: The start address of the region to be invalidated.
- * @size: The size of the region to be invalidated.
- *
- * Invalidate a range of addresses in the instruction cache on all CPUs,
- * between start and start+size-1 inclusive.
- */
 void mn10300_icache_inv_range2(unsigned long start, unsigned long size)
 {
 	unsigned long flags;
@@ -82,11 +54,6 @@ void mn10300_icache_inv_range2(unsigned long start, unsigned long size)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_inv - Globally invalidate data cache
- *
- * Invalidate the data cache on all CPUs.
- */
 void mn10300_dcache_inv(void)
 {
 	unsigned long flags;
@@ -97,13 +64,6 @@ void mn10300_dcache_inv(void)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_inv_page - Globally invalidate a page of data cache
- * @start: The address of the page of memory to be invalidated.
- *
- * Invalidate a range of addresses in the data cache on all CPUs covering the
- * page that includes the given address.
- */
 void mn10300_dcache_inv_page(unsigned long start)
 {
 	unsigned long flags;
@@ -116,14 +76,6 @@ void mn10300_dcache_inv_page(unsigned long start)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_inv_range - Globally invalidate range of data cache
- * @start: The start address of the region to be invalidated.
- * @end: The end address of the region to be invalidated.
- *
- * Invalidate a range of addresses in the data cache on all CPUs, between start
- * and end-1 inclusive.
- */
 void mn10300_dcache_inv_range(unsigned long start, unsigned long end)
 {
 	unsigned long flags;
@@ -134,14 +86,6 @@ void mn10300_dcache_inv_range(unsigned long start, unsigned long end)
 	smp_unlock_cache(flags);
 }
 
-/**
- * mn10300_dcache_inv_range2 - Globally invalidate range of data cache
- * @start: The start address of the region to be invalidated.
- * @size: The size of the region to be invalidated.
- *
- * Invalidate a range of addresses in the data cache on all CPUs, between start
- * and start+size-1 inclusive.
- */
 void mn10300_dcache_inv_range2(unsigned long start, unsigned long size)
 {
 	unsigned long flags;

@@ -59,15 +59,12 @@ void h3xxx_init_gpio(struct gpio_default_state *s, size_t n)
 }
 
 
-/*
- * H3xxx flash support
- */
 static struct mtd_partition h3xxx_partitions[] = {
 	{
 		.name		= "H3XXX boot firmware",
 		.size		= 0x00040000,
 		.offset		= 0,
-		.mask_flags	= MTD_WRITEABLE,  /* force read-only */
+		.mask_flags	= MTD_WRITEABLE,  
 	}, {
 		.name		= "H3XXX rootfs",
 		.size		= MTDPART_SIZ_FULL,
@@ -113,9 +110,6 @@ static struct resource h3xxx_flash_resource =
 	DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_32M);
 
 
-/*
- * H3xxx uart support
- */
 static void h3xxx_uart_set_mctrl(struct uart_port *port, u_int mctrl)
 {
 	if (port->mapbase == _Ser3UTCR0) {
@@ -153,19 +147,15 @@ static void h3xxx_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
 	}
 }
 
-/*
- * Enable/Disable wake up events for this serial port.
- * Obviously, we only support this on the normal COM port.
- */
 static int h3xxx_uart_set_wake(struct uart_port *port, u_int enable)
 {
 	int err = -EINVAL;
 
 	if (port->mapbase == _Ser3UTCR0) {
 		if (enable)
-			PWER |= PWER_GPIO23 | PWER_GPIO25; /* DCD and CTS */
+			PWER |= PWER_GPIO23 | PWER_GPIO25; 
 		else
-			PWER &= ~(PWER_GPIO23 | PWER_GPIO25); /* DCD and CTS */
+			PWER &= ~(PWER_GPIO23 | PWER_GPIO25); 
 		err = 0;
 	}
 	return err;
@@ -178,9 +168,6 @@ static struct sa1100_port_fns h3xxx_port_fns __initdata = {
 	.set_wake	= h3xxx_uart_set_wake,
 };
 
-/*
- * EGPIO
- */
 
 static struct resource egpio_resources[] = {
 	[0] = DEFINE_RES_MEM(H3600_EGPIO_PHYS, 0x4),
@@ -192,7 +179,7 @@ static struct htc_egpio_chip egpio_chips[] = {
 		.gpio_base	= H3XXX_EGPIO_BASE,
 		.num_gpios	= 16,
 		.direction	= HTC_EGPIO_OUTPUT,
-		.initial_values	= 0x0080, /* H3XXX_EGPIO_RS232_ON */
+		.initial_values	= 0x0080, 
 	},
 };
 
@@ -213,9 +200,6 @@ static struct platform_device h3xxx_egpio = {
 	},
 };
 
-/*
- * GPIO keys
- */
 
 static struct gpio_keys_button h3xxx_button_table[] = {
 	{
@@ -261,17 +245,17 @@ void __init h3xxx_mach_init(void)
 }
 
 static struct map_desc h3600_io_desc[] __initdata = {
-	{	/* static memory bank 2  CS#2 */
+	{	
 		.virtual	=  H3600_BANK_2_VIRT,
 		.pfn		= __phys_to_pfn(SA1100_CS2_PHYS),
 		.length		= 0x02800000,
 		.type		= MT_DEVICE
-	}, {	/* static memory bank 4  CS#4 */
+	}, {	
 		.virtual	=  H3600_BANK_4_VIRT,
 		.pfn		= __phys_to_pfn(SA1100_CS4_PHYS),
 		.length		= 0x00800000,
 		.type		= MT_DEVICE
-	}, {	/* EGPIO 0		CS#5 */
+	}, {	
 		.virtual	=  H3600_EGPIO_VIRT,
 		.pfn		= __phys_to_pfn(H3600_EGPIO_PHYS),
 		.length		= 0x01000000,
@@ -279,28 +263,24 @@ static struct map_desc h3600_io_desc[] __initdata = {
 	}
 };
 
-/*
- * Common map_io initialization
- */
 
 void __init h3xxx_map_io(void)
 {
 	sa1100_map_io();
 	iotable_init(h3600_io_desc, ARRAY_SIZE(h3600_io_desc));
 
-	sa1100_register_uart(0, 3); /* Common serial port */
-//	sa1100_register_uart(1, 1); /* Microcontroller on 3100/3600 */
+	sa1100_register_uart(0, 3); 
 
-	/* Ensure those pins are outputs and driving low  */
+	
 	PPDR |= PPC_TXD4 | PPC_SCLK | PPC_SFRM;
 	PPSR &= ~(PPC_TXD4 | PPC_SCLK | PPC_SFRM);
 
-	/* Configure suspend conditions */
+	
 	PGSR = 0;
 	PCFR = PCFR_OPDE;
 	PSDR = 0;
 
-	GPCR = 0x0fffffff;	/* All outputs are set low by default */
-	GPDR = 0;		/* Configure all GPIOs as input */
+	GPCR = 0x0fffffff;	
+	GPDR = 0;		
 }
 

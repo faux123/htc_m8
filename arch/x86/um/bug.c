@@ -5,10 +5,6 @@
 
 #include <linux/uaccess.h>
 
-/*
- * Mostly copied from i386/x86_86 - eliminated the eip < PAGE_OFFSET because
- * that's not relevant in skas mode.
- */
 
 int is_valid_bugaddr(unsigned long eip)
 {

@@ -1,6 +1,3 @@
-/*
- * Contains all definitions needed for the Libertas' MESH implementation.
- */
 #ifndef _LBS_MESH_H_
 #define _LBS_MESH_H_
 
@@ -23,13 +20,12 @@ void lbs_remove_mesh(struct lbs_private *priv);
 
 static inline bool lbs_mesh_activated(struct lbs_private *priv)
 {
-	/* Mesh SSID is only programmed after successful init */
+	
 	return priv->mesh_ssid_len != 0;
 }
 
 int lbs_mesh_set_channel(struct lbs_private *priv, u8 channel);
 
-/* Sending / Receiving */
 
 struct rxpd;
 struct txpd;
@@ -40,14 +36,12 @@ void lbs_mesh_set_txpd(struct lbs_private *priv,
 	struct net_device *dev, struct txpd *txpd);
 
 
-/* Command handling */
 
 struct cmd_ds_command;
 struct cmd_ds_mesh_access;
 struct cmd_ds_mesh_config;
 
 
-/* Ethtool statistics */
 
 struct ethtool_stats;
 

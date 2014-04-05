@@ -6,10 +6,6 @@
 #define __ALIGN_STR     ".align 4"
 #endif
 
-/*
- * In parisc assembly a semicolon marks a comment while a
- * exclamation mark is used to separate independent lines.
- */
 #ifdef __ASSEMBLY__
 
 #define ENTRY(name) \
@@ -26,6 +22,6 @@ name:
 	END(name)
 #endif
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-#endif  /* __ASM_PARISC_LINKAGE_H */
+#endif  

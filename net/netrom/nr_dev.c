@@ -18,7 +18,7 @@
 #include <linux/errno.h>
 #include <linux/fcntl.h>
 #include <linux/in.h>
-#include <linux/if_ether.h>	/* For the statistics structure. */
+#include <linux/if_ether.h>	
 #include <linux/slab.h>
 
 #include <asm/uaccess.h>
@@ -36,9 +36,6 @@
 #include <net/ax25.h>
 #include <net/netrom.h>
 
-/*
- *	Only allow IP over NET/ROM frames through if the netrom device is up.
- */
 
 int nr_rx_ip(struct sk_buff *skb, struct net_device *dev)
 {
@@ -54,7 +51,7 @@ int nr_rx_ip(struct sk_buff *skb, struct net_device *dev)
 
 	skb->protocol = htons(ETH_P_IP);
 
-	/* Spoof incoming device */
+	
 	skb->dev      = dev;
 	skb->mac_header = skb->network_header;
 	skb_reset_network_header(skb);
@@ -207,6 +204,6 @@ void nr_setup(struct net_device *dev)
 	dev->addr_len		= AX25_ADDR_LEN;
 	dev->type		= ARPHRD_NETROM;
 
-	/* New-style flags. */
+	
 	dev->flags		= IFF_NOARP;
 }

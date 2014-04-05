@@ -13,7 +13,6 @@
 #define _CRYPTO_INTERNAL_H
 
 
-//#include <linux/crypto.h>
 #include "rtl_crypto.h"
 #include <linux/mm.h>
 #include <linux/highmem.h>
@@ -78,5 +77,5 @@ void crypto_exit_digest_ops(struct crypto_tfm *tfm);
 void crypto_exit_cipher_ops(struct crypto_tfm *tfm);
 void crypto_exit_compress_ops(struct crypto_tfm *tfm);
 
-#endif	/* _CRYPTO_INTERNAL_H */
+#endif	
 

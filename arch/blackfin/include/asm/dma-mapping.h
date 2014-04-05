@@ -15,9 +15,6 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
 void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
 		       dma_addr_t dma_handle);
 
-/*
- * Now for the API extensions over the pci_ one
- */
 #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
 #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
 #define dma_supported(d, m)         (1)
@@ -47,12 +44,12 @@ __dma_sync_inline(dma_addr_t addr, size_t size, enum dma_data_direction dir)
 	switch (dir) {
 	case DMA_NONE:
 		BUG();
-	case DMA_TO_DEVICE:		/* writeback only */
+	case DMA_TO_DEVICE:		
 		flush_dcache_range(addr, addr + size);
 		break;
-	case DMA_FROM_DEVICE: /* invalidate only */
-	case DMA_BIDIRECTIONAL: /* flush and invalidate */
-		/* Blackfin has no dedicated invalidate (it includes a flush) */
+	case DMA_FROM_DEVICE: 
+	case DMA_BIDIRECTIONAL: 
+		
 		invalidate_dcache_range(addr, addr + size);
 		break;
 	}
@@ -154,4 +151,4 @@ dma_cache_sync(struct device *dev, void *vaddr, size_t size,
 	_dma_sync((dma_addr_t)vaddr, size, dir);
 }
 
-#endif				/* _BLACKFIN_DMA_MAPPING_H */
+#endif				

@@ -2,4 +2,4 @@
 #define __ASM_ARCH_GPIO_H
 
 
-#endif /* __ASM_ARCH_GPIO_H */
+#endif 

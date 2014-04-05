@@ -15,7 +15,6 @@
 #ifndef __ASM_ARCH_GPIO_H
 #define __ASM_ARCH_GPIO_H __FILE__
 
-/* GPIO bank sizes */
 #define S5PC100_GPIO_A0_NR	(8)
 #define S5PC100_GPIO_A1_NR	(5)
 #define S5PC100_GPIO_B_NR	(8)
@@ -51,12 +50,7 @@
 #define S5PC100_GPIO_L3_NR	(8)
 #define S5PC100_GPIO_L4_NR	(8)
 
-/* GPIO bank numbes */
 
-/* CONFIG_S3C_GPIO_SPACE allows the user to select extra
- * space for debugging purposes so that any accidental
- * change from one gpio bank to another can be caught.
-*/
 
 #define S5PC100_GPIO_NEXT(__gpio) \
 	((__gpio##_START) + (__gpio##_NR) + CONFIG_S3C_GPIO_SPACE + 1)
@@ -99,7 +93,6 @@ enum s5p_gpio_number {
 	S5PC100_GPIO_END	= S5PC100_GPIO_NEXT(S5PC100_GPIO_L4),
 };
 
-/* S5PC100 GPIO number definitions. */
 #define S5PC100_GPA0(_nr)	(S5PC100_GPIO_A0_START + (_nr))
 #define S5PC100_GPA1(_nr)	(S5PC100_GPIO_A1_START + (_nr))
 #define S5PC100_GPB(_nr)	(S5PC100_GPIO_B_START + (_nr))
@@ -135,10 +128,8 @@ enum s5p_gpio_number {
 #define S5PC100_GPL3(_nr)	(S5PC100_GPIO_L3_START + (_nr))
 #define S5PC100_GPL4(_nr)	(S5PC100_GPIO_L4_START + (_nr))
 
-/* It used the end of the S5PC100 gpios */
 #define S3C_GPIO_END		S5PC100_GPIO_END
 
-/* define the number of gpios we need to the one after the MP04() range */
 #define ARCH_NR_GPIOS		(S5PC100_GPIO_END + 1)
 
-#endif /* __ASM_ARCH_GPIO_H */
+#endif 

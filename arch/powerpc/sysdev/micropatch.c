@@ -1,9 +1,4 @@
 
-/* Microcode patches for the CPM as supplied by Motorola.
- * This is the one for IIC/SPI.  There is a newer one that
- * also relocates SMC2, but this would require additional changes
- * to uart.c, so I am holding off on that for a moment.
- */
 #include <linux/init.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -20,9 +15,6 @@
 #include <asm/cpm.h>
 #include <asm/cpm1.h>
 
-/*
- * I2C/SPI relocation patch arrays.
- */
 
 #ifdef CONFIG_I2C_SPI_UCODE_PATCH
 
@@ -178,9 +170,6 @@ static uint patch_2f00[] __initdata = {
 };
 #endif
 
-/*
- * I2C/SPI/SMC1 relocation patch arrays.
- */
 
 #ifdef CONFIG_I2C_SPI_SMC1_UCODE_PATCH
 
@@ -594,9 +583,6 @@ static uint patch_2e00[] __initdata = {
 };
 #endif
 
-/*
- *  USB SOF patch arrays.
- */
 
 #ifdef CONFIG_USB_SOF_UCODE_PATCH
 
@@ -624,7 +610,7 @@ static uint patch_2f00[] __initdata = {
 
 void __init cpm_load_patch(cpm8xx_t *cp)
 {
-	volatile uint		*dp;		/* Dual-ported RAM. */
+	volatile uint		*dp;		
 	volatile cpm8xx_t	*commproc;
 #if defined(CONFIG_I2C_SPI_UCODE_PATCH) || \
     defined(CONFIG_I2C_SPI_SMC1_UCODE_PATCH)
@@ -652,7 +638,7 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 	commproc->cp_rccr = 0x0009;
 
 	printk("USB SOF microcode patch installed\n");
-#endif /* CONFIG_USB_SOF_UCODE_PATCH */
+#endif 
 
 #if defined(CONFIG_I2C_SPI_UCODE_PATCH) || \
     defined(CONFIG_I2C_SPI_SMC1_UCODE_PATCH)
@@ -671,8 +657,6 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 # define RPBASE 0x0500
 	iip->iic_rpbase = RPBASE;
 
-	/* Put SPI above the IIC, also 32-byte aligned.
-	*/
 	i = (RPBASE + sizeof(iic_t) + 31) & ~31;
 	spp = (struct spi_pram *)&commproc->cp_dparam[PROFF_SPI];
 	spp->rpbase = i;
@@ -685,7 +669,7 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 	commproc->cp_rccr = 1;
 
 	printk("I2C/SPI microcode patch installed.\n");
-# endif /* CONFIG_I2C_SPI_UCODE_PATCH */
+# endif 
 
 # if defined(CONFIG_I2C_SPI_SMC1_UCODE_PATCH)
 
@@ -703,15 +687,11 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 	smp->smc_rpbase = 0x1FC0;
 
 	printk("I2C/SPI/SMC1 microcode patch installed.\n");
-# endif /* CONFIG_I2C_SPI_SMC1_UCODE_PATCH) */
+# endif 
 
-#endif /* some variation of the I2C/SPI patch was selected */
+#endif 
 }
 
-/*
- *  Take this entire routine out, since no one calls it and its
- * logic is suspect.
- */
 
 #if 0
 void

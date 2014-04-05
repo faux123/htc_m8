@@ -33,19 +33,7 @@
 #ifndef _C2_AE_H_
 #define _C2_AE_H_
 
-/*
- * WARNING: If you change this file, also bump C2_IVN_BASE
- * in common/include/clustercore/c2_ivn.h.
- */
 
-/*
- * Asynchronous Event Identifiers
- *
- * These start at 0x80 only so it's obvious from inspection that
- * they are not work-request statuses.  This isn't critical.
- *
- * NOTE: these event id's must fit in eight bits.
- */
 enum c2_event_id {
 	CCAE_REMOTE_SHUTDOWN = 0x80,
 	CCAE_ACTIVE_CONNECT_RESULTS,
@@ -92,12 +80,8 @@ enum c2_event_id {
 	CCAE_QP_RQ_LIMIT_REACHED,
 	CCAE_SRQ_CATASTROPHIC_ERROR,
 	CCAE_RNIC_CATASTROPHIC_ERROR
-/* WARNING If you add more id's, make sure their values fit in eight bits. */
 };
 
-/*
- * Resource Indicators and Identifiers
- */
 enum c2_resource_indicator {
 	C2_RES_IND_QP = 1,
 	C2_RES_IND_EP,
@@ -105,4 +89,4 @@ enum c2_resource_indicator {
 	C2_RES_IND_SRQ,
 };
 
-#endif /* _C2_AE_H_ */
+#endif 

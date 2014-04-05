@@ -45,17 +45,15 @@ struct taos_data {
 	struct i2c_adapter adapter;
 	struct i2c_client *client;
 	int state;
-	u8 addr;		/* last used address */
+	u8 addr;		
 	unsigned char buffer[TAOS_BUFFER_SIZE];
-	unsigned int pos;	/* position inside the buffer */
+	unsigned int pos;	
 };
 
-/* TAOS TSL2550 EVM */
 static struct i2c_board_info tsl2550_info = {
 	I2C_BOARD_INFO("tsl2550", 0x39),
 };
 
-/* Instantiate i2c devices based on the adapter name */
 static struct i2c_client *taos_instantiate_device(struct i2c_adapter *adapter)
 {
 	if (!strncmp(adapter->name, "TAOS TSL2550 EVM", 16)) {
@@ -75,12 +73,8 @@ static int taos_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
 	struct taos_data *taos = serio_get_drvdata(serio);
 	char *p;
 
-	/* Encode our transaction. "@" is for the device address, "$" for the
-	   SMBus command and "#" for the data. */
 	p = taos->buffer;
 
-	/* The device remembers the last used address, no need to send it
-	   again if it's the same */
 	if (addr != taos->addr)
 		p += sprintf(p, "@%02X", addr);
 
@@ -102,14 +96,14 @@ static int taos_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
 		return -EOPNOTSUPP;
 	}
 
-	/* Send the transaction to the TAOS EVM */
+	
 	dev_dbg(&adapter->dev, "Command buffer: %s\n", taos->buffer);
 	for (p = taos->buffer; *p; p++)
 		serio_write(serio, *p);
 
 	taos->addr = addr;
 
-	/* Start the transaction and read the answer */
+	
 	taos->pos = 0;
 	taos->state = TAOS_STATE_RECV;
 	serio_write(serio, read_write == I2C_SMBUS_WRITE ? '>' : '<');
@@ -123,7 +117,7 @@ static int taos_smbus_xfer(struct i2c_adapter *adapter, u16 addr,
 	}
 	dev_dbg(&adapter->dev, "Answer buffer: %s\n", taos->buffer);
 
-	/* Interpret the returned string */
+	
 	p = taos->buffer + 1;
 	p[3] = '\0';
 	if (!strcmp(p, "NAK"))
@@ -184,8 +178,6 @@ static irqreturn_t taos_interrupt(struct serio *serio, unsigned char data,
 	return IRQ_HANDLED;
 }
 
-/* Extract the adapter name from the buffer received after reset.
-   The buffer is modified and a pointer inside the buffer is returned. */
 static char *taos_adapter_name(char *buffer)
 {
 	char *start, *end;
@@ -227,7 +219,7 @@ static int taos_connect(struct serio *serio, struct serio_driver *drv)
 	adapter->algo_data = serio;
 	adapter->dev.parent = &serio->dev;
 
-	/* Reset the TAOS evaluation module to identify it */
+	
 	serio_write(serio, TAOS_CMD_RESET);
 	wait_event_interruptible_timeout(wq, taos->state == TAOS_STATE_IDLE,
 					 msecs_to_jiffies(2000));
@@ -247,7 +239,7 @@ static int taos_connect(struct serio *serio, struct serio_driver *drv)
 	}
 	strlcpy(adapter->name, name, sizeof(adapter->name));
 
-	/* Turn echo off for better performance */
+	
 	taos->state = TAOS_STATE_EOFF;
 	serio_write(serio, TAOS_CMD_ECHO_OFF);
 

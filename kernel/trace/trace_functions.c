@@ -17,7 +17,6 @@
 
 #include "trace.h"
 
-/* function tracing enabled */
 static int			ftrace_function_enabled;
 
 static struct trace_array	*func_trace;
@@ -87,10 +86,6 @@ function_trace_call(unsigned long ip, unsigned long parent_ip)
 	if (unlikely(!ftrace_function_enabled))
 		return;
 
-	/*
-	 * Need to use raw, since this must be called before the
-	 * recursive protection is performed.
-	 */
 	local_irq_save(flags);
 	cpu = raw_smp_processor_id();
 	data = tr->data[cpu];
@@ -118,10 +113,6 @@ function_stack_trace_call(unsigned long ip, unsigned long parent_ip)
 	if (unlikely(!ftrace_function_enabled))
 		return;
 
-	/*
-	 * Need to use raw, since this must be called before the
-	 * recursive protection is performed.
-	 */
 	local_irq_save(flags);
 	cpu = raw_smp_processor_id();
 	data = tr->data[cpu];
@@ -130,14 +121,6 @@ function_stack_trace_call(unsigned long ip, unsigned long parent_ip)
 	if (likely(disabled == 1)) {
 		pc = preempt_count();
 		trace_function(tr, ip, parent_ip, flags, pc);
-		/*
-		 * skip over 5 funcs:
-		 *    __ftrace_trace_stack,
-		 *    __trace_stack,
-		 *    function_stack_trace_call
-		 *    ftrace_list_func
-		 *    ftrace_call
-		 */
 		__trace_stack(tr, flags, 5, pc);
 	}
 
@@ -158,7 +141,6 @@ static struct ftrace_ops trace_stack_ops __read_mostly =
 	.flags = FTRACE_OPS_FL_GLOBAL,
 };
 
-/* Our two options */
 enum {
 	TRACE_FUNC_OPT_STACK = 0x1,
 };
@@ -167,11 +149,11 @@ static struct tracer_opt func_opts[] = {
 #ifdef CONFIG_STACKTRACE
 	{ TRACER_OPT(func_stack_trace, TRACE_FUNC_OPT_STACK) },
 #endif
-	{ } /* Always set a last empty entry */
+	{ } 
 };
 
 static struct tracer_flags func_flags = {
-	.val = 0, /* By default: all flags disabled */
+	.val = 0, 
 	.opts = func_opts
 };
 
@@ -205,7 +187,7 @@ static void tracing_stop_function_trace(void)
 static int func_set_flag(u32 old_flags, u32 bit, int set)
 {
 	if (bit == TRACE_FUNC_OPT_STACK) {
-		/* do nothing if already set */
+		
 		if (!!set == !!(func_flags.val & TRACE_FUNC_OPT_STACK))
 			return 0;
 
@@ -312,7 +294,7 @@ ftrace_trace_onoff_unreg(char *glob, char *cmd, char *param)
 {
 	struct ftrace_probe_ops *ops;
 
-	/* we register both traceon and traceoff to this callback */
+	
 	if (strcmp(cmd, "traceon") == 0)
 		ops = &traceon_probe_ops;
 	else
@@ -332,14 +314,14 @@ ftrace_trace_onoff_callback(struct ftrace_hash *hash,
 	char *number;
 	int ret;
 
-	/* hash funcs only work with set_ftrace_filter */
+	
 	if (!enable)
 		return -EINVAL;
 
 	if (glob[0] == '!')
 		return ftrace_trace_onoff_unreg(glob+1, cmd, param);
 
-	/* we register both traceon and traceoff to this callback */
+	
 	if (strcmp(cmd, "traceon") == 0)
 		ops = &traceon_probe_ops;
 	else
@@ -353,10 +335,6 @@ ftrace_trace_onoff_callback(struct ftrace_hash *hash,
 	if (!strlen(number))
 		goto out_reg;
 
-	/*
-	 * We use the callback data field (which is a pointer)
-	 * as our counter.
-	 */
 	ret = strict_strtoul(number, 0, (unsigned long *)&count);
 	if (ret)
 		return ret;
@@ -395,7 +373,7 @@ static inline int init_func_cmd_traceon(void)
 {
 	return 0;
 }
-#endif /* CONFIG_DYNAMIC_FTRACE */
+#endif 
 
 static __init int init_function_trace(void)
 {

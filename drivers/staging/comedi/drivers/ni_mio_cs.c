@@ -20,26 +20,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 */
-/*
-Driver: ni_mio_cs
-Description: National Instruments DAQCard E series
-Author: ds
-Status: works
-Devices: [National Instruments] DAQCard-AI-16XE-50 (ni_mio_cs),
-  DAQCard-AI-16E-4, DAQCard-6062E, DAQCard-6024E, DAQCard-6036E
-Updated: Thu Oct 23 19:43:17 CDT 2003
-
-See the notes in the ni_atmio.o driver.
-*/
-/*
-	The real guts of the driver is in ni_mio_common.c, which is
-	included by all the E series drivers.
-
-	References for specifications:
-
-	   341080a.pdf  DAQCard E Series Register Level Programmer Manual
-
-*/
 
 #include "../comedidev.h"
 
@@ -56,9 +36,6 @@ See the notes in the ni_atmio.o driver.
 #define ATMIO 1
 #undef PCIMIO
 
-/*
- *  AT specific setup
- */
 
 #define NI_SIZE 0x20
 
@@ -95,7 +72,7 @@ static const struct ni_board_struct ni_boards[] = {
 	 .ao_unipolar = 0,
 	 .num_p0_dio_channels = 8,
 	 .has_8255 = 0,
-	 .caldac = {mb88341},	/* verified */
+	 .caldac = {mb88341},	
 	 },
 	{.device_id = 0x02c4,
 	 .name = "DAQCard-6062E",
@@ -113,10 +90,10 @@ static const struct ni_board_struct ni_boards[] = {
 	 .ao_speed = 1176,
 	 .num_p0_dio_channels = 8,
 	 .has_8255 = 0,
-	 .caldac = {ad8804_debug},	/* verified */
+	 .caldac = {ad8804_debug},	
 	 },
 	{.device_id = 0x075e,
-	 .name = "DAQCard-6024E",	/* specs incorrect! */
+	 .name = "DAQCard-6024E",	
 	 .n_adchan = 16,
 	 .adbits = 12,
 	 .ai_fifo_depth = 1024,
@@ -134,7 +111,7 @@ static const struct ni_board_struct ni_boards[] = {
 	 .caldac = {ad8804_debug},
 	 },
 	{.device_id = 0x0245,
-	 .name = "DAQCard-6036E",	/* specs incorrect! */
+	 .name = "DAQCard-6036E",	
 	 .n_adchan = 16,
 	 .adbits = 16,
 	 .ai_fifo_depth = 1024,
@@ -152,7 +129,7 @@ static const struct ni_board_struct ni_boards[] = {
 	 .caldac = {ad8804_debug},
 	 },
 #if 0
-	{.device_id = 0x0000,	/* unknown */
+	{.device_id = 0x0000,	
 	 .name = "DAQCard-6715",
 	 .n_adchan = 0,
 	 .n_aochan = 8,
@@ -162,7 +139,7 @@ static const struct ni_board_struct ni_boards[] = {
 	 .caldac = {mb88341, mb88341},
 	 },
 #endif
-	/* N.B. Update ni_mio_cs_ids[] when entries added above. */
+	
 };
 
 #define interrupt_pin(a)	0
@@ -179,7 +156,6 @@ struct ni_private {
 
 #define devpriv ((struct ni_private *)dev->private)
 
-/* How we access registers */
 
 #define ni_writel(a, b)		(outl((a), (b)+dev->iobase))
 #define ni_readl(a)		(inl((a)+dev->iobase))
@@ -188,7 +164,6 @@ struct ni_private {
 #define ni_writeb(a, b)		(outb((a), (b)+dev->iobase))
 #define ni_readb(a)		(inb((a)+dev->iobase))
 
-/* How we access windowed registers */
 
 /* We automatically take advantage of STC registers that can be
  * read/written directly in the I/O space of the board.  The
@@ -240,13 +215,11 @@ static struct comedi_driver driver_ni_mio_cs = {
 static int ni_getboardtype(struct comedi_device *dev,
 			   struct pcmcia_device *link);
 
-/* clean up allocated resources */
-/* called when driver is removed */
 static int mio_cs_detach(struct comedi_device *dev)
 {
 	mio_common_detach(dev);
 
-	/* PCMCIA layer frees the IO region */
+	
 
 	if (dev->irq)
 		free_irq(dev->irq, dev);
@@ -339,7 +312,7 @@ static int mio_cs_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 
 	DPRINTK("mio_cs_attach(dev=%p,it=%p)\n", dev, it);
 
-	link = cur_dev;		/* XXX hack */
+	link = cur_dev;		
 	if (!link)
 		return -EIO;
 
@@ -381,7 +354,7 @@ static int mio_cs_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	}
 	dev->irq = irq;
 
-	/* allocate private area */
+	
 	ret = ni_alloc_private(dev);
 	if (ret < 0)
 		return ret;
@@ -417,11 +390,11 @@ static int ni_getboardtype(struct comedi_device *dev,
 #ifdef MODULE
 
 static const struct pcmcia_device_id ni_mio_cs_ids[] = {
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010d),	/* DAQCard-ai-16xe-50 */
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010c),	/* DAQCard-ai-16e-4 */
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x02c4),	/* DAQCard-6062E */
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x075e),	/* DAQCard-6024E */
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x0245),	/* DAQCard-6036E */
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010d),	
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010c),	
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x02c4),	
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x075e),	
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x0245),	
 	PCMCIA_DEVICE_NULL
 };
 

@@ -1,7 +1,7 @@
 /*
  * Memory barrier definitions for the Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -34,8 +34,7 @@
 #define smp_mb__before_atomic_inc()	barrier()
 #define smp_mb__after_atomic_inc()	barrier()
 
-/*  Set a value and use a memory barrier.  Used by the scheduler somewhere.  */
 #define set_mb(var, value) \
 	do { var = value; mb(); } while (0)
 
-#endif /* _ASM_BARRIER_H */
+#endif 

@@ -1,9 +1,6 @@
 #ifndef __AXP_CONSOLE_H
 #define __AXP_CONSOLE_H
 
-/*
- * Console callback routine numbers
- */
 #define CCB_GETC		0x01
 #define CCB_PUTS		0x02
 #define CCB_RESET_TERM		0x03
@@ -27,9 +24,6 @@
 #define CCB_PSWITCH		0x30
 #define CCB_BIOS_EMUL		0x32
 
-/*
- * Environment variable numbers
- */
 #define ENV_AUTO_ACTION		0x01
 #define ENV_BOOT_DEV		0x02
 #define ENV_BOOTDEF_DEV		0x03
@@ -69,7 +63,7 @@ struct crb_struct;
 struct hwrpb_struct;
 extern int callback_init_done;
 extern void * callback_init(void *);
-#endif /* __ASSEMBLY__ */
-#endif /* __KERNEL__ */
+#endif 
+#endif 
 
-#endif /* __AXP_CONSOLE_H */
+#endif 

@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* 
- *  Interrupt numbers
- */
 #define IRQ_PIC_START			0
 #define IRQ_SOFTINT			0
 #define IRQ_UARTINT0			1
@@ -60,9 +57,6 @@
 #define IRQ_CM_COMMTX			34
 #define IRQ_CIC_END			34
 
-/*
- * IntegratorCP only
- */
 #define IRQ_SIC_START			35
 #define IRQ_SIC_CP_SOFTINT		35
 #define IRQ_SIC_CP_RI0			36

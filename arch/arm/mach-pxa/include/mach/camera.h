@@ -41,4 +41,4 @@ struct pxacamera_platform_data {
 
 extern void pxa_set_camera_info(struct pxacamera_platform_data *);
 
-#endif /* __ASM_ARCH_CAMERA_H_ */
+#endif 

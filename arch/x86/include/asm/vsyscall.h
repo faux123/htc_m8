@@ -19,7 +19,6 @@ enum vsyscall_num {
 #define VGETCPU_RDTSCP	1
 #define VGETCPU_LSL	2
 
-/* kernel space (writeable) */
 extern int vgetcpu_mode;
 extern struct timezone sys_tz;
 
@@ -27,12 +26,8 @@ extern struct timezone sys_tz;
 
 extern void map_vsyscall(void);
 
-/*
- * Called on instruction fetch fault in vsyscall page.
- * Returns true if handled.
- */
 extern bool emulate_vsyscall(struct pt_regs *regs, unsigned long address);
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_X86_VSYSCALL_H */
+#endif 

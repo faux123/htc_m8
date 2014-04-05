@@ -3,4 +3,4 @@
 
 #include <asm-generic/types.h>
 
-#endif /* _ASM_SCORE_TYPES_H */
+#endif 

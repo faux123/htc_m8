@@ -36,9 +36,6 @@ static inline void ks8695_led_toggle(unsigned int led)
 }
 
 
-/*
- * Handle LED events.
- */
 static void ks8695_leds_event(led_event_t evt)
 {
 	unsigned long flags;
@@ -46,26 +43,26 @@ static void ks8695_leds_event(led_event_t evt)
 	local_irq_save(flags);
 
 	switch(evt) {
-	case led_start:		/* System startup */
+	case led_start:		
 		ks8695_led_on(ks8695_leds_cpu);
 		break;
 
-	case led_stop:		/* System stop / suspend */
+	case led_stop:		
 		ks8695_led_off(ks8695_leds_cpu);
 		break;
 
 #ifdef CONFIG_LEDS_TIMER
-	case led_timer:		/* Every 50 timer ticks */
+	case led_timer:		
 		ks8695_led_toggle(ks8695_leds_timer);
 		break;
 #endif
 
 #ifdef CONFIG_LEDS_CPU
-	case led_idle_start:	/* Entering idle state */
+	case led_idle_start:	
 		ks8695_led_off(ks8695_leds_cpu);
 		break;
 
-	case led_idle_end:	/* Exit idle state */
+	case led_idle_end:	
 		ks8695_led_on(ks8695_leds_cpu);
 		break;
 #endif

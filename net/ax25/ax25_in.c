@@ -31,10 +31,6 @@
 #include <linux/mm.h>
 #include <linux/interrupt.h>
 
-/*
- *	Given a fragment, queue it on the fragment queue and if the fragment
- *	is complete, send it back to ax25_rx_iframe.
- */
 static int ax25_rx_fragment(ax25_cb *ax25, struct sk_buff *skb)
 {
 	struct sk_buff *skbn, *skbo;
@@ -42,13 +38,13 @@ static int ax25_rx_fragment(ax25_cb *ax25, struct sk_buff *skb)
 	if (ax25->fragno != 0) {
 		if (!(*skb->data & AX25_SEG_FIRST)) {
 			if ((ax25->fragno - 1) == (*skb->data & AX25_SEG_REM)) {
-				/* Enqueue fragment */
+				
 				ax25->fragno = *skb->data & AX25_SEG_REM;
-				skb_pull(skb, 1);	/* skip fragno */
+				skb_pull(skb, 1);	
 				ax25->fraglen += skb->len;
 				skb_queue_tail(&ax25->frag_queue, skb);
 
-				/* Last fragment received ? */
+				
 				if (ax25->fragno == 0) {
 					skbn = alloc_skb(AX25_MAX_HEADER_LEN +
 							 ax25->fraglen,
@@ -64,7 +60,7 @@ static int ax25_rx_fragment(ax25_cb *ax25, struct sk_buff *skb)
 					skb_reset_network_header(skbn);
 					skb_reset_transport_header(skbn);
 
-					/* Copy data from the fragments */
+					
 					while ((skbo = skb_dequeue(&ax25->frag_queue)) != NULL) {
 						skb_copy_from_linear_data(skbo,
 							  skb_put(skbn, skbo->len),
@@ -82,11 +78,11 @@ static int ax25_rx_fragment(ax25_cb *ax25, struct sk_buff *skb)
 			}
 		}
 	} else {
-		/* First fragment received */
+		
 		if (*skb->data & AX25_SEG_FIRST) {
 			skb_queue_purge(&ax25->frag_queue);
 			ax25->fragno = *skb->data & AX25_SEG_REM;
-			skb_pull(skb, 1);		/* skip fragno */
+			skb_pull(skb, 1);		
 			ax25->fraglen = skb->len;
 			skb_queue_tail(&ax25->frag_queue, skb);
 			return 1;
@@ -96,10 +92,6 @@ static int ax25_rx_fragment(ax25_cb *ax25, struct sk_buff *skb)
 	return 0;
 }
 
-/*
- *	This is where all valid I frames are sent to, to be dispatched to
- *	whichever protocol requires them.
- */
 int ax25_rx_iframe(ax25_cb *ax25, struct sk_buff *skb)
 {
 	int (*func)(struct sk_buff *, ax25_cb *);
@@ -113,17 +105,13 @@ int ax25_rx_iframe(ax25_cb *ax25, struct sk_buff *skb)
 	pid = *skb->data;
 
 	if (pid == AX25_P_IP) {
-		/* working around a TCP bug to keep additional listeners
-		 * happy. TCP re-uses the buffer and destroys the original
-		 * content.
-		 */
 		struct sk_buff *skbn = skb_copy(skb, GFP_ATOMIC);
 		if (skbn != NULL) {
 			kfree_skb(skb);
 			skb = skbn;
 		}
 
-		skb_pull(skb, 1);	/* Remove PID */
+		skb_pull(skb, 1);	
 		skb->mac_header = skb->network_header;
 		skb_reset_network_header(skb);
 		skb->dev      = ax25->ax25_dev->dev;
@@ -133,12 +121,12 @@ int ax25_rx_iframe(ax25_cb *ax25, struct sk_buff *skb)
 		return 1;
 	}
 	if (pid == AX25_P_SEGMENT) {
-		skb_pull(skb, 1);	/* Remove PID */
+		skb_pull(skb, 1);	
 		return ax25_rx_fragment(ax25, skb);
 	}
 
 	if ((func = ax25_protocol_function(pid)) != NULL) {
-		skb_pull(skb, 1);	/* Remove PID */
+		skb_pull(skb, 1);	
 		return (*func)(skb, ax25);
 	}
 
@@ -155,9 +143,6 @@ int ax25_rx_iframe(ax25_cb *ax25, struct sk_buff *skb)
 	return queued;
 }
 
-/*
- *	Higher level upcall for a LAPB frame
- */
 static int ax25_process_rx_frame(ax25_cb *ax25, struct sk_buff *skb, int type, int dama)
 {
 	int queued = 0;
@@ -194,54 +179,42 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 	ax25_cb *ax25;
 	ax25_dev *ax25_dev;
 
-	/*
-	 *	Process the AX.25/LAPB frame.
-	 */
 
 	skb_reset_transport_header(skb);
 
 	if ((ax25_dev = ax25_dev_ax25dev(dev)) == NULL)
 		goto free;
 
-	/*
-	 *	Parse the address header.
-	 */
 
 	if (ax25_addr_parse(skb->data, skb->len, &src, &dest, &dp, &type, &dama) == NULL)
 		goto free;
 
-	/*
-	 *	Ours perhaps ?
-	 */
-	if (dp.lastrepeat + 1 < dp.ndigi)		/* Not yet digipeated completely */
+	if (dp.lastrepeat + 1 < dp.ndigi)		
 		next_digi = &dp.calls[dp.lastrepeat + 1];
 
-	/*
-	 *	Pull of the AX.25 headers leaving the CTRL/PID bytes
-	 */
 	skb_pull(skb, ax25_addr_size(&dp));
 
-	/* For our port addresses ? */
+	
 	if (ax25cmp(&dest, dev_addr) == 0 && dp.lastrepeat + 1 == dp.ndigi)
 		mine = 1;
 
-	/* Also match on any registered callsign from L3/4 */
+	
 	if (!mine && ax25_listen_mine(&dest, dev) && dp.lastrepeat + 1 == dp.ndigi)
 		mine = 1;
 
-	/* UI frame - bypass LAPB processing */
+	
 	if ((*skb->data & ~0x10) == AX25_UI && dp.lastrepeat + 1 == dp.ndigi) {
-		skb_set_transport_header(skb, 2); /* skip control and pid */
+		skb_set_transport_header(skb, 2); 
 
 		ax25_send_to_raw(&dest, skb, skb->data[1]);
 
 		if (!mine && ax25cmp(&dest, (ax25_address *)dev->broadcast) != 0)
 			goto free;
 
-		/* Now we are pointing at the pid byte */
+		
 		switch (skb->data[1]) {
 		case AX25_P_IP:
-			skb_pull(skb,2);		/* drop PID/CTRL */
+			skb_pull(skb,2);		
 			skb_reset_transport_header(skb);
 			skb_reset_network_header(skb);
 			skb->dev      = dev;
@@ -260,7 +233,7 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 			netif_rx(skb);
 			break;
 		case AX25_P_TEXT:
-			/* Now find a suitable dgram socket */
+			
 			sk = ax25_get_socket(&dest, &src, SOCK_DGRAM);
 			if (sk != NULL) {
 				bh_lock_sock(sk);
@@ -268,9 +241,6 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 				    sk->sk_rcvbuf) {
 					kfree_skb(skb);
 				} else {
-					/*
-					 *	Remove the control and PID.
-					 */
 					skb_pull(skb, 2);
 					if (sock_queue_rcv_skb(sk, skb) != 0)
 						kfree_skb(skb);
@@ -283,34 +253,23 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 			break;
 
 		default:
-			kfree_skb(skb);	/* Will scan SOCK_AX25 RAW sockets */
+			kfree_skb(skb);	
 			break;
 		}
 
 		return 0;
 	}
 
-	/*
-	 *	Is connected mode supported on this device ?
-	 *	If not, should we DM the incoming frame (except DMs) or
-	 *	silently ignore them. For now we stay quiet.
-	 */
 	if (ax25_dev->values[AX25_VALUES_CONMODE] == 0)
 		goto free;
 
-	/* LAPB */
+	
 
-	/* AX.25 state 1-4 */
+	
 
 	ax25_digi_invert(&dp, &reverse_dp);
 
 	if ((ax25 = ax25_find_cb(&dest, &src, &reverse_dp, dev)) != NULL) {
-		/*
-		 *	Process the frame. If it is queued up internally it
-		 *	returns one otherwise we free it immediately. This
-		 *	routine itself wakes the user context layers so we do
-		 *	no further work
-		 */
 		if (ax25_process_rx_frame(ax25, skb, type, dama) == 0)
 			kfree_skb(skb);
 
@@ -318,23 +277,19 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 		return 0;
 	}
 
-	/* AX.25 state 0 (disconnected) */
+	
 
-	/* a) received not a SABM(E) */
+	
 
 	if ((*skb->data & ~AX25_PF) != AX25_SABM &&
 	    (*skb->data & ~AX25_PF) != AX25_SABME) {
-		/*
-		 *	Never reply to a DM. Also ignore any connects for
-		 *	addresses that are not our interfaces and not a socket.
-		 */
 		if ((*skb->data & ~AX25_PF) != AX25_DM && mine)
 			ax25_return_dm(dev, &src, &dest, &dp);
 
 		goto free;
 	}
 
-	/* b) received SABM(E) */
+	
 
 	if (dp.lastrepeat + 1 == dp.ndigi)
 		sk = ax25_find_listener(&dest, 0, dev, SOCK_SEQPACKET);
@@ -377,9 +332,6 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 	ax25->source_addr = dest;
 	ax25->dest_addr   = src;
 
-	/*
-	 *	Sort out any digipeated paths.
-	 */
 	if (dp.ndigi && !ax25->digipeat &&
 	    (ax25->digipeat = kmalloc(sizeof(ax25_digi), GFP_ATOMIC)) == NULL) {
 		kfree_skb(skb);
@@ -393,7 +345,7 @@ static int ax25_rcv(struct sk_buff *skb, struct net_device *dev,
 		kfree(ax25->digipeat);
 		ax25->digipeat = NULL;
 	} else {
-		/* Reverse the source SABM's path */
+		
 		memcpy(ax25->digipeat, &reverse_dp, sizeof(ax25_digi));
 	}
 
@@ -431,9 +383,6 @@ free:
 	return 0;
 }
 
-/*
- *	Receive an AX.25 frame via a SLIP interface.
- */
 int ax25_kiss_rcv(struct sk_buff *skb, struct net_device *dev,
 		  struct packet_type *ptype, struct net_device *orig_dev)
 {
@@ -445,11 +394,11 @@ int ax25_kiss_rcv(struct sk_buff *skb, struct net_device *dev,
 	}
 
 	if ((*skb->data & 0x0F) != 0) {
-		kfree_skb(skb);	/* Not a KISS data frame */
+		kfree_skb(skb);	
 		return 0;
 	}
 
-	skb_pull(skb, AX25_KISS_HEADER_LEN);	/* Remove the KISS byte */
+	skb_pull(skb, AX25_KISS_HEADER_LEN);	
 
 	return ax25_rcv(skb, dev, (ax25_address *)dev->dev_addr, ptype);
 }

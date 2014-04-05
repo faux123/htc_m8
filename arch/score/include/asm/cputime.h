@@ -3,4 +3,4 @@
 
 #include <asm-generic/cputime.h>
 
-#endif /* _ASM_SCORE_CPUTIME_H */
+#endif 

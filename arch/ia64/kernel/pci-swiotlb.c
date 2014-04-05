@@ -1,4 +1,3 @@
-/* Glue code to lib/swiotlb.c */
 
 #include <linux/pci.h>
 #include <linux/gfp.h>

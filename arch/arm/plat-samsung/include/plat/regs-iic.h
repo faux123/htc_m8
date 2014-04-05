@@ -13,7 +13,6 @@
 #ifndef __ASM_ARCH_REGS_IIC_H
 #define __ASM_ARCH_REGS_IIC_H __FILE__
 
-/* see s3c2410x user guide, v1.1, section 9 (p447) for more info */
 
 #define S3C2410_IICREG(x) (x)
 
@@ -53,4 +52,4 @@
 
 #define S3C2410_IICLC_FILTER_ON		(1<<2)
 
-#endif /* __ASM_ARCH_REGS_IIC_H */
+#endif 

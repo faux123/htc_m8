@@ -21,9 +21,6 @@ typedef unsigned short	USHORT;
 typedef unsigned long	ULONG __attribute__ ((__mode__ (__SI__)));
 typedef void		VOID;
 
-/* The pointer types.  Note that we're using a 64-bit compiler but all
-   pointer in the ARC structures are only 32-bit, so we need some disgusting
-   workarounds.  Keep your vomit bag handy.  */
 typedef LONG		_PCHAR;
 typedef LONG		_PSHORT;
 typedef LONG		_PLARGE_INTEGER;
@@ -33,7 +30,7 @@ typedef LONG		_PUSHORT;
 typedef LONG		_PULONG;
 typedef LONG		_PVOID;
 
-#endif /* CONFIG_ARC32 */
+#endif 
 
 #ifdef CONFIG_ARC64
 
@@ -46,8 +43,6 @@ typedef unsigned short	USHORT;
 typedef unsigned long	ULONG __attribute__ ((__mode__ (__DI__)));
 typedef void		VOID;
 
-/* The pointer types.  We're 64-bit and the firmware is also 64-bit, so
-   live is sane ...  */
 typedef CHAR		*_PCHAR;
 typedef SHORT		*_PSHORT;
 typedef LARGE_INTEGER	*_PLARGE_INTEGER;
@@ -57,7 +52,7 @@ typedef USHORT		*_PUSHORT;
 typedef ULONG		*_PULONG;
 typedef VOID		*_PVOID;
 
-#endif /* CONFIG_ARC64  */
+#endif 
 
 typedef CHAR		*PCHAR;
 typedef SHORT		*PSHORT;
@@ -68,9 +63,6 @@ typedef USHORT		*PUSHORT;
 typedef ULONG		*PULONG;
 typedef VOID		*PVOID;
 
-/*
- * Return type of ArcGetDisplayStatus()
- */
 typedef struct {
 	USHORT	CursorXPosition;
 	USHORT	CursorYPosition;
@@ -83,4 +75,4 @@ typedef struct {
 	UCHAR	ReverseVideo;
 } DISPLAY_STATUS;
 
-#endif /* _ASM_ARC_TYPES_H */
+#endif 

@@ -33,15 +33,7 @@ MODULE_AUTHOR("Michal Nazarewicz");
 MODULE_LICENSE("GPL");
 
 
-/***************************** All the files... *****************************/
 
-/*
- * kbuild is not very cooperative with respect to linking separately
- * compiled library objects into one module.  So for now we won't use
- * separate compilation ... ensuring init/exit sections work to shrink
- * the runtime footprint, and giving us at least some parts of what
- * a "gcc --combine ... part1.c part2.c part3.c ... " build would.
- */
 
 #include "composite.c"
 #include "usbstring.c"
@@ -63,10 +55,9 @@ MODULE_LICENSE("GPL");
 
 
 
-/***************************** Device Descriptor ****************************/
 
-#define MULTI_VENDOR_NUM	0x1d6b	/* Linux Foundation */
-#define MULTI_PRODUCT_NUM	0x0104	/* Multifunction Composite Gadget */
+#define MULTI_VENDOR_NUM	0x1d6b	
+#define MULTI_PRODUCT_NUM	0x0104	
 
 
 enum {
@@ -86,11 +77,11 @@ static struct usb_device_descriptor device_desc = {
 
 	.bcdUSB =		cpu_to_le16(0x0200),
 
-	.bDeviceClass =		USB_CLASS_MISC /* 0xEF */,
+	.bDeviceClass =		USB_CLASS_MISC ,
 	.bDeviceSubClass =	2,
 	.bDeviceProtocol =	1,
 
-	/* Vendor and product id can be overridden by module parameters.  */
+	
 	.idVendor =		cpu_to_le16(MULTI_VENDOR_NUM),
 	.idProduct =		cpu_to_le16(MULTI_PRODUCT_NUM),
 };
@@ -101,10 +92,6 @@ static const struct usb_descriptor_header *otg_desc[] = {
 		.bLength =		sizeof(struct usb_otg_descriptor),
 		.bDescriptorType =	USB_DT_OTG,
 
-		/*
-		 * REVISIT SRP-only hardware is possible, although
-		 * it would not be called "OTG" ...
-		 */
 		.bmAttributes =		USB_OTG_SRP | USB_OTG_HNP,
 	},
 	NULL,
@@ -127,12 +114,12 @@ static struct usb_string strings_dev[] = {
 #ifdef CONFIG_USB_G_MULTI_CDC
 	[MULTI_STRING_CDC_CONFIG_IDX].s   = "Multifunction with CDC ECM",
 #endif
-	{  } /* end of list */
+	{  } 
 };
 
 static struct usb_gadget_strings *dev_strings[] = {
 	&(struct usb_gadget_strings){
-		.language	= 0x0409,	/* en-us */
+		.language	= 0x0409,	
 		.strings	= strings_dev,
 	},
 	NULL,
@@ -141,17 +128,15 @@ static struct usb_gadget_strings *dev_strings[] = {
 
 
 
-/****************************** Configurations ******************************/
 
 static struct fsg_module_parameters fsg_mod_data = { .stall = 1 };
-FSG_MODULE_PARAMETERS(/* no prefix */, fsg_mod_data);
+FSG_MODULE_PARAMETERS(, fsg_mod_data);
 
 static struct fsg_common fsg_common;
 
 static u8 hostaddr[ETH_ALEN];
 
 
-/********** RNDIS **********/
 
 #ifdef USB_ETH_RNDIS
 
@@ -202,7 +187,6 @@ static int rndis_config_register(struct usb_composite_dev *cdev)
 #endif
 
 
-/********** CDC ECM **********/
 
 #ifdef CONFIG_USB_G_MULTI_CDC
 
@@ -254,7 +238,6 @@ static int cdc_config_register(struct usb_composite_dev *cdev)
 
 
 
-/****************************** Gadget Bind ******************************/
 
 
 static int __ref multi_bind(struct usb_composite_dev *cdev)
@@ -268,17 +251,17 @@ static int __ref multi_bind(struct usb_composite_dev *cdev)
 		return -EINVAL;
 	}
 
-	/* set up network link layer */
+	
 	status = gether_setup(cdev->gadget, hostaddr);
 	if (status < 0)
 		return status;
 
-	/* set up serial link layer */
+	
 	status = gserial_setup(cdev->gadget, 1);
 	if (status < 0)
 		goto fail0;
 
-	/* set up mass storage function */
+	
 	{
 		void *retp;
 		retp = fsg_common_from_params(&fsg_common, cdev, &fsg_mod_data);
@@ -288,7 +271,7 @@ static int __ref multi_bind(struct usb_composite_dev *cdev)
 		}
 	}
 
-	/* set bcdDevice */
+	
 	gcnum = usb_gadget_controller_number(gadget);
 	if (gcnum >= 0) {
 		device_desc.bcdDevice = cpu_to_le16(0x0300 | gcnum);
@@ -297,12 +280,12 @@ static int __ref multi_bind(struct usb_composite_dev *cdev)
 		device_desc.bcdDevice = cpu_to_le16(0x0300 | 0x0099);
 	}
 
-	/* allocate string IDs */
+	
 	status = usb_string_ids_tab(cdev, strings_dev);
 	if (unlikely(status < 0))
 		goto fail2;
 
-	/* register configurations */
+	
 	status = rndis_config_register(cdev);
 	if (unlikely(status < 0))
 		goto fail2;
@@ -311,13 +294,13 @@ static int __ref multi_bind(struct usb_composite_dev *cdev)
 	if (unlikely(status < 0))
 		goto fail2;
 
-	/* we're done */
+	
 	dev_info(&gadget->dev, DRIVER_DESC "\n");
 	fsg_common_put(&fsg_common);
 	return 0;
 
 
-	/* error recovery */
+	
 fail2:
 	fsg_common_put(&fsg_common);
 fail1:
@@ -335,7 +318,6 @@ static int __exit multi_unbind(struct usb_composite_dev *cdev)
 }
 
 
-/****************************** Some noise ******************************/
 
 
 static struct usb_composite_driver multi_driver = {

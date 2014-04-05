@@ -23,6 +23,7 @@
 
 extern FILE *yyin;
 extern int yyparse(void);
+extern YYLTYPE yylloc;
 
 struct boot_info *the_boot_info;
 int treesource_error;
@@ -34,6 +35,7 @@ struct boot_info *dt_from_source(const char *fname)
 
 	srcfile_push(fname);
 	yyin = current_srcfile->f;
+	yylloc.file = current_srcfile;
 
 	if (yyparse() != 0)
 		die("Unable to parse input tree\n");
@@ -125,7 +127,7 @@ static void write_propval_string(FILE *f, struct data val)
 	}
 	fprintf(f, "\"");
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);
@@ -154,7 +156,7 @@ static void write_propval_cells(FILE *f, struct data val)
 		fprintf(f, " ");
 	}
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);
@@ -182,7 +184,7 @@ static void write_propval_bytes(FILE *f, struct data val)
 		fprintf(f, " ");
 	}
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);

@@ -1,11 +1,3 @@
-/*
- *  linux/arch/h8300/kernel/timer/timer16.c
- *
- *  Yoshinori Sato <ysato@users.sourcefoge.jp>
- *
- *  16bit Timer Handler
- *
- */
 
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -22,7 +14,6 @@
 #include <asm/irq.h>
 #include <asm/regs306x.h>
 
-/* 16bit timer */
 #if CONFIG_H8300_TIMER16_CH == 0
 #define _16BASE	0xffff78
 #define _16IRQ	24
@@ -42,7 +33,7 @@
 #define GRA	4
 #define GRB	6
 
-#define H8300_TIMER_FREQ CONFIG_CPU_CLOCK*10000 /* Timer input freq. */
+#define H8300_TIMER_FREQ CONFIG_CPU_CLOCK*10000 
 
 static irqreturn_t timer_interrupt(int irq, void *dev_id)
 {
@@ -68,7 +59,7 @@ void __init h8300_timer_setup(void)
 
 	setup_irq(_16IRQ, &timer16_irq);
 
-	/* initialize timer */
+	
 	ctrl_outb(0, TSTR);
 	ctrl_outb(CCLR0 | div, _16BASE + TCR);
 	ctrl_outw(cnt, _16BASE + GRA);

@@ -3,4 +3,4 @@
 
 #include <asm-generic/futex.h>
 
-#endif /* _ASM_SCORE_FUTEX_H */
+#endif 

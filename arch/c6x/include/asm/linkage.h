@@ -27,4 +27,4 @@ name:
 
 #include <asm-generic/linkage.h>
 
-#endif /* _ASM_C6X_LINKAGE_H */
+#endif 

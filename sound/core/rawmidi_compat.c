@@ -18,7 +18,6 @@
  *
  */
 
-/* This file included from rawmidi.c */
 
 #include <linux/compat.h>
 
@@ -26,7 +25,7 @@ struct snd_rawmidi_params32 {
 	s32 stream;
 	u32 buffer_size;
 	u32 avail_min;
-	unsigned int no_active_sensing; /* avoid bit-field */
+	unsigned int no_active_sensing; 
 	unsigned char reserved[16];
 } __attribute__((packed));
 

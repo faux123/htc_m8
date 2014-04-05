@@ -2,19 +2,11 @@
 #include "run-command.h"
 #include "sigchain.h"
 
-/*
- * This is split up from the rest of git so that we can do
- * something different on Windows.
- */
 
 static int spawned_pager;
 
 static void pager_preexec(void)
 {
-	/*
-	 * Work around bug in "less" by not starting it until we
-	 * have real input
-	 */
 	fd_set in;
 
 	FD_ZERO(&in);
@@ -31,7 +23,7 @@ static void wait_for_pager(void)
 {
 	fflush(stdout);
 	fflush(stderr);
-	/* signal EOF to pager */
+	
 	close(1);
 	close(2);
 	finish_command(&pager_process);
@@ -62,9 +54,9 @@ void setup_pager(void)
 	else if (!*pager || !strcmp(pager, "cat"))
 		return;
 
-	spawned_pager = 1; /* means we are emitting to terminal */
+	spawned_pager = 1; 
 
-	/* spawn the pager */
+	
 	pager_argv[2] = pager;
 	pager_process.argv = pager_argv;
 	pager_process.in = -1;
@@ -73,13 +65,13 @@ void setup_pager(void)
 	if (start_command(&pager_process))
 		return;
 
-	/* original process continues, but writes to the pipe */
+	
 	dup2(pager_process.in, 1);
 	if (isatty(2))
 		dup2(pager_process.in, 2);
 	close(pager_process.in);
 
-	/* this makes sure that the parent terminates after the pager */
+	
 	sigchain_push_common(wait_for_pager_signal);
 	atexit(wait_for_pager);
 }

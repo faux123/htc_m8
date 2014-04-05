@@ -9,57 +9,49 @@
 #ifndef _ASM_IA64_SN_GEO_H
 #define _ASM_IA64_SN_GEO_H
 
-/* The geoid_t implementation below is based loosely on the pcfg_t
-   implementation in sys/SN/promcfg.h. */
 
-/* Type declaractions */
 
-/* Size of a geoid_t structure (must be before decl. of geoid_u) */
-#define GEOID_SIZE	8	/* Would 16 be better?  The size can
-				   be different on different platforms. */
+#define GEOID_SIZE	8	
 
-#define MAX_SLOTS	0xf	/* slots per module */
-#define MAX_SLABS	0xf	/* slabs per slot */
+#define MAX_SLOTS	0xf	
+#define MAX_SLABS	0xf	
 
 typedef unsigned char	geo_type_t;
 
-/* Fields common to all substructures */
 typedef struct geo_common_s {
-    moduleid_t	module;		/* The module (box) this h/w lives in */
-    geo_type_t	type;		/* What type of h/w is named by this geoid_t */
-    slabid_t	slab:4;		/* slab (ASIC), 0 .. 15 within slot */
-    slotid_t	slot:4;		/* slot (Blade), 0 .. 15 within module */
+    moduleid_t	module;		
+    geo_type_t	type;		
+    slabid_t	slab:4;		
+    slotid_t	slot:4;		
 } geo_common_t;
 
-/* Additional fields for particular types of hardware */
 typedef struct geo_node_s {
-    geo_common_t	common;		/* No additional fields needed */
+    geo_common_t	common;		
 } geo_node_t;
 
 typedef struct geo_rtr_s {
-    geo_common_t	common;		/* No additional fields needed */
+    geo_common_t	common;		
 } geo_rtr_t;
 
 typedef struct geo_iocntl_s {
-    geo_common_t	common;		/* No additional fields needed */
+    geo_common_t	common;		
 } geo_iocntl_t;
 
 typedef struct geo_pcicard_s {
     geo_iocntl_t	common;
-    char		bus;	/* Bus/widget number */
-    char		slot;	/* PCI slot number */
+    char		bus;	
+    char		slot;	
 } geo_pcicard_t;
 
-/* Subcomponents of a node */
 typedef struct geo_cpu_s {
     geo_node_t	node;
-    char	slice;		/* Which CPU on the node */
+    char	slice;		
 } geo_cpu_t;
 
 typedef struct geo_mem_s {
     geo_node_t	node;
-    char	membus;		/* The memory bus on the node */
-    char	memslot;	/* The memory slot on the bus */
+    char	membus;		
+    char	memslot;	
 } geo_mem_t;
 
 
@@ -75,12 +67,9 @@ typedef union geoid_u {
 } geoid_t;
 
 
-/* Preprocessor macros */
 
-#define GEO_MAX_LEN	48	/* max. formatted length, plus some pad:
-				   module/001c07/slab/5/node/memory/2/slot/4 */
+#define GEO_MAX_LEN	48	
 
-/* Values for geo_type_t */
 #define GEO_TYPE_INVALID	0
 #define GEO_TYPE_MODULE		1
 #define GEO_TYPE_NODE		2
@@ -91,7 +80,6 @@ typedef union geoid_u {
 #define GEO_TYPE_MEM		7
 #define GEO_TYPE_MAX		(GEO_TYPE_MEM+1)
 
-/* Parameter for hwcfg_format_geoid_compt() */
 #define GEO_COMPT_MODULE	1
 #define GEO_COMPT_SLAB		2
 #define GEO_COMPT_IOBUS		3
@@ -129,4 +117,4 @@ static inline moduleid_t geo_module(geoid_t g)
 
 extern geoid_t cnodeid_get_geoid(cnodeid_t cnode);
 
-#endif /* _ASM_IA64_SN_GEO_H */
+#endif 

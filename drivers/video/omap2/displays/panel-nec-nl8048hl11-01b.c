@@ -26,10 +26,6 @@
 
 #define LCD_XRES		800
 #define LCD_YRES		480
-/*
- * NEC PIX Clock Ratings
- * MIN:21.8MHz TYP:23.8MHz MAX:25.7MHz
- */
 #define LCD_PIXEL_CLOCK		23800
 
 struct nec_8048_data {
@@ -60,13 +56,9 @@ static const struct {
 	{ 156, 0x00 }, { 157, 0x00 }, { 2, 0x00 },
 };
 
-/*
- * NEC NL8048HL11-01B  Manual
- * defines HFB, HSW, HBP, VFP, VSW, VBP as shown below
- */
 
 static struct omap_video_timings nec_8048_panel_timings = {
-	/* 800 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+	
 	.x_res		= LCD_XRES,
 	.y_res		= LCD_YRES,
 	.pixel_clock	= LCD_PIXEL_CLOCK,
@@ -278,8 +270,8 @@ static int nec_8048_spi_send(struct spi_device *spi, unsigned char reg_addr,
 	int ret = 0;
 	unsigned int cmd = 0, data = 0;
 
-	cmd = 0x0000 | reg_addr; /* register address write */
-	data = 0x0100 | reg_data ; /* register data write */
+	cmd = 0x0000 | reg_addr; 
+	data = 0x0100 | reg_data ; 
 	data = (cmd << 16) | data;
 
 	ret = spi_write(spi, (unsigned char *)&data, 4);
@@ -292,8 +284,8 @@ static int nec_8048_spi_send(struct spi_device *spi, unsigned char reg_addr,
 static int init_nec_8048_wvga_lcd(struct spi_device *spi)
 {
 	unsigned int i;
-	/* Initialization Sequence */
-	/* nec_8048_spi_send(spi, REG, VAL) */
+	
+	
 	for (i = 0; i < (ARRAY_SIZE(nec_8048_init_seq) - 1); i++)
 		nec_8048_spi_send(spi, nec_8048_init_seq[i].addr,
 				nec_8048_init_seq[i].dat);
@@ -331,7 +323,7 @@ static int nec_8048_spi_suspend(struct spi_device *spi, pm_message_t mesg)
 
 static int nec_8048_spi_resume(struct spi_device *spi)
 {
-	/* reinitialize the panel */
+	
 	spi_setup(spi);
 	nec_8048_spi_send(spi, 2, 0x00);
 	init_nec_8048_wvga_lcd(spi);

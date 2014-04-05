@@ -25,7 +25,6 @@
 
 #define IRQ_LOCALTIMER                  29
 
-/* Primary Interrupt Controller */
 #define INT_PRI_BASE			(INT_GIC_BASE + 32)
 #define INT_TMR1			(INT_PRI_BASE + 0)
 #define INT_TMR2			(INT_PRI_BASE + 1)
@@ -60,7 +59,6 @@
 #define INT_OWR				(INT_PRI_BASE + 30)
 #define INT_SDMMC4			(INT_PRI_BASE + 31)
 
-/* Secondary Interrupt Controller */
 #define INT_SEC_BASE			(INT_PRI_BASE + 32)
 #define INT_GPIO1			(INT_SEC_BASE + 0)
 #define INT_GPIO2			(INT_SEC_BASE + 1)
@@ -95,7 +93,6 @@
 #define INT_DMA_TX			(INT_SEC_BASE + 30)
 #define INT_DMA_RX			(INT_SEC_BASE + 31)
 
-/* Tertiary Interrupt Controller */
 #define INT_TRI_BASE			(INT_SEC_BASE + 32)
 #define INT_HOST1X_COP_SYNCPT		(INT_TRI_BASE + 0)
 #define INT_HOST1X_MPCORE_SYNCPT	(INT_TRI_BASE + 1)
@@ -130,7 +127,6 @@
 #define INT_TRI_RES_30			(INT_TRI_BASE + 30)
 #define INT_SW_RESERVED			(INT_TRI_BASE + 31)
 
-/* Quaternary Interrupt Controller */
 #define INT_QUAD_BASE			(INT_TRI_BASE + 32)
 #define INT_SNOR			(INT_QUAD_BASE + 0)
 #define INT_USB3			(INT_QUAD_BASE + 1)
@@ -165,11 +161,9 @@
 #define INT_QUAD_RES_30			(INT_QUAD_BASE + 30)
 #define INT_QUAD_RES_31			(INT_QUAD_BASE + 31)
 
-/* Tegra30 has 5 banks of 32 IRQs */
 #define INT_MAIN_NR			(32 * 5)
 #define INT_GPIO_BASE			(INT_PRI_BASE + INT_MAIN_NR)
 
-/* Tegra30 has 8 banks of 32 GPIOs */
 #define INT_GPIO_NR			(32 * 8)
 
 #define TEGRA_NR_IRQS			(INT_GPIO_BASE + INT_GPIO_NR)

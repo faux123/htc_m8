@@ -13,4 +13,4 @@
 
 #include <asm-generic/scatterlist.h>
 
-#endif /* _ASM_SCATTERLIST_H */
+#endif 

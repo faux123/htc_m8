@@ -1,6 +1,3 @@
-/*
- *
- */
 
 #ifndef _ASSEMBLER_
 
@@ -9,7 +6,7 @@ struct cpulaunch {
     unsigned long	gp;
     unsigned long	sp;
     unsigned long	a0;
-    unsigned long	_pad[3]; /* pad to cache line size to avoid thrashing */
+    unsigned long	_pad[3]; 
     unsigned long	flags;
 };
 
@@ -31,5 +28,4 @@ struct cpulaunch {
 #define CPULAUNCH	0x00000f00
 #define NCPULAUNCH	8
 
-/* Polling period in count cycles for secondary CPU's */
 #define LAUNCHPERIOD	10000

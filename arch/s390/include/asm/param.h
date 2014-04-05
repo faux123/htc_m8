@@ -3,4 +3,4 @@
 
 #include <asm-generic/param.h>
 
-#endif /* _ASMS390_PARAM_H */
+#endif 

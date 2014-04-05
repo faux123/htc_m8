@@ -74,9 +74,6 @@ static int __exit dw_mci_pltfm_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM_SLEEP
-/*
- * TODO: we should probably disable the clock to the card in the suspend path.
- */
 static int dw_mci_pltfm_suspend(struct device *dev)
 {
 	int ret;
@@ -103,7 +100,7 @@ static int dw_mci_pltfm_resume(struct device *dev)
 #else
 #define dw_mci_pltfm_suspend	NULL
 #define dw_mci_pltfm_resume	NULL
-#endif /* CONFIG_PM_SLEEP */
+#endif 
 
 static SIMPLE_DEV_PM_OPS(dw_mci_pltfm_pmops, dw_mci_pltfm_suspend, dw_mci_pltfm_resume);
 

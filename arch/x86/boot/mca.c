@@ -9,9 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Get the MCA system description table
- */
 
 #include "boot.h"
 
@@ -25,7 +22,7 @@ int query_mca(void)
 	intcall(0x15, &ireg, &oreg);
 
 	if (oreg.eflags & X86_EFLAGS_CF)
-		return -1;	/* No MCA present */
+		return -1;	
 
 	set_fs(oreg.es);
 	len = rdfs16(oreg.bx);

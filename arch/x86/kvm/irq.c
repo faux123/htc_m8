@@ -27,20 +27,12 @@
 #include "i8254.h"
 #include "x86.h"
 
-/*
- * check if there are pending timer events
- * to be processed.
- */
 int kvm_cpu_has_pending_timer(struct kvm_vcpu *vcpu)
 {
 	return apic_has_pending_timer(vcpu);
 }
 EXPORT_SYMBOL(kvm_cpu_has_pending_timer);
 
-/*
- * check if there is pending interrupt without
- * intack.
- */
 int kvm_cpu_has_interrupt(struct kvm_vcpu *v)
 {
 	struct kvm_pic *s;
@@ -48,9 +40,9 @@ int kvm_cpu_has_interrupt(struct kvm_vcpu *v)
 	if (!irqchip_in_kernel(v->kvm))
 		return v->arch.interrupt.pending;
 
-	if (kvm_apic_has_interrupt(v) == -1) {	/* LAPIC */
+	if (kvm_apic_has_interrupt(v) == -1) {	
 		if (kvm_apic_accept_pic_intr(v)) {
-			s = pic_irqchip(v->kvm);	/* PIC */
+			s = pic_irqchip(v->kvm);	
 			return s->output;
 		} else
 			return 0;
@@ -59,9 +51,6 @@ int kvm_cpu_has_interrupt(struct kvm_vcpu *v)
 }
 EXPORT_SYMBOL_GPL(kvm_cpu_has_interrupt);
 
-/*
- * Read pending interrupt vector and intack.
- */
 int kvm_cpu_get_interrupt(struct kvm_vcpu *v)
 {
 	struct kvm_pic *s;
@@ -70,11 +59,11 @@ int kvm_cpu_get_interrupt(struct kvm_vcpu *v)
 	if (!irqchip_in_kernel(v->kvm))
 		return v->arch.interrupt.nr;
 
-	vector = kvm_get_apic_interrupt(v);	/* APIC */
+	vector = kvm_get_apic_interrupt(v);	
 	if (vector == -1) {
 		if (kvm_apic_accept_pic_intr(v)) {
 			s = pic_irqchip(v->kvm);
-			s->output = 0;		/* PIC */
+			s->output = 0;		
 			vector = kvm_pic_read_irq(v->kvm);
 		}
 	}
@@ -85,7 +74,7 @@ EXPORT_SYMBOL_GPL(kvm_cpu_get_interrupt);
 void kvm_inject_pending_timer_irqs(struct kvm_vcpu *vcpu)
 {
 	kvm_inject_apic_timer_irqs(vcpu);
-	/* TODO: PIT, RTC etc. */
+	
 }
 EXPORT_SYMBOL_GPL(kvm_inject_pending_timer_irqs);
 

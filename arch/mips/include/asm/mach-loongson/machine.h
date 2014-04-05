@@ -17,11 +17,10 @@
 
 #endif
 
-/* use fuloong2f as the default machine of LEMOTE_MACH2F */
 #ifdef CONFIG_LEMOTE_MACH2F
 
 #define LOONGSON_MACHTYPE MACH_LEMOTE_FL2F
 
 #endif
 
-#endif /* __ASM_MACH_LOONGSON_MACHINE_H */
+#endif 

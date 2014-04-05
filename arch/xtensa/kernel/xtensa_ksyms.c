@@ -30,21 +30,15 @@
 #endif
 #ifdef CONFIG_NET
 #include <net/checksum.h>
-#endif /* CONFIG_NET */
+#endif 
 
 
-/*
- * String functions
- */
 EXPORT_SYMBOL(memset);
 EXPORT_SYMBOL(memcpy);
 EXPORT_SYMBOL(memmove);
 
 EXPORT_SYMBOL(kernel_thread);
 
-/*
- * gcc internal math functions
- */
 extern long long __ashrdi3(long long, int);
 extern long long __ashldi3(long long, int);
 extern long long __lshrdi3(long long, int);
@@ -70,23 +64,13 @@ EXPORT_SYMBOL(__udivdi3);
 EXPORT_SYMBOL(__umoddi3);
 
 #ifdef CONFIG_NET
-/*
- * Networking support
- */
 EXPORT_SYMBOL(csum_partial_copy_generic);
-#endif /* CONFIG_NET */
+#endif 
 
-/*
- * Architecture-specific symbols
- */
 EXPORT_SYMBOL(__xtensa_copy_user);
 
-/*
- * Kernel hacking ...
- */
 
 #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
-// FIXME EXPORT_SYMBOL(screen_info);
 #endif
 
 EXPORT_SYMBOL(outsb);

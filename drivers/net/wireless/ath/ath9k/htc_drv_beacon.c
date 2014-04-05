@@ -39,11 +39,6 @@ void ath9k_htc_beaconq_config(struct ath9k_htc_priv *priv)
 
 		qi.tqi_aifs = qi_be.tqi_aifs;
 
-		/*
-		 * For WIFI Beacon Distribution
-		 * Long slot time  : 2x cwmin
-		 * Short slot time : 4x cwmin
-		 */
 		if (ah->slottime == ATH9K_SLOT_TIME_20)
 			qi.tqi_cwmin = 2*qi_be.tqi_cwmin;
 		else
@@ -82,27 +77,19 @@ static void ath9k_htc_beacon_config_sta(struct ath9k_htc_priv *priv,
 	intval = bss_conf->beacon_interval;
 	bmiss_timeout = (ATH_DEFAULT_BMISS_LIMIT * bss_conf->beacon_interval);
 
-	/*
-	 * Setup dtim and cfp parameters according to
-	 * last beacon we received (which may be none).
-	 */
 	dtimperiod = bss_conf->dtim_period;
-	if (dtimperiod <= 0)		/* NB: 0 if not known */
+	if (dtimperiod <= 0)		
 		dtimperiod = 1;
 	dtimcount = 1;
-	if (dtimcount >= dtimperiod)	/* NB: sanity check */
+	if (dtimcount >= dtimperiod)	
 		dtimcount = 0;
-	cfpperiod = 1;			/* NB: no PCF support yet */
+	cfpperiod = 1;			
 	cfpcount = 0;
 
 	sleepduration = intval;
 	if (sleepduration <= 0)
 		sleepduration = intval;
 
-	/*
-	 * Pull nexttbtt forward to reflect the current
-	 * TSF and calculate dtim+cfp state for the result.
-	 */
 	tsf = ath9k_hw_gettsf64(priv->ah);
 	tsftu = TSF_TO_TU(tsf>>32, tsf) + FUDGE;
 
@@ -112,9 +99,9 @@ static void ath9k_htc_beacon_config_sta(struct ath9k_htc_priv *priv,
 	if (offset)
 		nexttbtt += intval;
 
-	/* DTIM Beacon every dtimperiod Beacon */
+	
 	dtim_dec_count = num_beacons % dtimperiod;
-	/* CFP every cfpperiod DTIM Beacon */
+	
 	cfp_dec_count = (num_beacons / dtimperiod) % cfpperiod;
 	if (dtim_dec_count)
 		cfp_dec_count++;
@@ -135,12 +122,6 @@ static void ath9k_htc_beacon_config_sta(struct ath9k_htc_priv *priv,
 	bs.bs_cfpnext = bs.bs_nextdtim + cfpcount*bs.bs_dtimperiod;
 	bs.bs_cfpmaxduration = 0;
 
-	/*
-	 * Calculate the number of consecutive beacons to miss* before taking
-	 * a BMISS interrupt. The configuration is specified in TU so we only
-	 * need calculate based	on the beacon interval.  Note that we clamp the
-	 * result to at most 15 beacons.
-	 */
 	if (sleepduration > intval) {
 		bs.bs_bmissthreshold = ATH_DEFAULT_BMISS_LIMIT / 2;
 	} else {
@@ -151,20 +132,12 @@ static void ath9k_htc_beacon_config_sta(struct ath9k_htc_priv *priv,
 			bs.bs_bmissthreshold = 1;
 	}
 
-	/*
-	 * Calculate sleep duration. The configuration is given in ms.
-	 * We ensure a multiple of the beacon period is used. Also, if the sleep
-	 * duration is greater than the DTIM period then it makes senses
-	 * to make it a multiple of that.
-	 *
-	 * XXX fixed at 100ms
-	 */
 
 	bs.bs_sleepduration = roundup(IEEE80211_MS_TO_TU(100), sleepduration);
 	if (bs.bs_sleepduration > bs.bs_dtimperiod)
 		bs.bs_sleepduration = bs.bs_dtimperiod;
 
-	/* TSF out of range threshold fixed at 1 second */
+	
 	bs.bs_tsfoor_threshold = ATH9K_TSFOOR_THRESHOLD;
 
 	ath_dbg(common, CONFIG, "intval: %u tsf: %llu tsftu: %u\n",
@@ -174,7 +147,7 @@ static void ath9k_htc_beacon_config_sta(struct ath9k_htc_priv *priv,
 		bs.bs_bmissthreshold, bs.bs_sleepduration,
 		bs.bs_cfpperiod, bs.bs_cfpmaxduration, bs.bs_cfpnext);
 
-	/* Set the computed STA beacon timers */
+	
 
 	WMI_CMD(WMI_DISABLE_INTR_CMDID);
 	ath9k_hw_set_sta_beacon_timers(priv->ah, &bs);
@@ -198,10 +171,6 @@ static void ath9k_htc_beacon_config_ap(struct ath9k_htc_priv *priv,
 	intval /= ATH9K_HTC_MAX_BCN_VIF;
 	nexttbtt = intval;
 
-	/*
-	 * To reduce beacon misses under heavy TX load,
-	 * set the beacon response time to a larger value.
-	 */
 	if (intval > DEFAULT_SWBA_RESPONSE)
 		priv->ah->config.sw_beacon_response_time = DEFAULT_SWBA_RESPONSE;
 	else
@@ -211,9 +180,6 @@ static void ath9k_htc_beacon_config_ap(struct ath9k_htc_priv *priv,
 		ath9k_hw_reset_tsf(priv->ah);
 		priv->op_flags &= ~OP_TSF_RESET;
 	} else {
-		/*
-		 * Pull nexttbtt forward to reflect the current TSF.
-		 */
 		tsf = ath9k_hw_gettsf64(priv->ah);
 		tsftu = TSF_TO_TU(tsf >> 32, tsf) + FUDGE;
 		do {
@@ -252,18 +218,12 @@ static void ath9k_htc_beacon_config_adhoc(struct ath9k_htc_priv *priv,
 	intval = bss_conf->beacon_interval;
 	nexttbtt = intval;
 
-	/*
-	 * Pull nexttbtt forward to reflect the current TSF.
-	 */
 	tsf = ath9k_hw_gettsf64(priv->ah);
 	tsftu = TSF_TO_TU(tsf >> 32, tsf) + FUDGE;
 	do {
 		nexttbtt += intval;
 	} while (nexttbtt < tsftu);
 
-	/*
-	 * Only one IBSS interfce is allowed.
-	 */
 	if (intval > DEFAULT_SWBA_RESPONSE)
 		priv->ah->config.sw_beacon_response_time = DEFAULT_SWBA_RESPONSE;
 	else
@@ -370,17 +330,13 @@ static void ath9k_htc_send_beacon(struct ath9k_htc_priv *priv,
 		return;
 	}
 
-	/* Get a new beacon */
+	
 	beacon = ieee80211_beacon_get(priv->hw, vif);
 	if (!beacon) {
 		spin_unlock_bh(&priv->beacon_lock);
 		return;
 	}
 
-	/*
-	 * Update the TSF adjust value here, the HW will
-	 * add this value for every beacon.
-	 */
 	mgmt = (struct ieee80211_mgmt *)beacon->data;
 	mgmt->u.beacon.timestamp = avp->tsfadjust;
 
@@ -509,10 +465,6 @@ void ath9k_htc_remove_bslot(struct ath9k_htc_priv *priv,
 		avp->bslot);
 }
 
-/*
- * Calculate the TSF adjustment value for all slots
- * other than zero.
- */
 void ath9k_htc_set_tsfadjust(struct ath9k_htc_priv *priv,
 			     struct ieee80211_vif *vif)
 {
@@ -524,11 +476,6 @@ void ath9k_htc_set_tsfadjust(struct ath9k_htc_priv *priv,
 	if (avp->bslot == 0)
 		return;
 
-	/*
-	 * The beacon interval cannot be different for multi-AP mode,
-	 * and we reach here only for VIF slots greater than zero,
-	 * so beacon_interval is guaranteed to be set in cur_conf.
-	 */
 	tsfadjust = cur_conf->beacon_interval * avp->bslot / ATH9K_HTC_MAX_BCN_VIF;
 	avp->tsfadjust = cpu_to_le64(TU_TO_USEC(tsfadjust));
 
@@ -554,11 +501,6 @@ static bool ath9k_htc_check_beacon_config(struct ath9k_htc_priv *priv,
 	struct ieee80211_bss_conf *bss_conf = &vif->bss_conf;
 	bool beacon_configured;
 
-	/*
-	 * Changing the beacon interval when multiple AP interfaces
-	 * are configured will affect beacon transmission of all
-	 * of them.
-	 */
 	if ((priv->ah->opmode == NL80211_IFTYPE_AP) &&
 	    (priv->num_ap_vif > 1) &&
 	    (vif->type == NL80211_IFTYPE_AP) &&
@@ -568,10 +510,6 @@ static bool ath9k_htc_check_beacon_config(struct ath9k_htc_priv *priv,
 		return false;
 	}
 
-	/*
-	 * If the HW is operating in AP mode, any new station interfaces that
-	 * are added cannot change the beacon parameters.
-	 */
 	if (priv->num_ap_vif &&
 	    (vif->type != NL80211_IFTYPE_AP)) {
 		ath_dbg(common, CONFIG,
@@ -579,10 +517,6 @@ static bool ath9k_htc_check_beacon_config(struct ath9k_htc_priv *priv,
 		return false;
 	}
 
-	/*
-	 * The beacon parameters are configured only for the first
-	 * station interface.
-	 */
 	if ((priv->ah->opmode == NL80211_IFTYPE_STATION) &&
 	    (priv->num_sta_vif > 1) &&
 	    (vif->type == NL80211_IFTYPE_STATION)) {

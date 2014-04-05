@@ -30,5 +30,5 @@
 #define MBIDCTRL		(RTL8712_CMDCTRL_ + 0x000E)
 
 
-#endif /* __RTL8712_CMDCTRL_REGDEF_H__ */
+#endif 
 

@@ -41,7 +41,6 @@
 #include "iwl-io.h"
 #include "iwl-agn.h"
 
-/* create and remove of files */
 #define DEBUGFS_ADD_FILE(name, parent, mode) do {			\
 	if (!debugfs_create_file(#name, mode, parent, priv,		\
 				 &iwl_dbgfs_##name##_ops))		\
@@ -72,7 +71,6 @@
 		goto err;						\
 } while (0)
 
-/* file operation */
 #define DEBUGFS_READ_FUNC(name)                                         \
 static ssize_t iwl_dbgfs_##name##_read(struct file *file,               \
 					char __user *user_buf,          \
@@ -227,7 +225,7 @@ static ssize_t iwl_dbgfs_sram_read(struct file *file,
 	const struct fw_img *img;
 	size_t bufsz;
 
-	/* default is to dump the entire data segment */
+	
 	if (!priv->dbgfs_sram_offset && !priv->dbgfs_sram_len) {
 		priv->dbgfs_sram_offset = 0x800000;
 		if (!priv->ucode_loaded) {
@@ -254,15 +252,15 @@ static ssize_t iwl_dbgfs_sram_read(struct file *file,
 	pos += scnprintf(buf + pos, bufsz - pos, "sram_offset: 0x%x\n",
 			priv->dbgfs_sram_offset);
 
-	/* adjust sram address since reads are only on even u32 boundaries */
+	
 	offset = priv->dbgfs_sram_offset & 0x3;
 	sram = priv->dbgfs_sram_offset & ~0x3;
 
-	/* read the first u32 from sram */
+	
 	val = iwl_read_targ_mem(trans(priv), sram);
 
 	for (; len; len--) {
-		/* put the address at the start of every line */
+		
 		if (i == 0)
 			pos += scnprintf(buf + pos, bufsz - pos,
 				"%08X: ", sram + offset);
@@ -274,14 +272,14 @@ static ssize_t iwl_dbgfs_sram_read(struct file *file,
 			pos += scnprintf(buf + pos, bufsz - pos,
 				"%02x ", (val >> (8 * offset)) & 0xff);
 
-		/* if all bytes processed, read the next u32 from sram */
+		
 		if (++offset == 4) {
 			sram += 4;
 			offset = 0;
 			val = iwl_read_targ_mem(trans(priv), sram);
 		}
 
-		/* put in extra spaces and split lines for human readability */
+		
 		if (++i == 16) {
 			i = 0;
 			pos += scnprintf(buf + pos, bufsz - pos, "\n");
@@ -350,7 +348,7 @@ static ssize_t iwl_dbgfs_stations_read(struct file *file, char __user *user_buf,
 	char *buf;
 	int i, j, pos = 0;
 	ssize_t ret;
-	/* Add 30 for initial string */
+	
 	const size_t bufsz = 30 + sizeof(char) * 500 * (priv->num_stations);
 
 	buf = kmalloc(bufsz, GFP_KERNEL);
@@ -417,7 +415,7 @@ static ssize_t iwl_dbgfs_nvm_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* 4 characters for byte 0xYY */
+	
 	buf = kzalloc(buf_size, GFP_KERNEL);
 	if (!buf) {
 		IWL_ERR(priv, "Can not allocate Buffer\n");
@@ -559,7 +557,7 @@ static ssize_t iwl_dbgfs_rx_handlers_read(struct file *file,
 	int pos = 0;
 	int cnt = 0;
 	char *buf;
-	int bufsz = 24 * 64; /* 24 items * 64 char per item */
+	int bufsz = 24 * 64; 
 	ssize_t ret;
 
 	buf = kzalloc(bufsz, GFP_KERNEL);
@@ -735,11 +733,6 @@ static ssize_t iwl_dbgfs_sleep_level_override_write(struct file *file,
 	if (sscanf(buf, "%d", &value) != 1)
 		return -EINVAL;
 
-	/*
-	 * Our users expect 0 to be "CAM", but 0 isn't actually
-	 * valid here. However, let's not confuse them and present
-	 * IWL_POWER_INDEX_1 as "1", not "0".
-	 */
 	if (value == 0)
 		return -EINVAL;
 	else if (value > 0)
@@ -769,7 +762,7 @@ static ssize_t iwl_dbgfs_sleep_level_override_read(struct file *file,
 	int pos, value;
 	const size_t bufsz = sizeof(buf);
 
-	/* see the write function */
+	
 	value = priv->power_data.debug_sleep_level_override;
 	if (value >= 0)
 		value += 1;
@@ -952,11 +945,6 @@ static ssize_t iwl_dbgfs_ucode_rx_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/*
-	 * the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
 	spin_lock_bh(&priv->statistics.lock);
 	ofdm = &priv->statistics.rx_ofdm;
 	cck = &priv->statistics.rx_cck;
@@ -1381,10 +1369,6 @@ static ssize_t iwl_dbgfs_ucode_tx_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
 	spin_lock_bh(&priv->statistics.lock);
 
 	tx = &priv->statistics.tx;
@@ -1583,10 +1567,6 @@ static ssize_t iwl_dbgfs_ucode_general_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
 
 	spin_lock_bh(&priv->statistics.lock);
 
@@ -1699,7 +1679,7 @@ static ssize_t iwl_dbgfs_ucode_bt_stats_read(struct file *file,
 	if (!priv->bt_enable_flag)
 		return -EINVAL;
 
-	/* make request to uCode to retrieve statistics information */
+	
 	mutex_lock(&priv->mutex);
 	ret = iwl_send_statistics_request(priv, CMD_SYNC, false);
 	mutex_unlock(&priv->mutex);
@@ -1715,11 +1695,6 @@ static ssize_t iwl_dbgfs_ucode_bt_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/*
-	 * the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
 
 	spin_lock_bh(&priv->statistics.lock);
 
@@ -2097,7 +2072,7 @@ static ssize_t iwl_dbgfs_clear_ucode_statistics_write(struct file *file,
 	if (sscanf(buf, "%d", &clear) != 1)
 		return -EFAULT;
 
-	/* make request to uCode to retrieve statistics information */
+	
 	mutex_lock(&priv->mutex);
 	iwl_send_statistics_request(priv, CMD_SYNC, true);
 	mutex_unlock(&priv->mutex);
@@ -2145,7 +2120,7 @@ static ssize_t iwl_dbgfs_ucode_tracing_write(struct file *file,
 	if (trace) {
 		priv->event_log.ucode_trace = true;
 		if (iwl_is_alive(priv)) {
-			/* start collecting data now */
+			
 			mod_timer(&priv->ucode_trace, jiffies);
 		}
 	} else {
@@ -2498,10 +2473,6 @@ DEBUGFS_READ_WRITE_FILE_OPS(protection_mode);
 DEBUGFS_READ_FILE_OPS(reply_tx_error);
 DEBUGFS_WRITE_FILE_OPS(echo_test);
 
-/*
- * Create the debugfs files and directories
- *
- */
 int iwl_dbgfs_register(struct iwl_priv *priv, const char *name)
 {
 	struct dentry *phyd = priv->hw->wiphy->debugfsdir;
@@ -2578,10 +2549,6 @@ err:
 	return -ENOMEM;
 }
 
-/**
- * Remove the debugfs files and directories
- *
- */
 void iwl_dbgfs_unregister(struct iwl_priv *priv)
 {
 	if (!priv->debugfs_dir)

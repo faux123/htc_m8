@@ -40,7 +40,7 @@
 
 #include "hvc_console.h"
 
-#define HVC_COOKIE   0x58656e /* "Xen" in hex */
+#define HVC_COOKIE   0x58656e 
 
 struct xencons_info {
 	struct list_head list;
@@ -56,7 +56,6 @@ struct xencons_info {
 static LIST_HEAD(xenconsoles);
 static DEFINE_SPINLOCK(xencons_lock);
 
-/* ------------------------------------------------------------------ */
 
 static struct xencons_info *vtermno_to_xencons(int vtermno)
 {
@@ -82,7 +81,7 @@ static inline int xenbus_devid_to_vtermno(int devid)
 
 static inline void notify_daemon(struct xencons_info *cons)
 {
-	/* Use evtchn: this is called early, before irq is set up. */
+	
 	notify_remote_via_evtchn(cons->evtchn);
 }
 
@@ -95,13 +94,13 @@ static int __write_console(struct xencons_info *xencons,
 
 	cons = intf->out_cons;
 	prod = intf->out_prod;
-	mb();			/* update queue values before going on */
+	mb();			
 	BUG_ON((prod - cons) > sizeof(intf->out));
 
 	while ((sent < len) && ((prod - cons) < sizeof(intf->out)))
 		intf->out[MASK_XENCONS_IDX(prod++, intf->out)] = data[sent++];
 
-	wmb();			/* write ring before updating pointer */
+	wmb();			
 	intf->out_prod = prod;
 
 	if (sent)
@@ -116,12 +115,6 @@ static int domU_write_console(uint32_t vtermno, const char *data, int len)
 	if (cons == NULL)
 		return -EINVAL;
 
-	/*
-	 * Make sure the whole buffer is emitted, polling if
-	 * necessary.  We don't ever want to rely on the hvc daemon
-	 * because the most interesting console output is when the
-	 * kernel is crippled.
-	 */
 	while (len) {
 		int sent = __write_console(cons, data, len);
 		
@@ -147,13 +140,13 @@ static int domU_read_console(uint32_t vtermno, char *buf, int len)
 
 	cons = intf->in_cons;
 	prod = intf->in_prod;
-	mb();			/* get pointers before reading ring */
+	mb();			
 	BUG_ON((prod - cons) > sizeof(intf->in));
 
 	while (cons != prod && recv < len)
 		buf[recv++] = intf->in[MASK_XENCONS_IDX(cons++, intf->in)];
 
-	mb();			/* read ring before consuming */
+	mb();			
 	intf->in_cons = cons;
 
 	notify_daemon(xencons);
@@ -173,10 +166,6 @@ static int dom0_read_console(uint32_t vtermno, char *buf, int len)
 	return HYPERVISOR_console_io(CONSOLEIO_read, len, buf);
 }
 
-/*
- * Either for a dom0 to write to the system console, or a domU with a
- * debug version of Xen
- */
 static int dom0_write_console(uint32_t vtermno, const char *str, int len)
 {
 	int rc = HYPERVISOR_console_io(CONSOLEIO_write, len, (char *)str);
@@ -211,7 +200,7 @@ static int xen_hvm_console_init(void)
 			return -ENOMEM;
 	}
 
-	/* already configured */
+	
 	if (info->intf != NULL)
 		return 0;
 
@@ -258,7 +247,7 @@ static int xen_pv_console_init(void)
 			return -ENOMEM;
 	}
 
-	/* already configured */
+	
 	if (info->intf != NULL)
 		return 0;
 
@@ -504,7 +493,7 @@ static DEFINE_XENBUS_DRIVER(xencons, "xenconsole",
 	.resume = xencons_resume,
 	.otherend_changed = xencons_backend_changed,
 );
-#endif /* CONFIG_HVC_XEN_FRONTEND */
+#endif 
 
 static int __init xen_hvc_init(void)
 {
@@ -534,7 +523,7 @@ static int __init xen_hvc_init(void)
 		info->irq = bind_evtchn_to_irq(info->evtchn);
 	}
 	if (info->irq < 0)
-		info->irq = 0; /* NO_IRQ */
+		info->irq = 0; 
 	else
 		irq_set_noprobe(info->irq);
 
@@ -632,7 +621,7 @@ struct console xenboot_console = {
 	.write		= xenboot_write_console,
 	.flags		= CON_PRINTBUFFER | CON_BOOT | CON_ANYTIME,
 };
-#endif	/* CONFIG_EARLY_PRINTK */
+#endif	
 
 void xen_raw_console_write(const char *str)
 {

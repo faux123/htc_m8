@@ -24,10 +24,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- * 	    Jerome Glisse
- */
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/sched.h>
@@ -39,9 +35,6 @@ atomic_t device_released;
 
 static struct device_type ttm_drm_class_type = {
 	.name = "ttm",
-	/**
-	 * Add pm ops here.
-	 */
 };
 
 static void ttm_drm_class_device_release(struct device *dev)
@@ -86,10 +79,6 @@ static void __exit ttm_exit(void)
 {
 	drm_class_device_unregister(&ttm_drm_class_device);
 
-	/**
-	 * Refuse to unload until the TTM device is released.
-	 * Not sure this is 100% needed.
-	 */
 
 	wait_event(exit_q, atomic_read(&device_released) == 1);
 }

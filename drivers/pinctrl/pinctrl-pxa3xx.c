@@ -25,20 +25,18 @@ static struct pinctrl_gpio_range pxa3xx_pinctrl_gpio_range = {
 	.pin_base	= 0,
 };
 
-static int pxa3xx_list_groups(struct pinctrl_dev *pctrldev, unsigned selector)
+static int pxa3xx_get_groups_count(struct pinctrl_dev *pctrldev)
 {
 	struct pxa3xx_pinmux_info *info = pinctrl_dev_get_drvdata(pctrldev);
-	if (selector >= info->num_grps)
-		return -EINVAL;
-	return 0;
+
+	return info->num_grps;
 }
 
 static const char *pxa3xx_get_group_name(struct pinctrl_dev *pctrldev,
 					 unsigned selector)
 {
 	struct pxa3xx_pinmux_info *info = pinctrl_dev_get_drvdata(pctrldev);
-	if (selector >= info->num_grps)
-		return NULL;
+
 	return info->grps[selector].name;
 }
 
@@ -48,25 +46,23 @@ static int pxa3xx_get_group_pins(struct pinctrl_dev *pctrldev,
 				 unsigned *num_pins)
 {
 	struct pxa3xx_pinmux_info *info = pinctrl_dev_get_drvdata(pctrldev);
-	if (selector >= info->num_grps)
-		return -EINVAL;
+
 	*pins = info->grps[selector].pins;
 	*num_pins = info->grps[selector].npins;
 	return 0;
 }
 
 static struct pinctrl_ops pxa3xx_pctrl_ops = {
-	.list_groups	= pxa3xx_list_groups,
+	.get_groups_count = pxa3xx_get_groups_count,
 	.get_group_name	= pxa3xx_get_group_name,
 	.get_group_pins	= pxa3xx_get_group_pins,
 };
 
-static int pxa3xx_pmx_list_func(struct pinctrl_dev *pctrldev, unsigned func)
+static int pxa3xx_pmx_get_funcs_count(struct pinctrl_dev *pctrldev)
 {
 	struct pxa3xx_pinmux_info *info = pinctrl_dev_get_drvdata(pctrldev);
-	if (func >= info->num_funcs)
-		return -EINVAL;
-	return 0;
+
+	return info->num_funcs;
 }
 
 static const char *pxa3xx_pmx_get_func_name(struct pinctrl_dev *pctrldev,
@@ -86,7 +82,6 @@ static int pxa3xx_pmx_get_groups(struct pinctrl_dev *pctrldev, unsigned func,
 	return 0;
 }
 
-/* Return function number. If failure, return negative value. */
 static int match_mux(struct pxa3xx_mfp_pin *mfp, unsigned mux)
 {
 	int i;
@@ -99,7 +94,6 @@ static int match_mux(struct pxa3xx_mfp_pin *mfp, unsigned mux)
 	return i;
 }
 
-/* check whether current pin configuration is valid. Negative for failure */
 static int match_group_mux(struct pxa3xx_pin_group *grp,
 			   struct pxa3xx_pinmux_info *info,
 			   unsigned mux)
@@ -162,7 +156,7 @@ static int pxa3xx_pmx_request_gpio(struct pinctrl_dev *pctrldev,
 		return -EINVAL;
 	}
 	mfpr = info->mfp[pin].mfpr;
-	/* write gpio function into mfpr register */
+	
 	data = readl_relaxed(info->virt_base + mfpr) & ~MFPR_FUNC_MASK;
 	data |= pin_func;
 	writel_relaxed(data, info->virt_base + mfpr);
@@ -170,7 +164,7 @@ static int pxa3xx_pmx_request_gpio(struct pinctrl_dev *pctrldev,
 }
 
 static struct pinmux_ops pxa3xx_pmx_ops = {
-	.list_functions		= pxa3xx_pmx_list_func,
+	.get_functions_count	= pxa3xx_pmx_get_funcs_count,
 	.get_function_name	= pxa3xx_pmx_get_func_name,
 	.get_function_groups	= pxa3xx_pmx_get_groups,
 	.enable			= pxa3xx_pmx_enable,

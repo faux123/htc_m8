@@ -27,22 +27,6 @@
 
 #include <linux/compiler.h>
 
-/***********************************************************
-*
-* FUNCTIONS: Blackfin General Purpose Ports Access Functions
-*
-* INPUTS/OUTPUTS:
-* gpio - GPIO Number between 0 and MAX_BLACKFIN_GPIOS
-*
-*
-* DESCRIPTION: These functions abstract direct register access
-*              to Blackfin processor General Purpose
-*              Ports Regsiters
-*
-* CAUTION: These functions do not belong to the GPIO Driver API
-*************************************************************
-* MODIFICATION HISTORY :
-**************************************************************/
 
 #if !BFIN_GPIO_PINT
 void set_gpio_dir(unsigned, unsigned short);
@@ -159,22 +143,8 @@ struct gpio_port_s {
 	unsigned short mux;
 };
 # endif
-#endif /*CONFIG_PM*/
+#endif 
 
-/***********************************************************
-*
-* FUNCTIONS: Blackfin GPIO Driver
-*
-* INPUTS/OUTPUTS:
-* gpio - GPIO Number between 0 and MAX_BLACKFIN_GPIOS
-*
-*
-* DESCRIPTION: Blackfin GPIO Driver API
-*
-* CAUTION:
-*************************************************************
-* MODIFICATION HISTORY :
-**************************************************************/
 
 int bfin_gpio_request(unsigned gpio, const char *label);
 void bfin_gpio_free(unsigned gpio);
@@ -189,7 +159,7 @@ void bfin_gpio_set_value(unsigned gpio, int value);
 #include <asm/errno.h>
 
 #ifdef CONFIG_GPIOLIB
-#include <asm-generic/gpio.h>		/* cansleep wrappers */
+#include <asm-generic/gpio.h>		
 
 static inline int gpio_get_value(unsigned int gpio)
 {
@@ -217,7 +187,7 @@ static inline int gpio_to_irq(unsigned gpio)
 	return __gpio_to_irq(gpio);
 }
 
-#else /* !CONFIG_GPIOLIB */
+#else 
 
 static inline int gpio_request(unsigned gpio, const char *label)
 {
@@ -272,14 +242,14 @@ static inline int gpio_to_irq(unsigned gpio)
 	return -EINVAL;
 }
 
-#include <asm-generic/gpio.h>		/* cansleep wrappers */
-#endif	/* !CONFIG_GPIOLIB */
+#include <asm-generic/gpio.h>		
+#endif	
 
 static inline int irq_to_gpio(unsigned irq)
 {
 	return (irq - GPIO_IRQ_BASE);
 }
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-#endif /* __ARCH_BLACKFIN_GPIO_H__ */
+#endif 

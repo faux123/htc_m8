@@ -28,12 +28,8 @@
 #define KS8695_GPIO_14		14
 #define KS8695_GPIO_15		15
 
-/*
- * Configure GPIO pin as external interrupt source.
- */
 extern int ks8695_gpio_interrupt(unsigned int pin, unsigned int type);
 
-/* Register the GPIOs */
 extern void ks8695_register_gpios(void);
 
-#endif /* __MACH_KS8659_GPIO_H */
+#endif 

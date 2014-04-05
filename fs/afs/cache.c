@@ -78,9 +78,6 @@ struct fscache_cookie_def afs_vnode_cache_index_def = {
 	.now_uncached		= afs_vnode_cache_now_uncached,
 };
 
-/*
- * set the key for the index entry
- */
 static uint16_t afs_cell_cache_get_key(const void *cookie_netfs_data,
 				       void *buffer, uint16_t bufmax)
 {
@@ -97,9 +94,6 @@ static uint16_t afs_cell_cache_get_key(const void *cookie_netfs_data,
 	return klen;
 }
 
-/*
- * provide new auxiliary cache data
- */
 static uint16_t afs_cell_cache_get_aux(const void *cookie_netfs_data,
 				       void *buffer, uint16_t bufmax)
 {
@@ -116,9 +110,6 @@ static uint16_t afs_cell_cache_get_aux(const void *cookie_netfs_data,
 	return dlen;
 }
 
-/*
- * check that the auxiliary data indicates that the entry is still valid
- */
 static enum fscache_checkaux afs_cell_cache_check_aux(void *cookie_netfs_data,
 						      const void *buffer,
 						      uint16_t buflen)
@@ -127,10 +118,6 @@ static enum fscache_checkaux afs_cell_cache_check_aux(void *cookie_netfs_data,
 	return FSCACHE_CHECKAUX_OKAY;
 }
 
-/*****************************************************************************/
-/*
- * set the key for the index entry
- */
 static uint16_t afs_vlocation_cache_get_key(const void *cookie_netfs_data,
 					    void *buffer, uint16_t bufmax)
 {
@@ -149,9 +136,6 @@ static uint16_t afs_vlocation_cache_get_key(const void *cookie_netfs_data,
 	return klen;
 }
 
-/*
- * provide new auxiliary cache data
- */
 static uint16_t afs_vlocation_cache_get_aux(const void *cookie_netfs_data,
 					    void *buffer, uint16_t bufmax)
 {
@@ -171,9 +155,6 @@ static uint16_t afs_vlocation_cache_get_aux(const void *cookie_netfs_data,
 	return dlen;
 }
 
-/*
- * check that the auxiliary data indicates that the entry is still valid
- */
 static
 enum fscache_checkaux afs_vlocation_cache_check_aux(void *cookie_netfs_data,
 						    const void *buffer,
@@ -185,7 +166,7 @@ enum fscache_checkaux afs_vlocation_cache_check_aux(void *cookie_netfs_data,
 
 	_enter("{%s},%p,%u", vlocation->vldb.name, buffer, buflen);
 
-	/* check the size of the data is what we're expecting */
+	
 	dlen = sizeof(struct afs_cache_vlocation);
 	dlen -= offsetof(struct afs_cache_vlocation, nservers);
 	if (dlen != buflen)
@@ -193,8 +174,6 @@ enum fscache_checkaux afs_vlocation_cache_check_aux(void *cookie_netfs_data,
 
 	cvldb = container_of(buffer, struct afs_cache_vlocation, nservers);
 
-	/* if what's on disk is more valid than what's in memory, then use the
-	 * VL record from the cache */
 	if (!vlocation->valid || vlocation->vldb.rtime == cvldb->rtime) {
 		memcpy((uint8_t *)&vlocation->vldb.nservers, buffer, dlen);
 		vlocation->valid = 1;
@@ -202,9 +181,9 @@ enum fscache_checkaux afs_vlocation_cache_check_aux(void *cookie_netfs_data,
 		return FSCACHE_CHECKAUX_OKAY;
 	}
 
-	/* need to update the cache if the cached info differs */
+	
 	if (memcmp(&vlocation->vldb, buffer, dlen) != 0) {
-		/* delete if the volume IDs for this name differ */
+		
 		if (memcmp(&vlocation->vldb.vid, &cvldb->vid,
 			   sizeof(cvldb->vid)) != 0
 		    ) {
@@ -220,10 +199,6 @@ enum fscache_checkaux afs_vlocation_cache_check_aux(void *cookie_netfs_data,
 	return FSCACHE_CHECKAUX_OKAY;
 }
 
-/*****************************************************************************/
-/*
- * set the key for the volume index entry
- */
 static uint16_t afs_volume_cache_get_key(const void *cookie_netfs_data,
 					void *buffer, uint16_t bufmax)
 {
@@ -243,10 +218,6 @@ static uint16_t afs_volume_cache_get_key(const void *cookie_netfs_data,
 
 }
 
-/*****************************************************************************/
-/*
- * set the key for the index entry
- */
 static uint16_t afs_vnode_cache_get_key(const void *cookie_netfs_data,
 					void *buffer, uint16_t bufmax)
 {
@@ -267,9 +238,6 @@ static uint16_t afs_vnode_cache_get_key(const void *cookie_netfs_data,
 	return klen;
 }
 
-/*
- * provide updated file attributes
- */
 static void afs_vnode_cache_get_attr(const void *cookie_netfs_data,
 				     uint64_t *size)
 {
@@ -282,9 +250,6 @@ static void afs_vnode_cache_get_attr(const void *cookie_netfs_data,
 	*size = vnode->status.size;
 }
 
-/*
- * provide new auxiliary cache data
- */
 static uint16_t afs_vnode_cache_get_aux(const void *cookie_netfs_data,
 					void *buffer, uint16_t bufmax)
 {
@@ -308,9 +273,6 @@ static uint16_t afs_vnode_cache_get_aux(const void *cookie_netfs_data,
 	return dlen;
 }
 
-/*
- * check that the auxiliary data indicates that the entry is still valid
- */
 static enum fscache_checkaux afs_vnode_cache_check_aux(void *cookie_netfs_data,
 						       const void *buffer,
 						       uint16_t buflen)
@@ -322,7 +284,7 @@ static enum fscache_checkaux afs_vnode_cache_check_aux(void *cookie_netfs_data,
 	       vnode->fid.vnode, vnode->fid.unique, vnode->status.data_version,
 	       buffer, buflen);
 
-	/* check the size of the data is what we're expecting */
+	
 	dlen = sizeof(vnode->fid.unique) + sizeof(vnode->status.data_version);
 	if (dlen != buflen) {
 		_leave(" = OBSOLETE [len %hx != %hx]", dlen, buflen);
@@ -360,13 +322,6 @@ static enum fscache_checkaux afs_vnode_cache_check_aux(void *cookie_netfs_data,
 	return FSCACHE_CHECKAUX_OKAY;
 }
 
-/*
- * indication the cookie is no longer uncached
- * - this function is called when the backing store currently caching a cookie
- *   is removed
- * - the netfs should use this to clean up any markers indicating cached pages
- * - this is mandatory for any object that may have data
- */
 static void afs_vnode_cache_now_uncached(void *cookie_netfs_data)
 {
 	struct afs_vnode *vnode = cookie_netfs_data;
@@ -381,7 +336,7 @@ static void afs_vnode_cache_now_uncached(void *cookie_netfs_data)
 	first = 0;
 
 	for (;;) {
-		/* grab a bunch of pages to clean */
+		
 		nr_pages = pagevec_lookup(&pvec, vnode->vfs_inode.i_mapping,
 					  first,
 					  PAGEVEC_SIZE - pagevec_count(&pvec));

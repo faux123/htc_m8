@@ -25,15 +25,6 @@
 #include "wmm.h"
 #include "11n.h"
 
-/*
- * Fills HT capability information field, AMPDU Parameters field, HT extended
- * capability field, and supported MCS set fields.
- *
- * HT capability information field, AMPDU Parameters field, supported MCS set
- * fields are retrieved from cfg80211 stack
- *
- * RD responder bit to set to clear in the extended capability header.
- */
 void
 mwifiex_fill_cap_info(struct mwifiex_private *priv, u8 radio_type,
 		      struct mwifiex_ie_types_htcap *ht_cap)
@@ -54,20 +45,16 @@ mwifiex_fill_cap_info(struct mwifiex_private *priv, u8 radio_type,
 
 	if (priv->bss_mode == NL80211_IFTYPE_STATION ||
 	    sband->ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40)
-		/* Set MCS32 for infra mode or ad-hoc mode with 40MHz support */
+		
 		SETHT_MCS32(ht_cap->ht_cap.mcs.rx_mask);
 
-	/* Clear RD responder bit */
+	
 	ht_ext_cap &= ~IEEE80211_HT_EXT_CAP_RD_RESPONDER;
 
 	ht_cap->ht_cap.cap_info = cpu_to_le16(sband->ht_cap.cap);
 	ht_cap->ht_cap.extended_ht_cap_info = cpu_to_le16(ht_ext_cap);
 }
 
-/*
- * This function returns the pointer to an entry in BA Stream
- * table which matches the requested BA status.
- */
 static struct mwifiex_tx_ba_stream_tbl *
 mwifiex_get_ba_status(struct mwifiex_private *priv,
 		      enum mwifiex_ba_status ba_status)
@@ -87,15 +74,6 @@ mwifiex_get_ba_status(struct mwifiex_private *priv,
 	return NULL;
 }
 
-/*
- * This function handles the command response of delete a block
- * ack request.
- *
- * The function checks the response success status and takes action
- * accordingly (send an add BA request in case of success, or recreate
- * the deleted stream in case of failure, if the add BA was also
- * initiated by us).
- */
 int mwifiex_ret_11n_delba(struct mwifiex_private *priv,
 			  struct host_cmd_ds_command *resp)
 {
@@ -115,10 +93,7 @@ int mwifiex_ret_11n_delba(struct mwifiex_private *priv,
 		if (tx_ba_tbl)
 			mwifiex_send_addba(priv, tx_ba_tbl->tid,
 					   tx_ba_tbl->ra);
-	} else { /*
-		  * In case of failure, recreate the deleted stream in case
-		  * we initiated the ADDBA
-		  */
+	} else { 
 		if (!INITIATOR_BIT(del_ba_param_set))
 			return 0;
 
@@ -135,14 +110,6 @@ int mwifiex_ret_11n_delba(struct mwifiex_private *priv,
 	return 0;
 }
 
-/*
- * This function handles the command response of add a block
- * ack request.
- *
- * Handling includes changing the header fields to CPU formats, checking
- * the response success status and taking actions accordingly (delete the
- * BA stream table in case of failure).
- */
 int mwifiex_ret_11n_addba_req(struct mwifiex_private *priv,
 			      struct host_cmd_ds_command *resp)
 {
@@ -177,11 +144,6 @@ int mwifiex_ret_11n_addba_req(struct mwifiex_private *priv,
 	return 0;
 }
 
-/*
- * This function handles the command response of 11n configuration request.
- *
- * Handling includes changing the header fields into CPU format.
- */
 int mwifiex_ret_11n_cfg(struct host_cmd_ds_command *resp,
 			struct mwifiex_ds_11n_tx_cfg *tx_cfg)
 {
@@ -194,14 +156,6 @@ int mwifiex_ret_11n_cfg(struct host_cmd_ds_command *resp,
 	return 0;
 }
 
-/*
- * This function prepares command of reconfigure Tx buffer.
- *
- * Preparation includes -
- *      - Setting command ID, action and proper size
- *      - Setting Tx buffer size (for SET only)
- *      - Ensuring correct endian-ness
- */
 int mwifiex_cmd_recfg_tx_buf(struct mwifiex_private *priv,
 			     struct host_cmd_ds_command *cmd, int cmd_action,
 			     u16 *buf_size)
@@ -226,14 +180,6 @@ int mwifiex_cmd_recfg_tx_buf(struct mwifiex_private *priv,
 	return 0;
 }
 
-/*
- * This function prepares command of AMSDU aggregation control.
- *
- * Preparation includes -
- *      - Setting command ID, action and proper size
- *      - Setting AMSDU control parameters (for SET only)
- *      - Ensuring correct endian-ness
- */
 int mwifiex_cmd_amsdu_aggr_ctrl(struct host_cmd_ds_command *cmd,
 				int cmd_action,
 				struct mwifiex_ds_11n_amsdu_aggr_ctrl *aa_ctrl)
@@ -259,12 +205,6 @@ int mwifiex_cmd_amsdu_aggr_ctrl(struct host_cmd_ds_command *cmd,
 	return 0;
 }
 
-/*
- * This function handles the command response of AMSDU aggregation
- * control request.
- *
- * Handling includes changing the header fields into CPU format.
- */
 int mwifiex_ret_amsdu_aggr_ctrl(struct host_cmd_ds_command *resp,
 				struct mwifiex_ds_11n_amsdu_aggr_ctrl
 				*amsdu_aggr_ctrl)
@@ -280,14 +220,6 @@ int mwifiex_ret_amsdu_aggr_ctrl(struct host_cmd_ds_command *resp,
 	return 0;
 }
 
-/*
- * This function prepares 11n configuration command.
- *
- * Preparation includes -
- *      - Setting command ID, action and proper size
- *      - Setting HT Tx capability and HT Tx information fields
- *      - Ensuring correct endian-ness
- */
 int mwifiex_cmd_11n_cfg(struct host_cmd_ds_command *cmd, u16 cmd_action,
 			struct mwifiex_ds_11n_tx_cfg *txcfg)
 {
@@ -301,18 +233,6 @@ int mwifiex_cmd_11n_cfg(struct host_cmd_ds_command *cmd, u16 cmd_action,
 	return 0;
 }
 
-/*
- * This function appends an 11n TLV to a buffer.
- *
- * Buffer allocation is responsibility of the calling
- * function. No size validation is made here.
- *
- * The function fills up the following sections, if applicable -
- *      - HT capability IE
- *      - HT information IE (with channel list)
- *      - 20/40 BSS Coexistence IE
- *      - HT Extended Capabilities IE
- */
 int
 mwifiex_cmd_append_11n_tlv(struct mwifiex_private *priv,
 			   struct mwifiex_bssdescriptor *bss_desc,
@@ -438,14 +358,6 @@ mwifiex_cmd_append_11n_tlv(struct mwifiex_private *priv,
 	return ret_len;
 }
 
-/*
- * This function reconfigures the Tx buffer size in firmware.
- *
- * This function prepares a firmware command and issues it, if
- * the current Tx buffer size is different from the one requested.
- * Maximum configurable Tx buffer size is limited by the HT capability
- * field value.
- */
 void
 mwifiex_cfg_tx_buf(struct mwifiex_private *priv,
 		   struct mwifiex_bssdescriptor *bss_desc)
@@ -477,10 +389,6 @@ mwifiex_cfg_tx_buf(struct mwifiex_private *priv,
 				       HostCmd_ACT_GEN_SET, 0, &tx_buf);
 }
 
-/*
- * This function checks if the given pointer is valid entry of
- * Tx BA Stream table.
- */
 static int mwifiex_is_tx_ba_stream_ptr_valid(struct mwifiex_private *priv,
 				struct mwifiex_tx_ba_stream_tbl *tx_tbl_ptr)
 {
@@ -494,12 +402,6 @@ static int mwifiex_is_tx_ba_stream_ptr_valid(struct mwifiex_private *priv,
 	return false;
 }
 
-/*
- * This function deletes the given entry in Tx BA Stream table.
- *
- * The function also performs a validity check on the supplied
- * pointer before trying to delete.
- */
 void mwifiex_11n_delete_tx_ba_stream_tbl_entry(struct mwifiex_private *priv,
 				struct mwifiex_tx_ba_stream_tbl *tx_ba_tsr_tbl)
 {
@@ -514,9 +416,6 @@ void mwifiex_11n_delete_tx_ba_stream_tbl_entry(struct mwifiex_private *priv,
 	kfree(tx_ba_tsr_tbl);
 }
 
-/*
- * This function deletes all the entries in Tx BA Stream table.
- */
 void mwifiex_11n_delete_all_tx_ba_stream_tbl(struct mwifiex_private *priv)
 {
 	int i;
@@ -536,10 +435,6 @@ void mwifiex_11n_delete_all_tx_ba_stream_tbl(struct mwifiex_private *priv)
 			priv->aggr_prio_tbl[i].ampdu_user;
 }
 
-/*
- * This function returns the pointer to an entry in BA Stream
- * table which matches the given RA/TID pair.
- */
 struct mwifiex_tx_ba_stream_tbl *
 mwifiex_get_ba_tbl(struct mwifiex_private *priv, int tid, u8 *ra)
 {
@@ -559,10 +454,6 @@ mwifiex_get_ba_tbl(struct mwifiex_private *priv, int tid, u8 *ra)
 	return NULL;
 }
 
-/*
- * This function creates an entry in Tx BA stream table for the
- * given RA/TID pair.
- */
 void mwifiex_create_ba_tbl(struct mwifiex_private *priv, u8 *ra, int tid,
 			   enum mwifiex_ba_status ba_status)
 {
@@ -590,9 +481,6 @@ void mwifiex_create_ba_tbl(struct mwifiex_private *priv, u8 *ra, int tid,
 	}
 }
 
-/*
- * This function sends an add BA request to the given TID/RA pair.
- */
 int mwifiex_send_addba(struct mwifiex_private *priv, int tid, u8 *peer_mac)
 {
 	struct host_cmd_ds_11n_addba_req add_ba_req;
@@ -616,16 +504,13 @@ int mwifiex_send_addba(struct mwifiex_private *priv, int tid, u8 *peer_mac)
 	add_ba_req.dialog_token = dialog_tok;
 	memcpy(&add_ba_req.peer_mac_addr, peer_mac, ETH_ALEN);
 
-	/* We don't wait for the response of this command */
+	
 	ret = mwifiex_send_cmd_async(priv, HostCmd_CMD_11N_ADDBA_REQ,
 				     0, 0, &add_ba_req);
 
 	return ret;
 }
 
-/*
- * This function sends a delete BA request to the given TID/RA pair.
- */
 int mwifiex_send_delba(struct mwifiex_private *priv, int tid, u8 *peer_mac,
 		       int initiator)
 {
@@ -644,16 +529,13 @@ int mwifiex_send_delba(struct mwifiex_private *priv, int tid, u8 *peer_mac,
 
 	memcpy(&delba.peer_mac_addr, peer_mac, ETH_ALEN);
 
-	/* We don't wait for the response of this command */
+	
 	ret = mwifiex_send_cmd_async(priv, HostCmd_CMD_11N_DELBA,
 				     HostCmd_ACT_GEN_SET, 0, &delba);
 
 	return ret;
 }
 
-/*
- * This function handles the command response of a delete BA request.
- */
 void mwifiex_11n_delete_ba_stream(struct mwifiex_private *priv, u8 *del_ba)
 {
 	struct host_cmd_ds_11n_delba *cmd_del_ba =
@@ -667,9 +549,6 @@ void mwifiex_11n_delete_ba_stream(struct mwifiex_private *priv, u8 *del_ba)
 			   TYPE_DELBA_RECEIVE, INITIATOR_BIT(del_ba_param_set));
 }
 
-/*
- * This function retrieves the Rx reordering table.
- */
 int mwifiex_get_rx_reorder_tbl(struct mwifiex_private *priv,
 			       struct mwifiex_ds_rx_reorder_tbl *buf)
 {
@@ -703,9 +582,6 @@ int mwifiex_get_rx_reorder_tbl(struct mwifiex_private *priv,
 	return count;
 }
 
-/*
- * This function retrieves the Tx BA stream table.
- */
 int mwifiex_get_tx_ba_stream_tbl(struct mwifiex_private *priv,
 				 struct mwifiex_ds_tx_ba_stream_tbl *buf)
 {

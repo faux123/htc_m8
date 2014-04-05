@@ -2,7 +2,6 @@
 #define _ASM_CRIS_ARCH_SYSTEM_H
 
 
-/* Read the CPU version register. */
 static inline unsigned long rdvr(void)
 {
 	unsigned char vr;
@@ -13,7 +12,6 @@ static inline unsigned long rdvr(void)
 
 #define cris_machine_name "crisv32"
 
-/* Read the user-mode stack pointer. */
 static inline unsigned long rdusp(void)
 {
 	unsigned long usp;
@@ -22,7 +20,6 @@ static inline unsigned long rdusp(void)
 	return usp;
 }
 
-/* Read the current stack pointer. */
 static inline unsigned long rdsp(void)
 {
 	unsigned long sp;
@@ -31,7 +28,6 @@ static inline unsigned long rdsp(void)
 	return sp;
 }
 
-/* Write the user-mode stack pointer. */
 #define wrusp(usp) __asm__ __volatile__ ("move %0, $usp" : : "rm" (usp))
 
-#endif /* _ASM_CRIS_ARCH_SYSTEM_H */
+#endif 

@@ -78,7 +78,6 @@ extern u32 wl12xx_debug_level;
 			pr_debug(DRIVER_PREFIX fmt "\n", ##arg); \
 	} while (0)
 
-/* TODO: use pr_debug_hex_dump when it becomes available */
 #define wl1271_dump(level, prefix, buf, len)	\
 	do { \
 		if (level & wl12xx_debug_level) \
@@ -99,4 +98,4 @@ extern u32 wl12xx_debug_level;
 				       true);				\
 	} while (0)
 
-#endif /* __DEBUG_H__ */
+#endif 

@@ -1,18 +1,13 @@
 #ifndef _PARISC_BUG_H
 #define _PARISC_BUG_H
 
-/*
- * Tell the user there is some problem.
- * The offending file and line are encoded in the __bug_table section.
- */
 
 #ifdef CONFIG_BUG
 #define HAVE_ARCH_BUG
 #define HAVE_ARCH_WARN_ON
 
-/* the break instruction is used as BUG() marker.  */
 #define	PARISC_BUG_BREAK_ASM	"break 0x1f, 0x1fff"
-#define	PARISC_BUG_BREAK_INSN	0x03ffe01f  /* PARISC_BUG_BREAK_ASM */
+#define	PARISC_BUG_BREAK_INSN	0x03ffe01f  
 
 #if defined(CONFIG_64BIT)
 #define ASM_WORD_INSN		".dword\t"

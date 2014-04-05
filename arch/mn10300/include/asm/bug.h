@@ -13,9 +13,6 @@
 
 #ifdef CONFIG_BUG
 
-/*
- * Tell the user there is some problem.
- */
 #define BUG()							\
 do {								\
 	asm volatile(						\
@@ -30,8 +27,8 @@ do {								\
 } while (1)
 
 #define HAVE_ARCH_BUG
-#endif /* CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
 
-#endif /* _ASM_BUG_H */
+#endif 

@@ -14,7 +14,7 @@ static int __init topology_init(void)
 #ifdef CONFIG_NUMA
 	for_each_online_node(i)
 		register_one_node(i);
-#endif /* CONFIG_NUMA */
+#endif 
 
 	for_each_present_cpu(i) {
 		struct cpu *c = &per_cpu(cpu_devices, i);

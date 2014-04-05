@@ -9,7 +9,4 @@
  * 2 of the Licence, or (at your option) any later version.
  */
 
-/*
- * do_csum.S
- */
 extern unsigned int do_csum(const unsigned char *, size_t);

@@ -1,6 +1,3 @@
-/*
- * Image header stuff
- */
 #ifndef _HEAD_H
 #define _HEAD_H
 
@@ -19,4 +16,4 @@ struct bootloader_header {
 };
 #endif
 
-#endif /* _HEAD_H */
+#endif 

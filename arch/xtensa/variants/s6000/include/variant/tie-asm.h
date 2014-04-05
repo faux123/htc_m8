@@ -13,51 +13,36 @@
 #ifndef _XTENSA_CORE_TIE_ASM_H
 #define _XTENSA_CORE_TIE_ASM_H
 
-/*  Selection parameter values for save-area save/restore macros:  */
-/*  Option vs. TIE:  */
-#define XTHAL_SAS_TIE	0x0001	/* custom extension or coprocessor */
-#define XTHAL_SAS_OPT	0x0002	/* optional (and not a coprocessor) */
-/*  Whether used automatically by compiler:  */
-#define XTHAL_SAS_NOCC	0x0004	/* not used by compiler w/o special opts/code */
-#define XTHAL_SAS_CC	0x0008	/* used by compiler without special opts/code */
-/*  ABI handling across function calls:  */
-#define XTHAL_SAS_CALR	0x0010	/* caller-saved */
-#define XTHAL_SAS_CALE	0x0020	/* callee-saved */
-#define XTHAL_SAS_GLOB	0x0040	/* global across function calls (in thread) */
-/*  Misc  */
-#define XTHAL_SAS_ALL	0xFFFF	/* include all default NCP contents */
+#define XTHAL_SAS_TIE	0x0001	
+#define XTHAL_SAS_OPT	0x0002	
+#define XTHAL_SAS_NOCC	0x0004	
+#define XTHAL_SAS_CC	0x0008	
+#define XTHAL_SAS_CALR	0x0010	
+#define XTHAL_SAS_CALE	0x0020	
+#define XTHAL_SAS_GLOB	0x0040	
+#define XTHAL_SAS_ALL	0xFFFF	
 
 
 
-/* Macro to save all non-coprocessor (extra) custom TIE and optional state
- * (not including zero-overhead loop registers).
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_NCP_NUM_ATMPS needed)
- */
 	.macro xchal_ncp_store  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start	\continue, \ofs
 	.ifeq (XTHAL_SAS_OPT | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 1024-4, 4, 4
-	rsr	\at1, BR		// boolean option
+	rsr	\at1, BR		
 	s32i	\at1, \ptr, .Lxchal_ofs_ + 0
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 4
 	.endif
-	.endm	// xchal_ncp_store
+	.endm	
 
-/* Macro to save all non-coprocessor (extra) custom TIE and optional state
- * (not including zero-overhead loop registers).
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_NCP_NUM_ATMPS needed)
- */
 	.macro xchal_ncp_load  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start	\continue, \ofs
 	.ifeq (XTHAL_SAS_OPT | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 1024-4, 4, 4
 	l32i	\at1, \ptr, .Lxchal_ofs_ + 0
-	wsr	\at1, BR		// boolean option
+	wsr	\at1, BR		
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 4
 	.endif
-	.endm	// xchal_ncp_load
+	.endm	
 
 
 
@@ -65,19 +50,14 @@
 
 
 
-/* Macro to save the state of TIE coprocessor FPU.
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_CP0_NUM_ATMPS needed)
- */
 #define xchal_cp_FPU_store	xchal_cp0_store
-/* #define xchal_cp_FPU_store_a2	xchal_cp0_store a2 a3 a4 a5 a6 */
 	.macro	xchal_cp0_store  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start \continue, \ofs
 	.ifeq (XTHAL_SAS_TIE | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 0, 1, 16
-	rur232	\at1		// FCR
+	rur232	\at1		
 	s32i	\at1, \ptr, 0
-	rur233	\at1		// FSR
+	rur233	\at1		
 	s32i	\at1, \ptr, 4
 	SSI f0, \ptr,  8
 	SSI f1, \ptr,  12
@@ -97,22 +77,17 @@
 	SSI f15, \ptr,  68
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 72
 	.endif
-	.endm	// xchal_cp0_store
+	.endm	
 
-/* Macro to restore the state of TIE coprocessor FPU.
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_CP0_NUM_ATMPS needed)
- */
 #define xchal_cp_FPU_load	xchal_cp0_load
-/* #define xchal_cp_FPU_load_a2	xchal_cp0_load a2 a3 a4 a5 a6 */
 	.macro	xchal_cp0_load  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start \continue, \ofs
 	.ifeq (XTHAL_SAS_TIE | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 0, 1, 16
 	l32i	\at1, \ptr, 0
-	wur232	\at1		// FCR
+	wur232	\at1		
 	l32i	\at1, \ptr, 4
-	wur233	\at1		// FSR
+	wur233	\at1		
 	LSI f0, \ptr,  8
 	LSI f1, \ptr,  12
 	LSI f2, \ptr,  16
@@ -131,47 +106,42 @@
 	LSI f15, \ptr,  68
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 72
 	.endif
-	.endm	// xchal_cp0_load
+	.endm	
 
 #define XCHAL_CP0_NUM_ATMPS	1
 
-/* Macro to save the state of TIE coprocessor XAD.
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_CP6_NUM_ATMPS needed)
- */
 #define xchal_cp_XAD_store	xchal_cp6_store
-/* #define xchal_cp_XAD_store_a2	xchal_cp6_store a2 a3 a4 a5 a6 */
 	.macro	xchal_cp6_store  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start \continue, \ofs
 	.ifeq (XTHAL_SAS_TIE | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 0, 1, 16
-	rur0	\at1		// LDCBHI
+	rur0	\at1		
 	s32i	\at1, \ptr, 0
-	rur1	\at1		// LDCBLO
+	rur1	\at1		
 	s32i	\at1, \ptr, 4
-	rur2	\at1		// STCBHI
+	rur2	\at1		
 	s32i	\at1, \ptr, 8
-	rur3	\at1		// STCBLO
+	rur3	\at1		
 	s32i	\at1, \ptr, 12
-	rur8	\at1		// LDBRBASE
+	rur8	\at1		
 	s32i	\at1, \ptr, 16
-	rur9	\at1		// LDBROFF
+	rur9	\at1		
 	s32i	\at1, \ptr, 20
-	rur10	\at1		// LDBRINC
+	rur10	\at1		
 	s32i	\at1, \ptr, 24
-	rur11	\at1		// STBRBASE
+	rur11	\at1		
 	s32i	\at1, \ptr, 28
-	rur12	\at1		// STBROFF
+	rur12	\at1		
 	s32i	\at1, \ptr, 32
-	rur13	\at1		// STBRINC
+	rur13	\at1		
 	s32i	\at1, \ptr, 36
-	rur24	\at1		// SCRATCH0
+	rur24	\at1		
 	s32i	\at1, \ptr, 40
-	rur25	\at1		// SCRATCH1
+	rur25	\at1		
 	s32i	\at1, \ptr, 44
-	rur26	\at1		// SCRATCH2
+	rur26	\at1		
 	s32i	\at1, \ptr, 48
-	rur27	\at1		// SCRATCH3
+	rur27	\at1		
 	s32i	\at1, \ptr, 52
 	WRAS128I wra0, \ptr,  64
 	WRAS128I wra1, \ptr,  80
@@ -207,46 +177,41 @@
 	WRBS128I wrb15, \ptr,  560
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 576
 	.endif
-	.endm	// xchal_cp6_store
+	.endm	
 
-/* Macro to restore the state of TIE coprocessor XAD.
- * Save area ptr (clobbered):  ptr  (16 byte aligned)
- * Scratch regs  (clobbered):  at1..at4  (only first XCHAL_CP6_NUM_ATMPS needed)
- */
 #define xchal_cp_XAD_load	xchal_cp6_load
-/* #define xchal_cp_XAD_load_a2	xchal_cp6_load a2 a3 a4 a5 a6 */
 	.macro	xchal_cp6_load  ptr at1 at2 at3 at4  continue=0 ofs=-1 select=XTHAL_SAS_ALL
 	xchal_sa_start \continue, \ofs
 	.ifeq (XTHAL_SAS_TIE | XTHAL_SAS_NOCC | XTHAL_SAS_CALR) & ~\select
 	xchal_sa_align	\ptr, 0, 0, 1, 16
 	l32i	\at1, \ptr, 0
-	wur0	\at1		// LDCBHI
+	wur0	\at1		
 	l32i	\at1, \ptr, 4
-	wur1	\at1		// LDCBLO
+	wur1	\at1		
 	l32i	\at1, \ptr, 8
-	wur2	\at1		// STCBHI
+	wur2	\at1		
 	l32i	\at1, \ptr, 12
-	wur3	\at1		// STCBLO
+	wur3	\at1		
 	l32i	\at1, \ptr, 16
-	wur8	\at1		// LDBRBASE
+	wur8	\at1		
 	l32i	\at1, \ptr, 20
-	wur9	\at1		// LDBROFF
+	wur9	\at1		
 	l32i	\at1, \ptr, 24
-	wur10	\at1		// LDBRINC
+	wur10	\at1		
 	l32i	\at1, \ptr, 28
-	wur11	\at1		// STBRBASE
+	wur11	\at1		
 	l32i	\at1, \ptr, 32
-	wur12	\at1		// STBROFF
+	wur12	\at1		
 	l32i	\at1, \ptr, 36
-	wur13	\at1		// STBRINC
+	wur13	\at1		
 	l32i	\at1, \ptr, 40
-	wur24	\at1		// SCRATCH0
+	wur24	\at1		
 	l32i	\at1, \ptr, 44
-	wur25	\at1		// SCRATCH1
+	wur25	\at1		
 	l32i	\at1, \ptr, 48
-	wur26	\at1		// SCRATCH2
+	wur26	\at1		
 	l32i	\at1, \ptr, 52
-	wur27	\at1		// SCRATCH3
+	wur27	\at1		
 	WRBL128I wrb0, \ptr,  320
 	WRBL128I wrb1, \ptr,  336
 	WRBL128I wrb2, \ptr,  352
@@ -281,12 +246,12 @@
 	WRAL128I wra15, \ptr,  304
 	.set	.Lxchal_ofs_, .Lxchal_ofs_ + 576
 	.endif
-	.endm	// xchal_cp6_load
+	.endm	
 
 #define XCHAL_CP6_NUM_ATMPS	1
 #define XCHAL_SA_NUM_ATMPS	1
 
-	/*  Empty macros for unconfigured coprocessors:  */
+	
 	.macro xchal_cp1_store	p a b c d continue=0 ofs=-1 select=-1 ; .endm
 	.macro xchal_cp1_load	p a b c d continue=0 ofs=-1 select=-1 ; .endm
 	.macro xchal_cp2_store	p a b c d continue=0 ofs=-1 select=-1 ; .endm
@@ -300,5 +265,5 @@
 	.macro xchal_cp7_store	p a b c d continue=0 ofs=-1 select=-1 ; .endm
 	.macro xchal_cp7_load	p a b c d continue=0 ofs=-1 select=-1 ; .endm
 
-#endif /*_XTENSA_CORE_TIE_ASM_H*/
+#endif 
 

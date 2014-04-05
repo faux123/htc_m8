@@ -10,10 +10,6 @@
 #include <linux/stacktrace.h>
 #include <linux/fault-inject.h>
 
-/*
- * setup_fault_attr() is a helper function for various __setup handlers, so it
- * returns 0 on error, because that is what __setup handlers do.
- */
 int setup_fault_attr(struct fault_attr *attr, char *str)
 {
 	unsigned long probability;
@@ -21,7 +17,7 @@ int setup_fault_attr(struct fault_attr *attr, char *str)
 	int times;
 	int space;
 
-	/* "<interval>,<probability>,<space>,<times>" */
+	
 	if (sscanf(str, "%lu,%lu,%d,%d",
 			&interval, &probability, &space, &times) < 4) {
 		printk(KERN_WARNING
@@ -92,12 +88,8 @@ static inline bool fail_stacktrace(struct fault_attr *attr)
 	return true;
 }
 
-#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+#endif 
 
-/*
- * This code is stolen from failmalloc-1.0
- * http://www.nongnu.org/failmalloc/
- */
 
 bool should_fail(struct fault_attr *attr, ssize_t size)
 {
@@ -176,7 +168,7 @@ static struct dentry *debugfs_create_stacktrace_depth(
 				   &fops_stacktrace_depth);
 }
 
-#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+#endif 
 
 static int debugfs_atomic_t_set(void *data, u64 val)
 {
@@ -237,7 +229,7 @@ struct dentry *fault_create_debugfs_attr(const char *name,
 	if (!debugfs_create_ul("reject-end", mode, dir, &attr->reject_end))
 		goto fail;
 
-#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+#endif 
 
 	return dir;
 fail:
@@ -247,4 +239,4 @@ fail:
 }
 EXPORT_SYMBOL_GPL(fault_create_debugfs_attr);
 
-#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+#endif 

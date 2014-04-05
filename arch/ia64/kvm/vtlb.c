@@ -29,9 +29,6 @@
 
 #include <asm/tlb.h>
 
-/*
- * Check to see if the address rid:va is translated by the TLB
- */
 
 static int __is_tr_translated(struct thash_data *trp, u64 rid, u64 va)
 {
@@ -39,9 +36,6 @@ static int __is_tr_translated(struct thash_data *trp, u64 rid, u64 va)
 				&& ((va-trp->vadr) < PSIZE(trp->ps)));
 }
 
-/*
- * Only for GUEST TR format.
- */
 static int __is_tr_overlap(struct thash_data *trp, u64 rid, u64 sva, u64 eva)
 {
 	u64 sa1, ea1;
@@ -85,7 +79,7 @@ void local_flush_tlb_all(void)
 		addr += stride0;
 	}
 	local_irq_restore(flags);
-	ia64_srlz_i();          /* srlz.i implies srlz.d */
+	ia64_srlz_i();          
 }
 
 int vhpt_enabled(struct kvm_vcpu *vcpu, u64 vadr, enum vhpt_ref ref)
@@ -189,7 +183,7 @@ void mark_pages_dirty(struct kvm_vcpu *v, u64 pte, u64 ps)
 
 	vmm_spin_lock(lock);
 	for (i = 0; i < dirty_pages; i++) {
-		/* avoid RMW */
+		
 		if (!test_bit(base_gfn + i, dirty_bitmap))
 			set_bit(base_gfn + i , dirty_bitmap);
 	}
@@ -218,9 +212,6 @@ void thash_vhpt_insert(struct kvm_vcpu *v, u64 pte, u64 itir, u64 va, int type)
 		mark_pages_dirty(v, pte, itir_ps(itir));
 }
 
-/*
- *   vhpt lookup
- */
 struct thash_data *vhpt_lookup(u64 va)
 {
 	struct thash_data *head;
@@ -261,9 +252,6 @@ u64 guest_vhpt_lookup(u64 iha, u64 *pte)
 	return ret;
 }
 
-/*
- *  purge software guest tlb
- */
 
 static void vtlb_purge(struct kvm_vcpu *v, u64 va, u64 ps)
 {
@@ -293,9 +281,6 @@ static void vtlb_purge(struct kvm_vcpu *v, u64 va, u64 ps)
 }
 
 
-/*
- *  purge VHPT and machine TLB
- */
 static void vhpt_purge(struct kvm_vcpu *v, u64 va, u64 ps)
 {
 	struct thash_data *cur;
@@ -317,15 +302,6 @@ static void vhpt_purge(struct kvm_vcpu *v, u64 va, u64 ps)
 	machine_tlb_purge(va, ps);
 }
 
-/*
- * Insert an entry into hash TLB or VHPT.
- * NOTES:
- *  1: When inserting VHPT to thash, "va" is a must covered
- *  address by the inserted machine VHPT entry.
- *  2: The format of entry is always in TLB.
- *  3: The caller need to make sure the new entry will not overlap
- *     with any existed entry.
- */
 void vtlb_insert(struct kvm_vcpu *v, u64 pte, u64 itir, u64 va)
 {
 	struct thash_data *head;
@@ -371,9 +347,6 @@ int vtr_find_overlap(struct kvm_vcpu *vcpu, u64 va, u64 ps, int type)
 	return -1;
 }
 
-/*
- * Purge entries in VTLB and VHPT
- */
 void thash_purge_entries(struct kvm_vcpu *v, u64 va, u64 ps)
 {
 	if (vcpu_quick_region_check(v->arch.tc_regions, va))
@@ -412,10 +385,6 @@ u64 translate_phy_pte(u64 *pte, u64 itir, u64 va)
 	return phy_pte.val;
 }
 
-/*
- * Purge overlap TCs and then insert the new entry to emulate itc ops.
- * Notes: Only TC entry can purge and insert.
- */
 void  thash_purge_and_insert(struct kvm_vcpu *v, u64 pte, u64 itir,
 						u64 ifa, int type)
 {
@@ -431,10 +400,6 @@ void  thash_purge_and_insert(struct kvm_vcpu *v, u64 pte, u64 itir,
 	io_mask = kvm_get_mpt_entry(index) & GPFN_IO_MASK;
 	phy_pte = translate_phy_pte(&pte, itir, ifa);
 
-	/* Ensure WB attribute if pte is related to a normal mem page,
-	 * which is required by vga acceleration since qemu maps shared
-	 * vram buffer with WB.
-	 */
 	if (!(pte & VTLB_PTE_IO) && ((pte & _PAGE_MA_MASK) != _PAGE_MA_NAT) &&
 			io_mask != GPFN_PHYS_MMIO) {
 		pte &= ~_PAGE_MA_MASK;
@@ -466,10 +431,6 @@ void  thash_purge_and_insert(struct kvm_vcpu *v, u64 pte, u64 itir,
 
 }
 
-/*
- * Purge all TCs or VHPT entries including those in Hash table.
- *
- */
 
 void thash_purge_all(struct kvm_vcpu *v)
 {
@@ -503,13 +464,6 @@ void thash_purge_all(struct kvm_vcpu *v)
 	local_flush_tlb_all();
 }
 
-/*
- * Lookup the hash table and its collision chain to find an entry
- * covering this address rid:va or the entry.
- *
- * INPUT:
- *  in: TLB format for both VHPT & TLB.
- */
 struct thash_data *vtlb_lookup(struct kvm_vcpu *v, u64 va, int is_data)
 {
 	struct thash_data  *cch;
@@ -539,9 +493,6 @@ struct thash_data *vtlb_lookup(struct kvm_vcpu *v, u64 va, int is_data)
 	return NULL;
 }
 
-/*
- * Initialize internal control data before service.
- */
 void thash_init(struct thash_cb *hcb, u64 sz)
 {
 	int i;
@@ -584,21 +535,15 @@ u64 kvm_gpa_to_mpa(u64 gpa)
 	return (pte >> PAGE_SHIFT << PAGE_SHIFT) | (gpa & ~PAGE_MASK);
 }
 
-/*
- * Fetch guest bundle code.
- * INPUT:
- *  gip: guest ip
- *  pbundle: used to return fetched bundle.
- */
 int fetch_code(struct kvm_vcpu *vcpu, u64 gip, IA64_BUNDLE *pbundle)
 {
-	u64     gpip = 0;   /* guest physical IP*/
+	u64     gpip = 0;   
 	u64     *vpa;
 	struct thash_data    *tlb;
 	u64     maddr;
 
 	if (!(VCPU(vcpu, vpsr) & IA64_PSR_IT)) {
-		/* I-side physical mode */
+		
 		gpip = gip;
 	} else {
 		tlb = vtlb_lookup(vcpu, gip, I_TLB);
@@ -630,7 +575,7 @@ void kvm_init_vhpt(struct kvm_vcpu *v)
 	v->arch.vhpt.num = VHPT_NUM_ENTRIES;
 	thash_init(&v->arch.vhpt, VHPT_SHIFT);
 	ia64_set_pta(v->arch.vhpt.pta.val);
-	/*Enable VHPT here?*/
+	
 }
 
 void kvm_init_vtlb(struct kvm_vcpu *v)

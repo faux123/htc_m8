@@ -15,9 +15,6 @@
  * General Public License for more details.
  */
 
-/*
- *  bfad.c Linux driver PCI interface module.
- */
 #include <linux/module.h>
 #include <linux/kthread.h>
 #include <linux/errno.h>
@@ -49,7 +46,7 @@ int		reqq_size, rspq_size, num_sgpgs;
 int		rport_del_timeout = BFA_FCS_RPORT_DEF_DEL_TIMEOUT;
 int		bfa_lun_queue_depth = BFAD_LUN_QUEUE_DEPTH;
 int		bfa_io_max_sge = BFAD_IO_MAX_SGE;
-int		bfa_log_level = 3; /* WARNING log level */
+int		bfa_log_level = 3; 
 int		ioc_auto_recover = BFA_TRUE;
 int		bfa_linkup_delay = -1;
 int		fdmi_enable = BFA_TRUE;
@@ -58,7 +55,6 @@ int		bfa_debugfs_enable = 1;
 int		msix_disable_cb = 0, msix_disable_ct = 0;
 int		max_xfer_size = BFAD_MAX_SECTORS >> 1;
 
-/* Firmware releated */
 u32	bfi_image_cb_size, bfi_image_ct_size, bfi_image_ct2_size;
 u32	*bfi_image_cb, *bfi_image_ct, *bfi_image_ct2;
 
@@ -164,9 +160,6 @@ bfad_sm_failed(struct bfad_s *bfad, enum bfad_sm_event event);
 static void
 bfad_sm_fcs_exit(struct bfad_s *bfad, enum bfad_sm_event event);
 
-/*
- * Beginning state for the driver instance, awaiting the pci_probe event
- */
 static void
 bfad_sm_uninit(struct bfad_s *bfad, enum bfad_sm_event event)
 {
@@ -186,7 +179,7 @@ bfad_sm_uninit(struct bfad_s *bfad, enum bfad_sm_event event)
 		break;
 
 	case BFAD_E_STOP:
-		/* Ignore stop; already in uninit */
+		
 		break;
 
 	default:
@@ -194,9 +187,6 @@ bfad_sm_uninit(struct bfad_s *bfad, enum bfad_sm_event event)
 	}
 }
 
-/*
- * Driver Instance is created, awaiting event INIT to initialize the bfad
- */
 static void
 bfad_sm_created(struct bfad_s *bfad, enum bfad_sm_event event)
 {
@@ -210,7 +200,7 @@ bfad_sm_created(struct bfad_s *bfad, enum bfad_sm_event event)
 
 		init_completion(&bfad->comp);
 
-		/* Enable Interrupt and wait bfa_init completion */
+		
 		if (bfad_setup_intr(bfad)) {
 			printk(KERN_WARNING "bfad%d: bfad_setup_intr failed\n",
 					bfad->inst_no);
@@ -222,7 +212,7 @@ bfad_sm_created(struct bfad_s *bfad, enum bfad_sm_event event)
 		bfa_iocfc_init(&bfad->bfa);
 		spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 
-		/* Set up interrupt handler for each vectors */
+		
 		if ((bfad->bfad_flags & BFAD_MSIX_ON) &&
 			bfad_install_msix_handler(bfad)) {
 			printk(KERN_WARNING "%s: install_msix failed, bfad%d\n",
@@ -380,9 +370,6 @@ bfad_sm_stopping(struct bfad_s *bfad, enum bfad_sm_event event)
 	}
 }
 
-/*
- *  BFA callbacks
- */
 void
 bfad_hcb_comp(void *arg, bfa_status_t status)
 {
@@ -392,9 +379,6 @@ bfad_hcb_comp(void *arg, bfa_status_t status)
 	complete(&fcomp->comp);
 }
 
-/*
- * bfa_init callback
- */
 void
 bfa_cb_init(void *drv, bfa_status_t init_status)
 {
@@ -403,11 +387,6 @@ bfa_cb_init(void *drv, bfa_status_t init_status)
 	if (init_status == BFA_STATUS_OK) {
 		bfad->bfad_flags |= BFAD_HAL_INIT_DONE;
 
-		/*
-		 * If BFAD_HAL_INIT_FAIL flag is set:
-		 * Wake up the kernel thread to start
-		 * the bfad operations after HAL init done
-		 */
 		if ((bfad->bfad_flags & BFAD_HAL_INIT_FAIL)) {
 			bfad->bfad_flags &= ~BFAD_HAL_INIT_FAIL;
 			wake_up_process(bfad->bfad_tsk);
@@ -417,9 +396,6 @@ bfa_cb_init(void *drv, bfa_status_t init_status)
 	complete(&bfad->comp);
 }
 
-/*
- *  BFA_FCS callbacks
- */
 struct bfad_port_s *
 bfa_fcb_lport_new(struct bfad_s *bfad, struct bfa_fcs_lport_s *port,
 		 enum bfa_lport_role roles, struct bfad_vf_s *vf_drv,
@@ -462,7 +438,7 @@ bfa_fcb_lport_delete(struct bfad_s *bfad, enum bfa_lport_role roles,
 {
 	struct bfad_port_s    *port_drv;
 
-	/* this will be only called from rmmod context */
+	
 	if (vp_drv && !vp_drv->comp_del) {
 		port_drv = (vp_drv) ? (&(vp_drv)->drv_port) :
 				((vf_drv) ? (&(vf_drv)->base_port) :
@@ -473,9 +449,6 @@ bfa_fcb_lport_delete(struct bfad_s *bfad, enum bfa_lport_role roles,
 	}
 }
 
-/*
- * FCS RPORT alloc callback, after successful PLOGI by FCS
- */
 bfa_status_t
 bfa_fcb_rport_alloc(struct bfad_s *bfad, struct bfa_fcs_rport_s **rport,
 		    struct bfad_rport_s **rport_drv)
@@ -494,9 +467,6 @@ ext:
 	return rc;
 }
 
-/*
- * FCS PBC VPORT Create
- */
 void
 bfa_fcb_pbc_vport_create(struct bfad_s *bfad, struct bfi_pbc_vport_s pbc_vport)
 {
@@ -539,13 +509,13 @@ bfad_hal_mem_release(struct bfad_s *bfad)
 	dma_info = &hal_meminfo->dma_info;
 	kva_info = &hal_meminfo->kva_info;
 
-	/* Iterate through the KVA meminfo queue */
+	
 	list_for_each(km_qe, &kva_info->qe) {
 		kva_elem = (struct bfa_mem_kva_s *) km_qe;
 		vfree(kva_elem->kva);
 	}
 
-	/* Iterate through the DMA meminfo queue */
+	
 	list_for_each(dm_qe, &dma_info->qe) {
 		dma_elem = (struct bfa_mem_dma_s *) dm_qe;
 		dma_free_coherent(&bfad->pcidev->dev,
@@ -576,10 +546,6 @@ bfad_update_hal_cfg(struct bfa_iocfc_cfg_s *bfa_cfg)
 	if (num_sgpgs > 0 && num_sgpgs <= BFA_SGPG_MAX)
 		bfa_cfg->drvcfg.num_sgpgs = num_sgpgs;
 
-	/*
-	 * populate the hal values back to the driver for sysfs use.
-	 * otherwise, the default values will be shown as 0 in sysfs
-	 */
 	num_rports = bfa_cfg->fwcfg.num_rports;
 	num_ios = bfa_cfg->fwcfg.num_ioim_reqs;
 	num_tms = bfa_cfg->fwcfg.num_tskim_reqs;
@@ -608,7 +574,7 @@ bfad_hal_mem_alloc(struct bfad_s *bfad)
 	dma_info = &hal_meminfo->dma_info;
 	kva_info = &hal_meminfo->kva_info;
 
-	/* Iterate through the KVA meminfo queue */
+	
 	list_for_each(km_qe, &kva_info->qe) {
 		kva_elem = (struct bfa_mem_kva_s *) km_qe;
 		kva_elem->kva = vmalloc(kva_elem->mem_len);
@@ -620,7 +586,7 @@ bfad_hal_mem_alloc(struct bfad_s *bfad)
 		memset(kva_elem->kva, 0, kva_elem->mem_len);
 	}
 
-	/* Iterate through the DMA meminfo queue */
+	
 	list_for_each(dm_qe, &dma_info->qe) {
 		dma_elem = (struct bfa_mem_dma_s *) dm_qe;
 		dma_elem->kva = dma_alloc_coherent(&bfad->pcidev->dev,
@@ -638,9 +604,6 @@ ext:
 	return rc;
 }
 
-/*
- * Create a vport under a vf.
- */
 bfa_status_t
 bfad_vport_create(struct bfad_s *bfad, u16 vf_id,
 		  struct bfa_lport_cfg_s *port_cfg, struct device *dev)
@@ -776,7 +739,7 @@ bfad_pci_init(struct pci_dev *pdev, struct bfad_s *bfad)
 
 	bfad->pcidev = pdev;
 
-	/* Adjust PCIe Maximum Read Request Size */
+	
 	if (pcie_max_read_reqsz > 0) {
 		int pcie_cap_reg;
 		u16 pcie_dev_ctl;
@@ -873,7 +836,7 @@ bfad_drv_init(struct bfad_s *bfad)
 	bfa_attach(&bfad->bfa, bfad, &bfad->ioc_cfg, &bfad->meminfo,
 		   &bfad->hal_pcidev);
 
-	/* FCS INIT */
+	
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	bfad->bfa_fcs.trcmod = bfad->trcmod;
 	bfa_fcs_attach(&bfad->bfa_fcs, &bfad->bfa, bfad, BFA_FALSE);
@@ -883,7 +846,7 @@ bfad_drv_init(struct bfad_s *bfad)
 
 	bfad->bfad_flags |= BFAD_DRV_INIT_DONE;
 
-	/* configure base port */
+	
 	rc = bfad_cfg_pport(bfad, BFA_LPORT_ROLE_FCP_IM);
 	if (rc != BFA_STATUS_OK)
 		goto out_cfg_pport_fail;
@@ -891,14 +854,14 @@ bfad_drv_init(struct bfad_s *bfad)
 	return BFA_STATUS_OK;
 
 out_cfg_pport_fail:
-	/* fcs exit - on cfg pport failure */
+	
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	init_completion(&bfad->comp);
 	bfad->pport.flags |= BFAD_PORT_DELETE;
 	bfa_fcs_exit(&bfad->bfa_fcs);
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 	wait_for_completion(&bfad->comp);
-	/* bfa detach - free hal memory */
+	
 	bfa_detach(&bfad->bfa);
 	bfad_hal_mem_release(bfad);
 out_hal_mem_alloc_failure:
@@ -976,7 +939,7 @@ bfad_cfg_pport(struct bfad_s *bfad, enum bfa_lport_role role)
 {
 	int		rc = BFA_STATUS_OK;
 
-	/* Allocate scsi_host for the physical port */
+	
 	if ((supported_fc4s & BFA_LPORT_ROLE_FCP_IM) &&
 	    (role & BFA_LPORT_ROLE_FCP_IM)) {
 		if (bfad->pport.im_port == NULL) {
@@ -1020,13 +983,13 @@ bfad_start_ops(struct bfad_s *bfad) {
 	struct bfad_vport_s *vport, *vport_new;
 	struct bfa_fcs_driver_info_s driver_info;
 
-	/* Limit min/max. xfer size to [64k-32MB] */
+	
 	if (max_xfer_size < BFAD_MIN_SECTORS >> 1)
 		max_xfer_size = BFAD_MIN_SECTORS >> 1;
 	if (max_xfer_size > BFAD_MAX_SECTORS >> 1)
 		max_xfer_size = BFAD_MAX_SECTORS >> 1;
 
-	/* Fill the driver_info info to fcs*/
+	
 	memset(&driver_info, 0, sizeof(driver_info));
 	strncpy(driver_info.version, BFAD_DRIVER_VERSION,
 		sizeof(driver_info.version) - 1);
@@ -1043,21 +1006,17 @@ bfad_start_ops(struct bfad_s *bfad) {
 	strncpy(driver_info.os_device_name, bfad->pci_name,
 		sizeof(driver_info.os_device_name - 1));
 
-	/* FCS driver info init */
+	
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	bfa_fcs_driver_info_init(&bfad->bfa_fcs, &driver_info);
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 
-	/*
-	 * FCS update cfg - reset the pwwn/nwwn of fabric base logical port
-	 * with values learned during bfa_init firmware GETATTR REQ.
-	 */
 	bfa_fcs_update_cfg(&bfad->bfa_fcs);
 
-	/* Setup fc host fixed attribute if the lk supports */
+	
 	bfad_fc_host_init(bfad->pport.im_port);
 
-	/* BFAD level FC4 IM specific resource allocation */
+	
 	retval = bfad_im_probe(bfad);
 	if (retval != BFA_STATUS_OK) {
 		printk(KERN_WARNING "bfad_im_probe failed\n");
@@ -1073,7 +1032,7 @@ bfad_start_ops(struct bfad_s *bfad) {
 
 	bfad_drv_start(bfad);
 
-	/* Complete pbc vport create */
+	
 	list_for_each_entry_safe(vport, vport_new, &bfad->pbc_vport_list,
 				list_entry) {
 		struct fc_vport_identifiers vid;
@@ -1098,11 +1057,6 @@ bfad_start_ops(struct bfad_s *bfad) {
 		kfree(vport);
 	}
 
-	/*
-	 * If bfa_linkup_delay is set to -1 default; try to retrive the
-	 * value using the bfad_get_linkup_delay(); else use the
-	 * passed in module param value as the bfa_linkup_delay.
-	 */
 	if (bfa_linkup_delay < 0) {
 		bfa_linkup_delay = bfad_get_linkup_delay(bfad);
 		bfad_rport_online_wait(bfad);
@@ -1125,7 +1079,7 @@ bfad_worker(void *ptr)
 
 	while (!kthread_should_stop()) {
 
-		/* Send event BFAD_E_INIT_SUCCESS */
+		
 		bfa_sm_send_event(bfad, BFAD_E_INIT_SUCCESS);
 
 		spin_lock_irqsave(&bfad->bfad_lock, flags);
@@ -1138,9 +1092,6 @@ bfad_worker(void *ptr)
 	return 0;
 }
 
-/*
- *  BFA driver interrupt functions
- */
 irqreturn_t
 bfad_intx(int irq, void *dev_id)
 {
@@ -1196,9 +1147,6 @@ bfad_msix(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * Initialize the MSIX entry table.
- */
 static void
 bfad_init_msix_entry(struct bfad_s *bfad, struct msix_entry *msix_entries,
 			 int mask, int max_bit)
@@ -1252,9 +1200,6 @@ bfad_install_msix_handler(struct bfad_s *bfad)
 	return 0;
 }
 
-/*
- * Setup MSIX based interrupt.
- */
 int
 bfad_setup_intr(struct bfad_s *bfad)
 {
@@ -1264,10 +1209,10 @@ bfad_setup_intr(struct bfad_s *bfad)
 	struct pci_dev *pdev = bfad->pcidev;
 	u16	reg;
 
-	/* Call BFA to get the msix map for this PCI function.  */
+	
 	bfa_msix_getvecs(&bfad->bfa, &mask, &num_bit, &max_bit);
 
-	/* Set up the msix entry table */
+	
 	bfad_init_msix_entry(bfad, msix_entries, mask, max_bit);
 
 	if ((bfa_asic_id_ctc(pdev->device) && !msix_disable_ct) ||
@@ -1275,15 +1220,6 @@ bfad_setup_intr(struct bfad_s *bfad)
 
 		error = pci_enable_msix(bfad->pcidev, msix_entries, bfad->nvec);
 		if (error) {
-			/*
-			 * Only error number of vector is available.
-			 * We don't have a mechanism to map multiple
-			 * interrupts into one vector, so even if we
-			 * can try to request less vectors, we don't
-			 * know how to associate interrupt events to
-			 *  vectors. Linux doesn't duplicate vectors
-			 * in the MSIX table for this case.
-			 */
 
 			printk(KERN_WARNING "bfad%d: "
 				"pci_enable_msix failed (%d),"
@@ -1292,14 +1228,14 @@ bfad_setup_intr(struct bfad_s *bfad)
 			goto line_based;
 		}
 
-		/* Disable INTX in MSI-X mode */
+		
 		pci_read_config_word(pdev, PCI_COMMAND, &reg);
 
 		if (!(reg & PCI_COMMAND_INTX_DISABLE))
 			pci_write_config_word(pdev, PCI_COMMAND,
 				reg | PCI_COMMAND_INTX_DISABLE);
 
-		/* Save the vectors */
+		
 		for (i = 0; i < bfad->nvec; i++) {
 			bfa_trc(bfad, msix_entries[i].vector);
 			bfad->msix_tab[i].msix.vector = msix_entries[i].vector;
@@ -1317,7 +1253,7 @@ line_based:
 	if (request_irq
 	    (bfad->pcidev->irq, (irq_handler_t) bfad_intx, BFAD_IRQ_FLAGS,
 	     BFAD_DRIVER_NAME, bfad) != 0) {
-		/* Enable interrupt handler failed */
+		
 		return 1;
 	}
 	bfad->bfad_flags |= BFAD_INTX_ON;
@@ -1342,16 +1278,13 @@ bfad_remove_intr(struct bfad_s *bfad)
 	}
 }
 
-/*
- * PCI probe entry.
- */
 int
 bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 {
 	struct bfad_s	*bfad;
 	int		error = -ENODEV, retval, i;
 
-	/* For single port cards - only claim function 0 */
+	
 	if ((pdev->device == BFA_PCI_DEVICE_ID_FC_8G1P) &&
 		(PCI_FUNC(pdev->devfn) != 0))
 		return -ENODEV;
@@ -1369,11 +1302,11 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 		goto out_alloc_trace_failure;
 	}
 
-	/* TRACE INIT */
+	
 	bfa_trc_init(bfad->trcmod);
 	bfa_trc(bfad, bfad_inst);
 
-	/* AEN INIT */
+	
 	INIT_LIST_HEAD(&bfad->free_aen_q);
 	INIT_LIST_HEAD(&bfad->active_aen_q);
 	for (i = 0; i < BFA_AEN_MAX_ENTRY; i++)
@@ -1396,7 +1329,7 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	list_add_tail(&bfad->list_entry, &bfad_list);
 	mutex_unlock(&bfad_mutex);
 
-	/* Initializing the state machine: State set to uninit */
+	
 	bfa_sm_set_state(bfad, bfad_sm_uninit);
 
 	spin_lock_init(&bfad->bfad_lock);
@@ -1407,7 +1340,7 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	INIT_LIST_HEAD(&bfad->pbc_vport_list);
 	INIT_LIST_HEAD(&bfad->vport_list);
 
-	/* Setup the debugfs node for this bfad */
+	
 	if (bfa_debugfs_enable)
 		bfad_debugfs_init(&bfad->pport);
 
@@ -1426,7 +1359,7 @@ out_bfad_sm_failure:
 	bfa_detach(&bfad->bfa);
 	bfad_hal_mem_release(bfad);
 out_drv_init_failure:
-	/* Remove the debugfs node for this bfad */
+	
 	kfree(bfad->regdata);
 	bfad_debugfs_exit(&bfad->pport);
 	mutex_lock(&bfad_mutex);
@@ -1442,9 +1375,6 @@ out:
 	return error;
 }
 
-/*
- * PCI remove entry.
- */
 void
 bfad_pci_remove(struct pci_dev *pdev)
 {
@@ -1461,20 +1391,20 @@ bfad_pci_remove(struct pci_dev *pdev)
 		spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 	}
 
-	/* Send Event BFAD_E_STOP */
+	
 	bfa_sm_send_event(bfad, BFAD_E_STOP);
 
-	/* Driver detach and dealloc mem */
+	
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	bfa_detach(&bfad->bfa);
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 	bfad_hal_mem_release(bfad);
 
-	/* Remove the debugfs node for this bfad */
+	
 	kfree(bfad->regdata);
 	bfad_debugfs_exit(&bfad->pport);
 
-	/* Cleaning the BFAD instance */
+	
 	mutex_lock(&bfad_mutex);
 	bfad_inst--;
 	list_del(&bfad->list_entry);
@@ -1535,9 +1465,6 @@ static struct pci_driver bfad_pci_driver = {
 	.remove = __devexit_p(bfad_pci_remove),
 };
 
-/*
- * Driver module init.
- */
 static int __init
 bfad_init(void)
 {
@@ -1575,9 +1502,6 @@ ext:
 	return error;
 }
 
-/*
- * Driver module exit.
- */
 static void __exit
 bfad_exit(void)
 {
@@ -1586,7 +1510,6 @@ bfad_exit(void)
 	bfad_free_fwimg();
 }
 
-/* Firmware handling */
 static void
 bfad_read_firmware(struct pci_dev *pdev, u32 **bfi_image,
 		u32 *bfi_image_size, char *fw_name)

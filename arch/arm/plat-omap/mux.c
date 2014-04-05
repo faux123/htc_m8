@@ -50,9 +50,6 @@ int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
 	return 0;
 }
 
-/*
- * Sets the Omap MUX and PULL_DWN registers based on the table
- */
 int __init_or_module omap_cfg_reg(const unsigned long index)
 {
 	struct pin_config *reg;
@@ -87,4 +84,4 @@ EXPORT_SYMBOL(omap_cfg_reg);
 #else
 #define omap_mux_init() do {} while(0)
 #define omap_cfg_reg(x)	do {} while(0)
-#endif	/* CONFIG_OMAP_MUX */
+#endif	

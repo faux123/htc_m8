@@ -33,13 +33,8 @@
 #include "device.h"
 #include "wcmd.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
-/*---------------------  Export Classes  ----------------------------*/
 
-//
-// RTS buffer header
-//
 typedef struct tagSRTSDataF {
     WORD    wFrameControl;
     WORD    wDurationID;
@@ -47,9 +42,6 @@ typedef struct tagSRTSDataF {
     BYTE    abyTA[ETH_ALEN];
 } SRTSDataF, *PSRTSDataF;
 
-//
-// CTS buffer header
-//
 typedef struct tagSCTSDataF {
     WORD    wFrameControl;
     WORD    wDurationID;
@@ -57,9 +49,6 @@ typedef struct tagSCTSDataF {
     WORD    wReserved;
 } SCTSDataF, *PSCTSDataF;
 
-//
-// MICHDR data header
-//
 typedef struct tagSMICHDR {
     DWORD   adwHDR0[4];
     DWORD   adwHDR1[4];
@@ -69,7 +58,7 @@ typedef struct tagSMICHDR {
 
 typedef struct tagSTX_NAF_G_RTS
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ba;
     WORD            wRTSTxRrvTime_aa;
     WORD            wRTSTxRrvTime_bb;
@@ -77,7 +66,7 @@ typedef struct tagSTX_NAF_G_RTS
     WORD            wTxRrvTime_b;
     WORD            wTxRrvTime_a;
 
-    //RTS
+    
     BYTE            byRTSSignalField_b;
     BYTE            byRTSServiceField_b;
     WORD            wRTSTransmitLength_b;
@@ -90,7 +79,7 @@ typedef struct tagSTX_NAF_G_RTS
     WORD            wReserved3;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -106,7 +95,7 @@ typedef struct tagSTX_NAF_G_RTS
 
 typedef struct tagSTX_NAF_G_RTS_MIC
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ba;
     WORD            wRTSTxRrvTime_aa;
     WORD            wRTSTxRrvTime_bb;
@@ -116,7 +105,7 @@ typedef struct tagSTX_NAF_G_RTS_MIC
 
     SMICHDR         sMICHDR;
 
-    //RTS
+    
     BYTE            byRTSSignalField_b;
     BYTE            byRTSServiceField_b;
     WORD            wRTSTransmitLength_b;
@@ -129,7 +118,7 @@ typedef struct tagSTX_NAF_G_RTS_MIC
     WORD            wReserved3;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -145,13 +134,13 @@ typedef struct tagSTX_NAF_G_RTS_MIC
 
 typedef struct tagSTX_NAF_G_CTS
 {
-    //RsvTime
+    
     WORD            wCTSTxRrvTime_ba;
     WORD            wReserved2;
     WORD            wTxRrvTime_b;
     WORD            wTxRrvTime_a;
 
-    //CTS
+    
     BYTE            byCTSSignalField_b;
     BYTE            byCTSServiceField_b;
     WORD            wCTSTransmitLength_b;
@@ -159,7 +148,7 @@ typedef struct tagSTX_NAF_G_CTS
     WORD            wReserved3;
     SCTSDataF       sCTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -176,7 +165,7 @@ typedef struct tagSTX_NAF_G_CTS
 
 typedef struct tagSTX_NAF_G_CTS_MIC
 {
-    //RsvTime
+    
     WORD            wCTSTxRrvTime_ba;
     WORD            wReserved2;
     WORD            wTxRrvTime_b;
@@ -185,7 +174,7 @@ typedef struct tagSTX_NAF_G_CTS_MIC
 
     SMICHDR         sMICHDR;
 
-    //CTS
+    
     BYTE            byCTSSignalField_b;
     BYTE            byCTSServiceField_b;
     WORD            wCTSTransmitLength_b;
@@ -193,7 +182,7 @@ typedef struct tagSTX_NAF_G_CTS_MIC
     WORD            wReserved3;
     SCTSDataF       sCTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -213,7 +202,7 @@ typedef struct tagSTX_NAF_G_BEACON
     WORD            wFIFOCtl;
     WORD            wTimeStamp;
 
-    //CTS
+    
     BYTE            byCTSSignalField_b;
     BYTE            byCTSServiceField_b;
     WORD            wCTSTransmitLength_b;
@@ -221,7 +210,7 @@ typedef struct tagSTX_NAF_G_BEACON
     WORD            wReserved1;
     SCTSDataF       sCTS;
 
-    //Data
+    
     BYTE            bySignalField_a;
     BYTE            byServiceField_a;
     WORD            wTransmitLength_a;
@@ -234,11 +223,11 @@ typedef struct tagSTX_NAF_G_BEACON
 
 typedef struct tagSTX_NAF_AB_RTS
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ab;
     WORD            wTxRrvTime_ab;
 
-    //RTS
+    
     BYTE            byRTSSignalField_ab;
     BYTE            byRTSServiceField_ab;
     WORD            wRTSTransmitLength_ab;
@@ -246,7 +235,7 @@ typedef struct tagSTX_NAF_AB_RTS
     WORD            wReserved2;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_ab;
     BYTE            byServiceField_ab;
     WORD            wTransmitLength_ab;
@@ -259,13 +248,13 @@ typedef struct tagSTX_NAF_AB_RTS
 
 typedef struct tagSTX_NAF_AB_RTS_MIC
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ab;
     WORD            wTxRrvTime_ab;
 
     SMICHDR         sMICHDR;
 
-    //RTS
+    
     BYTE            byRTSSignalField_ab;
     BYTE            byRTSServiceField_ab;
     WORD            wRTSTransmitLength_ab;
@@ -273,7 +262,7 @@ typedef struct tagSTX_NAF_AB_RTS_MIC
     WORD            wReserved2;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_ab;
     BYTE            byServiceField_ab;
     WORD            wTransmitLength_ab;
@@ -287,11 +276,11 @@ typedef struct tagSTX_NAF_AB_RTS_MIC
 
 typedef struct tagSTX_NAF_AB_CTS
 {
-    //RsvTime
+    
     WORD            wReserved2;
     WORD            wTxRrvTime_ab;
 
-    //Data
+    
     BYTE            bySignalField_ab;
     BYTE            byServiceField_ab;
     WORD            wTransmitLength_ab;
@@ -302,13 +291,13 @@ typedef struct tagSTX_NAF_AB_CTS
 
 typedef struct tagSTX_NAF_AB_CTS_MIC
 {
-    //RsvTime
+    
     WORD            wReserved2;
     WORD            wTxRrvTime_ab;
 
     SMICHDR         sMICHDR;
 
-    //Data
+    
     BYTE            bySignalField_ab;
     BYTE            byServiceField_ab;
     WORD            wTransmitLength_ab;
@@ -323,7 +312,7 @@ typedef struct tagSTX_NAF_AB_BEACON
     WORD            wFIFOCtl;
     WORD            wTimeStamp;
 
-   //Data
+   
     BYTE            bySignalField_ab;
     BYTE            byServiceField_ab;
     WORD            wTransmitLength_ab;
@@ -334,7 +323,7 @@ typedef struct tagSTX_NAF_AB_BEACON
 
 typedef struct tagSTX_AF_G_RTS
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ba;
     WORD            wRTSTxRrvTime_aa;
     WORD            wRTSTxRrvTime_bb;
@@ -342,7 +331,7 @@ typedef struct tagSTX_AF_G_RTS
     WORD            wTxRrvTime_b;
     WORD            wTxRrvTime_a;
 
-    //RTS
+    
     BYTE            byRTSSignalField_b;
     BYTE            byRTSServiceField_b;
     WORD            wRTSTransmitLength_b;
@@ -359,7 +348,7 @@ typedef struct tagSTX_AF_G_RTS
     WORD            wRTSDuration_aa_f1;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -378,7 +367,7 @@ typedef struct tagSTX_AF_G_RTS
 
 typedef struct tagSTX_AF_G_RTS_MIC
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_ba;
     WORD            wRTSTxRrvTime_aa;
     WORD            wRTSTxRrvTime_bb;
@@ -388,7 +377,7 @@ typedef struct tagSTX_AF_G_RTS_MIC
 
     SMICHDR         sMICHDR;
 
-    //RTS
+    
     BYTE            byRTSSignalField_b;
     BYTE            byRTSServiceField_b;
     WORD            wRTSTransmitLength_b;
@@ -405,7 +394,7 @@ typedef struct tagSTX_AF_G_RTS_MIC
     WORD            wRTSDuration_aa_f1;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -425,13 +414,13 @@ typedef struct tagSTX_AF_G_RTS_MIC
 
 typedef struct tagSTX_AF_G_CTS
 {
-    //RsvTime
+    
     WORD            wCTSTxRrvTime_ba;
     WORD            wReserved2;
     WORD            wTxRrvTime_b;
     WORD            wTxRrvTime_a;
 
-    //CTS
+    
     BYTE            byCTSSignalField_b;
     BYTE            byCTSServiceField_b;
     WORD            wCTSTransmitLength_b;
@@ -441,7 +430,7 @@ typedef struct tagSTX_AF_G_CTS
     WORD            wCTSDuration_ba_f1;
     SCTSDataF       sCTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -460,7 +449,7 @@ typedef struct tagSTX_AF_G_CTS
 
 typedef struct tagSTX_AF_G_CTS_MIC
 {
-    //RsvTime
+    
     WORD            wCTSTxRrvTime_ba;
     WORD            wReserved2;
     WORD            wTxRrvTime_b;
@@ -469,7 +458,7 @@ typedef struct tagSTX_AF_G_CTS_MIC
 
     SMICHDR         sMICHDR;
 
-    //CTS
+    
     BYTE            byCTSSignalField_b;
     BYTE            byCTSServiceField_b;
     WORD            wCTSTransmitLength_b;
@@ -479,7 +468,7 @@ typedef struct tagSTX_AF_G_CTS_MIC
     WORD            wCTSDuration_ba_f1;
     SCTSDataF       sCTS;
 
-    //Data
+    
     BYTE            bySignalField_b;
     BYTE            byServiceField_b;
     WORD            wTransmitLength_b;
@@ -499,11 +488,11 @@ typedef struct tagSTX_AF_G_CTS_MIC
 
 typedef struct tagSTX_AF_A_RTS
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_a;
     WORD            wTxRrvTime_a;
 
-    //RTS
+    
     BYTE            byRTSSignalField_a;
     BYTE            byRTSServiceField_a;
     WORD            wRTSTransmitLength_a;
@@ -513,7 +502,7 @@ typedef struct tagSTX_AF_A_RTS
     WORD            wRTSDuration_a_f1;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_a;
     BYTE            byServiceField_a;
     WORD            wTransmitLength_a;
@@ -527,13 +516,13 @@ typedef struct tagSTX_AF_A_RTS
 
 typedef struct tagSTX_AF_A_RTS_MIC
 {
-    //RsvTime
+    
     WORD            wRTSTxRrvTime_a;
     WORD            wTxRrvTime_a;
 
     SMICHDR         sMICHDR;
 
-    //RTS
+    
     BYTE            byRTSSignalField_a;
     BYTE            byRTSServiceField_a;
     WORD            wRTSTransmitLength_a;
@@ -543,7 +532,7 @@ typedef struct tagSTX_AF_A_RTS_MIC
     WORD            wRTSDuration_a_f1;
     SRTSDataF       sRTS;
 
-    //Data
+    
     BYTE            bySignalField_a;
     BYTE            byServiceField_a;
     WORD            wTransmitLength_a;
@@ -558,11 +547,11 @@ typedef struct tagSTX_AF_A_RTS_MIC
 
 typedef struct tagSTX_AF_A_CTS
 {
-    //RsvTime
+    
     WORD            wReserved2;
     WORD            wTxRrvTime_a;
 
-    //Data
+    
     BYTE            bySignalField_a;
     BYTE            byServiceField_a;
     WORD            wTransmitLength_a;
@@ -576,13 +565,13 @@ typedef struct tagSTX_AF_A_CTS
 
 typedef struct tagSTX_AF_A_CTS_MIC
 {
-    //RsvTime
+    
     WORD            wReserved2;
     WORD            wTxRrvTime_a;
 
     SMICHDR         sMICHDR;
 
-    //Data
+    
     BYTE            bySignalField_a;
     BYTE            byServiceField_a;
     WORD            wTransmitLength_a;
@@ -594,21 +583,18 @@ typedef struct tagSTX_AF_A_CTS_MIC
 } TX_AF_A_CTS_MIC, *PTX_AF_A_CTS_MIC;
 
 
-//
-// union with all of the TX Buffer Type
-//
 typedef union tagUTX_BUFFER_CONTAINER
 {
     TX_NAF_G_RTS                    RTS_G;
     TX_NAF_G_RTS_MIC                RTS_G_MIC;
     TX_NAF_G_CTS                    CTS_G;
     TX_NAF_G_CTS_MIC                CTS_G_MIC;
-    //TX_NAF_G_BEACON                 Beacon_G;
+    
     TX_NAF_AB_RTS                   RTS_AB;
     TX_NAF_AB_RTS_MIC               RTS_AB_MIC;
     TX_NAF_AB_CTS                   CTS_AB;
     TX_NAF_AB_CTS_MIC               CTS_AB_MIC;
-    //TX_NAF_AB_BEACON                Beacon_AB;
+    
     TX_AF_G_RTS                     RTS_G_AutoFB;
     TX_AF_G_RTS_MIC                 RTS_G_AutoFB_MIC;
     TX_AF_G_CTS                     CTS_G_AutoFB;
@@ -621,9 +607,6 @@ typedef union tagUTX_BUFFER_CONTAINER
 } TX_BUFFER_CONTAINER, *PTX_BUFFER_CONTAINER;
 
 
-//
-// Remote NDIS message format
-//
 typedef struct tagSTX_BUFFER
 {
     BYTE                            byType;
@@ -637,15 +620,12 @@ typedef struct tagSTX_BUFFER
     WORD                            wReserved;
 
 
-    // Actual message
+    
     TX_BUFFER_CONTAINER             BufferHeader;
 
 } TX_BUFFER, *PTX_BUFFER;
 
 
-//
-// Remote NDIS message format
-//
 typedef struct tagSBEACON_BUFFER
 {
     BYTE                            byType;
@@ -655,15 +635,13 @@ typedef struct tagSBEACON_BUFFER
     WORD                            wFIFOCtl;
     WORD                            wTimeStamp;
 
-    // Actual message
+    
     TX_BUFFER_CONTAINER             BufferHeader;
 
 } BEACON_BUFFER, *PBEACON_BUFFER;
 
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
 
 BOOL
 bPacketToWirelessUsb(
@@ -691,4 +669,4 @@ CMD_STATUS csBeacon_xmit(PSDevice pDevice, PSTxMgmtPacket pPacket);
 BOOL bRelayPacketSend(PSDevice pDevice, PBYTE pbySkbData,
 		      unsigned int uDataLen, unsigned int uNodeIndex);
 
-#endif /* __RXTX_H__ */
+#endif 

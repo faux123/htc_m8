@@ -1,6 +1,3 @@
-/*************************************
-* 	Queue.h
-**************************************/
 #ifndef	__QUEUE_H__
 #define	__QUEUE_H__
 
@@ -28,4 +25,4 @@ do						\
         Head = Head->next;                      \
 	}		\
 }while(0)
-#endif	//__QUEUE_H__
+#endif	

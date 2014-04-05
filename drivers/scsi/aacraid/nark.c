@@ -35,11 +35,6 @@
 
 #include "aacraid.h"
 
-/**
- *	aac_nark_ioremap
- *	@size: mapping resize request
- *
- */
 static int aac_nark_ioremap(struct aac_dev * dev, u32 size)
 {
 	if (!size) {
@@ -66,17 +61,9 @@ static int aac_nark_ioremap(struct aac_dev * dev, u32 size)
 	return 0;
 }
 
-/**
- *	aac_nark_init	-	initialize an NEMER/ARK Split Bar card
- *	@dev: device to configure
- *
- */
 
 int aac_nark_init(struct aac_dev * dev)
 {
-	/*
-	 *	Fill in the function dispatch table.
-	 */
 	dev->a_ops.adapter_ioremap = aac_nark_ioremap;
 	dev->a_ops.adapter_comm = aac_rx_select_comm;
 

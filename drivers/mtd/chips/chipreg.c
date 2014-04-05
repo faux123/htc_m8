@@ -1,7 +1,3 @@
-/*
- * Registration for chip drivers
- *
- */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -51,8 +47,6 @@ static struct mtd_chip_driver *get_mtd_chip_driver (const char *name)
 	return ret;
 }
 
-	/* Hide all the horrid details, like some silly person taking
-	   get_module_symbol() away from us, from the caller. */
 
 struct mtd_info *do_map_probe(const char *name, struct map_info *map)
 {
@@ -69,19 +63,10 @@ struct mtd_info *do_map_probe(const char *name, struct map_info *map)
 
 	ret = drv->probe(map);
 
-	/* We decrease the use count here. It may have been a
-	   probe-only module, which is no longer required from this
-	   point, having given us a handle on (and increased the use
-	   count of) the actual driver code.
-	*/
 	module_put(drv->module);
 
 	return ret;
 }
-/*
- * Destroy an MTD device which was created for a map device.
- * Make sure the MTD device is already unregistered before calling this
- */
 void map_destroy(struct mtd_info *mtd)
 {
 	struct map_info *map = mtd->priv;

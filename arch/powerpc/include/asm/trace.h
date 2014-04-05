@@ -122,7 +122,7 @@ TRACE_EVENT_FN(hcall_exit,
 );
 #endif
 
-#endif /* _TRACE_POWERPC_H */
+#endif 
 
 #undef TRACE_INCLUDE_PATH
 #undef TRACE_INCLUDE_FILE

@@ -2,10 +2,9 @@
 #include "string.h"
 #include "strfilter.h"
 
-/* Operators */
-static const char *OP_and	= "&";	/* Logical AND */
-static const char *OP_or	= "|";	/* Logical OR */
-static const char *OP_not	= "!";	/* Logical NOT */
+static const char *OP_and	= "&";	
+static const char *OP_or	= "|";	
+static const char *OP_not	= "!";	
 
 #define is_operator(c)	((c) == '|' || (c) == '&' || (c) == '!')
 #define is_separator(c)	(is_operator(c) || (c) == '(' || (c) == ')')
@@ -33,7 +32,7 @@ static const char *get_token(const char *s, const char **e)
 {
 	const char *p;
 
-	while (isspace(*s))	/* Skip spaces */
+	while (isspace(*s))	
 		s++;
 
 	if (*s == '\0') {
@@ -43,11 +42,11 @@ static const char *get_token(const char *s, const char **e)
 
 	p = s + 1;
 	if (!is_separator(*s)) {
-		/* End search */
+		
 retry:
 		while (*p && !is_separator(*p) && !isspace(*p))
 			p++;
-		/* Escape and special case: '!' is also used in glob pattern */
+		
 		if (*(p - 1) == '\\' || (*p == '!' && *(p - 1) == '[')) {
 			p++;
 			goto retry;
@@ -88,7 +87,7 @@ static struct strfilter_node *strfilter_node__new(const char *s,
 	s = get_token(s, &e);
 	while (*s != '\0' && *s != ')') {
 		switch (*s) {
-		case '&':	/* Exchg last OP->r with AND */
+		case '&':	
 			if (!cur->r || !last_op->r)
 				goto error;
 			cur = strfilter_node__alloc(OP_and, last_op->r, NULL);
@@ -97,7 +96,7 @@ static struct strfilter_node *strfilter_node__new(const char *s,
 			last_op->r = cur;
 			last_op = cur;
 			break;
-		case '|':	/* Exchg the root with OR */
+		case '|':	
 			if (!cur->r || !root.r)
 				goto error;
 			cur = strfilter_node__alloc(OP_or, root.r, NULL);
@@ -106,7 +105,7 @@ static struct strfilter_node *strfilter_node__new(const char *s,
 			root.r = cur;
 			last_op = cur;
 			break;
-		case '!':	/* Add NOT as a leaf node */
+		case '!':	
 			if (cur->r)
 				goto error;
 			cur->r = strfilter_node__alloc(OP_not, NULL, NULL);
@@ -114,7 +113,7 @@ static struct strfilter_node *strfilter_node__new(const char *s,
 				goto nomem;
 			cur = cur->r;
 			break;
-		case '(':	/* Recursively parses inside the parenthesis */
+		case '(':	
 			if (cur->r)
 				goto error;
 			cur->r = strfilter_node__new(s + 1, &s);
@@ -148,10 +147,6 @@ error:
 	return NULL;
 }
 
-/*
- * Parse filter rule and return new strfilter.
- * Return NULL if fail, and *ep == NULL if memory allocation failed.
- */
 struct strfilter *strfilter__new(const char *rules, const char **err)
 {
 	struct strfilter *ret = zalloc(sizeof(struct strfilter));
@@ -177,20 +172,19 @@ static bool strfilter_node__compare(struct strfilter_node *self,
 		return false;
 
 	switch (*self->p) {
-	case '|':	/* OR */
+	case '|':	
 		return strfilter_node__compare(self->l, str) ||
 			strfilter_node__compare(self->r, str);
-	case '&':	/* AND */
+	case '&':	
 		return strfilter_node__compare(self->l, str) &&
 			strfilter_node__compare(self->r, str);
-	case '!':	/* NOT */
+	case '!':	
 		return !strfilter_node__compare(self->r, str);
 	default:
 		return strglobmatch(str, self->p);
 	}
 }
 
-/* Return true if STR matches the filter rules */
 bool strfilter__compare(struct strfilter *self, const char *str)
 {
 	if (!self)

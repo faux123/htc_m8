@@ -1,6 +1,3 @@
-/*
- * linux/arch/arm/mach-sa1100/shannon.c
- */
 
 #include <linux/init.h>
 #include <linux/device.h>
@@ -92,7 +89,7 @@ static void __init shannon_map_io(void)
 	GPDR &= ~GPIO_UART_RXD;
 	PPAR |= PPAR_UPR;
 
-	/* reset the codec */
+	
 	GPCR = SHANNON_GPIO_CODEC_RESET;
 	GPSR = SHANNON_GPIO_CODEC_RESET;
 }

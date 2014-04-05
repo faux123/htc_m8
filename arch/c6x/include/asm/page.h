@@ -8,4 +8,4 @@
 
 #include <asm-generic/page.h>
 
-#endif /* _ASM_C6X_PAGE_H */
+#endif 

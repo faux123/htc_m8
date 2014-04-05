@@ -12,8 +12,6 @@
 
 #include <linux/types.h>
 
-/* System configuration registers.
-*/
 typedef	struct sys_82xx_conf {
 	u32	sc_siumcr;
 	u32	sc_sypcr;
@@ -64,8 +62,6 @@ typedef union sys_conf {
 
 
 
-/* Memory controller registers.
-*/
 typedef struct	mem_ctlr {
 	u32	memc_br0;
 	u32	memc_or0;
@@ -121,8 +117,6 @@ typedef struct	mem_ctlr {
 	u8	res11[52];
 } memctl_cpm2_t;
 
-/* System Integration Timers.
-*/
 typedef struct	sys_int_timers {
 	u8	res1[32];
 	u16	sit_tmcntsc;
@@ -145,8 +139,6 @@ typedef struct	sys_int_timers {
 #define PISCR_PTF		((u16)0x0002)
 #define PISCR_PTE		((u16)0x0001)
 
-/* PCI Controller.
-*/
 typedef struct pci_ctlr {
 	u32	pci_omisr;
 	u32	pci_omimr;
@@ -277,8 +269,6 @@ typedef struct pci_ctlr {
 	u8	res50[756];
 } pci_cpm2_t;
 
-/* Interrupt Controller.
-*/
 typedef struct interrupt_controller {
 	u16	ic_sicr;
 	u8	res1[2];
@@ -294,8 +284,6 @@ typedef struct interrupt_controller {
 	u8	res2[88];
 } intctl_cpm2_t;
 
-/* Clocks and Reset.
-*/
 typedef struct clk_and_reset {
 	u32	car_sccr;
 	u8	res1[4];
@@ -306,10 +294,6 @@ typedef struct clk_and_reset {
 	u8	res[104];
 } car_cpm2_t;
 
-/* Input/Output Port control/status registers.
- * Names consistent with processor manual, although they are different
- * from the original 8xx names.......
- */
 typedef struct io_port {
 	u32	iop_pdira;
 	u32	iop_ppara;
@@ -337,8 +321,6 @@ typedef struct io_port {
 	u8	res4[12];
 } iop_cpm2_t;
 
-/* Communication Processor Module Timers
-*/
 typedef struct cpm_timers {
 	u8	cpmt_tgcr1;
 	u8	res1[3];
@@ -367,8 +349,6 @@ typedef struct cpm_timers {
 	u8	res3[584];
 } cpmtimer_cpm2_t;
 
-/* DMA control/status registers.
-*/
 typedef struct sdma_csr {
 	u8	res0[24];
 	u8	sdma_sdsr;
@@ -393,8 +373,6 @@ typedef struct sdma_csr {
 	u8	res10[707];
 } sdma_cpm2_t;
 
-/* Fast controllers
-*/
 typedef struct fcc {
 	u32	fcc_gfmr;
 	u32	fcc_fpsmr;
@@ -411,8 +389,6 @@ typedef struct fcc {
 	u8	fcc_ftirr_phy[4];
 } fcc_t;
 
-/* Fast controllers continued
- */
 typedef struct fcc_c {
 	u32	fcc_firper;
 	u32	fcc_firer;
@@ -422,8 +398,6 @@ typedef struct fcc_c {
 	u8	res1[15];
 } fcc_c_t;
 
-/* TC Layer
- */
 typedef struct tclayer {
 	u16	tc_tcmode;
 	u16	tc_cdsmr;
@@ -439,8 +413,6 @@ typedef struct tclayer {
 } tclayer_t;
 
 
-/* I2C
-*/
 typedef struct i2c {
 	u8	i2c_i2mod;
 	u8	res1[3];
@@ -456,7 +428,7 @@ typedef struct i2c {
 	u8	res6[331];
 } i2c_cpm2_t;
 
-typedef struct scc {		/* Serial communication channels */
+typedef struct scc {		
 	u32	scc_gsmrl;
 	u32	scc_gsmrh;
 	u16	scc_psmr;
@@ -471,7 +443,7 @@ typedef struct scc {		/* Serial communication channels */
 	u8	res4[8];
 } scc_t;
 
-typedef struct smc {		/* Serial management channels */
+typedef struct smc {		
 	u8	res1[2];
 	u16	smc_smcmr;
 	u8	res2[2];
@@ -481,8 +453,6 @@ typedef struct smc {		/* Serial management channels */
 	u8	res4[5];
 } smc_t;
 
-/* Serial Peripheral Interface.
-*/
 typedef struct spi_ctrl {
 	u16	spi_spmode;
 	u8	res1[4];
@@ -494,8 +464,6 @@ typedef struct spi_ctrl {
 	u8	res4[82];
 } spictl_cpm2_t;
 
-/* CPM Mux.
-*/
 typedef struct cpmux {
 	u8	cmx_si1cr;
 	u8	res1;
@@ -509,8 +477,6 @@ typedef struct cpmux {
 	u8	res4[16];
 } cpmux_t;
 
-/* SIRAM control
-*/
 typedef struct siram {
 	u16	si_amr;
 	u16	si_bmr;
@@ -547,8 +513,6 @@ typedef struct comm_proc {
 	u8	res4[12];
 } cpm_cpm2_t;
 
-/* USB Controller.
-*/
 typedef struct cpm_usb_ctlr {
 	u8	usb_usmod;
 	u8	usb_usadr;
@@ -563,13 +527,8 @@ typedef struct cpm_usb_ctlr {
 	u8	res4[7];
 } usb_cpm2_t;
 
-/* ...and the whole thing wrapped up....
-*/
 
 typedef struct immap {
-	/* Some references are into the unique and known dpram spaces,
-	 * others are from the generic base.
-	 */
 #define im_dprambase	im_dpram1
 	u8		im_dpram1[16*1024];
 	u8		res1[16*1024];
@@ -578,28 +537,26 @@ typedef struct immap {
 	u8		im_dpram3[4*1024];
 	u8		res3[16*1024];
 
-	sysconf_cpm2_t	im_siu_conf;	/* SIU Configuration */
-	memctl_cpm2_t	im_memctl;	/* Memory Controller */
-	sit_cpm2_t	im_sit;		/* System Integration Timers */
-	pci_cpm2_t	im_pci;		/* PCI Controller */
-	intctl_cpm2_t	im_intctl;	/* Interrupt Controller */
-	car_cpm2_t	im_clkrst;	/* Clocks and reset */
-	iop_cpm2_t	im_ioport;	/* IO Port control/status */
-	cpmtimer_cpm2_t	im_cpmtimer;	/* CPM timers */
-	sdma_cpm2_t	im_sdma;	/* SDMA control/status */
+	sysconf_cpm2_t	im_siu_conf;	
+	memctl_cpm2_t	im_memctl;	
+	sit_cpm2_t	im_sit;		
+	pci_cpm2_t	im_pci;		
+	intctl_cpm2_t	im_intctl;	
+	car_cpm2_t	im_clkrst;	
+	iop_cpm2_t	im_ioport;	
+	cpmtimer_cpm2_t	im_cpmtimer;	
+	sdma_cpm2_t	im_sdma;	
 
-	fcc_t		im_fcc[3];	/* Three FCCs */
+	fcc_t		im_fcc[3];	
 	u8		res4z[32];
-	fcc_c_t		im_fcc_c[3];	/* Continued FCCs */
+	fcc_c_t		im_fcc_c[3];	
 
 	u8		res4[32];
 
-	tclayer_t	im_tclayer[8];	/* Eight TCLayers */
+	tclayer_t	im_tclayer[8];	
 	u16		tc_tcgsr;
 	u16		tc_tcger;
 
-	/* First set of baud rate generators.
-	*/
 	u8		res[236];
 	u32		im_brgc5;
 	u32		im_brgc6;
@@ -608,25 +565,23 @@ typedef struct immap {
 
 	u8		res5[608];
 
-	i2c_cpm2_t	im_i2c;		/* I2C control/status */
-	cpm_cpm2_t	im_cpm;		/* Communication processor */
+	i2c_cpm2_t	im_i2c;		
+	cpm_cpm2_t	im_cpm;		
 
-	/* Second set of baud rate generators.
-	*/
 	u32		im_brgc1;
 	u32		im_brgc2;
 	u32		im_brgc3;
 	u32		im_brgc4;
 
-	scc_t		im_scc[4];	/* Four SCCs */
-	smc_t		im_smc[2];	/* Couple of SMCs */
-	spictl_cpm2_t	im_spi;		/* A SPI */
-	cpmux_t		im_cpmux;	/* CPM clock route mux */
-	siramctl_t	im_siramctl1;	/* First SI RAM Control */
-	mcc_t		im_mcc1;	/* First MCC */
-	siramctl_t	im_siramctl2;	/* Second SI RAM Control */
-	mcc_t		im_mcc2;	/* Second MCC */
-	usb_cpm2_t	im_usb;		/* USB Controller */
+	scc_t		im_scc[4];	
+	smc_t		im_smc[2];	
+	spictl_cpm2_t	im_spi;		
+	cpmux_t		im_cpmux;	
+	siramctl_t	im_siramctl1;	
+	mcc_t		im_mcc1;	
+	siramctl_t	im_siramctl2;	
+	mcc_t		im_mcc2;	
+	usb_cpm2_t	im_usb;		
 
 	u8		res6[1153];
 
@@ -643,5 +598,5 @@ typedef struct immap {
 
 extern cpm2_map_t __iomem *cpm2_immr;
 
-#endif /* __IMMAP_CPM2__ */
-#endif /* __KERNEL__ */
+#endif 
+#endif 

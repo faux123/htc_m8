@@ -11,7 +11,6 @@
 #include "zl10353.h"
 #include "qt1010.h"
 
-/* debug */
 static int dvb_usb_gl861_debug;
 module_param_named(debug, dvb_usb_gl861_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))."
@@ -23,13 +22,13 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
 {
 	u16 index;
 	u16 value = addr << (8 + 1);
-	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+	int wo = (rbuf == NULL || rlen == 0); 
 	u8 req, type;
 
 	if (wo) {
 		req = GL861_REQ_I2C_WRITE;
 		type = GL861_WRITE;
-	} else { /* rw */
+	} else { 
 		req = GL861_REQ_I2C_READ;
 		type = GL861_READ;
 	}
@@ -47,13 +46,12 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
 		return -EINVAL;
 	}
 
-	msleep(1); /* avoid I2C errors */
+	msleep(1); 
 
 	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
 			       value, index, rbuf, rlen, 2000);
 }
 
-/* I2C */
 static int gl861_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			  int num)
 {
@@ -67,7 +65,7 @@ static int gl861_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		return -EAGAIN;
 
 	for (i = 0; i < num; i++) {
-		/* write/read request */
+		
 		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
 			if (gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
 				msg[i].len, msg[i+1].buf, msg[i+1].len) < 0)
@@ -93,7 +91,6 @@ static struct i2c_algorithm gl861_i2c_algo = {
 	.functionality = gl861_i2c_func,
 };
 
-/* Callbacks for DVB USB */
 static struct zl10353_config gl861_zl10353_config = {
 	.demod_address = 0x0f,
 	.no_tuner = 1,
@@ -122,7 +119,6 @@ static int gl861_tuner_attach(struct dvb_usb_adapter *adap)
 			  &gl861_qt1010_config) == NULL ? -ENODEV : 0;
 }
 
-/* DVB USB Driver stuff */
 static struct dvb_usb_device_properties gl861_properties;
 
 static int gl861_probe(struct usb_interface *intf,
@@ -155,7 +151,7 @@ static int gl861_probe(struct usb_interface *intf,
 static struct usb_device_id gl861_table [] = {
 		{ USB_DEVICE(USB_VID_MSI, USB_PID_MSI_MEGASKY580_55801) },
 		{ USB_DEVICE(USB_VID_ALINK, USB_VID_ALINK_DTU) },
-		{ }		/* Terminating entry */
+		{ }		
 };
 MODULE_DEVICE_TABLE(usb, gl861_table);
 

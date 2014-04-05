@@ -40,7 +40,6 @@
 
 #include <glb.h>
 
-/* CP0 hazard avoidance. */
 #define BARRIER __asm__ __volatile__(".set noreorder\n\t" \
 				     "nop; nop; nop; nop; nop; nop;\n\t" \
 				     ".set reorder\n\t")
@@ -50,7 +49,7 @@ void __init board_setup(void)
 	unsigned long configpr;
 
 	configpr = read_c0_config7();
-	configpr |= (1<<19); /* enable tlb */
+	configpr |= (1<<19); 
 	write_c0_config7(configpr);
 	BARRIER;
 }

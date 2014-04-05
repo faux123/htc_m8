@@ -1,7 +1,10 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#include <stdarg.h>
+
 /*
+ * Copyright 2011 The Chromium Authors, All Rights Reserved.
  * Copyright 2008 Jon Loeliger, Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
@@ -53,4 +56,25 @@ static inline void *xrealloc(void *p, size_t len)
 extern char *xstrdup(const char *s);
 extern char *join_path(const char *path, const char *name);
 
-#endif /* _UTIL_H */
+int util_is_printable_string(const void *data, int len);
+
+char get_escape_char(const char *s, int *i);
+
+char *utilfdt_read(const char *filename);
+
+int utilfdt_read_err(const char *filename, char **buffp);
+
+
+int utilfdt_write(const char *filename, const void *blob);
+
+int utilfdt_write_err(const char *filename, const void *blob);
+
+int utilfdt_decode_type(const char *fmt, int *type, int *size);
+
+
+#define USAGE_TYPE_MSG \
+	"<type>\ts=string, i=int, u=unsigned, x=hex\n" \
+	"\tOptional modifier prefix:\n" \
+	"\t\thh or b=byte, h=2 byte, l=4 byte (default)\n";
+
+#endif 

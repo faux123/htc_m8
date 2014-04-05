@@ -34,8 +34,8 @@ MODULE_DESCRIPTION("PowerMac");
 MODULE_SUPPORTED_DEVICE("{{Apple,PowerMac}}");
 MODULE_LICENSE("GPL");
 
-static int index = SNDRV_DEFAULT_IDX1;		/* Index 0-MAX */
-static char *id = SNDRV_DEFAULT_STR1;		/* ID for this card */
+static int index = SNDRV_DEFAULT_IDX1;		
+static char *id = SNDRV_DEFAULT_STR1;		
 static bool enable_beep = 1;
 
 module_param(index, int, 0444);
@@ -48,8 +48,6 @@ MODULE_PARM_DESC(enable_beep, "Enable beep using PCM.");
 static struct platform_device *device;
 
 
-/*
- */
 
 static int __devinit snd_pmac_probe(struct platform_device *devptr)
 {

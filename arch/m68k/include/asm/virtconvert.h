@@ -1,9 +1,6 @@
 #ifndef __VIRT_CONVERT__
 #define __VIRT_CONVERT__
 
-/*
- * Macros used for converting between virtual and physical mappings.
- */
 
 #ifdef __KERNEL__
 
@@ -12,9 +9,6 @@
 #include <asm/setup.h>
 #include <asm/page.h>
 
-/*
- * Change virtual addresses to physical addresses and vv.
- */
 static inline unsigned long virt_to_phys(void *address)
 {
 	return __pa(address);
@@ -25,7 +19,6 @@ static inline void *phys_to_virt(unsigned long address)
 	return __va(address);
 }
 
-/* Permanent address of a page. */
 #ifdef CONFIG_MMU
 #ifdef CONFIG_SINGLE_MEMORY_CHUNK
 #define page_to_phys(page) \
@@ -37,9 +30,6 @@ static inline void *phys_to_virt(unsigned long address)
 #define page_to_phys(page)	(((page) - mem_map) << PAGE_SHIFT)
 #endif
 
-/*
- * IO bus memory addresses are 1:1 with the physical address,
- */
 #define virt_to_bus virt_to_phys
 #define bus_to_virt phys_to_virt
 

@@ -1,7 +1,4 @@
 /* crc32hash.c - derived from linux/lib/crc32.c, GNU GPL v2 */
-/* Usage example:
-$ ./crc32hash "Dual Speed"
-*/
 
 #include <string.h>
 #include <stdio.h>

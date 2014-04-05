@@ -1,6 +1,3 @@
-/****************************
-*	Typedefs.h
-****************************/
 #ifndef	__TYPEDEFS_H__
 #define	__TYPEDEFS_H__
 #define  STATUS_SUCCESS	0
@@ -43,5 +40,5 @@ typedef unsigned int UINT32;
 #endif
 
 
-#endif	//__TYPEDEFS_H__
+#endif	
 

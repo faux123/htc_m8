@@ -24,11 +24,6 @@
 
 */
 
-/* Changes:
-
-	1.01	1998.05.03	Switched from cli()/sti() to spinlocks
-	1.02    1998.12.14      Added support for nice > 1
-*/
 	
 #define PS_VERSION	"1.02"
 
@@ -98,5 +93,4 @@ static void ps_tq_int(struct work_struct *work)
 	spin_unlock_irqrestore(&ps_spinlock,flags);
 }
 
-/* end of pseudo.h */
 

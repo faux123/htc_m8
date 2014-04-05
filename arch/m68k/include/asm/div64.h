@@ -7,7 +7,6 @@
 
 #include <linux/types.h>
 
-/* n = n / base; return rem; */
 
 #define do_div(n, base) ({					\
 	union {							\
@@ -29,6 +28,6 @@
 	__rem;							\
 })
 
-#endif /* CONFIG_CPU_HAS_NO_MULDIV64 */
+#endif 
 
-#endif /* _M68K_DIV64_H */
+#endif 

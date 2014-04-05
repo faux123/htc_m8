@@ -85,9 +85,6 @@ struct iscsi_datain_req *iscsit_get_datain_req(struct iscsi_cmd *cmd)
 	return dr;
 }
 
-/*
- *	For Normal and Recovery DataSequenceInOrder=Yes and DataPDUInOrder=Yes.
- */
 static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_yes(
 	struct iscsi_cmd *cmd,
 	struct iscsi_datain *datain)
@@ -183,9 +180,6 @@ static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_yes(
 	return dr;
 }
 
-/*
- *	For Normal and Recovery DataSequenceInOrder=No and DataPDUInOrder=Yes.
- */
 static struct iscsi_datain_req *iscsit_set_datain_values_no_and_yes(
 	struct iscsi_cmd *cmd,
 	struct iscsi_datain *datain)
@@ -304,9 +298,6 @@ static struct iscsi_datain_req *iscsit_set_datain_values_no_and_yes(
 	return dr;
 }
 
-/*
- *	For Normal and Recovery DataSequenceInOrder=Yes and DataPDUInOrder=No.
- */
 static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_no(
 	struct iscsi_cmd *cmd,
 	struct iscsi_datain *datain)
@@ -403,9 +394,6 @@ static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_no(
 	return dr;
 }
 
-/*
- *	For Normal and Recovery DataSequenceInOrder=No and DataPDUInOrder=No.
- */
 static struct iscsi_datain_req *iscsit_set_datain_values_no_and_no(
 	struct iscsi_cmd *cmd,
 	struct iscsi_datain *datain)

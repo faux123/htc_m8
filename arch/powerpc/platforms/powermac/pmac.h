@@ -4,10 +4,6 @@
 #include <linux/pci.h>
 #include <linux/irq.h>
 
-/*
- * Declaration for the various functions exported by the
- * pmac_* files. Mostly for use by pmac_setup
- */
 
 struct rtc_time;
 
@@ -39,4 +35,4 @@ extern void low_cpu_die(void) __attribute__((noreturn));
 extern int pmac_nvram_init(void);
 extern void pmac_pic_init(void);
 
-#endif /* __PMAC_H__ */
+#endif 

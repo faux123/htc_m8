@@ -21,13 +21,6 @@
 #ifdef __KERNEL__
 
 #ifdef CONFIG_PPC_MMU_NOHASH
-/*
- * TLB flushing for software loaded TLB chips
- *
- * TODO: (CONFIG_FSL_BOOKE) determine if flush_tlb_range &
- * flush_tlb_kernel_range are best implemented as tlbia vs
- * specific tlbie's
- */
 
 struct vm_area_struct;
 struct mm_struct;
@@ -58,9 +51,6 @@ extern void __flush_tlb_page(struct mm_struct *mm, unsigned long vmaddr,
 
 #elif defined(CONFIG_PPC_STD_MMU_32)
 
-/*
- * TLB flushing for "classic" hash-MMU 32-bit CPUs, 6xx, 7xx, 7xxx
- */
 extern void flush_tlb_mm(struct mm_struct *mm);
 extern void flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
 extern void flush_tlb_page_nohash(struct vm_area_struct *vma, unsigned long addr);
@@ -81,9 +71,6 @@ static inline void local_flush_tlb_mm(struct mm_struct *mm)
 
 #define MMU_NO_CONTEXT		0
 
-/*
- * TLB flushing for 64-bit hash-MMU CPUs
- */
 
 #include <linux/percpu.h>
 #include <asm/page.h>
@@ -165,7 +152,6 @@ static inline void flush_tlb_kernel_range(unsigned long start,
 {
 }
 
-/* Private function for use by PCI IO mapping code */
 extern void __flush_hash_table_range(struct mm_struct *mm, unsigned long start,
 				     unsigned long end);
 
@@ -173,5 +159,5 @@ extern void __flush_hash_table_range(struct mm_struct *mm, unsigned long start,
 #error Unsupported MMU type
 #endif
 
-#endif /*__KERNEL__ */
-#endif /* _ASM_POWERPC_TLBFLUSH_H */
+#endif 
+#endif 

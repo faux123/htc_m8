@@ -35,4 +35,4 @@ struct tw9910_video_info {
 };
 
 
-#endif /* __TW9910_H__ */
+#endif 

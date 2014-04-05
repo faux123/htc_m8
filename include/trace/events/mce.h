@@ -63,7 +63,6 @@ TRACE_EVENT(mce_record,
 		__entry->apicid)
 );
 
-#endif /* _TRACE_MCE_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

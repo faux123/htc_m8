@@ -20,9 +20,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
 
-/*
- * Functions to create and manage the backchannel
- */
 
 #ifndef _LINUX_SUNRPC_BC_XPRT_H
 #define _LINUX_SUNRPC_BC_XPRT_H
@@ -38,16 +35,13 @@ int xprt_setup_backchannel(struct rpc_xprt *, unsigned int min_reqs);
 void xprt_destroy_backchannel(struct rpc_xprt *, unsigned int max_reqs);
 int bc_send(struct rpc_rqst *req);
 
-/*
- * Determine if a shared backchannel is in use
- */
 static inline int svc_is_backchannel(const struct svc_rqst *rqstp)
 {
 	if (rqstp->rq_server->sv_bc_xprt)
 		return 1;
 	return 0;
 }
-#else /* CONFIG_SUNRPC_BACKCHANNEL */
+#else 
 static inline int xprt_setup_backchannel(struct rpc_xprt *xprt,
 					 unsigned int min_reqs)
 {
@@ -62,6 +56,6 @@ static inline int svc_is_backchannel(const struct svc_rqst *rqstp)
 static inline void xprt_free_bc_request(struct rpc_rqst *req)
 {
 }
-#endif /* CONFIG_SUNRPC_BACKCHANNEL */
-#endif /* _LINUX_SUNRPC_BC_XPRT_H */
+#endif 
+#endif 
 

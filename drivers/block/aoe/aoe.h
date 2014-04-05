@@ -3,9 +3,6 @@
 #define AOE_MAJOR 152
 #define DEVICE_NAME "aoe"
 
-/* set AOE_PARTITIONS to 1 to use whole-disks only
- * default is 16, which is 15 partitions plus the whole disk
- */
 #ifndef AOE_PARTITIONS
 #define AOE_PARTITIONS (16)
 #endif
@@ -72,20 +69,20 @@ struct aoe_cfghdr {
 };
 
 enum {
-	DEVFL_UP = 1,	/* device is installed in system and ready for AoE->ATA commands */
-	DEVFL_TKILL = (1<<1),	/* flag for timer to know when to kill self */
-	DEVFL_EXT = (1<<2),	/* device accepts lba48 commands */
-	DEVFL_CLOSEWAIT = (1<<3), /* device is waiting for all closes to revalidate */
-	DEVFL_GDALLOC = (1<<4),	/* need to alloc gendisk */
-	DEVFL_KICKME = (1<<5),	/* slow polling network card catch */
-	DEVFL_NEWSIZE = (1<<6),	/* need to update dev size in block layer */
+	DEVFL_UP = 1,	
+	DEVFL_TKILL = (1<<1),	
+	DEVFL_EXT = (1<<2),	
+	DEVFL_CLOSEWAIT = (1<<3), 
+	DEVFL_GDALLOC = (1<<4),	
+	DEVFL_KICKME = (1<<5),	
+	DEVFL_NEWSIZE = (1<<6),	
 
 	BUFFL_FAIL = 1,
 };
 
 enum {
-	DEFAULTBCNT = 2 * 512,	/* 2 sectors */
-	NPERSHELF = 16,		/* number of slots per shelf address */
+	DEFAULTBCNT = 2 * 512,	
+	NPERSHELF = 16,		
 	FREETAG = -1,
 	MIN_BUFS = 16,
 	NTARGETS = 8,
@@ -100,7 +97,7 @@ enum {
 
 struct buf {
 	struct list_head bufs;
-	ulong stime;	/* for disk stats */
+	ulong stime;	
 	ulong flags;
 	ulong nframesout;
 	ulong resid;
@@ -133,12 +130,12 @@ struct aoetgt {
 	ushort nframes;
 	struct frame *frames;
 	struct aoeif ifs[NAOEIFS];
-	struct aoeif *ifp;	/* current aoeif in use */
+	struct aoeif *ifp;	
 	ushort nout;
 	ushort maxout;
-	u16 lasttag;		/* last tag sent */
+	u16 lasttag;		
 	u16 useme;
-	ulong lastwadj;		/* last window adjustment */
+	ulong lastwadj;		
 	int wpkts, rpkts;
 	int dataref;
 };
@@ -149,11 +146,11 @@ struct aoedev {
 	ulong aoemajor;
 	u16 aoeminor;
 	u16 flags;
-	u16 nopen;		/* (bd_openers isn't available without sleeping) */
-	u16 rttavg;		/* round trip average of requests/responses */
+	u16 nopen;		
+	u16 rttavg;		
 	u16 mintimer;
-	u16 fw_ver;		/* version of blade's firmware */
-	struct work_struct work;/* disk create work struct */
+	u16 fw_ver;		
+	struct work_struct work;
 	struct gendisk *gd;
 	struct request_queue *blkq;
 	struct hd_geometry geo; 
@@ -162,12 +159,12 @@ struct aoedev {
 	spinlock_t lock;
 	struct sk_buff_head sendq;
 	struct sk_buff_head skbpool;
-	mempool_t *bufpool;	/* for deadlock-free Buf allocation */
-	struct list_head bufq;	/* queue of bios to work on */
-	struct buf *inprocess;	/* the one we're currently working on */
+	mempool_t *bufpool;	
+	struct list_head bufq;	
+	struct buf *inprocess;	
 	struct aoetgt *targets[NTARGETS];
-	struct aoetgt **tgt;	/* target in use when working */
-	struct aoetgt **htgt;	/* target needing rexmit assistance */
+	struct aoetgt **tgt;	
+	struct aoetgt **htgt;	
 };
 
 

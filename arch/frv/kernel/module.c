@@ -22,6 +22,3 @@
 #define DEBUGP(fmt...)
 #endif
 
-/* TODO: At least one of apply_relocate or apply_relocate_add must be
- * implemented in order to get working module support.
- */

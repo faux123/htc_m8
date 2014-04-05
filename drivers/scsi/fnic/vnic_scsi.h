@@ -69,7 +69,6 @@
 #define VNIC_FNIC_LUNS_PER_TARGET_MIN       1
 #define VNIC_FNIC_LUNS_PER_TARGET_MAX       1024
 
-/* Device-specific region: scsi configuration */
 struct vnic_fc_config {
 	u64 node_wwn;
 	u64 port_wwn;
@@ -93,8 +92,8 @@ struct vnic_fc_config {
 	u8 intr_timer_type;
 };
 
-#define VFCF_FCP_SEQ_LVL_ERR	0x1	/* Enable FCP-2 Error Recovery */
-#define VFCF_PERBI		0x2	/* persistent binding info available */
-#define VFCF_FIP_CAPABLE	0x4	/* firmware can handle FIP */
+#define VFCF_FCP_SEQ_LVL_ERR	0x1	
+#define VFCF_PERBI		0x2	
+#define VFCF_FIP_CAPABLE	0x4	
 
-#endif /* _VNIC_SCSI_H_ */
+#endif 

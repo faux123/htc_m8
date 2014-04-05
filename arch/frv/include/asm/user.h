@@ -48,28 +48,19 @@
  *   file size is 3 pages, or 12288 bytes.
  */
 
-/* When the kernel dumps core, it starts by dumping the user struct -
- * this will be used by gdb to figure out where the data and stack segments
- *  are within the file, and what virtual addresses to use.
- */
 struct user {
-	/* We start with the registers, to mimic the way that "memory" is returned
-	 * from the ptrace(3,...) function.  */
 	struct user_context	regs;
 
-	/* The rest of this junk is to help gdb figure out what goes where */
-	unsigned long		u_tsize;	/* Text segment size (pages). */
-	unsigned long		u_dsize;	/* Data segment size (pages). */
-	unsigned long		u_ssize;	/* Stack segment size (pages). */
-	unsigned long		start_code;     /* Starting virtual address of text. */
-	unsigned long		start_stack;	/* Starting virtual address of stack area.
-						 * This is actually the bottom of the stack,
-						 * the top of the stack is always found in the
-						 * esp register.  */
-	long int		signal;		/* Signal that caused the core dump. */
+	
+	unsigned long		u_tsize;	
+	unsigned long		u_dsize;	
+	unsigned long		u_ssize;	
+	unsigned long		start_code;     
+	unsigned long		start_stack;	
+	long int		signal;		
 
-	unsigned long		magic;		/* To uniquely identify a core file */
-	char			u_comm[32];	/* User command that was responsible */
+	unsigned long		magic;		
+	char			u_comm[32];	
 };
 
 #define NBPG			PAGE_SIZE

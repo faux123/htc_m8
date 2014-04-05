@@ -24,9 +24,6 @@
 extern void sh_backtrace(struct pt_regs * const regs, unsigned int depth);
 
 #ifdef CONFIG_HW_PERF_EVENTS
-/*
- * This will need to be reworked when multiple PMUs are supported.
- */
 static char *sh_pmu_op_name;
 
 char *op_name_from_perf_id(void)
@@ -61,4 +58,4 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	return -ENODEV;
 }
 void oprofile_arch_exit(void) {}
-#endif /* CONFIG_HW_PERF_EVENTS */
+#endif 

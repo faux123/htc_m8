@@ -3,7 +3,6 @@
 
 #ifdef CONFIG_NUMA
 
-/* sched_domains SD_NODE_INIT for sh machines */
 #define SD_NODE_INIT (struct sched_domain) {		\
 	.parent			= NULL,			\
 	.child			= NULL,			\
@@ -50,4 +49,4 @@ extern cpumask_t cpu_core_map[NR_CPUS];
 
 #include <asm-generic/topology.h>
 
-#endif /* _ASM_SH_TOPOLOGY_H */
+#endif 

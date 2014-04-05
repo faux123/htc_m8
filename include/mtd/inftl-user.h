@@ -1,7 +1,3 @@
-/*
- * Parts of INFTL headers shared with userspace
- *
- */
 
 #ifndef __MTD_INFTL_USER_H__
 #define __MTD_INFTL_USER_H__
@@ -13,7 +9,6 @@
 
 #define	SECTORSIZE	512
 
-/* Block Control Information */
 
 struct inftl_bci {
 	__u8 ECCsig[6];
@@ -57,7 +52,6 @@ struct inftl_oob {
 };
 
 
-/* INFTL Media Header */
 
 struct INFTLPartition {
 	__u32 virtualUnits;
@@ -81,11 +75,10 @@ struct INFTLMediaHeader {
 	struct INFTLPartition Partitions[4];
 } __attribute__((packed));
 
-/* Partition flag types */
 #define	INFTL_BINARY	0x20000000
 #define	INFTL_BDTL	0x40000000
 #define	INFTL_LAST	0x80000000
 
-#endif /* __MTD_INFTL_USER_H__ */
+#endif 
 
 

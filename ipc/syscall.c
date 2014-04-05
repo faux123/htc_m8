@@ -1,9 +1,3 @@
-/*
- * sys_ipc() is the old de-multiplexer for the SysV IPC calls.
- *
- * This is really horribly ugly, and new architectures should just wire up
- * the individual syscalls instead.
- */
 #include <linux/unistd.h>
 
 #ifdef __ARCH_WANT_SYS_IPC
@@ -18,7 +12,7 @@ SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, unsigned long, second,
 {
 	int version, ret;
 
-	version = call >> 16; /* hack for backward compatibility */
+	version = call >> 16; 
 	call &= 0xffff;
 
 	switch (call) {
@@ -79,10 +73,6 @@ SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, unsigned long, second,
 			return put_user(raddr, (unsigned long __user *) third);
 		}
 		case 1:
-			/*
-			 * This was the entry point for kernel-originating calls
-			 * from iBCS2 in 2.2 days.
-			 */
 			return -EINVAL;
 		}
 	case SHMDT:

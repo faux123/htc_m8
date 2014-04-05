@@ -24,16 +24,15 @@
 #ifndef _AF_IEEE802154_H
 #define _AF_IEEE802154_H
 
-#include <linux/socket.h> /* for sa_family_t */
+#include <linux/socket.h> 
 
 enum {
 	IEEE802154_ADDR_NONE = 0x0,
-	/* RESERVED = 0x01, */
-	IEEE802154_ADDR_SHORT = 0x2, /* 16-bit address + PANid */
-	IEEE802154_ADDR_LONG = 0x3, /* 64-bit address + PANid */
+	
+	IEEE802154_ADDR_SHORT = 0x2, 
+	IEEE802154_ADDR_LONG = 0x3, 
 };
 
-/* address length, octets */
 #define IEEE802154_ADDR_LEN	8
 
 struct ieee802154_addr {
@@ -50,11 +49,10 @@ struct ieee802154_addr {
 #define IEEE802154_ADDR_UNDEF		0xfffe
 
 struct sockaddr_ieee802154 {
-	sa_family_t family; /* AF_IEEE802154 */
+	sa_family_t family; 
 	struct ieee802154_addr addr;
 };
 
-/* get/setsockopt */
 #define SOL_IEEE802154	0
 
 #define WPAN_WANTACK	0

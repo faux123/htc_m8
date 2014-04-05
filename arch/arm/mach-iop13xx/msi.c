@@ -28,8 +28,6 @@
 #define IOP13XX_NUM_MSI_IRQS 128
 static DECLARE_BITMAP(msi_irq_in_use, IOP13XX_NUM_MSI_IRQS);
 
-/* IMIPR0 CP6 R8 Page 1
- */
 static u32 read_imipr_0(void)
 {
 	u32 val;
@@ -41,8 +39,6 @@ static void write_imipr_0(u32 val)
 	asm volatile("mcr p6, 0, %0, c8, c1, 0"::"r" (val));
 }
 
-/* IMIPR1 CP6 R9 Page 1
- */
 static u32 read_imipr_1(void)
 {
 	u32 val;
@@ -54,8 +50,6 @@ static void write_imipr_1(u32 val)
 	asm volatile("mcr p6, 0, %0, c9, c1, 0"::"r" (val));
 }
 
-/* IMIPR2 CP6 R10 Page 1
- */
 static u32 read_imipr_2(void)
 {
 	u32 val;
@@ -67,8 +61,6 @@ static void write_imipr_2(u32 val)
 	asm volatile("mcr p6, 0, %0, c10, c1, 0"::"r" (val));
 }
 
-/* IMIPR3 CP6 R11 Page 1
- */
 static u32 read_imipr_3(void)
 {
 	u32 val;
@@ -99,9 +91,6 @@ static void iop13xx_msi_handler(unsigned int irq, struct irq_desc *desc)
 	int i, j;
 	unsigned long status;
 
-	/* read IMIPR registers and find any active interrupts,
-	 * then call ISR for each active interrupt
-	 */
 	for (i = 0; i < ARRAY_SIZE(read_imipr); i++) {
 		status = (read_imipr[i])();
 		if (!status)
@@ -109,7 +98,7 @@ static void iop13xx_msi_handler(unsigned int irq, struct irq_desc *desc)
 
 		do {
 			j = find_first_bit(&status, 32);
-			(write_imipr[i])(1 << j); /* write back to clear bit */
+			(write_imipr[i])(1 << j); 
 			generic_handle_irq(IRQ_IOP13XX_MSI_0 + j + (32*i));
 			status = (read_imipr[i])();
 		} while (status);
@@ -121,9 +110,6 @@ void __init iop13xx_msi_init(void)
 	irq_set_chained_handler(IRQ_IOP13XX_INBD_MSI, iop13xx_msi_handler);
 }
 
-/*
- * Dynamic irq allocate and deallocation
- */
 int create_irq(void)
 {
 	int irq, pos;
@@ -133,7 +119,7 @@ again:
 	irq = IRQ_IOP13XX_MSI_0 + pos;
 	if (irq > NR_IRQS)
 		return -ENOSPC;
-	/* test_and_set_bit operates on 32-bits at a time */
+	
 	if (test_and_set_bit(pos, msi_irq_in_use))
 		goto again;
 

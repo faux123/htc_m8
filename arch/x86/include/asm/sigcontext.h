@@ -8,51 +8,15 @@
 #define FP_XSTATE_MAGIC2	0x46505845U
 #define FP_XSTATE_MAGIC2_SIZE	sizeof(FP_XSTATE_MAGIC2)
 
-/*
- * bytes 464..511 in the current 512byte layout of fxsave/fxrstor frame
- * are reserved for SW usage. On cpu's supporting xsave/xrstor, these bytes
- * are used to extended the fpstate pointer in the sigcontext, which now
- * includes the extended state information along with fpstate information.
- *
- * Presence of FP_XSTATE_MAGIC1 at the beginning of this SW reserved
- * area and FP_XSTATE_MAGIC2 at the end of memory layout
- * (extended_size - FP_XSTATE_MAGIC2_SIZE) indicates the presence of the
- * extended state information in the memory layout pointed by the fpstate
- * pointer in sigcontext.
- */
 struct _fpx_sw_bytes {
-	__u32 magic1;		/* FP_XSTATE_MAGIC1 */
-	__u32 extended_size;	/* total size of the layout referred by
-				 * fpstate pointer in the sigcontext.
-				 */
+	__u32 magic1;		
+	__u32 extended_size;	
 	__u64 xstate_bv;
-				/* feature bit mask (including fp/sse/extended
-				 * state) that is present in the memory
-				 * layout.
-				 */
-	__u32 xstate_size;	/* actual xsave state size, based on the
-				 * features saved in the layout.
-				 * 'extended_size' will be greater than
-				 * 'xstate_size'.
-				 */
-	__u32 padding[7];	/*  for future use. */
+	__u32 xstate_size;	
+	__u32 padding[7];	
 };
 
 #ifdef __i386__
-/*
- * As documented in the iBCS2 standard..
- *
- * The first part of "struct _fpstate" is just the normal i387
- * hardware setup, the extra "status" word is used to save the
- * coprocessor status word before entering the handler.
- *
- * Pentium III FXSR, SSE support
- *	Gareth Hughes <gareth@valinux.com>, May 2000
- *
- * The FPU state data structure has had to grow to accommodate the
- * extended FPU state required by the Streaming SIMD Extensions.
- * There is no documented standard to accomplish this at the moment.
- */
 struct _fpreg {
 	unsigned short significand[4];
 	unsigned short exponent;
@@ -69,7 +33,7 @@ struct _xmmreg {
 };
 
 struct _fpstate {
-	/* Regular FPU environment */
+	
 	unsigned long	cw;
 	unsigned long	sw;
 	unsigned long	tag;
@@ -79,20 +43,19 @@ struct _fpstate {
 	unsigned long	datasel;
 	struct _fpreg	_st[8];
 	unsigned short	status;
-	unsigned short	magic;		/* 0xffff = regular FPU data only */
+	unsigned short	magic;		
 
-	/* FXSR FPU environment */
-	unsigned long	_fxsr_env[6];	/* FXSR FPU env is ignored */
+	
+	unsigned long	_fxsr_env[6];	
 	unsigned long	mxcsr;
 	unsigned long	reserved;
-	struct _fpxreg	_fxsr_st[8];	/* FXSR FPU reg data is ignored */
+	struct _fpxreg	_fxsr_st[8];	
 	struct _xmmreg	_xmm[8];
 	unsigned long	padding1[44];
 
 	union {
 		unsigned long	padding2[12];
-		struct _fpx_sw_bytes sw_reserved; /* represents the extended
-						   * state info */
+		struct _fpx_sw_bytes sw_reserved; 
 	};
 };
 
@@ -120,21 +83,11 @@ struct sigcontext {
 	unsigned long sp_at_signal;
 	unsigned short ss, __ssh;
 
-	/*
-	 * fpstate is really (struct _fpstate *) or (struct _xstate *)
-	 * depending on the FP_XSTATE_MAGIC1 encoded in the SW reserved
-	 * bytes of (struct _fpstate) and FP_XSTATE_MAGIC2 present at the end
-	 * of extended memory layout. See comments at the definition of
-	 * (struct _fpx_sw_bytes)
-	 */
-	void __user *fpstate;		/* zero when no FPU/extended context */
+	void __user *fpstate;		
 	unsigned long oldmask;
 	unsigned long cr2;
 };
-#else /* __KERNEL__ */
-/*
- * User-space might still rely on the old definition:
- */
+#else 
 struct sigcontext {
 	unsigned short gs, __gsh;
 	unsigned short fs, __fsh;
@@ -159,30 +112,25 @@ struct sigcontext {
 	unsigned long oldmask;
 	unsigned long cr2;
 };
-#endif /* !__KERNEL__ */
+#endif 
 
-#else /* __i386__ */
+#else 
 
-/* FXSAVE frame */
-/* Note: reserved1/2 may someday contain valuable data. Always save/restore
-   them when you change signal frames. */
 struct _fpstate {
 	__u16	cwd;
 	__u16	swd;
-	__u16	twd;		/* Note this is not the same as the
-				   32bit/x87/FSAVE twd */
+	__u16	twd;		
 	__u16	fop;
 	__u64	rip;
 	__u64	rdp;
 	__u32	mxcsr;
 	__u32	mxcsr_mask;
-	__u32	st_space[32];	/* 8*16 bytes for each FP-reg */
-	__u32	xmm_space[64];	/* 16*16 bytes for each XMM-reg  */
+	__u32	st_space[32];	
+	__u32	xmm_space[64];	
 	__u32	reserved2[12];
 	union {
 		__u32	reserved3[12];
-		struct _fpx_sw_bytes sw_reserved; /* represents the extended
-						   * state information */
+		struct _fpx_sw_bytes sw_reserved; 
 	};
 };
 
@@ -215,20 +163,10 @@ struct sigcontext {
 	unsigned long oldmask;
 	unsigned long cr2;
 
-	/*
-	 * fpstate is really (struct _fpstate *) or (struct _xstate *)
-	 * depending on the FP_XSTATE_MAGIC1 encoded in the SW reserved
-	 * bytes of (struct _fpstate) and FP_XSTATE_MAGIC2 present at the end
-	 * of extended memory layout. See comments at the definition of
-	 * (struct _fpx_sw_bytes)
-	 */
-	void __user *fpstate;		/* zero when no FPU/extended context */
+	void __user *fpstate;		
 	unsigned long reserved1[8];
 };
-#else /* __KERNEL__ */
-/*
- * User-space might still rely on the old definition:
- */
+#else 
 struct sigcontext {
 	__u64 r8;
 	__u64 r9;
@@ -247,7 +185,7 @@ struct sigcontext {
 	__u64 rcx;
 	__u64 rsp;
 	__u64 rip;
-	__u64 eflags;		/* RFLAGS */
+	__u64 eflags;		
 	__u16 cs;
 	__u16 gs;
 	__u16 fs;
@@ -256,15 +194,15 @@ struct sigcontext {
 	__u64 trapno;
 	__u64 oldmask;
 	__u64 cr2;
-	struct _fpstate __user *fpstate;	/* zero when no FPU context */
+	struct _fpstate __user *fpstate;	
 #ifdef __ILP32__
 	__u32 __fpstate_pad;
 #endif
 	__u64 reserved1[8];
 };
-#endif /* !__KERNEL__ */
+#endif 
 
-#endif /* !__i386__ */
+#endif 
 
 struct _xsave_hdr {
 	__u64 xstate_bv;
@@ -273,21 +211,15 @@ struct _xsave_hdr {
 };
 
 struct _ymmh_state {
-	/* 16 * 16 bytes for each YMMH-reg */
+	
 	__u32 ymmh_space[64];
 };
 
-/*
- * Extended state pointed by the fpstate pointer in the sigcontext.
- * In addition to the fpstate, information encoded in the xstate_hdr
- * indicates the presence of other extended state information
- * supported by the processor and OS.
- */
 struct _xstate {
 	struct _fpstate fpstate;
 	struct _xsave_hdr xstate_hdr;
 	struct _ymmh_state ymmh;
-	/* new processor state extensions go here */
+	
 };
 
-#endif /* _ASM_X86_SIGCONTEXT_H */
+#endif 

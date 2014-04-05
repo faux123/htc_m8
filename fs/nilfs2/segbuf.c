@@ -33,7 +33,7 @@
 struct nilfs_write_info {
 	struct the_nilfs       *nilfs;
 	struct bio	       *bio;
-	int			start, end; /* The region to be submitted */
+	int			start, end; 
 	int			rest_blocks;
 	int			max_pages;
 	int			nr_vecs;
@@ -82,11 +82,6 @@ void nilfs_segbuf_map(struct nilfs_segment_buffer *segbuf, __u64 segnum,
 		segbuf->sb_fseg_end - segbuf->sb_pseg_start + 1;
 }
 
-/**
- * nilfs_segbuf_map_cont - map a new log behind a given log
- * @segbuf: new segment buffer
- * @prev: segment buffer containing a log to be continued
- */
 void nilfs_segbuf_map_cont(struct nilfs_segment_buffer *segbuf,
 			   struct nilfs_segment_buffer *prev)
 {
@@ -151,9 +146,6 @@ int nilfs_segbuf_reset(struct nilfs_segment_buffer *segbuf, unsigned flags,
 	return 0;
 }
 
-/*
- * Setup segment summary
- */
 void nilfs_segbuf_fill_in_segsum(struct nilfs_segment_buffer *segbuf)
 {
 	struct nilfs_segment_summary *raw_sum;
@@ -176,9 +168,6 @@ void nilfs_segbuf_fill_in_segsum(struct nilfs_segment_buffer *segbuf)
 	raw_sum->ss_cno      = cpu_to_le64(segbuf->sb_sum.cno);
 }
 
-/*
- * CRC calculation routines
- */
 static void
 nilfs_segbuf_fill_in_segsum_crc(struct nilfs_segment_buffer *segbuf, u32 seed)
 {
@@ -268,9 +257,6 @@ static void nilfs_segbuf_clear(struct nilfs_segment_buffer *segbuf)
 	segbuf->sb_super_root = NULL;
 }
 
-/*
- * Iterators for segment buffers
- */
 void nilfs_clear_logs(struct list_head *logs)
 {
 	struct nilfs_segment_buffer *segbuf;
@@ -318,11 +304,6 @@ int nilfs_wait_on_logs(struct list_head *logs)
 	return ret;
 }
 
-/**
- * nilfs_add_checksums_on_logs - add checksums on the logs
- * @logs: list of segment buffers storing target logs
- * @seed: checksum seed value
- */
 void nilfs_add_checksums_on_logs(struct list_head *logs, u32 seed)
 {
 	struct nilfs_segment_buffer *segbuf;
@@ -335,9 +316,6 @@ void nilfs_add_checksums_on_logs(struct list_head *logs, u32 seed)
 	}
 }
 
-/*
- * BIO operations
- */
 static void nilfs_end_bio_write(struct bio *bio, int err)
 {
 	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
@@ -346,7 +324,7 @@ static void nilfs_end_bio_write(struct bio *bio, int err)
 	if (err == -EOPNOTSUPP) {
 		set_bit(BIO_EOPNOTSUPP, &bio->bi_flags);
 		bio_put(bio);
-		/* to be detected by submit_seg_bio() */
+		
 	}
 
 	if (!uptodate)
@@ -396,15 +374,6 @@ static int nilfs_segbuf_submit_bio(struct nilfs_segment_buffer *segbuf,
 	return err;
 }
 
-/**
- * nilfs_alloc_seg_bio - allocate a new bio for writing log
- * @nilfs: nilfs object
- * @start: start block number of the bio
- * @nr_vecs: request size of page vector.
- *
- * Return Value: On success, pointer to the struct bio is returned.
- * On error, NULL is returned.
- */
 static struct bio *nilfs_alloc_seg_bio(struct the_nilfs *nilfs, sector_t start,
 				       int nr_vecs)
 {
@@ -453,9 +422,9 @@ static int nilfs_segbuf_submit_bh(struct nilfs_segment_buffer *segbuf,
 		wi->end++;
 		return 0;
 	}
-	/* bio is FULL */
+	
 	err = nilfs_segbuf_submit_bio(segbuf, wi, mode);
-	/* never submit current bh */
+	
 	if (likely(!err))
 		goto repeat;
 	return err;
@@ -496,10 +465,6 @@ static int nilfs_segbuf_write(struct nilfs_segment_buffer *segbuf,
 	}
 
 	if (wi.bio) {
-		/*
-		 * Last BIO is always sent through the following
-		 * submission.
-		 */
 		rw |= REQ_SYNC;
 		res = nilfs_segbuf_submit_bio(segbuf, &wi, rw);
 	}
@@ -508,15 +473,6 @@ static int nilfs_segbuf_write(struct nilfs_segment_buffer *segbuf,
 	return res;
 }
 
-/**
- * nilfs_segbuf_wait - wait for completion of requested BIOs
- * @segbuf: segment buffer
- *
- * Return Value: On Success, 0 is returned. On Error, one of the following
- * negative error code is returned.
- *
- * %-EIO - I/O error
- */
 static int nilfs_segbuf_wait(struct nilfs_segment_buffer *segbuf)
 {
 	int err = 0;

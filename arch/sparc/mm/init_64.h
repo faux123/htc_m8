@@ -1,9 +1,6 @@
 #ifndef _SPARC64_MM_INIT_H
 #define _SPARC64_MM_INIT_H
 
-/* Most of the symbols in this file are defined in init.c and
- * marked non-static so that assembler code can get at them.
- */
 
 #define MAX_PHYS_ADDRESS	(1UL << 41UL)
 #define KPTE_BITMAP_CHUNK_SZ		(256UL * 1024UL * 1024UL)
@@ -27,11 +24,9 @@ struct linux_prom_translation {
 	unsigned long data;
 };
 
-/* Exported for kernel TLB miss handling in ktlb.S */
 extern struct linux_prom_translation prom_trans[512];
 extern unsigned int prom_trans_ents;
 
-/* Exported for SMP bootup purposes. */
 extern unsigned long kern_locked_tte_data;
 
 extern void prom_world(int enter);
@@ -47,4 +42,4 @@ extern void prom_world(int enter);
 extern unsigned long vmemmap_table[VMEMMAP_SIZE];
 #endif
 
-#endif /* _SPARC64_MM_INIT_H */
+#endif 

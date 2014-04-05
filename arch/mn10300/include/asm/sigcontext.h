@@ -12,9 +12,9 @@
 #define _ASM_SIGCONTEXT_H
 
 struct fpucontext {
-	/* Regular FPU environment */
-	unsigned long	fs[32];		/* fpu registers */
-	unsigned long	fpcr;		/* fpu control register */
+	
+	unsigned long	fs[32];		
+	unsigned long	fpcr;		
 };
 
 struct sigcontext {
@@ -49,4 +49,4 @@ struct sigcontext {
 };
 
 
-#endif /* _ASM_SIGCONTEXT_H */
+#endif 

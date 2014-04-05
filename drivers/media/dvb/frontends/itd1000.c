@@ -49,7 +49,6 @@ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
 	printk(KERN_INFO    "ITD1000: " args); \
 } while (0)
 
-/* don't write more than one byte with flexcop behind */
 static int itd1000_write_regs(struct itd1000_state *state, u8 reg, u8 v[], u8 len)
 {
 	u8 buf[1+len];
@@ -59,7 +58,7 @@ static int itd1000_write_regs(struct itd1000_state *state, u8 reg, u8 v[], u8 le
 	buf[0] = reg;
 	memcpy(&buf[1], v, len);
 
-	/* itd_dbg("wr %02x: %02x\n", reg, v[0]); */
+	
 
 	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
 		printk(KERN_WARNING "itd1000 I2C write failed\n");
@@ -76,7 +75,7 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
 		{ .addr = state->cfg->i2c_address, .flags = I2C_M_RD, .buf = &val, .len = 1 },
 	};
 
-	/* ugly flexcop workaround */
+	
 	itd1000_write_regs(state, (reg - 1) & 0xff, &state->shadow[(reg - 1) & 0xff], 1);
 
 	if (i2c_transfer(state->i2c, msg, 2) != 2) {
@@ -96,8 +95,8 @@ static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
 
 static struct {
 	u32 symbol_rate;
-	u8  pgaext  : 4; /* PLLFH */
-	u8  bbgvmin : 4; /* BBGVMIN */
+	u8  pgaext  : 4; 
+	u8  bbgvmin : 4; 
 } itd1000_lpf_pga[] = {
 	{        0, 0x8, 0x3 },
 	{  5200000, 0x8, 0x3 },
@@ -126,7 +125,7 @@ static void itd1000_set_lpf_bw(struct itd1000_state *state, u32 symbol_rate)
 
 	itd_dbg("symbol_rate = %d\n", symbol_rate);
 
-	/* not sure what is that ? - starting to download the table */
+	
 	itd1000_write_reg(state, CON1, con1 | (1 << 1));
 
 	for (i = 0; i < ARRAY_SIZE(itd1000_lpf_pga); i++)
@@ -152,7 +151,7 @@ static struct {
 	{  5, 1171000 },
 	{  6, 1281000 },
 	{  7, 1381000 },
-	{  8,  500000 },	/* this is intentional. */
+	{  8,  500000 },	
 	{  9, 1451000 },
 	{ 10, 1531000 },
 	{ 11, 1631000 },
@@ -169,7 +168,7 @@ static void itd1000_set_vco(struct itd1000_state *state, u32 freq_khz)
 	u8 vco_chp1_i2c = itd1000_read_reg(state, VCO_CHP1_I2C) & 0x0f;
 	u8 adcout;
 
-	/* reserved bit again (reset ?) */
+	
 	itd1000_write_reg(state, GVBB_I2C, gvbb_i2c | (1 << 6));
 
 	for (i = 0; i < ARRAY_SIZE(itd1000_vcorg); i++) {
@@ -195,7 +194,7 @@ static void itd1000_set_vco(struct itd1000_state *state, u32 freq_khz)
 
 static const struct {
 	u32 freq;
-	u8 values[10]; /* RFTR, RFST1 - RFST9 */
+	u8 values[10]; 
 } itd1000_fre_values[] = {
 	{ 1075000, { 0x59, 0x1d, 0x1c, 0x17, 0x16, 0x0f, 0x0e, 0x0c, 0x0b, 0x0a } },
 	{ 1250000, { 0x89, 0x1e, 0x1d, 0x17, 0x15, 0x0f, 0x0e, 0x0c, 0x0b, 0x0a } },
@@ -220,7 +219,7 @@ static void itd1000_set_lo(struct itd1000_state *state, u32 freq_khz)
 
 	plln = (freq_khz * 1000) / 2 / FREF;
 
-	/* Compute the factional part times 1000 */
+	
 	tmp  = plln % 1000000;
 	plln /= 1000000;
 
@@ -231,7 +230,7 @@ static void itd1000_set_lo(struct itd1000_state *state, u32 freq_khz)
 	state->frequency = ((plln * 1000) + (pllf * 1000)/1048576) * 2*FREF;
 	itd_dbg("frequency: %dkHz (wanted) %dkHz (set), PLLF = %d, PLLN = %d\n", freq_khz, state->frequency, pllf, plln);
 
-	itd1000_write_reg(state, PLLNH, 0x80); /* PLLNH */;
+	itd1000_write_reg(state, PLLNH, 0x80); ;
 	itd1000_write_reg(state, PLLNL, plln & 0xff);
 	itd1000_write_reg(state, PLLFH, (itd1000_read_reg(state, PLLFH) & 0xf0) | ((pllf >> 16) & 0x0f));
 	itd1000_write_reg(state, PLLFM, (pllf >> 8) & 0xff);
@@ -279,11 +278,11 @@ static int itd1000_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
 }
 
 static u8 itd1000_init_tab[][2] = {
-	{ PLLCON1,       0x65 }, /* Register does not change */
-	{ PLLNH,         0x80 }, /* Bits [7:6] do not change */
+	{ PLLCON1,       0x65 }, 
+	{ PLLNH,         0x80 }, 
 	{ RESERVED_0X6D, 0x3b },
 	{ VCO_CHP2_I2C,  0x12 },
-	{ 0x72,          0xf9 }, /* No such regsister defined */
+	{ 0x72,          0xf9 }, 
 	{ RESERVED_0X73, 0xff },
 	{ RESERVED_0X74, 0xb2 },
 	{ RESERVED_0X75, 0xc7 },
@@ -291,9 +290,9 @@ static u8 itd1000_init_tab[][2] = {
 	{ DIVAGCCK,      0x80 },
 	{ BBTR,          0xa0 },
 	{ RESERVED_0X7E, 0x4f },
-	{ 0x82,          0x88 }, /* No such regsister defined */
-	{ 0x83,          0x80 }, /* No such regsister defined */
-	{ 0x84,          0x80 }, /* No such regsister defined */
+	{ 0x82,          0x88 }, 
+	{ 0x83,          0x80 }, 
+	{ 0x84,          0x80 }, 
 	{ RESERVED_0X85, 0x74 },
 	{ RESERVED_0X86, 0xff },
 	{ RESERVED_0X88, 0x02 },
@@ -349,7 +348,7 @@ static const struct dvb_tuner_ops itd1000_tuner_ops = {
 		.name           = "Integrant ITD1000",
 		.frequency_min  = 950000,
 		.frequency_max  = 2150000,
-		.frequency_step = 125,     /* kHz for QPSK frontends */
+		.frequency_step = 125,     
 	},
 
 	.release       = itd1000_release,

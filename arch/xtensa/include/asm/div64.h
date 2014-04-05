@@ -13,4 +13,4 @@
 
 #include <asm-generic/div64.h>
 
-#endif /* _XTENSA_DIV64_H */
+#endif 

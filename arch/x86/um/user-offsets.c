@@ -16,7 +16,7 @@ static char syscalls[] = {
 #else
 #define __SYSCALL_64(nr, sym, compat) [nr] = 1,
 #define __SYSCALL_COMMON(nr, sym, compat) [nr] = 1,
-#define __SYSCALL_X32(nr, sym, compat) /* Not supported */
+#define __SYSCALL_X32(nr, sym, compat) 
 static char syscalls[] = {
 #include <asm/syscalls_64.h>
 };

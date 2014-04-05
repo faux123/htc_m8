@@ -26,4 +26,4 @@
 
 #define set_mb(var, value)	do { var = value; mb(); } while (0)
 
-#endif /* _XTENSA_SYSTEM_H */
+#endif 

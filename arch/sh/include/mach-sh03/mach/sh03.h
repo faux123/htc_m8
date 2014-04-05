@@ -9,10 +9,10 @@
  * Interface CTP/PCI-SH03 support
  */
 
-#define PA_PCI_IO       (0xbe240000)    /* PCI I/O space */
-#define PA_PCI_MEM      (0xbd000000)    /* PCI MEM space */
+#define PA_PCI_IO       (0xbe240000)    
+#define PA_PCI_MEM      (0xbd000000)    
 
-#define PCIPAR          (0xa4000cf8)    /* PCI Config address */
-#define PCIPDR          (0xa4000cfc)    /* PCI Config data    */
+#define PCIPAR          (0xa4000cf8)    
+#define PCIPDR          (0xa4000cfc)    
 
-#endif  /* __ASM_SH_SH03_H */
+#endif  

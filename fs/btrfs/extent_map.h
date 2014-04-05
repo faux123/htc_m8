@@ -8,16 +8,15 @@
 #define EXTENT_MAP_INLINE (u64)-2
 #define EXTENT_MAP_DELALLOC (u64)-1
 
-/* bits for the flags field */
-#define EXTENT_FLAG_PINNED 0 /* this entry not yet on disk, don't free it */
+#define EXTENT_FLAG_PINNED 0 
 #define EXTENT_FLAG_COMPRESSED 1
-#define EXTENT_FLAG_VACANCY 2 /* no file extent item found */
-#define EXTENT_FLAG_PREALLOC 3 /* pre-allocated extent */
+#define EXTENT_FLAG_VACANCY 2 
+#define EXTENT_FLAG_PREALLOC 3 
 
 struct extent_map {
 	struct rb_node rb_node;
 
-	/* all of these are in bytes */
+	
 	u64 start;
 	u64 len;
 	u64 orig_start;

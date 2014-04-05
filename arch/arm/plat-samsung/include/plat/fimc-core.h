@@ -14,12 +14,7 @@
 #ifndef __ASM_PLAT_FIMC_CORE_H
 #define __ASM_PLAT_FIMC_CORE_H __FILE__
 
-/*
- * These functions are only for use with the core support code, such as
- * the CPU-specific initialization code.
- */
 
-/* Re-define device name to differentiate the subsystem in various SoCs. */
 static inline void s3c_fimc_setname(int id, char *name)
 {
 	switch (id) {
@@ -46,4 +41,4 @@ static inline void s3c_fimc_setname(int id, char *name)
 	}
 }
 
-#endif /* __ASM_PLAT_FIMC_CORE_H */
+#endif 

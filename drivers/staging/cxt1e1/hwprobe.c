@@ -41,7 +41,6 @@ extern int  cxt1e1_log_level;
 extern int  error_flag;
 extern int  drvr_state;
 
-/* forward references */
 void        c4_stopwd (ci_t *);
 struct net_device * __init c4_add_dev (hdw_info_t *, int, unsigned long, unsigned long, int, int);
 
@@ -59,7 +58,7 @@ show_two (hdw_info_t * hi, int brdno)
     char        sn[6];
 
     bp = banner;
-    memset (banner, 0, 80);         /* clear print buffer */
+    memset (banner, 0, 80);         
 
     ci = (ci_t *)(netdev_priv(hi->ndev));
     bid = sbeid_get_bdname (ci);
@@ -104,12 +103,12 @@ show_two (hdw_info_t * hi, int brdno)
 void        __init
 hdw_sn_get (hdw_info_t * hi, int brdno)
 {
-    /* obtain hardware EEPROM information */
+    
     long        addr;
 
     addr = (long) hi->addr_mapped[1] + EEPROM_OFFSET;
 
-    /* read EEPROM with largest known format size... */
+    
     pmc_eeprom_read_buffer (addr, 0, (char *) hi->mfg_info.data, sizeof (FLD_TYPE2));
 
 #if 0
@@ -142,7 +141,7 @@ hdw_sn_get (hdw_info_t * hi, int brdno)
 
     if ((hi->promfmt = pmc_verify_cksum (&hi->mfg_info.data)) == PROM_FORMAT_Unk)
     {
-        /* bad crc, data is suspect */
+        
         if (cxt1e1_log_level >= LOG_WARN)
             pr_info("%s: EEPROM cksum error\n", hi->devname);
         hi->mfg_info_sts = EEPROM_CRCERR;
@@ -229,37 +228,25 @@ c4_hdw_init (struct pci_dev * pdev, int found)
     int         fun, slot;
     unsigned char busno = 0xff;
 
-    /* our MUSYCC chip supports two functions, 0 & 1 */
+    
     if ((fun = PCI_FUNC (pdev->devfn)) > 1)
     {
         pr_warning("unexpected devfun: 0x%x\n", pdev->devfn);
         return 0;
     }
-    if (pdev->bus)                  /* obtain bus number */
+    if (pdev->bus)                  
         busno = pdev->bus->number;
     else
-        busno = 0;                  /* default for system PCI inconsistency */
+        busno = 0;                  
     slot = pdev->devfn & ~0x07;
 
-    /*
-     * Functions 0 & 1 for a given board (identified by same bus(busno) and
-     * slot(slot)) are placed into the same 'hardware' structure.  The first
-     * part of the board's functionality will be placed into an unpopulated
-     * element, identified by "slot==(0xff)".  The second part of a board's
-     * functionality will match the previously loaded slot/busno.
-     */
     for (i = 0, hi = hdw_info; i < MAX_BOARDS; i++, hi++)
     {
-        /*
-         * match with board's first found interface, otherwise this is first
-         * found
-         */
-        if ((hi->pci_slot == 0xff) ||   /* new board */
+        if ((hi->pci_slot == 0xff) ||   
             ((hi->pci_slot == slot) && (hi->bus == pdev->bus)))
-            break;                  /* found for-loop exit */
+            break;                  
     }
-    if (i == MAX_BOARDS)            /* no match in above loop means MAX
-                                     * exceeded */
+    if (i == MAX_BOARDS)            
     {
         pr_warning("exceeded number of allowed devices (>%d)?\n", MAX_BOARDS);
         return 0;
@@ -267,7 +254,7 @@ c4_hdw_init (struct pci_dev * pdev, int found)
     if (pdev->bus)
         hi->pci_busno = pdev->bus->number;
     else
-        hi->pci_busno = 0;          /* default for system PCI inconsistency */
+        hi->pci_busno = 0;          
     hi->pci_slot = slot;
     pci_read_config_byte (pdev, PCI_INTERRUPT_PIN, &hi->pci_pin[fun]);
     pci_read_config_byte (pdev, PCI_REVISION_ID, &hi->revid[fun]);
@@ -277,18 +264,13 @@ c4_hdw_init (struct pci_dev * pdev, int found)
     hi->pdev[fun] = pdev;
 
     {
-        /*
-         * create device name from module name, plus add the appropriate
-         * board number
-         */
         char       *cp = hi->devname;
 
         strcpy (cp, KBUILD_MODNAME);
-        cp += strlen (cp);          /* reposition */
+        cp += strlen (cp);          
         *cp++ = '-';
-        *cp++ = '0' + (found / 2);  /* there are two found interfaces per
-                                     * board */
-        *cp = 0;                    /* termination */
+        *cp++ = '0' + (found / 2);  
+        *cp = 0;                    
     }
 
     return 1;
@@ -304,7 +286,7 @@ c4hw_attach_all (void)
 
     error_flag = 0;
     prep_hdw_info ();
-    /*** scan PCI bus for all possible boards */
+    
     while ((pdev = pci_get_device (PCI_VENDOR_ID_CONEXANT,
                                     PCI_DEVICE_ID_CN8474,
                                     pdev)))
@@ -317,7 +299,7 @@ c4hw_attach_all (void)
         pr_warning("No boards found\n");
         return ENODEV;
     }
-    /* sanity check for consistent hardware found */
+    
     for (i = 0, hi = hdw_info; i < MAX_BOARDS; i++, hi++)
     {
         if (hi->pci_slot != 0xff && (!hi->addr[0] || !hi->addr[1]))
@@ -327,7 +309,7 @@ c4hw_attach_all (void)
             return EIO;
         }
     }
-    /* bring board's memory regions on/line */
+    
     for (i = 0, hi = hdw_info; i < MAX_BOARDS; i++, hi++)
     {
         if (hi->pci_slot == 0xff)
@@ -358,7 +340,7 @@ c4hw_attach_all (void)
 
     drvr_state = SBE_DRVR_AVAILABLE;
 
-    /* Have now memory mapped all boards.  Now allow board's access to system */
+    
     for (i = 0, hi = hdw_info; i < MAX_BOARDS; i++, hi++)
     {
         if (hi->pci_slot == 0xff)
@@ -382,15 +364,14 @@ c4hw_attach_all (void)
         {
             drvr_state = SBE_DRVR_DOWN;
             cleanup_ioremap ();
-            /* NOTE: c4_add_dev() does its own device cleanup */
+            
 #if 0
             cleanup_devs ();
 #endif
-            return error_flag;      /* error_flag set w/in add_dev() */
+            return error_flag;      
         }
-        show_two (hi, i);           /* displays found information */
+        show_two (hi, i);           
     }
     return 0;
 }
 
-/***  End-of-File  ***/

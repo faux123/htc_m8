@@ -20,10 +20,8 @@
 #include <asm/kmap_types.h>
 #include <asm/pgtable.h>
 
-/* undef for production */
 #undef HIGHMEM_DEBUG
 
-/* declarations for highmem.c */
 extern unsigned long highstart_pfn, highend_pfn;
 
 extern pte_t *kmap_pte;
@@ -32,11 +30,6 @@ extern pte_t *pkmap_page_table;
 
 extern void __init kmap_init(void);
 
-/*
- * Right now we initialize only a single pte table. It can be extended
- * easily, subsequent pte tables have to be allocated in one physical
- * chunk of RAM.
- */
 #define PKMAP_BASE	0xfe000000UL
 #define LAST_PKMAP	1024
 #define LAST_PKMAP_MASK (LAST_PKMAP - 1)
@@ -64,12 +57,6 @@ static inline void kunmap(struct page *page)
 	kunmap_high(page);
 }
 
-/*
- * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
- * gives a more generic (and caching) interface. But kmap_atomic can
- * be used in IRQ contexts, so in some (very limited) cases we need
- * it.
- */
 static inline unsigned long kmap_atomic(struct page *page)
 {
 	unsigned long vaddr;
@@ -96,7 +83,7 @@ static inline void __kunmap_atomic(unsigned long vaddr)
 {
 	int type;
 
-	if (vaddr < FIXADDR_START) { /* FIXME */
+	if (vaddr < FIXADDR_START) { 
 		pagefault_enable();
 		return;
 	}
@@ -111,10 +98,6 @@ static inline void __kunmap_atomic(unsigned long vaddr)
 		if (vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx))
 			BUG();
 
-		/*
-		 * force other mappings to Oops if they'll try to access
-		 * this pte without first remap it
-		 */
 		pte_clear(kmap_pte - idx);
 		local_flush_tlb_one(vaddr);
 	}
@@ -123,6 +106,6 @@ static inline void __kunmap_atomic(unsigned long vaddr)
 	kmap_atomic_idx_pop();
 	pagefault_enable();
 }
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_HIGHMEM_H */
+#endif 

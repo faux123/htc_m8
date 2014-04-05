@@ -43,7 +43,6 @@
 #define DBG pr_debug
 #endif
 
-/* mutex synchronizing GPU accesses and video mode changes */
 DEFINE_MUTEX(ps3_gpu_mutex);
 EXPORT_SYMBOL_GPL(ps3_gpu_mutex);
 
@@ -71,11 +70,6 @@ EXPORT_SYMBOL_GPL(ps3_compare_firmware_version);
 
 static void ps3_power_save(void)
 {
-	/*
-	 * lv1_pause() puts the PPE thread into inactive state until an
-	 * irq on an unmasked plug exists. MSR[EE] has no effect.
-	 * flags: 0 = wake on DEC interrupt, 1 = ignore DEC interrupt.
-	 */
 
 	lv1_pause(0);
 }
@@ -85,7 +79,7 @@ static void ps3_restart(char *cmd)
 	DBG("%s:%d cmd '%s'\n", __func__, __LINE__, cmd);
 
 	smp_send_stop();
-	ps3_sys_manager_restart(); /* never returns */
+	ps3_sys_manager_restart(); 
 }
 
 static void ps3_power_off(void)
@@ -93,7 +87,7 @@ static void ps3_power_off(void)
 	DBG("%s:%d\n", __func__, __LINE__);
 
 	smp_send_stop();
-	ps3_sys_manager_power_off(); /* never returns */
+	ps3_sys_manager_power_off(); 
 }
 
 static void ps3_halt(void)
@@ -101,7 +95,7 @@ static void ps3_halt(void)
 	DBG("%s:%d\n", __func__, __LINE__);
 
 	smp_send_stop();
-	ps3_sys_manager_halt(); /* never returns */
+	ps3_sys_manager_halt(); 
 }
 
 static void ps3_panic(char *str)
@@ -141,7 +135,7 @@ static void __init prealloc(struct ps3_prealloc *p)
 struct ps3_prealloc ps3fb_videomemory = {
 	.name = "ps3fb videomemory",
 	.size = CONFIG_FB_PS3_DEFAULT_SIZE_M*1024*1024,
-	.align = 1024*1024		/* the GPU requires 1 MiB alignment */
+	.align = 1024*1024		
 };
 EXPORT_SYMBOL_GPL(ps3fb_videomemory);
 #define prealloc_ps3fb_videomemory()	prealloc(&ps3fb_videomemory)

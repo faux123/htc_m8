@@ -26,13 +26,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/*
- * WARNING:
- *
- * Because Analog Devices Inc. discontinued the ad1980 sound chip since
- * Sep. 2009, this ad1980 driver is not maintained, tested and supported
- * by ADI now.
- */
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -106,7 +99,6 @@ static void __exit bf5xx_board_exit(void)
 module_init(bf5xx_board_init);
 module_exit(bf5xx_board_exit);
 
-/* Module information */
 MODULE_AUTHOR("Cliff Cai");
 MODULE_DESCRIPTION("ALSA SoC AD1980/1 BF5xx board (Obsolete)");
 MODULE_LICENSE("GPL");

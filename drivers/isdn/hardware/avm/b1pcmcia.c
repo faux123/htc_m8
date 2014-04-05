@@ -25,17 +25,14 @@
 #include <linux/isdn/capilli.h>
 #include "avmcard.h"
 
-/* ------------------------------------------------------------- */
 
 static char *revision = "$Revision: 1.1.2.2 $";
 
-/* ------------------------------------------------------------- */
 
 MODULE_DESCRIPTION("CAPI4Linux: Driver for AVM PCMCIA cards");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------- */
 
 static void b1pcmcia_remove_ctr(struct capi_ctr *ctrl)
 {
@@ -51,7 +48,6 @@ static void b1pcmcia_remove_ctr(struct capi_ctr *ctrl)
 	b1_free_card(card);
 }
 
-/* ------------------------------------------------------------- */
 
 static LIST_HEAD(cards);
 
@@ -136,7 +132,6 @@ err:
 	return retval;
 }
 
-/* ------------------------------------------------------------- */
 
 static char *b1pcmcia_procinfo(struct capi_ctr *ctrl)
 {
@@ -154,7 +149,6 @@ static char *b1pcmcia_procinfo(struct capi_ctr *ctrl)
 	return cinfo->infobuf;
 }
 
-/* ------------------------------------------------------------- */
 
 int b1pcmcia_addcard_b1(unsigned int port, unsigned irq)
 {

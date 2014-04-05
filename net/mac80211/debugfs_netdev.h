@@ -1,4 +1,3 @@
-/* routines exported for debugfs handling */
 
 #ifndef __IEEE80211_DEBUGFS_NETDEV_H
 #define __IEEE80211_DEBUGFS_NETDEV_H
@@ -19,4 +18,4 @@ static inline void ieee80211_debugfs_rename_netdev(
 {}
 #endif
 
-#endif /* __IEEE80211_DEBUGFS_NETDEV_H */
+#endif 

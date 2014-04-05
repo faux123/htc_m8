@@ -1,8 +1,3 @@
-/* orinoco.h
- *
- * Common definitions to all pieces of the various orinoco
- * drivers
- */
 
 #ifndef _ORINOCO_H
 #define _ORINOCO_H
@@ -18,10 +13,8 @@
 
 #include "hermes.h"
 
-/* To enable debug messages */
-/*#define ORINOCO_DEBUG		3*/
 
-#define WIRELESS_SPY		/* enable iwspy support */
+#define WIRELESS_SPY		
 
 #define MAX_SCAN_LEN		4096
 
@@ -30,7 +23,7 @@
 #define ORINOCO_MAX_KEYS	4
 
 struct orinoco_key {
-	__le16 len;	/* always stored as little-endian */
+	__le16 len;	
 	char data[ORINOCO_MAX_KEY_SIZE];
 } __packed;
 
@@ -58,7 +51,7 @@ enum fwtype {
 struct firmware;
 
 struct orinoco_private {
-	void *card;	/* Pointer to card dependent structure */
+	void *card;	
 	struct device *dev;
 	int (*hard_reset)(struct orinoco_private *);
 	int (*stop_fw)(struct orinoco_private *, int);
@@ -67,37 +60,37 @@ struct orinoco_private {
 	struct ieee80211_channel channels[14];
 	u32 cipher_suites[3];
 
-	/* Synchronisation stuff */
+	
 	spinlock_t lock;
 	int hw_unavailable;
 	struct work_struct reset_work;
 
-	/* Interrupt tasklets */
+	
 	struct tasklet_struct rx_tasklet;
 	struct list_head rx_list;
 
-	/* driver state */
+	
 	int open;
 	u16 last_linkstatus;
 	struct work_struct join_work;
 	struct work_struct wevent_work;
 
-	/* Net device stuff */
+	
 	struct net_device *ndev;
 	struct net_device_stats stats;
 	struct iw_statistics wstats;
 
-	/* Hardware control variables */
+	
 	struct hermes hw;
 	u16 txfid;
 
-	/* Capabilities of the hardware/firmware */
+	
 	enum fwtype firmware_type;
 	int ibss_port;
 	int nicbuf_size;
 	u16 channel_mask;
 
-	/* Boolean capabilities */
+	
 	unsigned int has_ibss:1;
 	unsigned int has_port3:1;
 	unsigned int has_wep:1;
@@ -115,7 +108,7 @@ struct orinoco_private {
 	unsigned int broken_monitor:1;
 	unsigned int prefer_port3:1;
 
-	/* Configuration paramaters */
+	
 	enum nl80211_iftype iw_mode;
 	enum orinoco_alg encode_alg;
 	u16 wep_restrict, tx_key;
@@ -134,21 +127,21 @@ struct orinoco_private {
 	u16 short_retry_limit, long_retry_limit;
 	u16 retry_lifetime;
 #ifdef WIRELESS_SPY
-	struct iw_spy_data spy_data; /* iwspy support */
+	struct iw_spy_data spy_data; 
 	struct iw_public_data	wireless_data;
 #endif
 
-	/* Configuration dependent variables */
+	
 	int port_type, createibss;
 	int promiscuous, mc_count;
 
-	/* Scanning support */
+	
 	struct cfg80211_scan_request *scan_request;
 	struct work_struct process_scan;
 	struct list_head scan_list;
-	spinlock_t scan_lock; /* protects the scan list */
+	spinlock_t scan_lock; 
 
-	/* WPA support */
+	
 	u8 *wpa_ie;
 	int wpa_ie_len;
 
@@ -160,7 +153,7 @@ struct orinoco_private {
 	unsigned int key_mgmt:3;
 
 #if defined(CONFIG_HERMES_CACHE_FW_ON_INIT) || defined(CONFIG_PM_SLEEP)
-	/* Cached in memory firmware to use during ->resume. */
+	
 	const struct firmware *cached_pri_fw;
 	const struct firmware *cached_fw;
 #endif
@@ -176,11 +169,8 @@ extern int orinoco_debug;
 } while (0)
 #else
 #define DEBUG(n, args...) do { } while (0)
-#endif	/* ORINOCO_DEBUG */
+#endif	
 
-/********************************************************************/
-/* Exported prototypes                                              */
-/********************************************************************/
 
 extern struct orinoco_private *alloc_orinocodev(
 	int sizeof_card, struct device *device,
@@ -206,7 +196,6 @@ int orinoco_process_xmit_skb(struct sk_buff *skb,
 			     int *tx_control,
 			     u8 *mic);
 
-/* Common ndo functions exported for reuse by orinoco_usb */
 int orinoco_open(struct net_device *dev);
 int orinoco_stop(struct net_device *dev);
 struct net_device_stats *orinoco_get_stats(struct net_device *dev);
@@ -214,9 +203,6 @@ void orinoco_set_multicast_list(struct net_device *dev);
 int orinoco_change_mtu(struct net_device *dev, int new_mtu);
 void orinoco_tx_timeout(struct net_device *dev);
 
-/********************************************************************/
-/* Locking and synchronization functions                            */
-/********************************************************************/
 
 static inline int orinoco_lock(struct orinoco_private *priv,
 			       unsigned long *flags)
@@ -247,10 +233,9 @@ static inline void orinoco_unlock_irq(struct orinoco_private *priv)
 	priv->hw.ops->unlock_irq(&priv->lock);
 }
 
-/*** Navigate from net_device to orinoco_private ***/
 static inline struct orinoco_private *ndev_priv(struct net_device *dev)
 {
 	struct wireless_dev *wdev = netdev_priv(dev);
 	return wdev_priv(wdev);
 }
-#endif /* _ORINOCO_H */
+#endif 

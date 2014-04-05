@@ -254,7 +254,7 @@ void __exit x25_proc_exit(void)
 	remove_proc_entry("x25", init_net.proc_net);
 }
 
-#else /* CONFIG_PROC_FS */
+#else 
 
 int __init x25_proc_init(void)
 {
@@ -264,4 +264,4 @@ int __init x25_proc_init(void)
 void __exit x25_proc_exit(void)
 {
 }
-#endif /* CONFIG_PROC_FS */
+#endif 

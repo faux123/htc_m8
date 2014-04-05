@@ -18,16 +18,6 @@
 #include <asm/ptrace.h>
 #include <asm/uaccess.h>
 
-/**
- * __compute_return_epc_for_insn - Computes the return address and do emulate
- *				    branch simulation, if required.
- *
- * @regs:	Pointer to pt_regs
- * @insn:	branch instruction to decode
- * @returns:	-EFAULT on error and forces SIGBUS, and on success
- *		returns 0 or BRANCH_LIKELY_TAKEN as appropriate after
- *		evaluating the branch.
- */
 int __compute_return_epc_for_insn(struct pt_regs *regs,
 				   union mips_instruction insn)
 {
@@ -36,25 +26,17 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 	int ret = 0;
 
 	switch (insn.i_format.opcode) {
-	/*
-	 * jr and jalr are in r_format format.
-	 */
 	case spec_op:
 		switch (insn.r_format.func) {
 		case jalr_op:
 			regs->regs[insn.r_format.rd] = epc + 8;
-			/* Fall through */
+			
 		case jr_op:
 			regs->cp0_epc = regs->regs[insn.r_format.rs];
 			break;
 		}
 		break;
 
-	/*
-	 * This group contains:
-	 * bltz_op, bgez_op, bltzl_op, bgezl_op,
-	 * bltzal_op, bgezal_op, bltzall_op, bgezall_op.
-	 */
 	case bcond_op:
 		switch (insn.i_format.rt) {
 	 	case bltz_op:
@@ -118,9 +100,6 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		}
 		break;
 
-	/*
-	 * These are unconditional and in j_format.
-	 */
 	case jal_op:
 		regs->regs[31] = regs->cp0_epc + 8;
 	case j_op:
@@ -131,9 +110,6 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		regs->cp0_epc = epc;
 		break;
 
-	/*
-	 * These are conditional and in i_format.
-	 */
 	case beq_op:
 	case beql_op:
 		if (regs->regs[insn.i_format.rs] ==
@@ -158,9 +134,9 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		regs->cp0_epc = epc;
 		break;
 
-	case blez_op: /* not really i_format */
+	case blez_op: 
 	case blezl_op:
-		/* rt field assumed to be zero */
+		
 		if ((long)regs->regs[insn.i_format.rs] <= 0) {
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
 			if (insn.i_format.rt == bnel_op)
@@ -172,7 +148,7 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 
 	case bgtz_op:
 	case bgtzl_op:
-		/* rt field assumed to be zero */
+		
 		if ((long)regs->regs[insn.i_format.rs] > 0) {
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
 			if (insn.i_format.rt == bnel_op)
@@ -182,9 +158,6 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		regs->cp0_epc = epc;
 		break;
 
-	/*
-	 * And now the FPA/cp1 branch instructions.
-	 */
 	case cop1_op:
 		preempt_disable();
 		if (is_fpu_owner())
@@ -197,8 +170,8 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		bit += (bit != 0);
 		bit += 23;
 		switch (insn.i_format.rt & 3) {
-		case 0:	/* bc1f */
-		case 2:	/* bc1fl */
+		case 0:	
+		case 2:	
 			if (~fcr31 & (1 << bit)) {
 				epc = epc + 4 + (insn.i_format.simmediate << 2);
 				if (insn.i_format.rt == 2)
@@ -208,8 +181,8 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 			regs->cp0_epc = epc;
 			break;
 
-		case 1:	/* bc1t */
-		case 3:	/* bc1tl */
+		case 1:	
+		case 3:	
 			if (fcr31 & (1 << bit)) {
 				epc = epc + 4 + (insn.i_format.simmediate << 2);
 				if (insn.i_format.rt == 3)
@@ -221,7 +194,7 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 		}
 		break;
 #ifdef CONFIG_CPU_CAVIUM_OCTEON
-	case lwc2_op: /* This is bbit0 on Octeon */
+	case lwc2_op: 
 		if ((regs->regs[insn.i_format.rs] & (1ull<<insn.i_format.rt))
 		     == 0)
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
@@ -229,7 +202,7 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 			epc += 8;
 		regs->cp0_epc = epc;
 		break;
-	case ldc2_op: /* This is bbit032 on Octeon */
+	case ldc2_op: 
 		if ((regs->regs[insn.i_format.rs] &
 		    (1ull<<(insn.i_format.rt+32))) == 0)
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
@@ -237,14 +210,14 @@ int __compute_return_epc_for_insn(struct pt_regs *regs,
 			epc += 8;
 		regs->cp0_epc = epc;
 		break;
-	case swc2_op: /* This is bbit1 on Octeon */
+	case swc2_op: 
 		if (regs->regs[insn.i_format.rs] & (1ull<<insn.i_format.rt))
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
 		else
 			epc += 8;
 		regs->cp0_epc = epc;
 		break;
-	case sdc2_op: /* This is bbit132 on Octeon */
+	case sdc2_op: 
 		if (regs->regs[insn.i_format.rs] &
 		    (1ull<<(insn.i_format.rt+32)))
 			epc = epc + 4 + (insn.i_format.simmediate << 2);
@@ -274,9 +247,6 @@ int __compute_return_epc(struct pt_regs *regs)
 	if (epc & 3)
 		goto unaligned;
 
-	/*
-	 * Read the instruction
-	 */
 	addr = (unsigned int __user *) epc;
 	if (__get_user(insn.word, addr)) {
 		force_sig(SIGSEGV, current);

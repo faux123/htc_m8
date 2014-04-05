@@ -18,7 +18,6 @@
 #include <linux/platform_device.h>
 #include <linux/platform_data/dwc3-exynos.h>
 #include <linux/dma-mapping.h>
-#include <linux/module.h>
 #include <linux/clk.h>
 
 #include "core.h"
@@ -76,7 +75,7 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
 
 	clk_enable(exynos->clk);
 
-	/* PHY initialization */
+	
 	if (!pdata) {
 		dev_dbg(&pdev->dev, "missing platform data\n");
 	} else {

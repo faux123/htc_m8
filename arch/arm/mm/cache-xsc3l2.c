@@ -81,11 +81,6 @@ static inline unsigned long l2_map_va(unsigned long pa, unsigned long prev_va)
 	unsigned long va = prev_va & PAGE_MASK;
 	unsigned long pa_offset = pa << (32 - PAGE_SHIFT);
 	if (unlikely(pa_offset < (prev_va << (32 - PAGE_SHIFT)))) {
-		/*
-		 * Switching to a new page.  Because cache ops are
-		 * using virtual addresses only, we must put a mapping
-		 * in place for it.
-		 */
 		l2_unmap_va(prev_va);
 		va = (unsigned long)kmap_atomic_pfn(pa >> PAGE_SHIFT);
 	}
@@ -104,11 +99,8 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 		return;
 	}
 
-	vaddr = -1;  /* to force the first mapping */
+	vaddr = -1;  
 
-	/*
-	 * Clean and invalidate partial first cache line.
-	 */
 	if (start & (CACHE_LINE_SIZE - 1)) {
 		vaddr = l2_map_va(start & ~(CACHE_LINE_SIZE - 1), vaddr);
 		xsc3_l2_clean_mva(vaddr);
@@ -116,18 +108,12 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 		start = (start | (CACHE_LINE_SIZE - 1)) + 1;
 	}
 
-	/*
-	 * Invalidate all full cache lines between 'start' and 'end'.
-	 */
 	while (start < (end & ~(CACHE_LINE_SIZE - 1))) {
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_inv_mva(vaddr);
 		start += CACHE_LINE_SIZE;
 	}
 
-	/*
-	 * Clean and invalidate partial last cache line.
-	 */
 	if (start < end) {
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_clean_mva(vaddr);
@@ -143,7 +129,7 @@ static void xsc3_l2_clean_range(unsigned long start, unsigned long end)
 {
 	unsigned long vaddr;
 
-	vaddr = -1;  /* to force the first mapping */
+	vaddr = -1;  
 
 	start &= ~(CACHE_LINE_SIZE - 1);
 	while (start < end) {
@@ -157,9 +143,6 @@ static void xsc3_l2_clean_range(unsigned long start, unsigned long end)
 	dsb();
 }
 
-/*
- * optimize L2 flush all operation by set/way format
- */
 static inline void xsc3_l2_flush_all(void)
 {
 	unsigned long l2ctype, set_way;
@@ -186,7 +169,7 @@ static void xsc3_l2_flush_range(unsigned long start, unsigned long end)
 		return;
 	}
 
-	vaddr = -1;  /* to force the first mapping */
+	vaddr = -1;  
 
 	start &= ~(CACHE_LINE_SIZE - 1);
 	while (start < end) {
