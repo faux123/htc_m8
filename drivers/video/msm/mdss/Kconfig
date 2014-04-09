@@ -61,3 +61,7 @@ config MHL_MONITOR_WORKAROUND
 	Support the MHL function in some monitor.
 	Som monitor can't full support HDMI spec.
 	Workaound for this kind of issue
+
+config LCD_KCAL
+	bool "Enable sysfs for LCD KCAL"	
+	default n
