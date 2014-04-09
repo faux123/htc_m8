@@ -476,3 +476,4 @@ obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_HTC_RPM_CMD) += rpm_htc_cmd.o
 obj-$(CONFIG_HTC_MONITOR) += htc_monitor.o
 obj-$(CONFIG_MSM_CPUFREQ_LIMITER) += cpufreq_limit.o
+obj-$(CONFIG_LCD_KCAL) += htc_kcal_ctrl.o
