@@ -35,9 +35,8 @@
 	};
 
         i2c@f9925000 {
-                nxp_pn544_nfc@28 {
+                nxp_pn544_nfc {
                         compatible = "nxp,pn544-nfc";
-                        reg = <0x28>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <144 0x4>;
                         nxp,ven-gpio = <&msmgpio 2 0x00>;
@@ -46,9 +45,8 @@
                         nxp,ven_isinvert = <1>;
                 };
 
-                htc_mcu@3a {
+                htc_mcu{
                         compatible = "htc_mcu";
-                        reg = <0x3a>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <67 0x0>;
                         mcu,intr-gpio  = <&msmgpio 67 0x00>;
@@ -63,9 +61,8 @@
         };
 
         i2c@f9925000 {
-                cm32181@10 {
+                cm32181{
                         compatible = "CM32181";
-                        reg = <0x10>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <73 0x02>;
                         interrupt-names = "cm32181";
@@ -121,9 +118,8 @@
 	};
 
 	i2c@f9925000 {
-		tps61310@33 {
+		tps61310 {
 			compatible = "TPS61310_FLASHLIGHT";
-			reg = <0x33>;
 			tps61310,tps61310_strb0 = <&pm8941_gpios 26 0x00>;
 			tps61310,tps61310_strb1 = <&pm8941_gpios 27 0x00>;
 			tps61310,flash_duration_ms = <600>;
@@ -365,6 +361,8 @@
 /*Audio config end*/
 
 	qcom,pm8941@1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
 		qcom,vib@c000 {
 			status = "okay";
 			compatible = "qcom,qpnp-vibrator";

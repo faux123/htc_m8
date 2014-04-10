@@ -37,7 +37,6 @@
 
 	yushanII {
 		compatible = "yushanII";
-		reg = <0x00>;
 		rawchip-reset = <&pm8941_gpios 14 0>;
 		raw_mclk = <&msmgpio 15 0>;
 
