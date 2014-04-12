@@ -543,6 +543,9 @@ int tps61310_flashlight_control(int mode)
 	int ret = 0;
 	int err = 0;
 
+	if (this_tps61310 == NULL)
+		return -1;
+
 	mutex_lock(&tps61310_mutex);
 	if (this_tps61310->reset && reg_init_fail) {
 		reg_init_fail = 0;
