@@ -937,6 +937,9 @@ static int CWMCU_i2c_write(struct CWMCU_data *sensor,
 	int retry = 0;
 	int i;
 
+	if (sensor == NULL)
+		return -1;
+
 	mc_power_controller(1);
 	#if USE_WAKE_MCU
 	if(gpio_get_value(mcu_data->gpio_wake_mcu)){
