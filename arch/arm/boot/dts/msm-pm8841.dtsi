@@ -67,8 +67,9 @@
 		};
 	};
 
-	qcom,pm8841 {
+	qcom,pm8841@5 {
 		spmi-slave-container;
+		reg = <0x5>;
 		#address-cells = <1>;
 		#size-cells = <1>;
 
@@ -266,6 +267,7 @@
 			compatible = "htc,modem-debug-dump-pmic";
 			#address-cells = <1>;
 			#size-cells = <1>;
+			reg = <0>;
 			htc,dump-register =
 			/* PM8941 BB_CLK1 */
 			< 0 0x5105 >,
