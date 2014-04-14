@@ -18,28 +18,6 @@
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/*
- * BEGIN_DESC
- *
- *  File:
- *	@(#)	pa/spmath/fcnvfu.c		$Revision: 1.1 $
- *
- *  Purpose:
- *	Floating-point to Unsigned Fixed-point Converts
- *
- *  External Interfaces:
- *	dbl_to_dbl_fcnvfu(srcptr,nullptr,dstptr,status)
- *	dbl_to_sgl_fcnvfu(srcptr,nullptr,dstptr,status)
- *	sgl_to_dbl_fcnvfu(srcptr,nullptr,dstptr,status)
- *	sgl_to_sgl_fcnvfu(srcptr,nullptr,dstptr,status)
- *
- *  Internal Interfaces:
- *
- *  Theory:
- *	<<please update with a overview of the operation of this file>>
- *
- * END_DESC
-*/
 
 
 #include "float.h"
@@ -47,14 +25,7 @@
 #include "dbl_float.h"
 #include "cnv_float.h"
 
-/************************************************************************
- *  Floating-point to Unsigned Fixed-point Converts			*
- ************************************************************************/
 
-/*
- *  Single Floating-point to Single Unsigned Fixed 
- */
-/*ARGSUSED*/
 int
 sgl_to_sgl_fcnvfu(
 			sgl_floating_point *srcptr,
@@ -69,9 +40,6 @@ sgl_to_sgl_fcnvfu(
 	src = *srcptr;
 	src_exponent = Sgl_exponent(src) - SGL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > SGL_FX_MAX_EXP + 1) {
 		if (Sgl_isone_sign(src)) {
 			result = 0;
@@ -85,14 +53,7 @@ sgl_to_sgl_fcnvfu(
 		*dstptr = result;
 		return(NOEXCEPTION);
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
-		/* 
-		 * Check sign.
-		 * If negative, trap unimplemented.
-		 */
 		if (Sgl_isone_sign(src)) {
 			result = 0;
 			if (Is_invalidtrap_enabled()) {
@@ -105,15 +66,15 @@ sgl_to_sgl_fcnvfu(
 		Sgl_clear_signexponent_set_hidden(src);
 		Suint_from_sgl_mantissa(src,src_exponent,result);
 
-		/* check for inexact */
+		
 		if (Sgl_isinexact_to_unsigned(src,src_exponent)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				result++;
 				break;
-			case ROUNDMINUS: /* never negative */
+			case ROUNDMINUS: 
 				break;
 			case ROUNDNEAREST:
 				if (Sgl_isone_roundbit(src,src_exponent) &&
@@ -127,10 +88,10 @@ sgl_to_sgl_fcnvfu(
 	} else {
 		result = 0;
 
-		/* check for inexact */
+		
 		if (Sgl_isnotzero_exponentmantissa(src)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				if (Sgl_iszero_sign(src)) {
@@ -172,10 +133,6 @@ sgl_to_sgl_fcnvfu(
 	return(NOEXCEPTION);
 }
 
-/*
- *  Single Floating-point to Double Unsigned Fixed 
- */
-/*ARGSUSED*/
 int
 sgl_to_dbl_fcnvfu(
 		    sgl_floating_point *srcptr,
@@ -190,9 +147,6 @@ sgl_to_dbl_fcnvfu(
 	src = *srcptr;
 	src_exponent = Sgl_exponent(src) - SGL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > DBL_FX_MAX_EXP + 1) {
 		if (Sgl_isone_sign(src)) {
 			resultp1 = resultp2 = 0;
@@ -206,14 +160,7 @@ sgl_to_dbl_fcnvfu(
     		Duint_copytoptr(resultp1,resultp2,dstptr);
 		return(NOEXCEPTION);
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
-		/* 
-		 * Check sign.
-		 * If negative, trap unimplemented.
-		 */
 		if (Sgl_isone_sign(src)) {
 			resultp1 = resultp2 = 0;
 			if (Is_invalidtrap_enabled()) {
@@ -226,15 +173,15 @@ sgl_to_dbl_fcnvfu(
 		Sgl_clear_signexponent_set_hidden(src);
 		Duint_from_sgl_mantissa(src,src_exponent,resultp1,resultp2);
 
-		/* check for inexact */
+		
 		if (Sgl_isinexact_to_unsigned(src,src_exponent)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				Duint_increment(resultp1,resultp2);
 				break;
-			case ROUNDMINUS: /* never negative */
+			case ROUNDMINUS: 
 				break;
 			case ROUNDNEAREST:
 				if (Sgl_isone_roundbit(src,src_exponent) &&
@@ -248,10 +195,10 @@ sgl_to_dbl_fcnvfu(
 	} else {
 		Duint_setzero(resultp1,resultp2);
 
-		/* check for inexact */
+		
 		if (Sgl_isnotzero_exponentmantissa(src)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				if (Sgl_iszero_sign(src)) {
@@ -293,10 +240,6 @@ sgl_to_dbl_fcnvfu(
 	return(NOEXCEPTION);
 }
 
-/*
- *  Double Floating-point to Single Unsigned Fixed 
- */
-/*ARGSUSED*/
 int
 dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		   unsigned int *dstptr, unsigned int *status)
@@ -308,9 +251,6 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 	Dbl_copyfromptr(srcptr,srcp1,srcp2);
 	src_exponent = Dbl_exponent(srcp1) - DBL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > SGL_FX_MAX_EXP + 1) {
 		if (Dbl_isone_sign(srcp1)) {
 			result = 0;
@@ -324,14 +264,7 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		*dstptr = result;
 		return(NOEXCEPTION);
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
-		/* 
-		 * Check sign.
-		 * If negative, trap unimplemented.
-		 */
 		if (Dbl_isone_sign(srcp1)) {
 			result = 0;
 			if (Is_invalidtrap_enabled()) {
@@ -344,15 +277,15 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		Dbl_clear_signexponent_set_hidden(srcp1);
 		Suint_from_dbl_mantissa(srcp1,srcp2,src_exponent,result);
 
-		/* check for inexact */
+		
 		if (Dbl_isinexact_to_unsigned(srcp1,srcp2,src_exponent)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 			     result++;
 			     break;
-			case ROUNDMINUS: /* never negative */
+			case ROUNDMINUS: 
 			     break;
 			case ROUNDNEAREST:
 			     if(Dbl_isone_roundbit(srcp1,srcp2,src_exponent) &&
@@ -361,7 +294,7 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 				   result++;
 			     break;
 			}
-			/* check for overflow */
+			
 			if (result == 0) {
 				result = 0xffffffff;
 				if (Is_invalidtrap_enabled()) {
@@ -375,10 +308,10 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 	} else {
 		result = 0;
 
-		/* check for inexact */
+		
 		if (Dbl_isnotzero_exponentmantissa(srcp1,srcp2)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				if (Dbl_iszero_sign(srcp1)) result++;
@@ -416,10 +349,6 @@ dbl_to_sgl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 	return(NOEXCEPTION);
 }
 
-/*
- *  Double Floating-point to Double Unsigned Fixed 
- */
-/*ARGSUSED*/
 int
 dbl_to_dbl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		   dbl_unsigned * dstptr, unsigned int *status)
@@ -431,9 +360,6 @@ dbl_to_dbl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 	Dbl_copyfromptr(srcptr,srcp1,srcp2);
 	src_exponent = Dbl_exponent(srcp1) - DBL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > DBL_FX_MAX_EXP + 1) {
 		if (Dbl_isone_sign(srcp1)) {
 			resultp1 = resultp2 = 0;
@@ -448,14 +374,7 @@ dbl_to_dbl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		return(NOEXCEPTION);
 	}
  
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
-		/* 
-		 * Check sign.
-		 * If negative, trap unimplemented.
-		 */
 		if (Dbl_isone_sign(srcp1)) {
 			resultp1 = resultp2 = 0;
 			if (Is_invalidtrap_enabled()) {
@@ -469,15 +388,15 @@ dbl_to_dbl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 		Duint_from_dbl_mantissa(srcp1,srcp2,src_exponent,resultp1,
 		  resultp2);
 
-		/* check for inexact */
+		
 		if (Dbl_isinexact_to_unsigned(srcp1,srcp2,src_exponent)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				Duint_increment(resultp1,resultp2);
 				break;
-			case ROUNDMINUS: /* never negative */
+			case ROUNDMINUS: 
 				break;
 			case ROUNDNEAREST:
 				if(Dbl_isone_roundbit(srcp1,srcp2,src_exponent))
@@ -489,10 +408,10 @@ dbl_to_dbl_fcnvfu (dbl_floating_point * srcptr, unsigned int *nullptr,
 	} else {
 		Duint_setzero(resultp1,resultp2);
 
-		/* check for inexact */
+		
 		if (Dbl_isnotzero_exponentmantissa(srcp1,srcp2)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 				if (Dbl_iszero_sign(srcp1)) {

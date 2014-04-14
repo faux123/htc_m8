@@ -30,9 +30,6 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
 #if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
 static struct pxamci_platform_data colibri_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
@@ -43,13 +40,13 @@ static struct pxamci_platform_data colibri_mci_platform_data = {
 
 static void __init colibri_mmc_init(void)
 {
-	if (machine_is_colibri())	/* PXA270 Colibri */
+	if (machine_is_colibri())	
 		colibri_mci_platform_data.gpio_card_detect =
 			GPIO0_COLIBRI_PXA270_SD_DETECT;
-	if (machine_is_colibri300())	/* PXA300 Colibri */
+	if (machine_is_colibri300())	
 		colibri_mci_platform_data.gpio_card_detect =
 			GPIO13_COLIBRI_PXA300_SD_DETECT;
-	else				/* PXA320 Colibri */
+	else				
 		colibri_mci_platform_data.gpio_card_detect =
 			GPIO28_COLIBRI_PXA320_SD_DETECT;
 
@@ -59,9 +56,6 @@ static void __init colibri_mmc_init(void)
 static inline void colibri_mmc_init(void) {}
 #endif
 
-/******************************************************************************
- * USB Host
- ******************************************************************************/
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
 static int colibri_ohci_init(struct device *dev)
 {
@@ -78,7 +72,7 @@ static struct pxaohci_platform_data colibri_ohci_info = {
 
 static void __init colibri_uhc_init(void)
 {
-	/* Colibri PXA270 has two usb ports, TBA for 320 */
+	
 	if (machine_is_colibri())
 		colibri_ohci_info.flags	|= ENABLE_PORT2;
 
@@ -88,9 +82,6 @@ static void __init colibri_uhc_init(void)
 static inline void colibri_uhc_init(void) {}
 #endif
 
-/******************************************************************************
- * I2C RTC
- ******************************************************************************/
 #if defined(CONFIG_RTC_DRV_DS1307) || defined(CONFIG_RTC_DRV_DS1307_MODULE)
 static struct i2c_board_info __initdata colibri_i2c_devs[] = {
 	{

@@ -59,10 +59,6 @@ static int compat_hdio_getgeo(struct gendisk *disk, struct block_device *bdev,
 	if (!disk->fops->getgeo)
 		return -ENOTTY;
 
-	/*
-	 * We need to set the startsect first, the driver may
-	 * want to override it.
-	 */
 	geo.start = get_start_sect(bdev);
 	ret = disk->fops->getgeo(bdev, &geo);
 	if (ret)
@@ -551,21 +547,13 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case CDROM_SEND_PACKET:
 		return compat_cdrom_generic_command(bdev, mode, cmd, arg);
 
-	/*
-	 * No handler required for the ones below, we just need to
-	 * convert arg to a 64 bit pointer.
-	 */
 	case BLKSECTSET:
-	/*
-	 * 0x03 -- HD/IDE ioctl's used by hdparm and friends.
-	 *         Some need translations, these do not.
-	 */
 	case HDIO_GET_IDENTITY:
 	case HDIO_DRIVE_TASK:
 	case HDIO_DRIVE_CMD:
-	/* 0x330 is reserved -- it used to be HDIO_GETGEO_BIG */
+	
 	case 0x330:
-	/* 0x02 -- Floppy ioctls */
+	
 	case FDMSGON:
 	case FDMSGOFF:
 	case FDSETEMSGTRESH:
@@ -582,7 +570,7 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case FDTWADDLE:
 	case FDFMTTRK:
 	case FDRAWCMD:
-	/* CDROM stuff */
+	
 	case CDROMPAUSE:
 	case CDROMRESUME:
 	case CDROMPLAYMSF:
@@ -604,22 +592,16 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case CDROM_DISC_STATUS:
 	case CDROM_CHANGER_NSLOTS:
 	case CDROM_GET_CAPABILITY:
-	/* Ignore cdrom.h about these next 5 ioctls, they absolutely do
-	 * not take a struct cdrom_read, instead they take a struct cdrom_msf
-	 * which is compatible.
-	 */
 	case CDROMREADMODE2:
 	case CDROMREADMODE1:
 	case CDROMREADRAW:
 	case CDROMREADCOOKED:
 	case CDROMREADALL:
-	/* DVD ioctls */
+	
 	case DVD_READ_STRUCT:
 	case DVD_WRITE_STRUCT:
 	case DVD_AUTH:
 		arg = (unsigned long)compat_ptr(arg);
-	/* These intepret arg as an unsigned long, not as a pointer,
-	 * so we must not do compat_ptr() conversion. */
 	case HDIO_SET_MULTCOUNT:
 	case HDIO_SET_UNMASKINTR:
 	case HDIO_SET_KEEPSETTINGS:
@@ -643,16 +625,13 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case CDROM_DEBUG:
 		break;
 	default:
-		/* unknown ioctl number */
+		
 		return -ENOIOCTLCMD;
 	}
 
 	return __blkdev_driver_ioctl(bdev, mode, cmd, arg);
 }
 
-/* Most of the generic ioctls are handled in the normal fallback path.
-   This assumes the blkdev's low level compat_ioctl always returns
-   ENOIOCTLCMD for unknown ioctls. */
 long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 {
 	int ret = -ENOIOCTLCMD;
@@ -663,10 +642,6 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	struct backing_dev_info *bdi;
 	loff_t size;
 
-	/*
-	 * O_NDELAY can be altered using fcntl(.., F_SETFL, ..), so we have
-	 * to updated it before every ioctl.
-	 */
 	if (file->f_flags & O_NDELAY)
 		mode |= FMODE_NDELAY;
 	else
@@ -689,10 +664,6 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	case BLKROSET:
 	case BLKDISCARD:
 	case BLKSECDISCARD:
-	/*
-	 * the ones below are implemented in blkdev_locked_ioctl,
-	 * but we call blkdev_ioctl, which gets the lock for us
-	 */
 	case BLKRRPART:
 		return blkdev_ioctl(bdev, mode, cmd,
 				(unsigned long)compat_ptr(arg));
@@ -710,11 +681,11 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 			return -ENOTTY;
 		return compat_put_long(arg,
 				       (bdi->ra_pages * PAGE_CACHE_SIZE) / 512);
-	case BLKROGET: /* compatible */
+	case BLKROGET: 
 		return compat_put_int(arg, bdev_read_only(bdev) != 0);
-	case BLKBSZGET_32: /* get the logical block size (cf. BLKSSZGET) */
+	case BLKBSZGET_32: 
 		return compat_put_int(arg, block_size(bdev));
-	case BLKSSZGET: /* get block device hardware sector size */
+	case BLKSSZGET: 
 		return compat_put_int(arg, bdev_logical_block_size(bdev));
 	case BLKSECTGET:
 		return compat_put_ushort(arg,
@@ -722,7 +693,7 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	case BLKROTATIONAL:
 		return compat_put_ushort(arg,
 					 !blk_queue_nonrot(bdev_get_queue(bdev)));
-	case BLKRASET: /* compatible, but no compat_ptr (!) */
+	case BLKRASET: 
 	case BLKFRASET:
 		if (!capable(CAP_SYS_ADMIN))
 			return -EACCES;
@@ -741,9 +712,9 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 		return compat_put_u64(arg, i_size_read(bdev->bd_inode));
 
 	case BLKTRACESETUP32:
-	case BLKTRACESTART: /* compatible */
-	case BLKTRACESTOP:  /* compatible */
-	case BLKTRACETEARDOWN: /* compatible */
+	case BLKTRACESTART: 
+	case BLKTRACESTOP:  
+	case BLKTRACETEARDOWN: 
 		ret = blk_trace_ioctl(bdev, cmd, compat_ptr(arg));
 		return ret;
 	default:

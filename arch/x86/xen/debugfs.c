@@ -41,7 +41,7 @@ static size_t format_array(char *buf, size_t bufsize, const char *fmt,
 		size_t len;
 
 		len = snprintf(buf, bufsize, fmt, array[i]);
-		len++;	/* ' ' or '\n' */
+		len++;	
 		ret += len;
 
 		if (buf) {
@@ -51,7 +51,7 @@ static size_t format_array(char *buf, size_t bufsize, const char *fmt,
 		}
 	}
 
-	ret++;		/* \0 */
+	ret++;		
 	if (buf)
 		*buf = '\0';
 

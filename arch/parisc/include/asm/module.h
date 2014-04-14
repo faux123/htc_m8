@@ -1,8 +1,5 @@
 #ifndef _ASM_PARISC_MODULE_H
 #define _ASM_PARISC_MODULE_H
-/*
- * This file contains the parisc architecture specific module code.
- */
 #ifdef CONFIG_64BIT
 #define Elf_Shdr Elf64_Shdr
 #define Elf_Sym Elf64_Sym
@@ -31,4 +28,4 @@ struct mod_arch_specific
 	struct unwind_table *unwind;
 };
 
-#endif /* _ASM_PARISC_MODULE_H */
+#endif 

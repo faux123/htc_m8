@@ -35,9 +35,6 @@
 
 #include "sb1250_defs.h"
 
-/*
- * Memory Channel Configuration Register (Table 81)
- */
 
 #define S_BCM1480_MC_INTLV0                 0
 #define M_BCM1480_MC_INTLV0                 _SB_MAKEMASK(6, S_BCM1480_MC_INTLV0)
@@ -76,9 +73,6 @@
 #define K_BCM1480_MC_CS0167_MODE	    0xC3
 #define K_BCM1480_MC_CSFULL_MODE	    0xFF
 
-/*
- * Chip Select Start Address Register (Table 82)
- */
 
 #define S_BCM1480_MC_CS0_START              0
 #define M_BCM1480_MC_CS0_START              _SB_MAKEMASK(12, S_BCM1480_MC_CS0_START)
@@ -100,9 +94,6 @@
 #define V_BCM1480_MC_CS3_START(x)           _SB_MAKEVALUE(x, S_BCM1480_MC_CS3_START)
 #define G_BCM1480_MC_CS3_START(x)           _SB_GETVALUE(x, S_BCM1480_MC_CS3_START, M_BCM1480_MC_CS3_START)
 
-/*
- * Chip Select End Address Register (Table 83)
- */
 
 #define S_BCM1480_MC_CS0_END                0
 #define M_BCM1480_MC_CS0_END                _SB_MAKEMASK(12, S_BCM1480_MC_CS0_END)
@@ -124,9 +115,6 @@
 #define V_BCM1480_MC_CS3_END(x)             _SB_MAKEVALUE(x, S_BCM1480_MC_CS3_END)
 #define G_BCM1480_MC_CS3_END(x)             _SB_GETVALUE(x, S_BCM1480_MC_CS3_END, M_BCM1480_MC_CS3_END)
 
-/*
- * Row Address Bit Select Register 0 (Table 84)
- */
 
 #define S_BCM1480_MC_ROW00                  0
 #define M_BCM1480_MC_ROW00                  _SB_MAKEMASK(6, S_BCM1480_MC_ROW00)
@@ -168,9 +156,6 @@
 #define V_BCM1480_MC_ROW07(x)               _SB_MAKEVALUE(x, S_BCM1480_MC_ROW07)
 #define G_BCM1480_MC_ROW07(x)               _SB_GETVALUE(x, S_BCM1480_MC_ROW07, M_BCM1480_MC_ROW07)
 
-/*
- * Row Address Bit Select Register 1 (Table 85)
- */
 
 #define S_BCM1480_MC_ROW08                  0
 #define M_BCM1480_MC_ROW08                  _SB_MAKEMASK(6, S_BCM1480_MC_ROW08)
@@ -209,9 +194,6 @@
 
 #define K_BCM1480_MC_ROWX_BIT_SPACING  	    8
 
-/*
- * Column Address Bit Select Register 0 (Table 86)
- */
 
 #define S_BCM1480_MC_COL00                  0
 #define M_BCM1480_MC_COL00                  _SB_MAKEMASK(6, S_BCM1480_MC_COL00)
@@ -253,9 +235,6 @@
 #define V_BCM1480_MC_COL07(x)               _SB_MAKEVALUE(x, S_BCM1480_MC_COL07)
 #define G_BCM1480_MC_COL07(x)               _SB_GETVALUE(x, S_BCM1480_MC_COL07, M_BCM1480_MC_COL07)
 
-/*
- * Column Address Bit Select Register 1 (Table 87)
- */
 
 #define S_BCM1480_MC_COL08                  0
 #define M_BCM1480_MC_COL08                  _SB_MAKEMASK(6, S_BCM1480_MC_COL08)
@@ -267,7 +246,7 @@
 #define V_BCM1480_MC_COL09(x)               _SB_MAKEVALUE(x, S_BCM1480_MC_COL09)
 #define G_BCM1480_MC_COL09(x)               _SB_GETVALUE(x, S_BCM1480_MC_COL09, M_BCM1480_MC_COL09)
 
-#define S_BCM1480_MC_COL10                  16   /* not a valid position, must be prog as 0 */
+#define S_BCM1480_MC_COL10                  16   
 
 #define S_BCM1480_MC_COL11                  24
 #define M_BCM1480_MC_COL11                  _SB_MAKEMASK(6, S_BCM1480_MC_COL11)
@@ -291,9 +270,6 @@
 
 #define K_BCM1480_MC_COLX_BIT_SPACING  	    8
 
-/*
- * CS0 and CS1 Bank Address Bit Select Register (Table 88)
- */
 
 #define S_BCM1480_MC_CS01_BANK0             0
 #define M_BCM1480_MC_CS01_BANK0             _SB_MAKEMASK(6, S_BCM1480_MC_CS01_BANK0)
@@ -310,9 +286,6 @@
 #define V_BCM1480_MC_CS01_BANK2(x)          _SB_MAKEVALUE(x, S_BCM1480_MC_CS01_BANK2)
 #define G_BCM1480_MC_CS01_BANK2(x)          _SB_GETVALUE(x, S_BCM1480_MC_CS01_BANK2, M_BCM1480_MC_CS01_BANK2)
 
-/*
- * CS2 and CS3 Bank Address Bit Select Register (Table 89)
- */
 
 #define S_BCM1480_MC_CS23_BANK0             0
 #define M_BCM1480_MC_CS23_BANK0             _SB_MAKEMASK(6, S_BCM1480_MC_CS23_BANK0)
@@ -331,9 +304,6 @@
 
 #define K_BCM1480_MC_CSXX_BANKX_BIT_SPACING  8
 
-/*
- * DRAM Command Register (Table 90)
- */
 
 #define S_BCM1480_MC_COMMAND                0
 #define M_BCM1480_MC_COMMAND                _SB_MAKEMASK(4, S_BCM1480_MC_COMMAND)
@@ -388,9 +358,6 @@
 
 #define M_BCM1480_MC_CMD_ACTIVE             _SB_MAKEMASK1(16)
 
-/*
- * DRAM Mode Register (Table 91)
- */
 
 #define S_BCM1480_MC_EMODE                  0
 #define M_BCM1480_MC_EMODE                  _SB_MAKEMASK(15, S_BCM1480_MC_EMODE)
@@ -449,9 +416,6 @@
 #define V_BCM1480_MC_DRAMMODE_DEFAULT	V_BCM1480_MC_EMODE_DEFAULT | V_BCM1480_MC_MODE_DEFAULT | V_BCM1480_MC_DRAM_TYPE_JEDEC | \
                                 V_BCM1480_MC_PG_POLICY(K_BCM1480_MC_PG_POLICY_CAS_TIME_CHK)
 
-/*
- * Memory Clock Configuration Register (Table 92)
- */
 
 #define S_BCM1480_MC_CLK_RATIO              0
 #define M_BCM1480_MC_CLK_RATIO              _SB_MAKEMASK(6, S_BCM1480_MC_CLK_RATIO)
@@ -478,9 +442,6 @@
 #define M_BCM1480_MC_AUTO_REF_DIS	    _SB_MAKEMASK1(16)
 #endif
 
-/*
- * ODT Register (Table 99)
- */
 
 #if SIBYTE_HDR_FEATURE(1480, PASS2)
 #define M_BCM1480_MC_RD_ODT0_CS0	    _SB_MAKEMASK1(0)
@@ -535,9 +496,6 @@
 #define V_BCM1480_MC_ODT6(x)		    _SB_MAKEVALUE(x, S_BCM1480_MC_ODT6)
 #endif
 
-/*
- * Memory DLL Configuration Register (Table 93)
- */
 
 #define S_BCM1480_MC_ADDR_COARSE_ADJ         0
 #define M_BCM1480_MC_ADDR_COARSE_ADJ         _SB_MAKEMASK(6, S_BCM1480_MC_ADDR_COARSE_ADJ)
@@ -648,9 +606,6 @@
 
 #define	M_BCM1480_MC_DLL_BYPASS		    _SB_MAKEMASK1(63)
 
-/*
- * Memory Drive Configuration Register (Table 94)
- */
 
 #define S_BCM1480_MC_RTT_BYP_PULLDOWN       0
 #define M_BCM1480_MC_RTT_BYP_PULLDOWN       _SB_MAKEMASK(3, S_BCM1480_MC_RTT_BYP_PULLDOWN)
@@ -698,23 +653,14 @@
 #define M_BCM1480_MC_DQS_ODT_150            _SB_MAKEMASK1(40)
 #define M_BCM1480_MC_DQS_DIFF               _SB_MAKEMASK1(41)
 
-/*
- * ECC Test Data Register (Table 95)
- */
 
 #define S_BCM1480_MC_DATA_INVERT            0
 #define M_DATA_ECC_INVERT           _SB_MAKEMASK(64, S_BCM1480_MC_ECC_INVERT)
 
-/*
- * ECC Test ECC Register (Table 96)
- */
 
 #define S_BCM1480_MC_ECC_INVERT             0
 #define M_BCM1480_MC_ECC_INVERT             _SB_MAKEMASK(8, S_BCM1480_MC_ECC_INVERT)
 
-/*
- * SDRAM Timing Register  (Table 97)
- */
 
 #define S_BCM1480_MC_tRCD                   0
 #define M_BCM1480_MC_tRCD                   _SB_MAKEMASK(4, S_BCM1480_MC_tRCD)
@@ -828,9 +774,6 @@
                                      V_BCM1480_MC_tCL_DEFAULT | \
                                      V_BCM1480_MC_tRCD_DEFAULT)
 
-/*
- * SDRAM Timing Register 2
- */
 
 #if SIBYTE_HDR_FEATURE(1480, PASS2)
 
@@ -866,13 +809,7 @@
 
 
 
-/*
- * Global Registers: single instances per BCM1480
- */
 
-/*
- * Global Configuration Register (Table 99)
- */
 
 #define S_BCM1480_MC_BLK_SET_MARK           8
 #define M_BCM1480_MC_BLK_SET_MARK           _SB_MAKEMASK(4, S_BCM1480_MC_BLK_SET_MARK)
@@ -902,9 +839,6 @@
 
 #define M_BCM1480_MC_SSTL_VOLTAGE           _SB_MAKEMASK1(35)
 
-/*
- * Global Channel Interleave Register (Table 100)
- */
 
 #define S_BCM1480_MC_INTLV0                 0
 #define M_BCM1480_MC_INTLV0                 _SB_MAKEMASK(6, S_BCM1480_MC_INTLV0)
@@ -933,9 +867,6 @@
 #define V_BCM1480_MC_INTLV_MODE_01_23       V_BCM1480_MC_INTLV_MODE(K_BCM1480_MC_INTLV_MODE_01_23)
 #define V_BCM1480_MC_INTLV_MODE_0123        V_BCM1480_MC_INTLV_MODE(K_BCM1480_MC_INTLV_MODE_0123)
 
-/*
- * ECC Status Register
- */
 
 #define S_BCM1480_MC_ECC_ERR_ADDR           0
 #define M_BCM1480_MC_ECC_ERR_ADDR           _SB_MAKEMASK(37, S_BCM1480_MC_ECC_ERR_ADDR)
@@ -950,27 +881,18 @@
 #define M_BCM1480_MC_ECC_UERR_DET           _SB_MAKEMASK1(62)
 #define M_BCM1480_MC_ECC_CERR_DET           _SB_MAKEMASK1(63)
 
-/*
- * Global ECC Address Register (Table 102)
- */
 
 #define S_BCM1480_MC_ECC_CORR_ADDR          0
 #define M_BCM1480_MC_ECC_CORR_ADDR          _SB_MAKEMASK(37, S_BCM1480_MC_ECC_CORR_ADDR)
 #define V_BCM1480_MC_ECC_CORR_ADDR(x)       _SB_MAKEVALUE(x, S_BCM1480_MC_ECC_CORR_ADDR)
 #define G_BCM1480_MC_ECC_CORR_ADDR(x)       _SB_GETVALUE(x, S_BCM1480_MC_ECC_CORR_ADDR, M_BCM1480_MC_ECC_CORR_ADDR)
 
-/*
- * Global ECC Correction Register (Table 103)
- */
 
 #define S_BCM1480_MC_ECC_CORRECT            0
 #define M_BCM1480_MC_ECC_CORRECT            _SB_MAKEMASK(64, S_BCM1480_MC_ECC_CORRECT)
 #define V_BCM1480_MC_ECC_CORRECT(x)         _SB_MAKEVALUE(x, S_BCM1480_MC_ECC_CORRECT)
 #define G_BCM1480_MC_ECC_CORRECT(x)         _SB_GETVALUE(x, S_BCM1480_MC_ECC_CORRECT, M_BCM1480_MC_ECC_CORRECT)
 
-/*
- * Global ECC Performance Counters Control Register (Table 104)
- */
 
 #define S_BCM1480_MC_CHANNEL_SELECT         0
 #define M_BCM1480_MC_CHANNEL_SELECT         _SB_MAKEMASK(4, S_BCM1480_MC_CHANNEL_SELECT)
@@ -981,4 +903,4 @@
 #define K_BCM1480_MC_CHANNEL_SELECT_2       0x4
 #define K_BCM1480_MC_CHANNEL_SELECT_3       0x8
 
-#endif /* _BCM1480_MC_H */
+#endif 

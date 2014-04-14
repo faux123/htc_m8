@@ -50,7 +50,6 @@ write_fifo(unsigned int adr, u_char *data, int size)
 	outsb(adr, data, size);
 }
 
-/* Interface functions */
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -88,9 +87,6 @@ WriteHSCX(struct IsdnCardState *cs, int hscx, u_char offset, u_char value)
 	writereg(cs->hw.avm.hscx[hscx], offset, value);
 }
 
-/*
- * fast interrupt HSCX stuff goes here
- */
 
 #define READHSCX(cs, nr, reg) readreg(cs->hw.avm.hscx[nr], reg)
 #define WRITEHSCX(cs, nr, reg, data) writereg(cs->hw.avm.hscx[nr], reg, data)

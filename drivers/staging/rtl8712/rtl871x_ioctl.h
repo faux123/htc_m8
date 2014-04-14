@@ -13,7 +13,6 @@
 #endif
 
 
-/* For DDK-defined OIDs*/
 #define OID_NDIS_SEG1	0x00010100
 #define OID_NDIS_SEG2	0x00010200
 #define OID_NDIS_SEG3	0x00020100
@@ -35,7 +34,6 @@
 #define SZ_OID_NDIS_SEG9	24
 #define SZ_OID_NDIS_SEG10	19
 
-/* For Realtek-defined OIDs*/
 #define OID_MP_SEG1	0xFF871100
 #define OID_MP_SEG2	0xFF818000
 #define OID_MP_SEG3	0xFF818700
@@ -47,12 +45,12 @@ enum oid_type {
 };
 
 struct oid_funs_node {
-	unsigned int oid_start; /*the starting number for OID*/
-	unsigned int oid_end; /*the ending number for OID*/
+	unsigned int oid_start; 
+	unsigned int oid_end; 
 	struct oid_obj_priv *node_array;
-	unsigned int array_sz; /*the size of node_array*/
-	int query_counter; /*count the number of query hits for this segment*/
-	int set_counter; /*count the number of set hits for this segment*/
+	unsigned int array_sz; 
+	int query_counter; 
+	int set_counter; 
 };
 
 struct oid_par_priv {
@@ -67,8 +65,7 @@ struct oid_par_priv {
 };
 
 struct oid_obj_priv {
-	unsigned char	dbg; /* 0: without OID debug message
-			      * 1: with OID debug message */
+	unsigned char	dbg; 
 	uint(*oidfuns)(struct oid_par_priv *poid_par_priv);
 };
 

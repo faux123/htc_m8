@@ -42,7 +42,6 @@ MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 module_param(debugmode, uint, S_IRUGO | S_IWUSR);
 
-/* -------- type definitions ----------------------------------------- */
 
 
 struct capidrv_contr {
@@ -52,28 +51,16 @@ struct capidrv_contr {
 	u32 contrnr;
 	char name[20];
 
-	/*
-	 * for isdn4linux
-	 */
 	isdn_if interface;
 	int myid;
 
-	/*
-	 * LISTEN state
-	 */
 	int state;
 	u32 cipmask;
 	u32 cipmask2;
 	struct timer_list listentimer;
 
-	/*
-	 * ID of capi message sent
-	 */
 	u16 msgid;
 
-	/*
-	 * B-Channels
-	 */
 	int nbchan;
 	struct capidrv_bchan {
 		struct capidrv_contr *contr;
@@ -89,8 +76,8 @@ struct capidrv_contr {
 		struct capidrv_plci {
 			struct capidrv_plci *next;
 			u32 plci;
-			u32 ncci;	/* ncci for CONNECT_ACTIVE_IND */
-			u16 msgid;	/* to identfy CONNECT_CONF */
+			u32 ncci;	
+			u16 msgid;	
 			int chan;
 			int state;
 			int leasedline;
@@ -98,11 +85,11 @@ struct capidrv_contr {
 				struct capidrv_ncci *next;
 				struct capidrv_plci *plcip;
 				u32 ncci;
-				u16 msgid;	/* to identfy CONNECT_B3_CONF */
+				u16 msgid;	
 				int chan;
 				int state;
 				int oldstate;
-				/* */
+				
 				u16 datahandle;
 				struct ncci_datahandle_queue {
 					struct ncci_datahandle_queue *next;
@@ -116,7 +103,7 @@ struct capidrv_contr {
 
 	struct capidrv_plci *plci_list;
 
-	/* for q931 data */
+	
 	u8  q931_buf[4096];
 	u8 *q931_read;
 	u8 *q931_write;
@@ -136,7 +123,6 @@ typedef struct capidrv_contr capidrv_contr;
 typedef struct capidrv_data capidrv_data;
 typedef struct capidrv_bchan capidrv_bchan;
 
-/* -------- data definitions ----------------------------------------- */
 
 static capidrv_data global;
 static DEFINE_SPINLOCK(global_lock);
@@ -144,7 +130,6 @@ static DEFINE_SPINLOCK(global_lock);
 static void handle_dtrace_data(capidrv_contr *card,
 			       int send, int level2, u8 *data, u16 len);
 
-/* -------- convert functions ---------------------------------------- */
 
 static inline u32 b1prot(int l2, int l3)
 {
@@ -210,14 +195,14 @@ static inline u32 b3prot(int l2, int l3)
 
 static _cstruct b1config_async_v110(u16 rate)
 {
-	/* CAPI-Spec "B1 Configuration" */
+	
 	static unsigned char buf[9];
-	buf[0] = 8; /* len */
-	/* maximum bitrate */
+	buf[0] = 8; 
+	
 	buf[1] = rate & 0xff; buf[2] = (rate >> 8) & 0xff;
-	buf[3] = 8; buf[4] = 0; /* 8 bits per character */
-	buf[5] = 0; buf[6] = 0; /* parity none */
-	buf[7] = 0; buf[8] = 0; /* 1 stop bit */
+	buf[3] = 8; buf[4] = 0; 
+	buf[5] = 0; buf[6] = 0; 
+	buf[7] = 0; buf[8] = 0; 
 	return buf;
 }
 
@@ -244,24 +229,24 @@ static inline u16 si2cip(u8 si1, u8 si2)
 {
 	static const u8 cip[17][5] =
 		{
-			/*  0  1  2  3  4  */
-			{0, 0, 0, 0, 0},	/*0 */
-			{16, 16, 4, 26, 16},	/*1 */
-			{17, 17, 17, 4, 4},	/*2 */
-			{2, 2, 2, 2, 2},	/*3 */
-			{18, 18, 18, 18, 18},	/*4 */
-			{2, 2, 2, 2, 2},	/*5 */
-			{0, 0, 0, 0, 0},	/*6 */
-			{2, 2, 2, 2, 2},	/*7 */
-			{2, 2, 2, 2, 2},	/*8 */
-			{21, 21, 21, 21, 21},	/*9 */
-			{19, 19, 19, 19, 19},	/*10 */
-			{0, 0, 0, 0, 0},	/*11 */
-			{0, 0, 0, 0, 0},	/*12 */
-			{0, 0, 0, 0, 0},	/*13 */
-			{0, 0, 0, 0, 0},	/*14 */
-			{22, 22, 22, 22, 22},	/*15 */
-			{27, 27, 27, 28, 27}	/*16 */
+			
+			{0, 0, 0, 0, 0},	
+			{16, 16, 4, 26, 16},	
+			{17, 17, 17, 4, 4},	
+			{2, 2, 2, 2, 2},	
+			{18, 18, 18, 18, 18},	
+			{2, 2, 2, 2, 2},	
+			{0, 0, 0, 0, 0},	
+			{2, 2, 2, 2, 2},	
+			{2, 2, 2, 2, 2},	
+			{21, 21, 21, 21, 21},	
+			{19, 19, 19, 19, 19},	
+			{0, 0, 0, 0, 0},	
+			{0, 0, 0, 0, 0},	
+			{0, 0, 0, 0, 0},	
+			{0, 0, 0, 0, 0},	
+			{22, 22, 22, 22, 22},	
+			{27, 27, 27, 28, 27}	
 		};
 	if (si1 > 16)
 		si1 = 0;
@@ -274,31 +259,30 @@ static inline u16 si2cip(u8 si1, u8 si2)
 static inline u8 cip2si1(u16 cipval)
 {
 	static const u8 si[32] =
-		{7, 1, 7, 7, 1, 1, 7, 7,	/*0-7 */
-		 7, 1, 0, 0, 0, 0, 0, 0,	/*8-15 */
-		 1, 2, 4, 10, 9, 9, 15, 7,	/*16-23 */
-		 7, 7, 1, 16, 16, 0, 0, 0};	/*24-31 */
+		{7, 1, 7, 7, 1, 1, 7, 7,	
+		 7, 1, 0, 0, 0, 0, 0, 0,	
+		 1, 2, 4, 10, 9, 9, 15, 7,	
+		 7, 7, 1, 16, 16, 0, 0, 0};	
 
 	if (cipval > 31)
-		cipval = 0;	/* .... */
+		cipval = 0;	
 	return si[cipval];
 }
 
 static inline u8 cip2si2(u16 cipval)
 {
 	static const u8 si[32] =
-		{0, 0, 0, 0, 2, 3, 0, 0,	/*0-7 */
-		 0, 3, 0, 0, 0, 0, 0, 0,	/*8-15 */
-		 1, 2, 0, 0, 9, 0, 0, 0,	/*16-23 */
-		 0, 0, 3, 2, 3, 0, 0, 0};	/*24-31 */
+		{0, 0, 0, 0, 2, 3, 0, 0,	
+		 0, 3, 0, 0, 0, 0, 0, 0,	
+		 1, 2, 0, 0, 9, 0, 0, 0,	
+		 0, 0, 3, 2, 3, 0, 0, 0};	
 
 	if (cipval > 31)
-		cipval = 0;	/* .... */
+		cipval = 0;	
 	return si[cipval];
 }
 
 
-/* -------- controller management ------------------------------------- */
 
 static inline capidrv_contr *findcontrbydriverid(int driverid)
 {
@@ -327,7 +311,6 @@ static capidrv_contr *findcontrbynumber(u32 contr)
 }
 
 
-/* -------- plci management ------------------------------------------ */
 
 static capidrv_plci *new_plci(capidrv_contr *card, int chan)
 {
@@ -394,7 +377,6 @@ static void free_plci(capidrv_contr *card, capidrv_plci *plcip)
 	       card->contrnr, plcip, plcip->plci);
 }
 
-/* -------- ncci management ------------------------------------------ */
 
 static inline capidrv_ncci *new_ncci(capidrv_contr *card,
 				     capidrv_plci *plcip,
@@ -500,7 +482,6 @@ static int capidrv_del_ack(struct capidrv_ncci *nccip, u16 datahandle)
 	return -1;
 }
 
-/* -------- convert and send capi message ---------------------------- */
 
 static void send_message(capidrv_contr *card, _cmsg *cmsg)
 {
@@ -519,7 +500,6 @@ static void send_message(capidrv_contr *card, _cmsg *cmsg)
 		kfree_skb(skb);
 }
 
-/* -------- state machine -------------------------------------------- */
 
 struct listenstatechange {
 	int actstate;
@@ -558,7 +538,6 @@ static void listen_change_state(capidrv_contr *card, int event)
 
 }
 
-/* ------------------------------------------------------------------ */
 
 static void p0(capidrv_contr *card, capidrv_plci *plci)
 {
@@ -572,7 +551,6 @@ static void p0(capidrv_contr *card, capidrv_plci *plci)
 	free_plci(card, plci);
 }
 
-/* ------------------------------------------------------------------ */
 
 struct plcistatechange {
 	int actstate;
@@ -583,26 +561,26 @@ struct plcistatechange {
 
 static struct plcistatechange plcitable[] =
 {
-	/* P-0 */
+	
 	{ST_PLCI_NONE, ST_PLCI_OUTGOING, EV_PLCI_CONNECT_REQ, NULL},
 	{ST_PLCI_NONE, ST_PLCI_ALLOCATED, EV_PLCI_FACILITY_IND_UP, NULL},
 	{ST_PLCI_NONE, ST_PLCI_INCOMING, EV_PLCI_CONNECT_IND, NULL},
 	{ST_PLCI_NONE, ST_PLCI_RESUMEING, EV_PLCI_RESUME_REQ, NULL},
-	/* P-0.1 */
+	
 	{ST_PLCI_OUTGOING, ST_PLCI_NONE, EV_PLCI_CONNECT_CONF_ERROR, p0},
 	{ST_PLCI_OUTGOING, ST_PLCI_ALLOCATED, EV_PLCI_CONNECT_CONF_OK, NULL},
-	/* P-1 */
+	
 	{ST_PLCI_ALLOCATED, ST_PLCI_ACTIVE, EV_PLCI_CONNECT_ACTIVE_IND, NULL},
 	{ST_PLCI_ALLOCATED, ST_PLCI_DISCONNECTING, EV_PLCI_DISCONNECT_REQ, NULL},
 	{ST_PLCI_ALLOCATED, ST_PLCI_DISCONNECTING, EV_PLCI_FACILITY_IND_DOWN, NULL},
 	{ST_PLCI_ALLOCATED, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
-	/* P-ACT */
+	
 	{ST_PLCI_ACTIVE, ST_PLCI_DISCONNECTING, EV_PLCI_DISCONNECT_REQ, NULL},
 	{ST_PLCI_ACTIVE, ST_PLCI_DISCONNECTING, EV_PLCI_FACILITY_IND_DOWN, NULL},
 	{ST_PLCI_ACTIVE, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
 	{ST_PLCI_ACTIVE, ST_PLCI_HELD, EV_PLCI_HOLD_IND, NULL},
 	{ST_PLCI_ACTIVE, ST_PLCI_DISCONNECTING, EV_PLCI_SUSPEND_IND, NULL},
-	/* P-2 */
+	
 	{ST_PLCI_INCOMING, ST_PLCI_DISCONNECTING, EV_PLCI_CONNECT_REJECT, NULL},
 	{ST_PLCI_INCOMING, ST_PLCI_FACILITY_IND, EV_PLCI_FACILITY_IND_UP, NULL},
 	{ST_PLCI_INCOMING, ST_PLCI_ACCEPTING, EV_PLCI_CONNECT_RESP, NULL},
@@ -610,27 +588,27 @@ static struct plcistatechange plcitable[] =
 	{ST_PLCI_INCOMING, ST_PLCI_DISCONNECTING, EV_PLCI_FACILITY_IND_DOWN, NULL},
 	{ST_PLCI_INCOMING, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
 	{ST_PLCI_INCOMING, ST_PLCI_DISCONNECTING, EV_PLCI_CD_IND, NULL},
-	/* P-3 */
+	
 	{ST_PLCI_FACILITY_IND, ST_PLCI_DISCONNECTING, EV_PLCI_CONNECT_REJECT, NULL},
 	{ST_PLCI_FACILITY_IND, ST_PLCI_ACCEPTING, EV_PLCI_CONNECT_ACTIVE_IND, NULL},
 	{ST_PLCI_FACILITY_IND, ST_PLCI_DISCONNECTING, EV_PLCI_DISCONNECT_REQ, NULL},
 	{ST_PLCI_FACILITY_IND, ST_PLCI_DISCONNECTING, EV_PLCI_FACILITY_IND_DOWN, NULL},
 	{ST_PLCI_FACILITY_IND, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
-	/* P-4 */
+	
 	{ST_PLCI_ACCEPTING, ST_PLCI_ACTIVE, EV_PLCI_CONNECT_ACTIVE_IND, NULL},
 	{ST_PLCI_ACCEPTING, ST_PLCI_DISCONNECTING, EV_PLCI_DISCONNECT_REQ, NULL},
 	{ST_PLCI_ACCEPTING, ST_PLCI_DISCONNECTING, EV_PLCI_FACILITY_IND_DOWN, NULL},
 	{ST_PLCI_ACCEPTING, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
-	/* P-5 */
+	
 	{ST_PLCI_DISCONNECTING, ST_PLCI_DISCONNECTED, EV_PLCI_DISCONNECT_IND, NULL},
-	/* P-6 */
+	
 	{ST_PLCI_DISCONNECTED, ST_PLCI_NONE, EV_PLCI_DISCONNECT_RESP, p0},
-	/* P-0.Res */
+	
 	{ST_PLCI_RESUMEING, ST_PLCI_NONE, EV_PLCI_RESUME_CONF_ERROR, p0},
 	{ST_PLCI_RESUMEING, ST_PLCI_RESUME, EV_PLCI_RESUME_CONF_OK, NULL},
-	/* P-RES */
+	
 	{ST_PLCI_RESUME, ST_PLCI_ACTIVE, EV_PLCI_RESUME_IND, NULL},
-	/* P-HELD */
+	
 	{ST_PLCI_HELD, ST_PLCI_ACTIVE, EV_PLCI_RETRIEVE_IND, NULL},
 	{},
 };
@@ -654,7 +632,6 @@ static void plci_change_state(capidrv_contr *card, capidrv_plci *plci, int event
 	       card->contrnr, plci->plci, plci->state, event);
 }
 
-/* ------------------------------------------------------------------ */
 
 static _cmsg cmsg;
 
@@ -666,10 +643,10 @@ static void n0(capidrv_contr *card, capidrv_ncci *ncci)
 				 global.ap.applid,
 				 card->msgid++,
 				 ncci->plcip->plci,
-				 NULL,	/* BChannelinformation */
-				 NULL,	/* Keypadfacility */
-				 NULL,	/* Useruserdata */   /* $$$$ */
-				 NULL	/* Facilitydataarray */
+				 NULL,	
+				 NULL,	
+				 NULL,	   
+				 NULL	
 		);
 	plci_change_state(card, ncci->plcip, EV_PLCI_DISCONNECT_REQ);
 	send_message(card, &cmsg);
@@ -681,7 +658,6 @@ static void n0(capidrv_contr *card, capidrv_ncci *ncci)
 	free_ncci(card, ncci);
 }
 
-/* ------------------------------------------------------------------ */
 
 struct nccistatechange {
 	int actstate;
@@ -692,34 +668,34 @@ struct nccistatechange {
 
 static struct nccistatechange nccitable[] =
 {
-	/* N-0 */
+	
 	{ST_NCCI_NONE, ST_NCCI_OUTGOING, EV_NCCI_CONNECT_B3_REQ, NULL},
 	{ST_NCCI_NONE, ST_NCCI_INCOMING, EV_NCCI_CONNECT_B3_IND, NULL},
-	/* N-0.1 */
+	
 	{ST_NCCI_OUTGOING, ST_NCCI_ALLOCATED, EV_NCCI_CONNECT_B3_CONF_OK, NULL},
 	{ST_NCCI_OUTGOING, ST_NCCI_NONE, EV_NCCI_CONNECT_B3_CONF_ERROR, n0},
-	/* N-1 */
+	
 	{ST_NCCI_INCOMING, ST_NCCI_DISCONNECTING, EV_NCCI_CONNECT_B3_REJECT, NULL},
 	{ST_NCCI_INCOMING, ST_NCCI_ALLOCATED, EV_NCCI_CONNECT_B3_RESP, NULL},
 	{ST_NCCI_INCOMING, ST_NCCI_DISCONNECTED, EV_NCCI_DISCONNECT_B3_IND, NULL},
 	{ST_NCCI_INCOMING, ST_NCCI_DISCONNECTING, EV_NCCI_DISCONNECT_B3_REQ, NULL},
-	/* N-2 */
+	
 	{ST_NCCI_ALLOCATED, ST_NCCI_ACTIVE, EV_NCCI_CONNECT_B3_ACTIVE_IND, NULL},
 	{ST_NCCI_ALLOCATED, ST_NCCI_DISCONNECTED, EV_NCCI_DISCONNECT_B3_IND, NULL},
 	{ST_NCCI_ALLOCATED, ST_NCCI_DISCONNECTING, EV_NCCI_DISCONNECT_B3_REQ, NULL},
-	/* N-ACT */
+	
 	{ST_NCCI_ACTIVE, ST_NCCI_ACTIVE, EV_NCCI_RESET_B3_IND, NULL},
 	{ST_NCCI_ACTIVE, ST_NCCI_RESETING, EV_NCCI_RESET_B3_REQ, NULL},
 	{ST_NCCI_ACTIVE, ST_NCCI_DISCONNECTED, EV_NCCI_DISCONNECT_B3_IND, NULL},
 	{ST_NCCI_ACTIVE, ST_NCCI_DISCONNECTING, EV_NCCI_DISCONNECT_B3_REQ, NULL},
-	/* N-3 */
+	
 	{ST_NCCI_RESETING, ST_NCCI_ACTIVE, EV_NCCI_RESET_B3_IND, NULL},
 	{ST_NCCI_RESETING, ST_NCCI_DISCONNECTED, EV_NCCI_DISCONNECT_B3_IND, NULL},
 	{ST_NCCI_RESETING, ST_NCCI_DISCONNECTING, EV_NCCI_DISCONNECT_B3_REQ, NULL},
-	/* N-4 */
+	
 	{ST_NCCI_DISCONNECTING, ST_NCCI_DISCONNECTED, EV_NCCI_DISCONNECT_B3_IND, NULL},
 	{ST_NCCI_DISCONNECTING, ST_NCCI_PREVIOUS, EV_NCCI_DISCONNECT_B3_CONF_ERROR, NULL},
-	/* N-5 */
+	
 	{ST_NCCI_DISCONNECTED, ST_NCCI_NONE, EV_NCCI_DISCONNECT_B3_RESP, n0},
 	{},
 };
@@ -749,7 +725,6 @@ static void ncci_change_state(capidrv_contr *card, capidrv_ncci *ncci, int event
 	       card->contrnr, ncci->ncci, ncci->state, event);
 }
 
-/* ------------------------------------------------------------------- */
 
 static inline int new_bchan(capidrv_contr *card)
 {
@@ -763,7 +738,6 @@ static inline int new_bchan(capidrv_contr *card)
 	return -1;
 }
 
-/* ------------------------------------------------------------------- */
 
 static void handle_controller(_cmsg *cmsg)
 {
@@ -777,7 +751,7 @@ static void handle_controller(_cmsg *cmsg)
 	}
 	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_LISTEN_CONF:	/* Controller */
+	case CAPI_LISTEN_CONF:	
 		if (debugmode)
 			printk(KERN_DEBUG "capidrv-%d: listenconf Info=0x%4x (%s) cipmask=0x%x\n",
 			       card->contrnr, cmsg->Info, capi_info2str(cmsg->Info), card->cipmask);
@@ -790,7 +764,7 @@ static void handle_controller(_cmsg *cmsg)
 		}
 		break;
 
-	case CAPI_MANUFACTURER_IND:	/* Controller */
+	case CAPI_MANUFACTURER_IND:	
 		if (cmsg->ManuID == 0x214D5641
 		    && cmsg->Class == 0
 		    && cmsg->Function == 1) {
@@ -823,7 +797,7 @@ static void handle_controller(_cmsg *cmsg)
 			break;
 		}
 		goto ignored;
-	case CAPI_MANUFACTURER_CONF:	/* Controller */
+	case CAPI_MANUFACTURER_CONF:	
 		if (cmsg->ManuID == 0x214D5641) {
 			char *s = NULL;
 			switch (cmsg->Class) {
@@ -841,13 +815,13 @@ static void handle_controller(_cmsg *cmsg)
 			break;
 		}
 		goto ignored;
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_IND:	
 		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_CONF:	
 		goto ignored;
-	case CAPI_INFO_IND:	/* Controller/plci */
+	case CAPI_INFO_IND:	
 		goto ignored;
-	case CAPI_INFO_CONF:	/* Controller/plci */
+	case CAPI_INFO_CONF:	
 		goto ignored;
 
 	default:
@@ -917,13 +891,8 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 	switch (card->interface.statcallb(&cmd)) {
 	case 0:
 	case 3:
-		/* No device matching this call.
-		 * and isdn_common.c has send a HANGUP command
-		 * which is ignored in state ST_PLCI_INCOMING,
-		 * so we send RESP to ignore the call
-		 */
 		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 1;	/* ignore */
+		cmsg->Reject = 1;	
 		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
 		send_message(card, cmsg);
 		printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s ignored\n",
@@ -934,15 +903,6 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 		       cmd.parm.setup.eazmsn);
 		break;
 	case 1:
-		/* At least one device matching this call (RING on ttyI)
-		 * HL-driver may send ALERTING on the D-channel in this
-		 * case.
-		 * really means: RING on ttyI or a net interface
-		 * accepted this call already.
-		 *
-		 * If the call was accepted, state has already changed,
-		 * and CONNECT_RESP already sent.
-		 */
 		if (plcip->state == ST_PLCI_INCOMING) {
 			printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s tty alerting\n",
 			       card->contrnr,
@@ -953,11 +913,11 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 			capi_fill_ALERT_REQ(cmsg,
 					    global.ap.applid,
 					    card->msgid++,
-					    plcip->plci,	/* adr */
-					    NULL,/* BChannelinformation */
-					    NULL,/* Keypadfacility */
-					    NULL,/* Useruserdata */
-					    NULL /* Facilitydataarray */
+					    plcip->plci,	
+					    NULL,
+					    NULL,
+					    NULL,
+					    NULL 
 				);
 			plcip->msgid = cmsg->Messagenumber;
 			send_message(card, cmsg);
@@ -971,18 +931,17 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 		}
 		break;
 
-	case 2:		/* Call will be rejected. */
+	case 2:		
 		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 2;	/* reject call, normal call clearing */
+		cmsg->Reject = 2;	
 		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
 		send_message(card, cmsg);
 		break;
 
 	default:
-		/* An error happened. (Invalid parameters for example.) */
+		
 		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 8;	/* reject call,
-					   destination out of order */
+		cmsg->Reject = 8;	
 		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
 		send_message(card, cmsg);
 		break;
@@ -1005,7 +964,7 @@ static void handle_plci(_cmsg *cmsg)
 	}
 	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_DISCONNECT_IND:	/* plci */
+	case CAPI_DISCONNECT_IND:	
 		if (cmsg->Reason) {
 			printk(KERN_INFO "capidrv-%d: %s reason 0x%x (%s) for plci 0x%x\n",
 			       card->contrnr,
@@ -1024,7 +983,7 @@ static void handle_plci(_cmsg *cmsg)
 		send_message(card, cmsg);
 		break;
 
-	case CAPI_DISCONNECT_CONF:	/* plci */
+	case CAPI_DISCONNECT_CONF:	
 		if (cmsg->Info) {
 			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
 			       card->contrnr,
@@ -1038,7 +997,7 @@ static void handle_plci(_cmsg *cmsg)
 		card->bchans[plcip->chan].disconnecting = 1;
 		break;
 
-	case CAPI_ALERT_CONF:	/* plci */
+	case CAPI_ALERT_CONF:	
 		if (cmsg->Info) {
 			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
 			       card->contrnr,
@@ -1048,11 +1007,11 @@ static void handle_plci(_cmsg *cmsg)
 		}
 		break;
 
-	case CAPI_CONNECT_IND:	/* plci */
+	case CAPI_CONNECT_IND:	
 		handle_incoming_call(card, cmsg);
 		break;
 
-	case CAPI_CONNECT_CONF:	/* plci */
+	case CAPI_CONNECT_CONF:	
 		if (cmsg->Info) {
 			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
 			       card->contrnr,
@@ -1071,7 +1030,7 @@ static void handle_plci(_cmsg *cmsg)
 		}
 		break;
 
-	case CAPI_CONNECT_ACTIVE_IND:	/* plci */
+	case CAPI_CONNECT_ACTIVE_IND:	
 
 		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
 			goto notfound;
@@ -1089,13 +1048,13 @@ static void handle_plci(_cmsg *cmsg)
 
 			if (!nccip) {
 				printk(KERN_ERR "capidrv-%d: no mem for ncci, sorry\n", card->contrnr);
-				break;	/* $$$$ */
+				break;	
 			}
 			capi_fill_CONNECT_B3_REQ(cmsg,
 						 global.ap.applid,
 						 card->msgid++,
-						 plcip->plci,	/* adr */
-						 NULL	/* NCPI */
+						 plcip->plci,	
+						 NULL	
 				);
 			nccip->msgid = cmsg->Messagenumber;
 			plci_change_state(card, plcip,
@@ -1109,7 +1068,7 @@ static void handle_plci(_cmsg *cmsg)
 		}
 		break;
 
-	case CAPI_INFO_IND:	/* Controller/plci */
+	case CAPI_INFO_IND:	
 
 		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
 			goto notfound;
@@ -1140,16 +1099,16 @@ static void handle_plci(_cmsg *cmsg)
 
 		break;
 
-	case CAPI_CONNECT_ACTIVE_CONF:		/* plci */
+	case CAPI_CONNECT_ACTIVE_CONF:		
 		goto ignored;
-	case CAPI_SELECT_B_PROTOCOL_CONF:	/* plci */
+	case CAPI_SELECT_B_PROTOCOL_CONF:	
 		goto ignored;
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_IND:	
 		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_CONF:	
 		goto ignored;
 
-	case CAPI_INFO_CONF:	/* Controller/plci */
+	case CAPI_INFO_CONF:	
 		goto ignored;
 
 	default:
@@ -1189,7 +1148,7 @@ static void handle_ncci(_cmsg *cmsg)
 	}
 	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_CONNECT_B3_ACTIVE_IND:	/* ncci */
+	case CAPI_CONNECT_B3_ACTIVE_IND:	
 		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
 			goto notfound;
 
@@ -1206,10 +1165,10 @@ static void handle_ncci(_cmsg *cmsg)
 		       card->contrnr, nccip->chan, nccip->ncci);
 		break;
 
-	case CAPI_CONNECT_B3_ACTIVE_CONF:	/* ncci */
+	case CAPI_CONNECT_B3_ACTIVE_CONF:	
 		goto ignored;
 
-	case CAPI_CONNECT_B3_IND:	/* ncci */
+	case CAPI_CONNECT_B3_IND:	
 
 		plcip = find_plci_by_ncci(card, cmsg->adr.adrNCCI);
 		if (plcip) {
@@ -1219,9 +1178,9 @@ static void handle_ncci(_cmsg *cmsg)
 				capi_fill_CONNECT_B3_RESP(cmsg,
 							  global.ap.applid,
 							  card->msgid++,
-							  nccip->ncci,	/* adr */
-							  0,	/* Reject */
-							  NULL	/* NCPI */
+							  nccip->ncci,	
+							  0,	
+							  NULL	
 					);
 				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_RESP);
 				send_message(card, cmsg);
@@ -1238,13 +1197,13 @@ static void handle_ncci(_cmsg *cmsg)
 					  global.ap.applid,
 					  card->msgid++,
 					  cmsg->adr.adrNCCI,
-					  2,	/* Reject */
-					  NULL	/* NCPI */
+					  2,	
+					  NULL	
 			);
 		send_message(card, cmsg);
 		break;
 
-	case CAPI_CONNECT_B3_CONF:	/* ncci */
+	case CAPI_CONNECT_B3_CONF:	
 
 		if (!(nccip = find_ncci_by_msgid(card,
 						 cmsg->adr.adrNCCI,
@@ -1266,16 +1225,16 @@ static void handle_ncci(_cmsg *cmsg)
 			ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_CONF_OK);
 		break;
 
-	case CAPI_CONNECT_B3_T90_ACTIVE_IND:	/* ncci */
+	case CAPI_CONNECT_B3_T90_ACTIVE_IND:	
 		capi_cmsg_answer(cmsg);
 		send_message(card, cmsg);
 		break;
 
-	case CAPI_DATA_B3_IND:	/* ncci */
-		/* handled in handle_data() */
+	case CAPI_DATA_B3_IND:	
+		
 		goto ignored;
 
-	case CAPI_DATA_B3_CONF:	/* ncci */
+	case CAPI_DATA_B3_CONF:	
 		if (cmsg->Info) {
 			printk(KERN_WARNING "CAPI_DATA_B3_CONF: Info %x - %s\n",
 			       cmsg->Info, capi_info2str(cmsg->Info));
@@ -1293,7 +1252,7 @@ static void handle_ncci(_cmsg *cmsg)
 		card->interface.statcallb(&cmd);
 		break;
 
-	case CAPI_DISCONNECT_B3_IND:	/* ncci */
+	case CAPI_DISCONNECT_B3_IND:	
 		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
 			goto notfound;
 
@@ -1304,7 +1263,7 @@ static void handle_ncci(_cmsg *cmsg)
 		send_message(card, cmsg);
 		break;
 
-	case CAPI_DISCONNECT_B3_CONF:	/* ncci */
+	case CAPI_DISCONNECT_B3_CONF:	
 		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
 			goto notfound;
 		if (cmsg->Info) {
@@ -1317,7 +1276,7 @@ static void handle_ncci(_cmsg *cmsg)
 		}
 		break;
 
-	case CAPI_RESET_B3_IND:	/* ncci */
+	case CAPI_RESET_B3_IND:	
 		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
 			goto notfound;
 		ncci_change_state(card, nccip, EV_NCCI_RESET_B3_IND);
@@ -1325,12 +1284,12 @@ static void handle_ncci(_cmsg *cmsg)
 		send_message(card, cmsg);
 		break;
 
-	case CAPI_RESET_B3_CONF:	/* ncci */
-		goto ignored;	/* $$$$ */
+	case CAPI_RESET_B3_CONF:	
+		goto ignored;	
 
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_IND:	
 		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+	case CAPI_FACILITY_CONF:	
 		goto ignored;
 
 	default:
@@ -1408,15 +1367,9 @@ static void capidrv_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 		handle_plci(&s_cmsg);
 	else
 		handle_ncci(&s_cmsg);
-	/*
-	 * data of skb used in s_cmsg,
-	 * free data when s_cmsg is not used again
-	 * thanks to Lars Heete <hel@admin.de>
-	 */
 	kfree_skb(skb);
 }
 
-/* ------------------------------------------------------------------- */
 
 #define PUTBYTE_TO_STATUS(card, byte)				\
 	do {							\
@@ -1462,7 +1415,6 @@ static void handle_dtrace_data(capidrv_contr *card,
 	card->interface.statcallb(&cmd);
 }
 
-/* ------------------------------------------------------------------- */
 
 static _cmsg cmdcmsg;
 
@@ -1482,9 +1434,6 @@ static int capidrv_ioctl(isdn_ctrl *c, capidrv_contr *card)
 	return -EINVAL;
 }
 
-/*
- * Handle leased lines (CAPI-Bundling)
- */
 
 struct internal_bchannelinfo {
 	unsigned short channelalloc;
@@ -1564,18 +1513,18 @@ static int FVteln2capi20(char *teln, u8 AdditionalInfo[1 + 2 + 2 + 31])
 
 	rc = decodeFVteln(teln, &bmask, &active);
 	if (rc) return rc;
-	/* Length */
+	
 	AdditionalInfo[0] = 2 + 2 + 31;
-	/* Channel: 3 => use channel allocation */
+	
 	AdditionalInfo[1] = 3; AdditionalInfo[2] = 0;
-	/* Operation: 0 => DTE mode, 1 => DCE mode */
+	
 	if (active) {
 		AdditionalInfo[3] = 0; AdditionalInfo[4] = 0;
 	} else {
 		AdditionalInfo[3] = 1; AdditionalInfo[4] = 0;
 	}
-	/* Channel mask array */
-	AdditionalInfo[5] = 0; /* no D-Channel */
+	
+	AdditionalInfo[5] = 0; 
 	for (i = 1; i <= 30; i++)
 		AdditionalInfo[5 + i] = (bmask & (1 << i)) ? 0xff : 0;
 	return 0;
@@ -1647,26 +1596,26 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 		capi_fill_CONNECT_REQ(&cmdcmsg,
 				      global.ap.applid,
 				      card->msgid++,
-				      card->contrnr,	/* adr */
-				      si2cip(bchan->si1, bchan->si2),	/* cipvalue */
-				      called,	/* CalledPartyNumber */
-				      calling,	/* CallingPartyNumber */
-				      NULL,	/* CalledPartySubaddress */
-				      NULL,	/* CallingPartySubaddress */
-				      b1prot(bchan->l2, bchan->l3),	/* B1protocol */
-				      b2prot(bchan->l2, bchan->l3),	/* B2protocol */
-				      b3prot(bchan->l2, bchan->l3),	/* B3protocol */
-				      b1config(bchan->l2, bchan->l3),	/* B1configuration */
-				      NULL,	/* B2configuration */
-				      NULL,	/* B3configuration */
-				      NULL,	/* BC */
-				      NULL,	/* LLC */
-				      NULL,	/* HLC */
-				      /* BChannelinformation */
+				      card->contrnr,	
+				      si2cip(bchan->si1, bchan->si2),	
+				      called,	
+				      calling,	
+				      NULL,	
+				      NULL,	
+				      b1prot(bchan->l2, bchan->l3),	
+				      b2prot(bchan->l2, bchan->l3),	
+				      b3prot(bchan->l2, bchan->l3),	
+				      b1config(bchan->l2, bchan->l3),	
+				      NULL,	
+				      NULL,	
+				      NULL,	
+				      NULL,	
+				      NULL,	
+				      
 				      isleasedline ? AdditionalInfo : NULL,
-				      NULL,	/* Keypadfacility */
-				      NULL,	/* Useruserdata */
-				      NULL	/* Facilitydataarray */
+				      NULL,	
+				      NULL,	
+				      NULL	
 			);
 		if ((plcip = new_plci(card, (c->arg % card->nbchan))) == NULL) {
 			cmd.command = ISDN_STAT_DHUP;
@@ -1693,21 +1642,21 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 		capi_fill_CONNECT_RESP(&cmdcmsg,
 				       global.ap.applid,
 				       card->msgid++,
-				       bchan->plcip->plci,	/* adr */
-				       0,	/* Reject */
-				       b1prot(bchan->l2, bchan->l3),	/* B1protocol */
-				       b2prot(bchan->l2, bchan->l3),	/* B2protocol */
-				       b3prot(bchan->l2, bchan->l3),	/* B3protocol */
-				       b1config(bchan->l2, bchan->l3),	/* B1configuration */
-				       NULL,	/* B2configuration */
-				       NULL,	/* B3configuration */
-				       NULL,	/* ConnectedNumber */
-				       NULL,	/* ConnectedSubaddress */
-				       NULL,	/* LLC */
-				       NULL,	/* BChannelinformation */
-				       NULL,	/* Keypadfacility */
-				       NULL,	/* Useruserdata */
-				       NULL	/* Facilitydataarray */
+				       bchan->plcip->plci,	
+				       0,	
+				       b1prot(bchan->l2, bchan->l3),	
+				       b2prot(bchan->l2, bchan->l3),	
+				       b3prot(bchan->l2, bchan->l3),	
+				       b1config(bchan->l2, bchan->l3),	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL,	
+				       NULL	
 			);
 		capi_cmsg2message(&cmdcmsg, cmdcmsg.buf);
 		plci_change_state(card, bchan->plcip, EV_PLCI_CONNECT_RESP);
@@ -1741,19 +1690,13 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 						    global.ap.applid,
 						    card->msgid++,
 						    bchan->nccip->ncci,
-						    NULL	/* NCPI */
+						    NULL	
 				);
 			ncci_change_state(card, bchan->nccip, EV_NCCI_DISCONNECT_B3_REQ);
 			send_message(card, &cmdcmsg);
 			return 0;
 		} else if (bchan->plcip) {
 			if (bchan->plcip->state == ST_PLCI_INCOMING) {
-				/*
-				 * just ignore, we a called from
-				 * isdn_status_callback(),
-				 * which will return 0 or 2, this is handled
-				 * by the CONNECT_IND handler
-				 */
 				bchan->disconnecting = 1;
 				return 0;
 			} else if (bchan->plcip->plci) {
@@ -1762,10 +1705,10 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 							 global.ap.applid,
 							 card->msgid++,
 							 bchan->plcip->plci,
-							 NULL,	/* BChannelinformation */
-							 NULL,	/* Keypadfacility */
-							 NULL,	/* Useruserdata */
-							 NULL	/* Facilitydataarray */
+							 NULL,	
+							 NULL,	
+							 NULL,	
+							 NULL	
 					);
 				plci_change_state(card, bchan->plcip, EV_PLCI_DISCONNECT_REQ);
 				send_message(card, &cmdcmsg);
@@ -1781,7 +1724,6 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 		       card->contrnr,
 		       c->arg);
 		return -EINVAL;
-/* ready */
 
 	case ISDN_CMD_SETL2:
 		if (debugmode)
@@ -1869,15 +1811,6 @@ static int if_sendbuf(int id, int channel, int doack, struct sk_buff *skb)
 	}
 	datahandle = nccip->datahandle;
 
-	/*
-	 * Here we copy pointer skb->data into the 32-bit 'Data' field.
-	 * The 'Data' field is not used in practice in linux kernel
-	 * (neither in 32 or 64 bit), but should have some value,
-	 * since a CAPI message trace will display it.
-	 *
-	 * The correct value in the 32 bit case is the address of the
-	 * data, in 64 bit it makes no sense, we use 0 there.
-	 */
 
 #ifdef CONFIG_64BIT
 	data = 0;
@@ -1886,11 +1819,11 @@ static int if_sendbuf(int id, int channel, int doack, struct sk_buff *skb)
 #endif
 
 	capi_fill_DATA_B3_REQ(&sendcmsg, global.ap.applid, card->msgid++,
-			      nccip->ncci,	/* adr */
-			      data,		/* Data */
-			      skb->len,		/* DataLength */
-			      datahandle,	/* DataHandle */
-			      0	/* Flags */
+			      nccip->ncci,	
+			      data,		
+			      skb->len,		
+			      datahandle,	
+			      0	
 		);
 
 	if (capidrv_add_ack(nccip, datahandle, doack ? (int)skb->len : -1) < 0)
@@ -1994,18 +1927,18 @@ static void enable_dchannel_trace(capidrv_contr *card)
 		capi_fill_MANUFACTURER_REQ(&cmdcmsg, global.ap.applid,
 					   card->msgid++,
 					   contr,
-					   0x214D5641,  /* ManuID */
-					   0,           /* Class */
-					   1,           /* Function */
+					   0x214D5641,  
+					   0,           
+					   1,           
 					   (_cstruct)"\004\200\014\000\000");
 	} else {
 		printk(KERN_INFO "%s: D3 trace enabled\n", card->name);
 		capi_fill_MANUFACTURER_REQ(&cmdcmsg, global.ap.applid,
 					   card->msgid++,
 					   contr,
-					   0x214D5641,  /* ManuID */
-					   0,           /* Class */
-					   1,           /* Function */
+					   0x214D5641,  
+					   0,           
+					   1,           
 					   (_cstruct)"\004\002\003\000\000");
 	}
 	send_message(card, &cmdcmsg);
@@ -2016,8 +1949,8 @@ static void send_listen(capidrv_contr *card)
 {
 	capi_fill_LISTEN_REQ(&cmdcmsg, global.ap.applid,
 			     card->msgid++,
-			     card->contrnr, /* controller */
-			     1 << 6,	/* Infomask */
+			     card->contrnr, 
+			     1 << 6,	
 			     card->cipmask,
 			     card->cipmask2,
 			     NULL, NULL);
@@ -2085,7 +2018,7 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 			ISDN_FEATURE_L2_V11038;
 	if (profp->support1 & (1 << 8))
 		card->interface.features |= ISDN_FEATURE_L2_MODEM;
-	card->interface.hl_hdrlen = 22; /* len of DATA_B3_REQ */
+	card->interface.hl_hdrlen = 22; 
 	strncpy(card->interface.id, id, sizeof(card->interface.id) - 1);
 
 
@@ -2116,7 +2049,7 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 	cmd.driver = card->myid;
 	card->interface.statcallb(&cmd);
 
-	card->cipmask = 0x1FFF03FF;	/* any */
+	card->cipmask = 0x1FFF03FF;	
 	card->cipmask2 = 0;
 
 	card->listentimer.data = (unsigned long)card;
@@ -2149,9 +2082,6 @@ static int capidrv_delcontr(u16 contr)
 		return -1;
 	}
 
-	/* FIXME: maybe a race condition the card should be removed
-	 * here from global list /kkeil
-	 */
 	spin_unlock_irqrestore(&global_lock, flags);
 
 	del_timer(&card->listentimer);
@@ -2236,10 +2166,6 @@ lower_callback(struct notifier_block *nb, unsigned long val, void *v)
 	return NOTIFY_OK;
 }
 
-/*
- * /proc/capi/capidrv:
- * nrecvctlpkt nrecvdatapkt nsendctlpkt nsenddatapkt
- */
 static int capidrv_proc_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "%lu %lu %lu %lu\n",
@@ -2283,7 +2209,7 @@ static int __init capidrv_init(void)
 	u32 ncontr, contr;
 	u16 errcode;
 
-	global.ap.rparam.level3cnt = -2;  /* number of bchannels twice */
+	global.ap.rparam.level3cnt = -2;  
 	global.ap.rparam.datablkcnt = 16;
 	global.ap.rparam.datablklen = 2048;
 

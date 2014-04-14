@@ -1,9 +1,6 @@
 #ifndef _ASM_X86_HYPERTRANSPORT_H
 #define _ASM_X86_HYPERTRANSPORT_H
 
-/*
- * Constants for x86 Hypertransport Interrupts.
- */
 
 #define HT_IRQ_LOW_BASE			0xf8000000
 
@@ -42,4 +39,4 @@
 #define HT_IRQ_HIGH_DEST_ID(v)						\
 	((((v) >> 8) << HT_IRQ_HIGH_DEST_ID_SHIFT) & HT_IRQ_HIGH_DEST_ID_MASK)
 
-#endif /* _ASM_X86_HYPERTRANSPORT_H */
+#endif 

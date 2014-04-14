@@ -20,7 +20,6 @@
 
 #include "cq_desc.h"
 
-/* Exchange completion queue descriptor: 16B */
 struct cq_exch_wq_desc {
 	u16 completed_index;
 	u16 q_number;
@@ -145,15 +144,15 @@ struct cq_sgl_desc {
 
 enum cq_sgl_err_types {
 	CQ_SGL_ERR_NO_ERROR = 0,
-	CQ_SGL_ERR_OVERFLOW,         /* data ran beyond end of SGL */
-	CQ_SGL_ERR_SGL_LCL_ADDR_ERR, /* sgl access to local vnic addr illegal*/
-	CQ_SGL_ERR_ADDR_RSP_ERR,     /* sgl address error */
-	CQ_SGL_ERR_DATA_RSP_ERR,     /* sgl data rsp error */
-	CQ_SGL_ERR_CNT_ZERO_ERR,     /* SGL count is 0 */
-	CQ_SGL_ERR_CNT_MAX_ERR,      /* SGL count is larger than supported */
-	CQ_SGL_ERR_ORDER_ERR,        /* frames recv on both ports, order err */
-	CQ_SGL_ERR_DATA_LCL_ADDR_ERR,/* sgl data buf to local vnic addr ill */
-	CQ_SGL_ERR_HOST_CQ_ERR,      /* host cq entry to local vnic addr ill */
+	CQ_SGL_ERR_OVERFLOW,         
+	CQ_SGL_ERR_SGL_LCL_ADDR_ERR, 
+	CQ_SGL_ERR_ADDR_RSP_ERR,     
+	CQ_SGL_ERR_DATA_RSP_ERR,     
+	CQ_SGL_ERR_CNT_ZERO_ERR,     
+	CQ_SGL_ERR_CNT_MAX_ERR,      
+	CQ_SGL_ERR_ORDER_ERR,        
+	CQ_SGL_ERR_DATA_LCL_ADDR_ERR,
+	CQ_SGL_ERR_HOST_CQ_ERR,      
 };
 
 #define CQ_SGL_SGL_ERR_MASK             0x1f
@@ -169,8 +168,6 @@ static inline void cq_sgl_desc_dec(struct cq_sgl_desc *desc_ptr,
 				   u16 *tmpl,
 				   u8  *sgl_err)
 {
-	/* Cheat a little by assuming exchange_id is the same as completed
-	   index */
 	cq_desc_dec((struct cq_desc *)desc_ptr, type, color, q_number,
 		    exchange_id);
 	*active_burst_offset = desc_ptr->active_burst_offset;
@@ -179,4 +176,4 @@ static inline void cq_sgl_desc_dec(struct cq_sgl_desc *desc_ptr,
 	*sgl_err = desc_ptr->sgl_err & CQ_SGL_SGL_ERR_MASK;
 }
 
-#endif /* _CQ_EXCH_DESC_H_ */
+#endif 

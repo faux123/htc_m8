@@ -25,9 +25,6 @@
 #include <linux/string.h>
 #include <linux/pps_kernel.h>
 
-/*
- * Attribute functions
- */
 
 static ssize_t pps_show_assert(struct device *dev,
 				struct device_attribute *attr, char *buf)

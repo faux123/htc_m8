@@ -44,28 +44,25 @@ MODULE_LICENSE("GPL");
 typedef int (*palinfo_func_t)(char*);
 
 typedef struct {
-	const char		*name;		/* name of the proc entry */
-	palinfo_func_t		proc_read;	/* function to call for reading */
-	struct proc_dir_entry	*entry;		/* registered entry (removal) */
+	const char		*name;		
+	palinfo_func_t		proc_read;	
+	struct proc_dir_entry	*entry;		
 } palinfo_entry_t;
 
 
-/*
- *  A bunch of string array to get pretty printing
- */
 
 static char *cache_types[] = {
-	"",			/* not used */
+	"",			
 	"Instruction",
 	"Data",
-	"Data/Instruction"	/* unified */
+	"Data/Instruction"	
 };
 
 static const char *cache_mattrib[]={
 	"WriteThrough",
 	"WriteBack",
-	"",		/* reserved */
-	""		/* reserved */
+	"",		
+	""		
 };
 
 static const char *cache_st_hints[]={
@@ -100,28 +97,16 @@ static const char *rse_hints[]={
 #define RSE_HINTS_COUNT ARRAY_SIZE(rse_hints)
 
 static const char *mem_attrib[]={
-	"WB",		/* 000 */
-	"SW",		/* 001 */
-	"010",		/* 010 */
-	"011",		/* 011 */
-	"UC",		/* 100 */
-	"UCE",		/* 101 */
-	"WC",		/* 110 */
-	"NaTPage"	/* 111 */
+	"WB",		
+	"SW",		
+	"010",		
+	"011",		
+	"UC",		
+	"UCE",		
+	"WC",		
+	"NaTPage"	
 };
 
-/*
- * Take a 64bit vector and produces a string such that
- * if bit n is set then 2^n in clear text is generated. The adjustment
- * to the right unit is also done.
- *
- * Input:
- *	- a pointer to a buffer to hold the string
- *	- a 64-bit vector
- * Ouput:
- *	- a pointer to the end of the buffer
- *
- */
 static char *
 bitvector_process(char *p, u64 vector)
 {
@@ -137,18 +122,6 @@ bitvector_process(char *p, u64 vector)
 	return p;
 }
 
-/*
- * Take a 64bit vector and produces a string such that
- * if bit n is set then register n is present. The function
- * takes into account consecutive registers and prints out ranges.
- *
- * Input:
- *	- a pointer to a buffer to hold the string
- *	- a 64-bit vector
- * Ouput:
- *	- a pointer to the end of the buffer
- *
- */
 static char *
 bitregister_process(char *p, u64 *reg_info, int max)
 {
@@ -234,7 +207,7 @@ cache_info(char *page)
 
 		for (j=2; j >0 ; j--) {
 
-			/* even without unification some level may not be present */
+			
 			if ((status=ia64_pal_cache_config_info(i,j, &cci)) != 0) {
 				continue;
 			}
@@ -283,7 +256,7 @@ cache_info(char *page)
 				     1<<cci.pcci_alias_boundary, cci.pcci_tag_lsb,
 				     cci.pcci_tag_msb);
 
-			/* when unified, data(j=2) is enough */
+			
 			if (cci.pcci_unified) break;
 		}
 	}
@@ -383,10 +356,10 @@ vm_info(char *page)
 
 		for(i=0; i < vm_info_1.pal_vm_info_1_s.num_tc_levels; i++) {
 			for (j=2; j>0 ; j--) {
-				tc_pages = 0; /* just in case */
+				tc_pages = 0; 
 
 
-				/* even without unification, some levels may not be present */
+				
 				if ((status=ia64_pal_vm_info(i,j, &tc_info, &tc_pages)) != 0) {
 					continue;
 				}
@@ -413,7 +386,7 @@ vm_info(char *page)
 
 				p = bitvector_process(p, tc_pages);
 
-				/* when unified date (j=2) is enough */
+				
 				if (tc_info.tc_unified)
 					break;
 			}
@@ -470,7 +443,7 @@ register_info(char *page)
 	return p - page;
 }
 
-static char *proc_features_0[]={		/* Feature set 0 */
+static char *proc_features_0[]={		
 	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 	NULL,NULL,NULL,NULL,NULL,NULL,NULL, NULL,NULL,
 	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -502,7 +475,7 @@ static char *proc_features_0[]={		/* Feature set 0 */
 	"Enable BERR promotion"
 };
 
-static char *proc_features_16[]={		/* Feature set 16 */
+static char *proc_features_16[]={		
 	"Disable ETM",
 	"Enable ETM",
 	"Enable MCA on half-way timer",
@@ -540,9 +513,9 @@ static char * feature_set_info(char *page, u64 avail, u64 status, u64 control,
 	vf = v = proc_features[set];
 	for(i=0; i < 64; i++, avail >>=1, status >>=1, control >>=1) {
 
-		if (!(control))		/* No remaining bits set */
+		if (!(control))		
 			break;
-		if (!(avail & 0x1))	/* Print only bits that are available */
+		if (!(avail & 0x1))	
 			continue;
 		if (vf)
 			v = vf + i;
@@ -695,10 +668,6 @@ perfmon_info(char *page)
 	p += sprintf(p, "\nRetired bundles count capable : ");
 
 #ifdef CONFIG_ITANIUM
-	/*
-	 * PAL_PERF_MON_INFO reports that only PMC4 can be used to count CPU_CYCLES
-	 * which is wrong, both PMC4 and PMD5 support it.
-	 */
 	if (pm_buffer[12] == 0x10) pm_buffer[12]=0x30;
 #endif
 
@@ -831,9 +800,6 @@ tr_info(char *page)
 
 
 
-/*
- * List {name,function} pairs for every entry in /proc/palinfo/cpu*
- */
 static palinfo_entry_t palinfo_entries[]={
 	{ "version_info",	version_info, },
 	{ "vm_info",		vm_info, },
@@ -849,31 +815,16 @@ static palinfo_entry_t palinfo_entries[]={
 
 #define NR_PALINFO_ENTRIES	(int) ARRAY_SIZE(palinfo_entries)
 
-/*
- * this array is used to keep track of the proc entries we create. This is
- * required in the module mode when we need to remove all entries. The procfs code
- * does not do recursion of deletion
- *
- * Notes:
- *	- +1 accounts for the cpuN directory entry in /proc/pal
- */
 #define NR_PALINFO_PROC_ENTRIES	(NR_CPUS*(NR_PALINFO_ENTRIES+1))
 
 static struct proc_dir_entry *palinfo_proc_entries[NR_PALINFO_PROC_ENTRIES];
 static struct proc_dir_entry *palinfo_dir;
 
-/*
- * This data structure is used to pass which cpu,function is being requested
- * It must fit in a 64bit quantity to be passed to the proc callback routine
- *
- * In SMP mode, when we get a request for another CPU, we must call that
- * other CPU using IPI and wait for the result before returning.
- */
 typedef union {
 	u64 value;
 	struct {
-		unsigned	req_cpu: 32;	/* for which CPU this info is */
-		unsigned	func_id: 32;	/* which function is requested */
+		unsigned	req_cpu: 32;	
+		unsigned	func_id: 32;	
 	} pal_func_cpu;
 } pal_func_cpu_u_t;
 
@@ -882,20 +833,13 @@ typedef union {
 
 #ifdef CONFIG_SMP
 
-/*
- * used to hold information about final function to call
- */
 typedef struct {
-	palinfo_func_t	func;	/* pointer to function to call */
-	char		*page;	/* buffer to store results */
-	int		ret;	/* return value from call */
+	palinfo_func_t	func;	
+	char		*page;	
+	int		ret;	
 } palinfo_smp_data_t;
 
 
-/*
- * this function does the actual final call and he called
- * from the smp code, i.e., this is the palinfo callback routine
- */
 static void
 palinfo_smp_call(void *info)
 {
@@ -917,10 +861,10 @@ int palinfo_handle_smp(pal_func_cpu_u_t *f, char *page)
 
 	ptr.func = palinfo_entries[f->func_id].proc_read;
 	ptr.page = page;
-	ptr.ret  = 0; /* just in case */
+	ptr.ret  = 0; 
 
 
-	/* will send IPI to other CPU and wait for completion of remote call */
+	
 	if ((ret=smp_call_function_single(f->req_cpu, palinfo_smp_call, &ptr, 1))) {
 		printk(KERN_ERR "palinfo: remote CPU call from %d to %d on function %d: "
 		       "error %d\n", smp_processor_id(), f->req_cpu, f->func_id, ret);
@@ -928,28 +872,21 @@ int palinfo_handle_smp(pal_func_cpu_u_t *f, char *page)
 	}
 	return ptr.ret;
 }
-#else /* ! CONFIG_SMP */
+#else 
 static
 int palinfo_handle_smp(pal_func_cpu_u_t *f, char *page)
 {
 	printk(KERN_ERR "palinfo: should not be called with non SMP kernel\n");
 	return 0;
 }
-#endif /* CONFIG_SMP */
+#endif 
 
-/*
- * Entry point routine: all calls go through this function
- */
 static int
 palinfo_read_entry(char *page, char **start, off_t off, int count, int *eof, void *data)
 {
 	int len=0;
 	pal_func_cpu_u_t *f = (pal_func_cpu_u_t *)&data;
 
-	/*
-	 * in SMP mode, we may need to call another CPU to get correct
-	 * information. PAL, by definition, is processor specific
-	 */
 	if (f->req_cpu == get_cpu())
 		len = (*palinfo_entries[f->func_id].proc_read)(page);
 	else
@@ -980,21 +917,12 @@ create_palinfo_proc_entries(unsigned int cpu)
 	char cpustr[sizeof(CPUSTR)];
 
 
-	/*
-	 * we keep track of created entries in a depth-first order for
-	 * cleanup purposes. Each entry is stored into palinfo_proc_entries
-	 */
 	sprintf(cpustr,CPUSTR, cpu);
 
 	cpu_dir = proc_mkdir(cpustr, palinfo_dir);
 
 	f.req_cpu = cpu;
 
-	/*
-	 * Compute the location to store per cpu entries
-	 * We dont store the top level entry in this list, but
-	 * remove it finally after removing all cpu entries.
-	 */
 	pdir = &palinfo_proc_entries[cpu*(NR_PALINFO_ENTRIES+1)];
 	*pdir++ = cpu_dir;
 	for (j=0; j < NR_PALINFO_ENTRIES; j++) {
@@ -1059,12 +987,12 @@ palinfo_init(void)
 	printk(KERN_INFO "PAL Information Facility v%s\n", PALINFO_VERSION);
 	palinfo_dir = proc_mkdir("pal", NULL);
 
-	/* Create palinfo dirs in /proc for all online cpus */
+	
 	for_each_online_cpu(i) {
 		create_palinfo_proc_entries(i);
 	}
 
-	/* Register for future delivery via notify registration */
+	
 	register_hotcpu_notifier(&palinfo_cpu_notifier);
 
 	return 0;
@@ -1075,19 +1003,13 @@ palinfo_exit(void)
 {
 	int i = 0;
 
-	/* remove all nodes: depth first pass. Could optimize this  */
+	
 	for_each_online_cpu(i) {
 		remove_palinfo_proc_entries(i);
 	}
 
-	/*
-	 * Remove the top level entry finally
-	 */
 	remove_proc_entry(palinfo_dir->name, NULL);
 
-	/*
-	 * Unregister from cpu notifier callbacks
-	 */
 	unregister_hotcpu_notifier(&palinfo_cpu_notifier);
 }
 

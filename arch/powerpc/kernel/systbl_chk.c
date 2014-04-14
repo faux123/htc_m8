@@ -32,13 +32,8 @@
 #define PPC_SYS_SPU(func)	PPC_SYS(func)
 #define SYSX_SPU(f, f3264, f32)	SYSX(f, f3264, f32)
 
-/* Just insert a marker for ni_syscalls */
 #define	__NR_ni_syscall		-1
 
-/*
- * These are the known exceptions.
- * Hopefully, there will be no more.
- */
 #define	__NR_llseek		__NR__llseek
 #undef	__NR_umount
 #define	__NR_umount		__NR_umount2
@@ -50,7 +45,6 @@
 #define	__NR_sysctl		__NR__sysctl
 #define __NR_olddebug_setcontext	__NR_sys_debug_setcontext
 
-/* We call sys_ugetrlimit for syscall number __NR_getrlimit */
 #define getrlimit		ugetrlimit
 
 START_TABLE

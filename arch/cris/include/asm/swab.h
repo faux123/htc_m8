@@ -3,6 +3,6 @@
 
 #ifdef __KERNEL__
 #include <arch/swab.h>
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _CRIS_SWAB_H */
+#endif 

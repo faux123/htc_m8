@@ -18,28 +18,27 @@
  *
  */
 
-/* This file included from seq.c */
 
 #include <linux/compat.h>
 #include <linux/slab.h>
 
 struct snd_seq_port_info32 {
-	struct snd_seq_addr addr;	/* client/port numbers */
-	char name[64];			/* port name */
+	struct snd_seq_addr addr;	
+	char name[64];			
 
-	u32 capability;	/* port capability bits */
-	u32 type;		/* port type bits */
-	s32 midi_channels;		/* channels per MIDI port */
-	s32 midi_voices;		/* voices per MIDI port */
-	s32 synth_voices;		/* voices per SYNTH port */
+	u32 capability;	
+	u32 type;		
+	s32 midi_channels;		
+	s32 midi_voices;		
+	s32 synth_voices;		
 
-	s32 read_use;			/* R/O: subscribers for output (from this port) */
-	s32 write_use;			/* R/O: subscribers for input (to this port) */
+	s32 read_use;			
+	s32 write_use;			
 
-	u32 kernel;			/* reserved for kernel use (must be NULL) */
-	u32 flags;		/* misc. conditioning */
-	unsigned char time_queue;	/* queue # for timestamping */
-	char reserved[59];		/* for future use */
+	u32 kernel;			
+	u32 flags;		
+	unsigned char time_queue;	
+	char reserved[59];		
 };
 
 static int snd_seq_call_port_info_ioctl(struct snd_seq_client *client, unsigned int cmd,
@@ -76,8 +75,6 @@ static int snd_seq_call_port_info_ioctl(struct snd_seq_client *client, unsigned 
 
 
 
-/*
- */
 
 enum {
 	SNDRV_SEQ_IOCTL_CREATE_PORT32 = _IOWR('S', 0x20, struct snd_seq_port_info32),

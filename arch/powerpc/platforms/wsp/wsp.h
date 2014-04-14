@@ -3,7 +3,6 @@
 
 #include <asm/wsp.h>
 
-/* Devtree compatible strings for major devices */
 #define PCIE_COMPATIBLE     "ibm,wsp-pciex"
 
 extern void wsp_setup_arch(void);
@@ -22,9 +21,8 @@ extern int __devinit smp_a2_kick_cpu(int nr);
 
 extern void opb_pic_init(void);
 
-/* chroma specific managment */
 extern void wsp_h8_restart(char *cmd);
 extern void wsp_h8_power_off(void);
 extern void __init wsp_setup_h8(void);
 
-#endif /*  __WSP_H */
+#endif 

@@ -9,13 +9,6 @@ typedef struct {
 
 #define MAKE_MM_SEG(s)	((mm_segment_t) { (s) })
 
-/*
- * The fs value determines whether argument validity checking should be
- * performed or not.  If get_fs() == USER_DS, checking is performed, with
- * get_fs() == KERNEL_DS, checking is bypassed.
- *
- * For historical reasons, these macros are grossly misnamed.
- */
 #define KERNEL_DS	MAKE_MM_SEG(0xFFFFFFFFUL)
 #ifdef CONFIG_MMU
 #define USER_DS		MAKE_MM_SEG(PAGE_OFFSET)
@@ -30,5 +23,5 @@ typedef struct {
 #define get_fs()	(current_thread_info()->addr_limit)
 #define set_fs(x)	(current_thread_info()->addr_limit = (x))
 
-#endif /* __ASSEMBLY__ */
-#endif /* __ASM_SH_SEGMENT_H */
+#endif 
+#endif 

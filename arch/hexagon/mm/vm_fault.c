@@ -1,7 +1,7 @@
 /*
  * Memory fault handling for Hexagon
  *
- * Copyright (c) 2010-2011 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -18,11 +18,6 @@
  * 02110-1301, USA.
  */
 
-/*
- * Page fault handling for the Hexagon Virtual Machine.
- * Can also be called by a native port emulating the HVM
- * execptions.
- */
 
 #include <asm/pgtable.h>
 #include <asm/traps.h>
@@ -32,19 +27,11 @@
 #include <linux/module.h>
 #include <linux/hardirq.h>
 
-/*
- * Decode of hardware exception sends us to one of several
- * entry points.  At each, we generate canonical arguments
- * for handling by the abstract memory management code.
- */
 #define FLT_IFETCH     -1
 #define FLT_LOAD        0
 #define FLT_STORE       1
 
 
-/*
- * Canonical page fault handler
- */
 void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
 {
 	struct vm_area_struct *vma;
@@ -54,10 +41,6 @@ void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
 	int fault;
 	const struct exception_table_entry *fixup;
 
-	/*
-	 * If we're in an interrupt or have no user context,
-	 * then must not take the fault.
-	 */
 	if (unlikely(in_interrupt() || !mm))
 		goto no_context;
 
@@ -78,7 +61,7 @@ void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
 		goto bad_area;
 
 good_area:
-	/* Address space is OK.  Now check access rights. */
+	
 	si_code = SEGV_ACCERR;
 
 	switch (cause) {
@@ -98,7 +81,7 @@ good_area:
 
 	fault = handle_mm_fault(mm, vma, address, (cause > 0));
 
-	/* The most common case -- we are done. */
+	
 	if (likely(!(fault & VM_FAULT_ERROR))) {
 		if (fault & VM_FAULT_MAJOR)
 			current->maj_flt++;
@@ -111,7 +94,7 @@ good_area:
 
 	up_read(&mm->mmap_sem);
 
-	/* Handle copyin/out exception cases */
+	
 	if (!user_mode(regs))
 		goto no_context;
 
@@ -120,14 +103,11 @@ good_area:
 		return;
 	}
 
-	/* User-mode address is in the memory map, but we are
-	 * unable to fix up the page fault.
-	 */
 	if (fault & VM_FAULT_SIGBUS) {
 		info.si_signo = SIGBUS;
 		info.si_code = BUS_ADRERR;
 	}
-	/* Address is not in the memory map */
+	
 	else {
 		info.si_signo = SIGSEGV;
 		info.si_code = SEGV_ACCERR;
@@ -148,7 +128,7 @@ bad_area:
 		force_sig_info(SIGSEGV, &info, current);
 		return;
 	}
-	/* Kernel-mode fault falls through */
+	
 
 no_context:
 	fixup = search_exception_tables(pt_elr(regs));
@@ -157,7 +137,7 @@ no_context:
 		return;
 	}
 
-	/* Things are looking very, very bad now */
+	
 	bust_spinlocks(1);
 	printk(KERN_EMERG "Unable to handle kernel paging request at "
 		"virtual address 0x%08lx, regs %p\n", address, regs);

@@ -35,10 +35,6 @@ struct pwm_device {
 	unsigned int	pwm_id;
 };
 
-/*
- * period_ns = 10^9 * (PRESCALE + 1) * (PV + 1) / PWM_CLK_RATE
- * duty_ns   = 10^9 * (PRESCALE + 1) * DC / PWM_CLK_RATE
- */
 int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 {
 	unsigned long long c;
@@ -65,9 +61,6 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	else
 		dc = (pv + 1) * duty_ns / period_ns;
 
-	/* NOTE: the clock to PWM has to be enabled first
-	 * before writing to the registers
-	 */
 	clk_enable(pwm->clk);
 	OST_PWMPWCR = prescale;
 	OST_PWMDCCR = pv - dc;

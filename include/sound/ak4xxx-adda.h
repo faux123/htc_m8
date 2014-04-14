@@ -37,41 +37,39 @@ struct snd_ak4xxx_ops {
 	void (*set_rate_val)(struct snd_akm4xxx *ak, unsigned int rate);
 };
 
-#define AK4XXX_IMAGE_SIZE	(AK4XXX_MAX_CHIPS * 16)	/* 64 bytes */
+#define AK4XXX_IMAGE_SIZE	(AK4XXX_MAX_CHIPS * 16)	
 
-/* DAC label and channels */
 struct snd_akm4xxx_dac_channel {
-	char *name;		/* mixer volume name */
+	char *name;		
 	unsigned int num_channels;
-	char *switch_name;		/* mixer switch*/
+	char *switch_name;		
 };
 
-/* ADC labels and channels */
 struct snd_akm4xxx_adc_channel {
-	char *name;		/* capture gain volume label */
-	char *switch_name;	/* capture switch */
+	char *name;		
+	char *switch_name;	
 	unsigned int num_channels;
-	char *selector_name;	/* capture source select label */
-	const char **input_names; /* capture source names (NULL terminated) */
+	char *selector_name;	
+	const char **input_names; 
 };
 
 struct snd_akm4xxx {
 	struct snd_card *card;
-	unsigned int num_adcs;			/* AK4524 or AK4528 ADCs */
-	unsigned int num_dacs;			/* AK4524 or AK4528 DACs */
-	unsigned char images[AK4XXX_IMAGE_SIZE]; /* saved register image */
-	unsigned char volumes[AK4XXX_IMAGE_SIZE]; /* saved volume values */
-	unsigned long private_value[AK4XXX_MAX_CHIPS];	/* helper for driver */
-	void *private_data[AK4XXX_MAX_CHIPS];		/* helper for driver */
-	/* template should fill the following fields */
-	unsigned int idx_offset;		/* control index offset */
+	unsigned int num_adcs;			
+	unsigned int num_dacs;			
+	unsigned char images[AK4XXX_IMAGE_SIZE]; 
+	unsigned char volumes[AK4XXX_IMAGE_SIZE]; 
+	unsigned long private_value[AK4XXX_MAX_CHIPS];	
+	void *private_data[AK4XXX_MAX_CHIPS];		
+	
+	unsigned int idx_offset;		
 	enum {
 		SND_AK4524, SND_AK4528, SND_AK4529,
 		SND_AK4355, SND_AK4358, SND_AK4381,
 		SND_AK5365, SND_AK4620,
 	} type;
 
-	/* (array) information of combined codecs */
+	
 	const struct snd_akm4xxx_dac_channel *dac_info;
 	const struct snd_akm4xxx_adc_channel *adc_info;
 
@@ -96,4 +94,4 @@ int snd_akm4xxx_build_controls(struct snd_akm4xxx *ak);
 #define snd_akm4xxx_set_vol(ak,chip,reg,val) \
 	((ak)->volumes[(chip) * 16 + (reg)] = (val))
 
-#endif /* __SOUND_AK4XXX_ADDA_H */
+#endif 

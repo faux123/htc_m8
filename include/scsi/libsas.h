@@ -56,10 +56,6 @@ enum sas_phy_type {
         PHY_TYPE_VIRTUAL
 };
 
-/* The events are mnemonically described in sas_dump.c
- * so when updating/adding events here, please also
- * update the other file too.
- */
 enum ha_event {
 	HAE_RESET             = 0U,
 	HA_NUM_EVENTS         = 1,
@@ -78,7 +74,7 @@ enum phy_event {
 	PHYE_LOSS_OF_SIGNAL   = 0U,
 	PHYE_OOB_DONE         = 1,
 	PHYE_OOB_ERROR        = 2,
-	PHYE_SPINUP_HOLD      = 3, /* hot plug SATA, no COMWAKE sent */
+	PHYE_SPINUP_HOLD      = 3, 
 	PHY_NUM_EVENTS        = 4,
 };
 
@@ -91,7 +87,6 @@ enum discover_event {
 	DISC_NUM_EVENTS		= 5,
 };
 
-/* ---------- Expander Devices ---------- */
 
 #define to_dom_device(_obj) container_of(_obj, struct domain_device, dev_obj)
 #define to_dev_attr(_attr)  container_of(_attr, struct domain_dev_attribute,\
@@ -157,7 +152,6 @@ struct expander_device {
 	struct mutex cmd_mutex;
 };
 
-/* ---------- SATA device ---------- */
 enum ata_command_set {
         ATA_COMMAND_SET   = 0,
         ATAPI_COMMAND_SET = 1,
@@ -165,9 +159,9 @@ enum ata_command_set {
 
 struct sata_device {
         enum   ata_command_set command_set;
-        struct smp_resp        rps_resp; /* report_phy_sata_resp */
-        u8     port_no;        /* port number, if this is a PM (Port) */
-        struct list_head children; /* PM Ports if this is a PM */
+        struct smp_resp        rps_resp; 
+        u8     port_no;        
+        struct list_head children; 
 
 	struct ata_port *ap;
 	struct ata_host ata_host;
@@ -190,12 +184,12 @@ struct domain_device {
         int  pathways;
 
         struct domain_device *parent;
-        struct list_head siblings; /* devices on the same level */
-        struct asd_sas_port *port;        /* shortcut to root of the tree */
+        struct list_head siblings; 
+        struct asd_sas_port *port;        
 	struct sas_phy *phy;
 
         struct list_head dev_list_node;
-	struct list_head disco_list_node; /* awaiting probe or destruct */
+	struct list_head disco_list_node; 
 
         enum sas_protocol    iproto;
         enum sas_protocol    tproto;
@@ -209,7 +203,7 @@ struct domain_device {
 
         union {
                 struct expander_device ex_dev;
-                struct sata_device     sata_dev; /* STP & directly attached */
+                struct sata_device     sata_dev; 
         };
 
         void *lldd_dev;
@@ -249,9 +243,7 @@ struct sas_discovery {
 	int    max_level;
 };
 
-/* The port struct is Class:RW, driver:RO */
 struct asd_sas_port {
-/* private: */
 	struct completion port_gone_completion;
 
 	struct sas_discovery disc;
@@ -264,7 +256,6 @@ struct asd_sas_port {
 
 	struct sas_work work;
 
-/* public: */
 	int id;
 
 	enum sas_class   class;
@@ -284,7 +275,7 @@ struct asd_sas_port {
 
 	struct sas_port	*port;
 
-	void *lldd_port;	  /* not touched by the sas class code */
+	void *lldd_port;	  
 };
 
 struct asd_sas_event {
@@ -299,11 +290,7 @@ static inline struct asd_sas_event *to_asd_sas_event(struct work_struct *work)
 	return ev;
 }
 
-/* The phy pretty much is controlled by the LLDD.
- * The class only reads those fields.
- */
 struct asd_sas_phy {
-/* private: */
 	struct asd_sas_event   port_events[PORT_NUM_EVENTS];
 	struct asd_sas_event   phy_events[PHY_NUM_EVENTS];
 
@@ -314,11 +301,10 @@ struct asd_sas_phy {
 
 	struct sas_phy *phy;
 
-/* public: */
-	/* The following are class:RO, driver:R/W */
-	int            enabled;	  /* must be set */
+	
+	int            enabled;	  
 
-	int            id;	  /* must be set */
+	int            id;	  
 	enum sas_class class;
 	enum sas_protocol iproto;
 	enum sas_protocol tproto;
@@ -328,22 +314,22 @@ struct asd_sas_phy {
 	enum sas_oob_mode  oob_mode;
 	enum sas_linkrate linkrate;
 
-	u8   *sas_addr;		  /* must be set */
-	u8   attached_sas_addr[SAS_ADDR_SIZE]; /* class:RO, driver: R/W */
+	u8   *sas_addr;		  
+	u8   attached_sas_addr[SAS_ADDR_SIZE]; 
 
 	spinlock_t     frame_rcvd_lock;
-	u8             *frame_rcvd; /* must be set */
+	u8             *frame_rcvd; 
 	int            frame_rcvd_size;
 
 	spinlock_t     sas_prim_lock;
 	u32            sas_prim;
 
-	struct list_head port_phy_el; /* driver:RO */
-	struct asd_sas_port      *port; /* Class:RW, driver: RO */
+	struct list_head port_phy_el; 
+	struct asd_sas_port      *port; 
 
-	struct sas_ha_struct *ha; /* may be set; the class sets it anyway */
+	struct sas_ha_struct *ha; 
 
-	void *lldd_phy;		  /* not touched by the sas_class_code */
+	void *lldd_phy;		  
 };
 
 struct scsi_core {
@@ -377,11 +363,10 @@ enum sas_ha_state {
 };
 
 struct sas_ha_struct {
-/* private: */
 	struct sas_ha_event ha_events[HA_NUM_EVENTS];
 	unsigned long	 pending;
 
-	struct list_head  defer_q; /* work queued while draining */
+	struct list_head  defer_q; 
 	struct mutex	  drain_mutex;
 	unsigned long	  state;
 	spinlock_t 	  state_lock;
@@ -390,34 +375,32 @@ struct sas_ha_struct {
 
 	struct scsi_core core;
 
-/* public: */
 	char *sas_ha_name;
-	struct device *dev;	  /* should be set */
-	struct module *lldd_module; /* should be set */
+	struct device *dev;	  
+	struct module *lldd_module; 
 
-	u8 *sas_addr;		  /* must be set */
+	u8 *sas_addr;		  
 	u8 hashed_sas_addr[HASHED_SAS_ADDR_SIZE];
 
 	spinlock_t      phy_port_lock;
-	struct asd_sas_phy  **sas_phy; /* array of valid pointers, must be set */
-	struct asd_sas_port **sas_port; /* array of valid pointers, must be set */
-	int             num_phys; /* must be set, gt 0, static */
+	struct asd_sas_phy  **sas_phy; 
+	struct asd_sas_port **sas_port; 
+	int             num_phys; 
 
-	/* The class calls this to send a task for execution. */
+	
 	int lldd_max_execute_num;
 	int lldd_queue_size;
-	int strict_wide_ports; /* both sas_addr and attached_sas_addr must match
-				* their siblings when forming wide ports */
+	int strict_wide_ports; 
 
-	/* LLDD calls these to notify the class of an event. */
+	
 	void (*notify_ha_event)(struct sas_ha_struct *, enum ha_event);
 	void (*notify_port_event)(struct asd_sas_phy *, enum port_event);
 	void (*notify_phy_event)(struct asd_sas_phy *, enum phy_event);
 
-	void *lldd_ha;		  /* not touched by sas class code */
+	void *lldd_ha;		  
 
-	struct list_head eh_done_q;  /* complete via scsi_eh_flush_done_q */
-	struct list_head eh_ata_q; /* scmds to promote from sas to ata eh */
+	struct list_head eh_done_q;  
+	struct list_head eh_ata_q; 
 };
 
 #define SHOST_TO_SAS_HA(_shost) (*(struct sas_ha_struct **)(_shost)->hostdata)
@@ -445,11 +428,6 @@ cmd_to_domain_dev(struct scsi_cmnd *cmd)
 
 void sas_hash_addr(u8 *hashed, const u8 *sas_addr);
 
-/* Before calling a notify event, LLDD should use this function
- * when the link is severed (possibly from its tasklet).
- * The idea is that the Class only reads those, while the LLDD,
- * can R/W these (thus avoiding a race).
- */
 static inline void sas_phy_disconnected(struct asd_sas_phy *phy)
 {
 	phy->oob_mode = OOB_NOT_CONNECTED;
@@ -475,19 +453,6 @@ static inline int try_test_sas_gpio_gp_bit(unsigned int od, u8 *data, u8 index, 
 }
 #endif
 
-/* ---------- Tasks ---------- */
-/*
-      service_response |  SAS_TASK_COMPLETE  |  SAS_TASK_UNDELIVERED |
-  exec_status          |                     |                       |
-  ---------------------+---------------------+-----------------------+
-       SAM_...         |         X           |                       |
-       DEV_NO_RESPONSE |         X           |           X           |
-       INTERRUPTED     |         X           |                       |
-       QUEUE_FULL      |                     |           X           |
-       DEVICE_UNKNOWN  |                     |           X           |
-       SG_ERR          |                     |           X           |
-  ---------------------+---------------------+-----------------------+
- */
 
 enum service_response {
 	SAS_TASK_COMPLETE,
@@ -495,9 +460,6 @@ enum service_response {
 };
 
 enum exec_status {
-	/* The SAM_STAT_.. codes fit in the lower 6 bits, alias some of
-	 * them here to silence 'case value not in enumerated type' warnings
-	 */
 	__SAM_STAT_CHECK_CONDITION = SAM_STAT_CHECK_CONDITION,
 
 	SAS_DEV_NO_RESPONSE = 0x80,
@@ -516,28 +478,9 @@ enum exec_status {
 	SAS_ABORTED_TASK,
 };
 
-/* When a task finishes with a response, the LLDD examines the
- * response:
- * 	- For an ATA task task_status_struct::stat is set to
- * SAS_PROTO_RESPONSE, and the task_status_struct::buf is set to the
- * contents of struct ata_task_resp.
- * 	- For SSP tasks, if no data is present or status/TMF response
- * is valid, task_status_struct::stat is set.  If data is present
- * (SENSE data), the LLDD copies up to SAS_STATUS_BUF_SIZE, sets
- * task_status_struct::buf_valid_size, and task_status_struct::stat is
- * set to SAM_CHECK_COND.
- *
- * "buf" has format SCSI Sense for SSP task, or struct ata_task_resp
- * for ATA task.
- *
- * "frame_len" is the total frame length, which could be more or less
- * than actually copied.
- *
- * Tasks ending with response, always set the residual field.
- */
 struct ata_task_resp {
 	u16  frame_len;
-	u8   ending_fis[24];	  /* dev to host or data-in */
+	u8   ending_fis[24];	  
 };
 
 #define SAS_STATUS_BUF_SIZE 96
@@ -553,15 +496,13 @@ struct task_status_struct {
 	enum sas_open_rej_reason open_rej_reason;
 };
 
-/* ATA and ATAPI task queuable to a SAS LLDD.
- */
 struct sas_ata_task {
 	struct host_to_dev_fis fis;
-	u8     atapi_packet[16];  /* 0 if not ATAPI task */
+	u8     atapi_packet[16];  
 
-	u8     retry_count;	  /* hardware retry, should be > 0 */
+	u8     retry_count;	  
 
-	u8     dma_xfer:1;	  /* PIO:0 or DMA:1 */
+	u8     dma_xfer:1;	  
 	u8     use_ncq:1;
 	u8     set_affil_pol:1;
 	u8     stp_affil_pol:1;
@@ -582,7 +523,7 @@ enum task_attribute {
 };
 
 struct sas_ssp_task {
-	u8     retry_count;	  /* hardware retry, should be > 0 */
+	u8     retry_count;	  
 
 	u8     LUN[8];
 	u8     enable_first_burst:1;
@@ -600,7 +541,7 @@ struct sas_task {
 
 	enum   sas_protocol      task_proto;
 
-	/* Used by the discovery code. */
+	
 	struct timer_list     timer;
 	struct completion     completion;
 
@@ -613,12 +554,12 @@ struct sas_task {
 	struct scatterlist *scatter;
 	int    num_scatter;
 	u32    total_xfer_len;
-	u8     data_dir:2;	  /* Use PCI_DMA_... */
+	u8     data_dir:2;	  
 
 	struct task_status_struct task_status;
 	void   (*task_done)(struct sas_task *);
 
-	void   *lldd_task;	  /* for use by LLDDs */
+	void   *lldd_task;	  
 	void   *uldd_task;
 
 	struct work_struct abort_work;
@@ -634,18 +575,18 @@ extern struct sas_task *sas_alloc_task(gfp_t flags);
 extern void sas_free_task(struct sas_task *task);
 
 struct sas_domain_function_template {
-	/* The class calls these to notify the LLDD of an event. */
+	
 	void (*lldd_port_formed)(struct asd_sas_phy *);
 	void (*lldd_port_deformed)(struct asd_sas_phy *);
 
-	/* The class calls these when a device is found or gone. */
+	
 	int  (*lldd_dev_found)(struct domain_device *);
 	void (*lldd_dev_gone)(struct domain_device *);
 
 	int (*lldd_execute_task)(struct sas_task *, int num,
 				 gfp_t gfp_flags);
 
-	/* Task Management Functions. Must be called from process context. */
+	
 	int (*lldd_abort_task)(struct sas_task *);
 	int (*lldd_abort_task_set)(struct domain_device *, u8 *lun);
 	int (*lldd_clear_aca)(struct domain_device *, u8 *lun);
@@ -656,14 +597,14 @@ struct sas_domain_function_template {
 	int (*lldd_lu_reset)(struct domain_device *, u8 *lun);
 	int (*lldd_query_task)(struct sas_task *);
 
-	/* Port and Adapter management */
+	
 	int (*lldd_clear_nexus_port)(struct asd_sas_port *);
 	int (*lldd_clear_nexus_ha)(struct sas_ha_struct *);
 
-	/* Phy management */
+	
 	int (*lldd_control_phy)(struct asd_sas_phy *, enum phy_func, void *);
 
-	/* GPIO support */
+	
 	int (*lldd_write_gpio)(struct sas_ha_struct *, u8 reg_type,
 			       u8 reg_index, u8 reg_count, u8 *write_data);
 };
@@ -723,4 +664,4 @@ struct sas_phy *sas_get_local_phy(struct domain_device *dev);
 
 int sas_request_addr(struct Scsi_Host *shost, u8 *addr);
 
-#endif /* _SASLIB_H_ */
+#endif 

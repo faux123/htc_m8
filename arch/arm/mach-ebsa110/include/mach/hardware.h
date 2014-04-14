@@ -15,10 +15,7 @@
 #define ISAMEM_BASE		0xe0000000
 #define ISAIO_BASE		0xf0000000
 
-/*
- * RAM definitions
- */
-#define UNCACHEABLE_ADDR	0xff000000	/* IRQ_STAT */
+#define UNCACHEABLE_ADDR	0xff000000	
 
 #endif
 

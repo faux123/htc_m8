@@ -19,9 +19,6 @@ struct mod_arch_specific {
 #define Elf_Sym		Elf32_Sym
 #define Elf_Ehdr	Elf32_Ehdr
 
-/*
- * Include the MN10300 architecture version.
- */
 #define MODULE_ARCH_VERMAGIC __stringify(PROCESSOR_MODEL_NAME) " "
 
-#endif /* _ASM_MODULE_H */
+#endif 

@@ -3,4 +3,4 @@
 
 #include <asm-generic/current.h>
 
-#endif /* _ASM_SCORE_CURRENT_H */
+#endif 

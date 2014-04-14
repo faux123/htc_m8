@@ -21,7 +21,6 @@
  * for more details.
  */
 
-/* PXA LCD DMA descriptor */
 struct pxafb_dma_descriptor {
 	unsigned int fdadr;
 	unsigned int fsadr;
@@ -50,13 +49,9 @@ enum {
 	DMA_MAX,
 };
 
-/* maximum palette size - 256 entries, each 4 bytes long */
 #define PALETTE_SIZE	(256 * 4)
 #define CMD_BUFF_SIZE	(1024 * 50)
 
-/* NOTE: the palette and frame dma descriptors are doubled to allow
- * the 2nd set for branch settings (FBRx)
- */
 struct pxafb_dma_buff {
 	unsigned char palette[PAL_MAX * PALETTE_SIZE];
 	uint16_t cmd_buff[CMD_BUFF_SIZE];
@@ -118,10 +113,10 @@ struct pxafb_info {
 	dma_addr_t		dma_buff_phys;
 	dma_addr_t		fdadr[DMA_MAX * 2];
 
-	void __iomem		*video_mem;	/* virtual address of frame buffer */
-	unsigned long		video_mem_phys;	/* physical address of frame buffer */
-	size_t			video_mem_size;	/* size of the frame buffer */
-	u16 *			palette_cpu;	/* virtual address of palette memory */
+	void __iomem		*video_mem;	
+	unsigned long		video_mem_phys;	
+	size_t			video_mem_size;	
+	u16 *			palette_cpu;	
 	u_int			palette_size;
 
 	u_int			lccr0;
@@ -171,9 +166,6 @@ struct pxafb_info {
 
 #define TO_INF(ptr,member) container_of(ptr,struct pxafb_info,member)
 
-/*
- * These are the actions for set_ctrlr_state
- */
 #define C_DISABLE		(0)
 #define C_ENABLE		(1)
 #define C_DISABLE_CLKCHANGE	(2)
@@ -185,16 +177,10 @@ struct pxafb_info {
 
 #define PXA_NAME	"PXA"
 
-/*
- * Minimum X and Y resolutions
- */
 #define MIN_XRES	64
 #define MIN_YRES	64
 
-/* maximum X and Y resolutions - note these are limits from the register
- * bits length instead of the real ones
- */
 #define MAX_XRES	1024
 #define MAX_YRES	1024
 
-#endif /* __PXAFB_H__ */
+#endif 

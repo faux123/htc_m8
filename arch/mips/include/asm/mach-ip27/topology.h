@@ -6,10 +6,9 @@
 #include <asm/mmzone.h>
 
 struct cpuinfo_ip27 {
-//	cpuid_t		p_cpuid;	/* PROM assigned cpuid */
-	cnodeid_t	p_nodeid;	/* my node ID in compact-id-space */
-	nasid_t		p_nasid;	/* my node ID in numa-as-id-space */
-	unsigned char	p_slice;	/* Physical position on node board */
+	cnodeid_t	p_nodeid;	
+	nasid_t		p_nasid;	
+	unsigned char	p_slice;	
 #if 0
 	unsigned long		loops_per_sec;
 	unsigned long		ipi_count;
@@ -36,7 +35,6 @@ extern unsigned char __node_distances[MAX_COMPACT_NODES][MAX_COMPACT_NODES];
 
 #define node_distance(from, to)	(__node_distances[(from)][(to)])
 
-/* sched_domains SD_NODE_INIT for SGI IP27 machines */
 #define SD_NODE_INIT (struct sched_domain) {		\
 	.parent			= NULL,			\
 	.child			= NULL,			\
@@ -55,4 +53,4 @@ extern unsigned char __node_distances[MAX_COMPACT_NODES][MAX_COMPACT_NODES];
 
 #include <asm-generic/topology.h>
 
-#endif /* _ASM_MACH_TOPOLOGY_H */
+#endif 

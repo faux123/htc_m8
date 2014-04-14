@@ -41,7 +41,7 @@ static void setup_ts2pes(ipack *pa, ipack *pv, u16 *pida, u16 *pidv,
 #endif
 
 #if 0
-static void ts_to_pes(ipack *p, u8 *buf) // don't need count (=188)
+static void ts_to_pes(ipack *p, u8 *buf) 
 {
 	u8 off = 0;
 
@@ -57,7 +57,7 @@ static void ts_to_pes(ipack *p, u8 *buf) // don't need count (=188)
 			dvb_filter_ipack_reset(p);
 		}
 	}
-	if (buf[3] & ADAPT_FIELD) {  // adaptation field?
+	if (buf[3] & ADAPT_FIELD) {  
 		off = buf[4] + 1;
 		if (off+4 > 187) return;
 	}
@@ -66,7 +66,6 @@ static void ts_to_pes(ipack *p, u8 *buf) // don't need count (=188)
 #endif
 
 #if 0
-/* needs 5 byte input, returns picture coding type*/
 static int read_picture_header(u8 *headr, struct mpg_picture *pic, int field, int pr)
 {
 	u8 pct;
@@ -112,7 +111,6 @@ static int read_picture_header(u8 *headr, struct mpg_picture *pic, int field, in
 #endif
 
 #if 0
-/* needs 4 byte input */
 static int read_gop_header(u8 *headr, struct mpg_picture *pic, int pr)
 {
 	if (pr) printk("GOP header: ");
@@ -143,7 +141,6 @@ static int read_gop_header(u8 *headr, struct mpg_picture *pic, int pr)
 #endif
 
 #if 0
-/* needs 8 byte input */
 static int read_sequence_header(u8 *headr, struct dvb_video_info *vi, int pr)
 {
 	int sw;
@@ -367,7 +364,7 @@ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int p
 	ai->off = c;
 	if (c+5 >= count) return -1;
 
-	ai->layer = 0;  // 0 for AC3
+	ai->layer = 0;  
 	headr = mbuf+c+2;
 
 	frame = (headr[2]&0x3f);
@@ -407,12 +404,12 @@ static u8 *skip_pes_header(u8 **bufp)
 	};
 
 
-	if ((inbuf[6] & 0xc0) == 0x80){ /* mpeg2 */
+	if ((inbuf[6] & 0xc0) == 0x80){ 
 		if (buf[7] & PTS_ONLY)
 			pts = buf+9;
 		else pts = NULL;
 		buf = inbuf + 9 + inbuf[8];
-	} else {        /* mpeg1 */
+	} else {        
 		for (buf = inbuf + 6; *buf == 0xff; buf++)
 			if (buf == inbuf + 6 + 16) {
 				break;
@@ -463,9 +460,9 @@ static void initialize_mpg_picture(struct mpg_picture *pic)
 {
 	int i;
 
-	/* set MPEG1 */
+	
 	pic->mpeg1_flag = 1;
-	pic->profile_and_level = 0x4A ;        /* MP@LL */
+	pic->profile_and_level = 0x4A ;        
 	pic->progressive_sequence = 1;
 	pic->low_delay = 0;
 
@@ -502,7 +499,7 @@ static void mpg_set_picture_parameter( int32_t field_type, struct mpg_picture *p
 		pic->picture_coding_parameter = 0x000010;
 	}
 
-	/* Reset flag */
+	
 	pic->picture_display_extension_flag[field_type] = 0;
 
 	last_h_offset = pic->last_frame_centre_horizontal_offset;
@@ -573,7 +570,7 @@ int dvb_filter_pes2ts(struct dvb_filter_pes2ts *p2ts, unsigned char *pes,
 	unsigned char *buf=p2ts->buf;
 	int ret=0, rest;
 
-	//len=6+((pes[4]<<8)|pes[5]);
+	
 
 	if (payload_start)
 		buf[1]|=0x40;

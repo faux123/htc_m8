@@ -1,8 +1,3 @@
-/******************************************************************************
- *
- * Name: actables.h - ACPI table management
- *
- *****************************************************************************/
 
 /*
  * Copyright (C) 2000 - 2012, Intel Corp.
@@ -46,23 +41,14 @@
 
 acpi_status acpi_allocate_root_table(u32 initial_table_count);
 
-/*
- * tbfadt - FADT parse/convert/validate
- */
 void acpi_tb_parse_fadt(u32 table_index);
 
 void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
 
-/*
- * tbfind - find ACPI table
- */
 acpi_status
 acpi_tb_find_table(char *signature,
 		   char *oem_id, char *oem_table_id, u32 *table_index);
 
-/*
- * tbinstal - Table removal and deletion
- */
 acpi_status acpi_tb_resize_root_table_list(void);
 
 acpi_status acpi_tb_verify_table(struct acpi_table_desc *table_desc);
@@ -96,9 +82,6 @@ u8 acpi_tb_is_table_loaded(u32 table_index);
 
 void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded);
 
-/*
- * tbutils - table manager utilities
- */
 acpi_status acpi_tb_initialize_facs(void);
 
 u8 acpi_tb_tables_loaded(void);
@@ -122,4 +105,4 @@ acpi_tb_install_table(acpi_physical_address address,
 
 acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
 
-#endif				/* __ACTABLES_H__ */
+#endif				

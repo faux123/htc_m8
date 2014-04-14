@@ -9,7 +9,6 @@
 #ifndef	_AB8500_GPADC_H
 #define _AB8500_GPADC_H
 
-/* GPADC source: From datasheet(ADCSwSel[4:0] in GPADCCtrl2) */
 #define BAT_CTRL	0x01
 #define BTEMP_BALL	0x02
 #define MAIN_CHARGER_V	0x03
@@ -32,4 +31,4 @@ int ab8500_gpadc_read_raw(struct ab8500_gpadc *gpadc, u8 channel);
 int ab8500_gpadc_ad_to_voltage(struct ab8500_gpadc *gpadc,
     u8 channel, int ad_value);
 
-#endif /* _AB8500_GPADC_H */
+#endif 

@@ -49,10 +49,10 @@ static int ssb_pcihost_resume(struct pci_dev *dev)
 
 	return 0;
 }
-#else /* CONFIG_PM */
+#else 
 # define ssb_pcihost_suspend	NULL
 # define ssb_pcihost_resume	NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static int __devinit ssb_pcihost_probe(struct pci_dev *dev,
 				       const struct pci_device_id *id)
@@ -76,8 +76,6 @@ static int __devinit ssb_pcihost_probe(struct pci_dev *dev,
 		goto err_pci_disable;
 	pci_set_master(dev);
 
-	/* Disable the RETRY_TIMEOUT register (0x41) to keep
-	 * PCI Tx retries from interfering with C3 CPU state */
 	pci_read_config_dword(dev, 0x40, &val);
 	if ((val & 0x0000ff00) != 0)
 		pci_write_config_dword(dev, 0x40, val & 0xffff00ff);

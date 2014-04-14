@@ -10,7 +10,6 @@
 #ifndef __ASM_MACH_TETON_BGA_H
 #define __ASM_MACH_TETON_BGA_H
 
-/* GPIOs */
 #define MMC_PWENA_GPIO		27
 #define USBHPENB_GPIO		55
 #define RTC_INT_GPIO		78
@@ -24,4 +23,4 @@
 #define TS_INT_GPIO		86
 #define CIR_GPIO		108
 
-#endif /* __ASM_MACH_TETON_BGA_H */
+#endif 

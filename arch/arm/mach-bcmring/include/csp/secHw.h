@@ -12,54 +12,22 @@
 * consent.
 *****************************************************************************/
 
-/****************************************************************************/
-/**
-*  @file    secHw.h
-*
-*  @brief   Definitions for accessing low level security features
-*
-*/
-/****************************************************************************/
 #ifndef SECHW_H
 #define SECHW_H
 
 typedef void (*secHw_FUNC_t) (void);
 
 typedef enum {
-	secHw_MODE_SECURE = 0x0,	/* Switches processor into secure mode */
-	secHw_MODE_NONSECURE = 0x1	/* Switches processor into non-secure mode */
+	secHw_MODE_SECURE = 0x0,	
+	secHw_MODE_NONSECURE = 0x1	
 } secHw_MODE;
 
-/****************************************************************************/
-/**
-*  @brief   Requesting to execute the function in secure mode
-*
-*  This function requests the given function to run in secure mode
-*
-*/
-/****************************************************************************/
-void secHw_RunSecure(secHw_FUNC_t	/* Function to run in secure mode */
+void secHw_RunSecure(secHw_FUNC_t	
     );
 
-/****************************************************************************/
-/**
-*  @brief   Sets the  mode
-*
-*  his function sets the processor mode (secure/non-secure)
-*
-*/
-/****************************************************************************/
-void secHw_SetMode(secHw_MODE	/* Processor mode */
+void secHw_SetMode(secHw_MODE	
     );
 
-/****************************************************************************/
-/**
-*  @brief   Get the current mode
-*
-*  This function retieves the processor mode (secure/non-secure)
-*
-*/
-/****************************************************************************/
 void secHw_GetMode(secHw_MODE *);
 
-#endif /* SECHW_H */
+#endif 

@@ -26,11 +26,6 @@ static unsigned int cached_irq_mask;
 
 atomic_t irq_err_count;
 
-/*
- * do_IRQ handles all normal device IRQ's (the special
- * SMP cross-CPU interrupts have their own specific
- * handlers).
- */
 
 asmlinkage void do_IRQ(int irq, struct pt_regs *regs)
 {
@@ -44,7 +39,7 @@ asmlinkage void do_IRQ(int irq, struct pt_regs *regs)
 	irq_enter();
 
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
-	/* Debugging check for stack overflow: is there less than 1KB free? */
+	
 	{
 		unsigned long sp;
 
@@ -138,8 +133,8 @@ void __init init_IRQ(void)
 			irq_set_chip_and_handler(index, &xtensa_irq_chip,
 						 handle_edge_irq);
 
-		else	/* XCHAL_INTTYPE_MASK_WRITE_ERROR */
-			/* XCHAL_INTTYPE_MASK_NMI */
+		else	
+			
 
 			irq_set_chip_and_handler(index, &xtensa_irq_chip,
 						 handle_level_irq);

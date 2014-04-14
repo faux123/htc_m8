@@ -61,6 +61,6 @@ static inline int dvb_net_init(struct dvb_adapter *adap,
 	return 0;
 }
 
-#endif /* ifdef CONFIG_DVB_NET */
+#endif 
 
 #endif

@@ -25,19 +25,16 @@ Debug macros.
 
 #include "hpi_internal.h"
 
-/* Define debugging levels.  */
-enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* always log errors */
+enum { HPI_DEBUG_LEVEL_ERROR = 0,	
 	HPI_DEBUG_LEVEL_WARNING = 1,
 	HPI_DEBUG_LEVEL_NOTICE = 2,
 	HPI_DEBUG_LEVEL_INFO = 3,
 	HPI_DEBUG_LEVEL_DEBUG = 4,
-	HPI_DEBUG_LEVEL_VERBOSE = 5	/* same printk level as DEBUG */
+	HPI_DEBUG_LEVEL_VERBOSE = 5	
 };
 
 #define HPI_DEBUG_LEVEL_DEFAULT HPI_DEBUG_LEVEL_NOTICE
 
-/* an OS can define an extra flag string that is appended to
-   the start of each message, eg see linux kernel hpios.h */
 
 #ifdef SOURCEFILE_NAME
 #define FILE_LINE  SOURCEFILE_NAME ":" __stringify(__LINE__) " "
@@ -64,7 +61,6 @@ enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* always log errors */
 void hpi_debug_init(void);
 int hpi_debug_level_set(int level);
 int hpi_debug_level_get(void);
-/* needed by Linux driver for dynamic debug level changes */
 extern int hpi_debug_level;
 
 void hpi_debug_message(struct hpi_message *phm, char *sz_fileline);
@@ -99,4 +95,4 @@ void hpi_debug_data(u16 *pdata, u32 len);
     typedef char msg[(cond) ? 1 : -1]
 #endif
 
-#endif				/* _HPIDEBUG_H_  */
+#endif				

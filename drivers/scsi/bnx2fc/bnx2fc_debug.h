@@ -1,13 +1,12 @@
 #ifndef __BNX2FC_DEBUG__
 #define __BNX2FC_DEBUG__
 
-/* Log level bit mask */
-#define LOG_IO		0x01	/* scsi cmd error, cleanup */
-#define LOG_TGT		0x02	/* Session setup, cleanup, etc' */
-#define LOG_HBA		0x04	/* lport events, link, mtu, etc' */
-#define LOG_ELS		0x08	/* ELS logs */
-#define LOG_MISC	0x10	/* fcoe L2 frame related logs*/
-#define LOG_ALL		0xff	/* LOG all messages */
+#define LOG_IO		0x01	
+#define LOG_TGT		0x02	
+#define LOG_HBA		0x04	
+#define LOG_ELS		0x08	
+#define LOG_MISC	0x10	
+#define LOG_ALL		0xff	
 
 extern unsigned int bnx2fc_debug_level;
 

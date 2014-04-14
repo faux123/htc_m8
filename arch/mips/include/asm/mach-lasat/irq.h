@@ -10,4 +10,4 @@
 
 #include_next <irq.h>
 
-#endif /* _ASM_MACH_LASAT_IRQ_H */
+#endif 

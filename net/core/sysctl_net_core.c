@@ -1,9 +1,3 @@
-/* -*- linux-c -*-
- * sysctl_net_core.c: sysctl interface to net core subsystem.
- *
- * Begun April 1, 1996, Mike Shaver.
- * Added /proc/sys/net/core directory entry (empty =) ). [MS]
- */
 
 #include <linux/mm.h>
 #include <linux/sysctl.h>
@@ -14,6 +8,7 @@
 #include <linux/vmalloc.h>
 #include <linux/init.h>
 #include <linux/slab.h>
+#include <linux/kmemleak.h>
 
 #include <net/ip.h>
 #include <net/sock.h>
@@ -44,7 +39,7 @@ static int rps_sock_flow_sysctl(ctl_table *table, int write,
 	if (write) {
 		if (size) {
 			if (size > 1<<30) {
-				/* Enforce limit to prevent overflow */
+				
 				mutex_unlock(&sock_flow_mutex);
 				return -EINVAL;
 			}
@@ -82,7 +77,7 @@ static int rps_sock_flow_sysctl(ctl_table *table, int write,
 
 	return ret;
 }
-#endif /* CONFIG_RPS */
+#endif 
 
 static struct ctl_table net_core_table[] = {
 #ifdef CONFIG_NET
@@ -173,7 +168,7 @@ static struct ctl_table net_core_table[] = {
 		.proc_handler	= rps_sock_flow_sysctl
 	},
 #endif
-#endif /* CONFIG_NET */
+#endif 
 	{
 		.procname	= "netdev_budget",
 		.data		= &netdev_budget,
@@ -256,7 +251,7 @@ static __init int sysctl_core_init(void)
 {
 	static struct ctl_table empty[1];
 
-	register_sysctl_paths(net_core_path, empty);
+	kmemleak_not_leak(register_sysctl_paths(net_core_path, empty));
 	register_net_sysctl_rotable(net_core_path, net_core_table);
 	return register_pernet_subsys(&sysctl_core_ops);
 }

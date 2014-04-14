@@ -3,4 +3,4 @@
 
 #include <asm-generic/ipcbuf.h>
 
-#endif /* _ASM_SCORE_IPCBUF_H */
+#endif 

@@ -84,13 +84,13 @@ static ssize_t als_lux0_input_data_show(struct device *dev,
 	int ret_val;
 	int temp;
 
-	/* Protect against parallel reads */
+	
 	pm_runtime_get_sync(dev);
 	mutex_lock(&data->mutex);
 
-	/* clear EOC interrupt status */
+	
 	i2c_smbus_write_byte(client, 0x40);
-	/* start measurement */
+	
 	temp = i2c_smbus_read_byte_data(client, 0x81);
 	i2c_smbus_write_byte_data(client, 0x81, temp | 0x08);
 
@@ -98,12 +98,12 @@ static ssize_t als_lux0_input_data_show(struct device *dev,
 	if (ret_val < 0)
 		goto failed;
 
-	temp = i2c_smbus_read_byte_data(client, 0x8C); /* LSB data */
+	temp = i2c_smbus_read_byte_data(client, 0x8C); 
 	if (temp < 0) {
 		ret_val = temp;
 		goto failed;
 	}
-	ret_val = i2c_smbus_read_byte_data(client, 0x8D); /* MSB data */
+	ret_val = i2c_smbus_read_byte_data(client, 0x8D); 
 	if (ret_val < 0)
 		goto failed;
 
@@ -138,26 +138,24 @@ static ssize_t als_sensing_range_store(struct device *dev,
 
 	pm_runtime_get_sync(dev);
 
-	/* Make sure nobody else reads/modifies/writes 0x81 while we
-	   are active */
 	mutex_lock(&data->mutex);
 
 	ret_val = i2c_smbus_read_byte_data(client, 0x81);
 	if (ret_val < 0)
 		goto fail;
 
-	/* Reset the bits before setting them */
+	
 	ret_val = ret_val & 0xFA;
 
-	if (val == 1) /* Setting detection range up to 4k LUX */
+	if (val == 1) 
 		ret_val = (ret_val | 0x01);
-	else /* Setting detection range up to 64k LUX*/
+	else 
 		ret_val = (ret_val | 0x00);
 
 	ret_val = i2c_smbus_write_byte_data(client, 0x81, ret_val);
 
 	if (ret_val >= 0) {
-		/* All OK */
+		
 		mutex_unlock(&data->mutex);
 		pm_runtime_put_sync(dev);
 		return count;
@@ -205,20 +203,17 @@ static struct attribute_group m_als_gr = {
 static int als_set_default_config(struct i2c_client *client)
 {
 	int ret_val;
-	/* Write the command and then switch on */
+	
 	ret_val = i2c_smbus_write_byte_data(client, 0x80, 0x01);
 	if (ret_val < 0) {
 		dev_err(&client->dev, "failed default switch on write\n");
 		return ret_val;
 	}
-	/* detection range: 1~64K Lux, maunal measurement */
+	
 	ret_val = i2c_smbus_write_byte_data(client, 0x81, 0x08);
 	if (ret_val < 0)
 		dev_err(&client->dev, "failed default LUX on write\n");
 
-	/*  We always get 0 for the 1st measurement after system power on,
-	 *  so make sure it is finished before user asks for data.
-	 */
 	als_wait_for_data_ready(&client->dev);
 
 	return ret_val;
@@ -307,11 +302,11 @@ static const struct dev_pm_ops apds9802als_pm_ops = {
 
 #define APDS9802ALS_PM_OPS (&apds9802als_pm_ops)
 
-#else	/* CONFIG_PM */
+#else	
 #define apds9802als_suspend NULL
 #define apds9802als_resume NULL
 #define APDS9802ALS_PM_OPS NULL
-#endif	/* CONFIG_PM */
+#endif	
 
 static struct i2c_device_id apds9802als_id[] = {
 	{ DRIVER_NAME, 0 },

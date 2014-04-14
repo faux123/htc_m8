@@ -906,7 +906,6 @@ TRACE_EVENT(free_extent_state,
 		  (void *)__entry->ip)
 );
 
-#endif /* _TRACE_BTRFS_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

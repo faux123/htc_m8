@@ -3,12 +3,6 @@
 
 #include <asm/types.h>
 
-/**
- * __ffs - find first bit in word.
- * @word: The word to search
- *
- * Undefined if no bit exists, so code should check against 0 first.
- */
 static __always_inline unsigned long __ffs(unsigned long word)
 {
 	int num = 0;
@@ -40,4 +34,4 @@ static __always_inline unsigned long __ffs(unsigned long word)
 	return num;
 }
 
-#endif /* _ASM_GENERIC_BITOPS___FFS_H_ */
+#endif 

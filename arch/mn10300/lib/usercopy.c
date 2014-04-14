@@ -27,9 +27,6 @@ __generic_copy_from_user(void *to, const void *from, unsigned long n)
 	return n;
 }
 
-/*
- * Copy a null terminated string from userspace.
- */
 #define __do_strncpy_from_user(dst, src, count, res)		\
 do {								\
 	int w;							\
@@ -83,9 +80,6 @@ strncpy_from_user(char *dst, const char *src, long count)
 }
 
 
-/*
- * Clear a userspace memory
- */
 #define __do_clear_user(addr, size)		\
 do {						\
 	int w;					\
@@ -127,11 +121,6 @@ clear_user(void *to, unsigned long n)
 	return n;
 }
 
-/*
- * Return the size of a string (including the ending 0)
- *
- * Return 0 on exception, a value greater than N if too long
- */
 long strnlen_user(const char *s, long n)
 {
 	unsigned long res, w;

@@ -1,8 +1,3 @@
-/******************************************************************************
- *
- * Module Name: pstree - Parser op tree manipulation/traversal/search
- *
- *****************************************************************************/
 
 /*
  * Copyright (C) 2000 - 2012, Intel Corp.
@@ -49,23 +44,10 @@
 #define _COMPONENT          ACPI_PARSER
 ACPI_MODULE_NAME("pstree")
 
-/* Local prototypes */
 #ifdef ACPI_OBSOLETE_FUNCTIONS
 union acpi_parse_object *acpi_ps_get_child(union acpi_parse_object *op);
 #endif
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ps_get_arg
- *
- * PARAMETERS:  Op              - Get an argument for this op
- *              Argn            - Nth argument to get
- *
- * RETURN:      The argument (as an Op object). NULL if argument does not exist
- *
- * DESCRIPTION: Get the specified op's argument.
- *
- ******************************************************************************/
 
 union acpi_parse_object *acpi_ps_get_arg(union acpi_parse_object *op, u32 argn)
 {
@@ -74,32 +56,26 @@ union acpi_parse_object *acpi_ps_get_arg(union acpi_parse_object *op, u32 argn)
 
 	ACPI_FUNCTION_ENTRY();
 
-/*
-	if (Op->Common.aml_opcode == AML_INT_CONNECTION_OP)
-	{
-		return (Op->Common.Value.Arg);
-	}
-*/
-	/* Get the info structure for this opcode */
+	
 
 	op_info = acpi_ps_get_opcode_info(op->common.aml_opcode);
 	if (op_info->class == AML_CLASS_UNKNOWN) {
 
-		/* Invalid opcode or ASCII character */
+		
 
 		return (NULL);
 	}
 
-	/* Check if this opcode requires argument sub-objects */
+	
 
 	if (!(op_info->flags & AML_HAS_ARGS)) {
 
-		/* Has no linked argument objects */
+		
 
 		return (NULL);
 	}
 
-	/* Get the requested argument object */
+	
 
 	arg = op->common.value.arg;
 	while (arg && argn) {
@@ -110,18 +86,6 @@ union acpi_parse_object *acpi_ps_get_arg(union acpi_parse_object *op, u32 argn)
 	return (arg);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ps_append_arg
- *
- * PARAMETERS:  Op              - Append an argument to this Op.
- *              Arg             - Argument Op to append
- *
- * RETURN:      None.
- *
- * DESCRIPTION: Append an argument to an op's argument list (a NULL arg is OK)
- *
- ******************************************************************************/
 
 void
 acpi_ps_append_arg(union acpi_parse_object *op, union acpi_parse_object *arg)
@@ -135,32 +99,32 @@ acpi_ps_append_arg(union acpi_parse_object *op, union acpi_parse_object *arg)
 		return;
 	}
 
-	/* Get the info structure for this opcode */
+	
 
 	op_info = acpi_ps_get_opcode_info(op->common.aml_opcode);
 	if (op_info->class == AML_CLASS_UNKNOWN) {
 
-		/* Invalid opcode */
+		
 
 		ACPI_ERROR((AE_INFO, "Invalid AML Opcode: 0x%2.2X",
 			    op->common.aml_opcode));
 		return;
 	}
 
-	/* Check if this opcode requires argument sub-objects */
+	
 
 	if (!(op_info->flags & AML_HAS_ARGS)) {
 
-		/* Has no linked argument objects */
+		
 
 		return;
 	}
 
-	/* Append the argument to the linked argument list */
+	
 
 	if (op->common.value.arg) {
 
-		/* Append to existing argument list */
+		
 
 		prev_arg = op->common.value.arg;
 		while (prev_arg->common.next) {
@@ -168,12 +132,12 @@ acpi_ps_append_arg(union acpi_parse_object *op, union acpi_parse_object *arg)
 		}
 		prev_arg->common.next = arg;
 	} else {
-		/* No argument list, this will be the first argument */
+		
 
 		op->common.value.arg = arg;
 	}
 
-	/* Set the parent in this arg and any args linked after it */
+	
 
 	while (arg) {
 		arg->common.parent = op;
@@ -184,19 +148,6 @@ acpi_ps_append_arg(union acpi_parse_object *op, union acpi_parse_object *arg)
 }
 
 #ifdef ACPI_FUTURE_USAGE
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ps_get_depth_next
- *
- * PARAMETERS:  Origin          - Root of subtree to search
- *              Op              - Last (previous) Op that was found
- *
- * RETURN:      Next Op found in the search.
- *
- * DESCRIPTION: Get next op in tree (walking the tree in depth-first order)
- *              Return NULL when reaching "origin" or when walking up from root
- *
- ******************************************************************************/
 
 union acpi_parse_object *acpi_ps_get_depth_next(union acpi_parse_object *origin,
 						union acpi_parse_object *op)
@@ -211,21 +162,21 @@ union acpi_parse_object *acpi_ps_get_depth_next(union acpi_parse_object *origin,
 		return (NULL);
 	}
 
-	/* Look for an argument or child */
+	
 
 	next = acpi_ps_get_arg(op, 0);
 	if (next) {
 		return (next);
 	}
 
-	/* Look for a sibling */
+	
 
 	next = op->common.next;
 	if (next) {
 		return (next);
 	}
 
-	/* Look for a sibling of parent */
+	
 
 	parent = op->common.parent;
 
@@ -237,14 +188,14 @@ union acpi_parse_object *acpi_ps_get_depth_next(union acpi_parse_object *origin,
 
 		if (arg == origin) {
 
-			/* Reached parent of origin, end search */
+			
 
 			return (NULL);
 		}
 
 		if (parent->common.next) {
 
-			/* Found sibling of parent */
+			
 
 			return (parent->common.next);
 		}
@@ -257,17 +208,6 @@ union acpi_parse_object *acpi_ps_get_depth_next(union acpi_parse_object *origin,
 }
 
 #ifdef ACPI_OBSOLETE_FUNCTIONS
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ps_get_child
- *
- * PARAMETERS:  Op              - Get the child of this Op
- *
- * RETURN:      Child Op, Null if none is found.
- *
- * DESCRIPTION: Get op's children or NULL if none
- *
- ******************************************************************************/
 
 union acpi_parse_object *acpi_ps_get_child(union acpi_parse_object *op)
 {
@@ -308,11 +248,11 @@ union acpi_parse_object *acpi_ps_get_child(union acpi_parse_object *op)
 		break;
 
 	default:
-		/* All others have no children */
+		
 		break;
 	}
 
 	return (child);
 }
 #endif
-#endif				/*  ACPI_FUTURE_USAGE  */
+#endif				

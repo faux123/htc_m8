@@ -3,4 +3,4 @@
 
 #include <asm-generic/percpu.h>
 
-#endif /* __ARCH_M32R_PERCPU__ */
+#endif 

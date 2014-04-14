@@ -5,4 +5,4 @@
 
 extern char _sbss[], _ebss[];
 
-#endif /* _ASM_M68K_SECTIONS_H */
+#endif 

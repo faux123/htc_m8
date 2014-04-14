@@ -25,23 +25,16 @@
 
 #include <linux/types.h>
 #include <linux/module.h>
-#include <linux/kernel.h>       /* resolves kmalloc references */
-#include <linux/skbuff.h>       /* resolves skb references */
-#include <linux/netdevice.h>    /* resolves dev_kree_skb_any */
-#include <asm/byteorder.h>      /* resolves cpu_to_le32 */
+#include <linux/kernel.h>       
+#include <linux/skbuff.h>       
+#include <linux/netdevice.h>    
+#include <asm/byteorder.h>      
 
-/* forward reference */
 u_int32_t   pci_read_32 (u_int32_t *p);
 void        pci_write_32 (u_int32_t *p, u_int32_t v);
 
 
-/*
- * system dependent callbacks
- */
 
-/**********/
-/* malloc */
-/**********/
 
 static inline void *
 OS_kmalloc (size_t size)
@@ -60,9 +53,6 @@ OS_kfree (void *x)
 }
 
 
-/****************/
-/* memory token */
-/****************/
 
 static inline void *
 OS_mem_token_alloc (size_t size)
@@ -72,7 +62,7 @@ OS_mem_token_alloc (size_t size)
     skb = dev_alloc_skb (size);
     if (!skb)
     {
-        //pr_warning("no mem in OS_mem_token_alloc !\n");
+        
         return 0;
     }
     return skb;
@@ -121,9 +111,6 @@ OS_mem_token_tlen (void *token)
 }
 
 
-/***************************************/
-/* virtual to physical addr conversion */
-/***************************************/
 
 static inline u_long
 OS_phystov (void *addr)
@@ -139,9 +126,6 @@ OS_vtophys (void *addr)
 }
 
 
-/**********/
-/* semops */
-/**********/
 
 void        OS_sem_init (void *, int);
 
@@ -149,10 +133,6 @@ void        OS_sem_init (void *, int);
 static inline void
 OS_sem_free (void *sem)
 {
-    /*
-     * NOOP - since semaphores structures predeclared w/in structures, no
-     * longer malloc'd
-     */
 }
 
 #define SD_SEM_TAKE(sem,desc)  down(sem)
@@ -161,9 +141,6 @@ OS_sem_free (void *sem)
 #define SEM_TAKEN         0
 
 
-/**********************/
-/* watchdog functions */
-/**********************/
 
 struct watchdog
 {
@@ -202,13 +179,11 @@ OS_free_watchdog (struct watchdog * wd)
 }
 
 
-/* sleep in microseconds */
 void        OS_uwait (int usec, char *description);
 void        OS_uwait_dummy (void);
 
 
-/* watchdog functions */
 int OS_init_watchdog(struct watchdog *wdp, void (*f) (void *), void *ci, int usec);
 
 
-#endif                          /*** _INC_SBECOM_INLNX_H_ ***/
+#endif                          

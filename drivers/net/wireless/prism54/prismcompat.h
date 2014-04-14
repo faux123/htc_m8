@@ -16,13 +16,10 @@
  *
  */
 
-/*
- *	Compatibility header file to aid support of different kernel versions
- */
 
 #ifdef PRISM54_COMPAT24
 #include "prismcompat24.h"
-#else	/* PRISM54_COMPAT24 */
+#else	
 
 #ifndef _PRISM_COMPAT_H
 #define _PRISM_COMPAT_H
@@ -39,5 +36,5 @@
 
 #define PRISM_FW_PDEV		&priv->pdev->dev
 
-#endif				/* _PRISM_COMPAT_H */
-#endif				/* PRISM54_COMPAT24 */
+#endif				
+#endif				

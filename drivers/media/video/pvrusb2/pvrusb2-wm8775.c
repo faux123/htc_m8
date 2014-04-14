@@ -19,12 +19,6 @@
  *
  */
 
-/*
-
-   This source file is specifically designed to interface with the
-   wm8775.
-
-*/
 
 #include "pvrusb2-wm8775.h"
 
@@ -45,7 +39,7 @@ void pvr2_wm8775_subdev_update(struct pvr2_hdw *hdw, struct v4l2_subdev *sd)
 			input = 1;
 			break;
 		default:
-			/* All other cases just use the second input */
+			
 			input = 2;
 			break;
 		}
@@ -59,12 +53,3 @@ void pvr2_wm8775_subdev_update(struct pvr2_hdw *hdw, struct v4l2_subdev *sd)
 
 
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 70 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */

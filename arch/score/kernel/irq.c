@@ -29,7 +29,6 @@
 
 #include <asm/io.h>
 
-/* the interrupt controller is hardcoded at this address */
 #define SCORE_PIC		((u32 __iomem __force *)0x95F50000)
 
 #define INT_PNDL		0
@@ -42,9 +41,6 @@
 #define INT_MASKL		8
 #define INT_MASKH		9
 
-/*
- * handles all normal device IRQs
- */
 asmlinkage void do_IRQ(int irq)
 {
 	irq_enter();
@@ -83,9 +79,6 @@ struct irq_chip score_irq_chip = {
 	.irq_unmask	= score_unmask,
 };
 
-/*
- * initialise the interrupt system
- */
 void __init init_IRQ(void)
 {
 	int index;

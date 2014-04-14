@@ -21,18 +21,18 @@ static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
 		pgprot_val(vma->vm_page_prot) |= _PAGE_NOCACHE030;
 	if (CPU_IS_040_OR_060) {
 		pgprot_val(vma->vm_page_prot) &= _CACHEMASK040;
-		/* Use no-cache mode, serialized */
+		
 		pgprot_val(vma->vm_page_prot) |= _PAGE_NOCACHE_S;
 	}
 }
-#endif /* CONFIG_SUN3 */
+#endif 
 #else
 #define fb_pgprotect(...) do {} while (0)
-#endif /* CONFIG_MMU */
+#endif 
 
 static inline int fb_is_primary_device(struct fb_info *info)
 {
 	return 0;
 }
 
-#endif /* _ASM_FB_H_ */
+#endif 

@@ -163,5 +163,5 @@
 #undef ERR_8712
 #define ERR_8712 _dbgdump
 
-#endif	/*__RTL871X_DEBUG_H__*/
+#endif	
 

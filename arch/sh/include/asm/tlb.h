@@ -14,10 +14,6 @@
 #include <asm/tlbflush.h>
 #include <asm/mmu_context.h>
 
-/*
- * TLB handling.  This allows us to remove pages from the page
- * tables, and efficiently handle the TLB issues.
- */
 struct mmu_gather {
 	struct mm_struct	*mm;
 	unsigned int		fullmm;
@@ -50,7 +46,7 @@ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
 	if (tlb->fullmm)
 		flush_tlb_mm(tlb->mm);
 
-	/* keep the page table cache within bounds */
+	
 	check_pgt_cache();
 }
 
@@ -63,11 +59,6 @@ tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep, unsigned long address)
 		tlb->end = address + PAGE_SIZE;
 }
 
-/*
- * In the case of tlb vma handling, we can optimise these away in the
- * case where we're doing a full MM flush.  When we're doing a munmap,
- * the vmas are adjusted to only cover the region to be torn down.
- */
 static inline void
 tlb_start_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
 {
@@ -91,7 +82,7 @@ static inline void tlb_flush_mmu(struct mmu_gather *tlb)
 static inline int __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 {
 	free_page_and_swap_cache(page);
-	return 1; /* avoid calling tlb_flush_mmu */
+	return 1; 
 }
 
 static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
@@ -121,7 +112,7 @@ static inline void tlb_unwire_entry(void)
 }
 #endif
 
-#else /* CONFIG_MMU */
+#else 
 
 #define tlb_start_vma(tlb, vma)				do { } while (0)
 #define tlb_end_vma(tlb, vma)				do { } while (0)
@@ -130,6 +121,6 @@ static inline void tlb_unwire_entry(void)
 
 #include <asm-generic/tlb.h>
 
-#endif /* CONFIG_MMU */
-#endif /* __ASSEMBLY__ */
-#endif /* __ASM_SH_TLB_H */
+#endif 
+#endif 
+#endif 

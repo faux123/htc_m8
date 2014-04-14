@@ -31,11 +31,6 @@
 #include <linux/interrupt.h>
 #include <net/rose.h>
 
-/*
- * State machine for state 1, Awaiting Call Accepted State.
- * The handling of the timer(s) is in file rose_timer.c.
- * Handling of state 0 and connection release is in af_rose.c.
- */
 static int rose_state1_machine(struct sock *sk, struct sk_buff *skb, int frametype)
 {
 	struct rose_sock *rose = rose_sk(sk);
@@ -68,11 +63,6 @@ static int rose_state1_machine(struct sock *sk, struct sk_buff *skb, int framety
 	return 0;
 }
 
-/*
- * State machine for state 2, Awaiting Clear Confirmation State.
- * The handling of the timer(s) is in file rose_timer.c
- * Handling of state 0 and connection release is in af_rose.c.
- */
 static int rose_state2_machine(struct sock *sk, struct sk_buff *skb, int frametype)
 {
 	struct rose_sock *rose = rose_sk(sk);
@@ -96,11 +86,6 @@ static int rose_state2_machine(struct sock *sk, struct sk_buff *skb, int framety
 	return 0;
 }
 
-/*
- * State machine for state 3, Connected State.
- * The handling of the timer(s) is in file rose_timer.c
- * Handling of state 0 and connection release is in af_rose.c.
- */
 static int rose_state3_machine(struct sock *sk, struct sk_buff *skb, int frametype, int ns, int nr, int q, int d, int m)
 {
 	struct rose_sock *rose = rose_sk(sk);
@@ -147,7 +132,7 @@ static int rose_state3_machine(struct sock *sk, struct sk_buff *skb, int framety
 		}
 		break;
 
-	case ROSE_DATA:	/* XXX */
+	case ROSE_DATA:	
 		rose->condition &= ~ROSE_COND_PEER_RX_BUSY;
 		if (!rose_validate_nr(sk, nr)) {
 			rose_write_internal(sk, ROSE_RESET_REQUEST);
@@ -168,7 +153,7 @@ static int rose_state3_machine(struct sock *sk, struct sk_buff *skb, int framety
 				rose->vr = (rose->vr + 1) % ROSE_MODULUS;
 				queued = 1;
 			} else {
-				/* Should never happen ! */
+				
 				rose_write_internal(sk, ROSE_RESET_REQUEST);
 				rose->condition = 0x00;
 				rose->vs        = 0;
@@ -184,10 +169,6 @@ static int rose_state3_machine(struct sock *sk, struct sk_buff *skb, int framety
 			    (sk->sk_rcvbuf >> 1))
 				rose->condition |= ROSE_COND_OWN_RX_BUSY;
 		}
-		/*
-		 * If the window is full, ack the frame, else start the
-		 * acknowledge hold back timer.
-		 */
 		if (((rose->vl + sysctl_rose_window_size) % ROSE_MODULUS) == rose->vr) {
 			rose->condition &= ~ROSE_COND_ACK_PENDING;
 			rose_stop_timer(sk);
@@ -206,11 +187,6 @@ static int rose_state3_machine(struct sock *sk, struct sk_buff *skb, int framety
 	return queued;
 }
 
-/*
- * State machine for state 4, Awaiting Reset Confirmation State.
- * The handling of the timer(s) is in file rose_timer.c
- * Handling of state 0 and connection release is in af_rose.c.
- */
 static int rose_state4_machine(struct sock *sk, struct sk_buff *skb, int frametype)
 {
 	struct rose_sock *rose = rose_sk(sk);
@@ -243,11 +219,6 @@ static int rose_state4_machine(struct sock *sk, struct sk_buff *skb, int framety
 	return 0;
 }
 
-/*
- * State machine for state 5, Awaiting Call Acceptance State.
- * The handling of the timer(s) is in file rose_timer.c
- * Handling of state 0 and connection release is in af_rose.c.
- */
 static int rose_state5_machine(struct sock *sk, struct sk_buff *skb, int frametype)
 {
 	if (frametype == ROSE_CLEAR_REQUEST) {
@@ -259,7 +230,6 @@ static int rose_state5_machine(struct sock *sk, struct sk_buff *skb, int framety
 	return 0;
 }
 
-/* Higher level upcall for a LAPB frame */
 int rose_process_rx_frame(struct sock *sk, struct sk_buff *skb)
 {
 	struct rose_sock *rose = rose_sk(sk);

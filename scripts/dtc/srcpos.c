@@ -24,6 +24,13 @@
 #include "dtc.h"
 #include "srcpos.h"
 
+struct search_path {
+	struct search_path *next;	
+	const char *dirname;		
+};
+
+static struct search_path *search_path_head, **search_path_tail;
+
 
 static char *dirname(const char *path)
 {
@@ -40,12 +47,49 @@ static char *dirname(const char *path)
 	return NULL;
 }
 
-FILE *depfile; /* = NULL */
-struct srcfile_state *current_srcfile; /* = NULL */
+FILE *depfile; 
+struct srcfile_state *current_srcfile; 
 
-/* Detect infinite include recursion. */
 #define MAX_SRCFILE_DEPTH     (100)
-static int srcfile_depth; /* = 0 */
+static int srcfile_depth; 
+
+
+static char *try_open(const char *dirname, const char *fname, FILE **fp)
+{
+	char *fullname;
+
+	if (!dirname || fname[0] == '/')
+		fullname = xstrdup(fname);
+	else
+		fullname = join_path(dirname, fname);
+
+	*fp = fopen(fullname, "r");
+	if (!*fp) {
+		free(fullname);
+		fullname = NULL;
+	}
+
+	return fullname;
+}
+
+static char *fopen_any_on_path(const char *fname, FILE **fp)
+{
+	const char *cur_dir = NULL;
+	struct search_path *node;
+	char *fullname;
+
+	
+	assert(fp);
+	if (current_srcfile)
+		cur_dir = current_srcfile->dir;
+	fullname = try_open(cur_dir, fname, fp);
+
+	
+	for (node = search_path_head; !*fp && node; node = node->next)
+		fullname = try_open(node->dirname, fname, fp);
+
+	return fullname;
+}
 
 FILE *srcfile_relative_open(const char *fname, char **fullnamep)
 {
@@ -56,13 +100,7 @@ FILE *srcfile_relative_open(const char *fname, char **fullnamep)
 		f = stdin;
 		fullname = xstrdup("<stdin>");
 	} else {
-		if (!current_srcfile || !current_srcfile->dir
-		    || (fname[0] == '/'))
-			fullname = xstrdup(fname);
-		else
-			fullname = join_path(current_srcfile->dir, fname);
-
-		f = fopen(fullname, "r");
+		fullname = fopen_any_on_path(fname, &f);
 		if (!f)
 			die("Couldn't open \"%s\": %s\n", fname,
 			    strerror(errno));
@@ -110,18 +148,27 @@ int srcfile_pop(void)
 		die("Error closing \"%s\": %s\n", srcfile->name,
 		    strerror(errno));
 
-	/* FIXME: We allow the srcfile_state structure to leak,
-	 * because it could still be referenced from a location
-	 * variable being carried through the parser somewhere.  To
-	 * fix this we could either allocate all the files from a
-	 * table, or use a pool allocator. */
 
 	return current_srcfile ? 1 : 0;
 }
 
-/*
- * The empty source position.
- */
+void srcfile_add_search_path(const char *dirname)
+{
+	struct search_path *node;
+
+	
+	node = xmalloc(sizeof(*node));
+	node->next = NULL;
+	node->dirname = xstrdup(dirname);
+
+	
+	if (search_path_tail)
+		*search_path_tail = node;
+	else
+		search_path_head = node;
+	search_path_tail = &node->next;
+}
+
 
 struct srcpos srcpos_empty = {
 	.first_line = 0,
@@ -249,4 +296,10 @@ srcpos_warn(struct srcpos *pos, char const *fmt, ...)
 	fprintf(stderr, "\n");
 
 	va_end(va);
+}
+
+void srcpos_set_line(char *f, int l)
+{
+	current_srcfile->name = f;
+	current_srcfile->lineno = l;
 }

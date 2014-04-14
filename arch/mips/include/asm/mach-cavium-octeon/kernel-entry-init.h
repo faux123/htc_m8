@@ -111,7 +111,7 @@ octeon_spin_wait_boot:
 	# Jump to the normal Linux SMP entry point
 	j   smp_bootstrap
 	nop
-#else /* CONFIG_SMP */
+#else 
 
 	#
 	# Someone tried to boot SMP with a non SMP kernel. All extra cores
@@ -122,15 +122,12 @@ octeon_wait_forever:
 	b   octeon_wait_forever
 	nop
 
-#endif /* CONFIG_SMP */
+#endif 
 octeon_main_processor:
 	.set pop
 .endm
 
-/*
- * Do SMP slave processor setup necessary before we can savely execute C code.
- */
 	.macro  smp_slave_setup
 	.endm
 
-#endif /* __ASM_MACH_CAVIUM_OCTEON_KERNEL_ENTRY_H */
+#endif 

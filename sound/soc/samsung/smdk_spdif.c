@@ -17,10 +17,6 @@
 
 #include "spdif.h"
 
-/* Audio clock settings are belonged to board specific part. Every
- * board can set audio source clock setting which is matched with H/W
- * like this function-'set_audio_clock_heirachy'.
- */
 static int set_audio_clock_heirachy(struct platform_device *pdev)
 {
 	struct clk *fout_epll, *mout_epll, *sclk_audio0, *sclk_spdif;
@@ -57,7 +53,7 @@ static int set_audio_clock_heirachy(struct platform_device *pdev)
 		goto out3;
 	}
 
-	/* Set audio clock hierarchy for S/PDIF */
+	
 	clk_set_parent(mout_epll, fout_epll);
 	clk_set_parent(sclk_audio0, mout_epll);
 	clk_set_parent(sclk_spdif, sclk_audio0);
@@ -73,10 +69,6 @@ out1:
 	return ret;
 }
 
-/* We should haved to set clock directly on this part because of clock
- * scheme of Samsudng SoCs did not support to set rates from abstrct
- * clock of it's hierarchy.
- */
 static int set_audio_clock_rate(unsigned long epll_rate,
 				unsigned long audio_rate)
 {
@@ -124,18 +116,15 @@ static int smdk_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	/* Setting ratio to 512fs helps to use S/PDIF with HDMI without
-	 * modify S/PDIF ASoC machine driver.
-	 */
 	ratio = 512;
 	rclk_rate = params_rate(params) * ratio;
 
-	/* Set audio source clock rates */
+	
 	ret = set_audio_clock_rate(pll_out, rclk_rate);
 	if (ret < 0)
 		return ret;
 
-	/* Set S/PDIF uses internal source clock */
+	
 	ret = snd_soc_dai_set_sysclk(cpu_dai, SND_SOC_SPDIF_INT_MCLK,
 					rclk_rate, SND_SOC_CLOCK_IN);
 	if (ret < 0)
@@ -192,7 +181,7 @@ static int __init smdk_init(void)
 	if (ret)
 		goto err3;
 
-	/* Set audio clock hierarchy manually */
+	
 	ret = set_audio_clock_heirachy(smdk_snd_spdif_device);
 	if (ret)
 		goto err4;

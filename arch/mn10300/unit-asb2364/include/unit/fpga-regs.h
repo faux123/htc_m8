@@ -1,5 +1,3 @@
-/* ASB2364 FPGA registers
- */
 
 #ifndef _ASM_UNIT_FPGA_REGS_H
 #define _ASM_UNIT_FPGA_REGS_H
@@ -47,6 +45,6 @@
 		w = *(volatile short *)0xa9000000;	\
 	} while (0)
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_UNIT_FPGA_REGS_H */
+#endif 

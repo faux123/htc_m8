@@ -32,9 +32,6 @@
 
 #if defined(CONFIG_SND_OSSEMUL) && defined(CONFIG_PROC_FS)
 
-/*
- *  OSS compatible part
- */
 
 static DEFINE_MUTEX(strings);
 static char *snd_sndstat_strings[SNDRV_CARDS][SNDRV_OSS_INFO_DEV_COUNT];
@@ -136,4 +133,4 @@ int snd_info_minor_unregister(void)
 	return 0;
 }
 
-#endif /* CONFIG_SND_OSSEMUL */
+#endif 

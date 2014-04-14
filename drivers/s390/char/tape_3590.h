@@ -42,7 +42,6 @@
 
 #define TAPE_3590_MAX_MSG	 0xb0
 
-/* Datatypes */
 
 struct tape_3590_disc_data {
 	struct tape390_crypt_info crypt_info;
@@ -133,7 +132,6 @@ struct tape_3590_rdc_data {
 	char data[64];
 } __attribute__ ((packed));
 
-/* Datastructures for 3592 encryption support */
 
 struct tape3592_kekl {
 	__u8 flags;
@@ -172,4 +170,4 @@ struct tape3592_kekl_set_order {
 	char reserved2[120];
 } __attribute__ ((packed));
 
-#endif /* _TAPE_3590_H */
+#endif 

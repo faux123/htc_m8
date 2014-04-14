@@ -26,15 +26,12 @@
 #include <sound/core.h>
 #include "pmac.h"
 
-/* i2c address */
 #define DACA_I2C_ADDR	0x4d
 
-/* registers */
 #define DACA_REG_SR	0x01
 #define DACA_REG_AVOL	0x02
 #define DACA_REG_GCFG	0x03
 
-/* maximum volume value */
 #define DACA_VOL_MAX	0x38
 
 
@@ -46,14 +43,11 @@ struct pmac_daca {
 };
 
 
-/*
- * initialize / detect DACA
- */
 static int daca_init_client(struct pmac_keywest *i2c)
 {
 	unsigned short wdata = 0x00;
-	/* SR: no swap, 1bit delay, 32-48kHz */
-	/* GCFG: power amp inverted, DAC on */
+	
+	
 	if (i2c_smbus_write_byte_data(i2c->client, DACA_REG_SR, 0x08) < 0 ||
 	    i2c_smbus_write_byte_data(i2c->client, DACA_REG_GCFG, 0x05) < 0)
 		return -EINVAL;
@@ -61,9 +55,6 @@ static int daca_init_client(struct pmac_keywest *i2c)
 					  2, (unsigned char*)&wdata);
 }
 
-/*
- * update volume
- */
 static int daca_set_volume(struct pmac_daca *mix)
 {
 	unsigned char data[2];
@@ -89,7 +80,6 @@ static int daca_set_volume(struct pmac_daca *mix)
 }
 
 
-/* deemphasis switch */
 #define daca_info_deemphasis		snd_ctl_boolean_mono_info
 
 static int daca_get_deemphasis(struct snd_kcontrol *kcontrol,
@@ -120,7 +110,6 @@ static int daca_put_deemphasis(struct snd_kcontrol *kcontrol,
 	return change;
 }
 
-/* output volume */
 static int daca_info_volume(struct snd_kcontrol *kcontrol,
 			    struct snd_ctl_elem_info *uinfo)
 {
@@ -167,7 +156,6 @@ static int daca_put_volume(struct snd_kcontrol *kcontrol,
 	return change;
 }
 
-/* amplifier switch */
 #define daca_info_amp	daca_info_deemphasis
 
 static int daca_get_amp(struct snd_kcontrol *kcontrol,
@@ -230,7 +218,7 @@ static void daca_resume(struct snd_pmac *chip)
 				  mix->amp_on ? 0x05 : 0x04);
 	daca_set_volume(mix);
 }
-#endif /* CONFIG_PM */
+#endif 
 
 
 static void daca_cleanup(struct snd_pmac *chip)
@@ -243,7 +231,6 @@ static void daca_cleanup(struct snd_pmac *chip)
 	chip->mixer_data = NULL;
 }
 
-/* exported */
 int __devinit snd_pmac_daca_init(struct snd_pmac *chip)
 {
 	int i, err;
@@ -256,7 +243,7 @@ int __devinit snd_pmac_daca_init(struct snd_pmac *chip)
 		return -ENOMEM;
 	chip->mixer_data = mix;
 	chip->mixer_free = daca_cleanup;
-	mix->amp_on = 1; /* default on */
+	mix->amp_on = 1; 
 
 	mix->i2c.addr = DACA_I2C_ADDR;
 	mix->i2c.init_client = daca_init_client;
@@ -264,9 +251,6 @@ int __devinit snd_pmac_daca_init(struct snd_pmac *chip)
 	if ((err = snd_pmac_keywest_init(&mix->i2c)) < 0)
 		return err;
 
-	/*
-	 * build mixers
-	 */
 	strcpy(chip->card->mixername, "PowerMac DACA");
 
 	for (i = 0; i < ARRAY_SIZE(daca_mixers); i++) {

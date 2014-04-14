@@ -12,7 +12,6 @@
  *
  */
 #include <linux/types.h>
-/*#include <linux/crypto.h>*/
 #include "rtl_crypto.h"
 #include <linux/errno.h>
 #include <linux/scatterlist.h>

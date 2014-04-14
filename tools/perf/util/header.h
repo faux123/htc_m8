@@ -10,7 +10,7 @@
 #include <linux/bitmap.h>
 
 enum {
-	HEADER_RESERVED		= 0,	/* always cleared */
+	HEADER_RESERVED		= 0,	
 	HEADER_FIRST_FEATURE	= 1,
 	HEADER_TRACE_INFO	= 1,
 	HEADER_BUILD_ID,
@@ -130,9 +130,6 @@ int perf_event__process_build_id(struct perf_tool *tool,
 				 union perf_event *event,
 				 struct perf_session *session);
 
-/*
- * arch specific callback
- */
 int get_cpuid(char *buffer, size_t sz);
 
-#endif /* __PERF_HEADER_H */
+#endif 

@@ -44,6 +44,6 @@ static inline int call_dcbevent_notifiers(unsigned long val, void *v)
 {
 	return 0;
 }
-#endif /* CONFIG_DCB */
+#endif 
 
 #endif

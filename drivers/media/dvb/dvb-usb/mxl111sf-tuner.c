@@ -22,7 +22,6 @@
 #include "mxl111sf-phy.h"
 #include "mxl111sf-reg.h"
 
-/* debug */
 static int mxl111sf_tuner_debug;
 module_param_named(debug, mxl111sf_tuner_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
@@ -31,7 +30,6 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
 	if (mxl111sf_tuner_debug) \
 		mxl_printk(KERN_DEBUG, fmt, ##arg)
 
-/* ------------------------------------------------------------------------ */
 
 struct mxl111sf_tuner_state {
 	struct mxl111sf_state *mxl_state;
@@ -76,29 +74,26 @@ static int mxl1x1sf_tuner_top_master_ctrl(struct mxl111sf_tuner_state *state,
 		-EINVAL;
 }
 
-/* ------------------------------------------------------------------------ */
 
 static struct mxl111sf_reg_ctrl_info mxl_phy_tune_rf[] = {
-	{0x1d, 0x7f, 0x00}, /* channel bandwidth section 1/2/3,
-			       DIG_MODEINDEX, _A, _CSF, */
-	{0x1e, 0xff, 0x00}, /* channel frequency (lo and fractional) */
-	{0x1f, 0xff, 0x00}, /* channel frequency (hi for integer portion) */
+	{0x1d, 0x7f, 0x00}, 
+	{0x1e, 0xff, 0x00}, 
+	{0x1f, 0xff, 0x00}, 
 	{0,    0,    0}
 };
 
-/* ------------------------------------------------------------------------ */
 
 static struct mxl111sf_reg_ctrl_info *mxl111sf_calc_phy_tune_regs(u32 freq,
 								  u8 bw)
 {
 	u8 filt_bw;
 
-	/* set channel bandwidth */
+	
 	switch (bw) {
-	case 0: /* ATSC */
+	case 0: 
 		filt_bw = 25;
 		break;
-	case 1: /* QAM */
+	case 1: 
 		filt_bw = 69;
 		break;
 	case 6:
@@ -115,22 +110,22 @@ static struct mxl111sf_reg_ctrl_info *mxl111sf_calc_phy_tune_regs(u32 freq,
 		return NULL;
 	}
 
-	/* calculate RF channel */
+	
 	freq /= 1000000;
 
 	freq *= 64;
 #if 0
-	/* do round */
+	
 	freq += 0.5;
 #endif
-	/* set bandwidth */
+	
 	mxl_phy_tune_rf[0].data = filt_bw;
 
-	/* set RF */
+	
 	mxl_phy_tune_rf[1].data = (freq & 0xff);
 	mxl_phy_tune_rf[2].data = (freq >> 8) & 0xff;
 
-	/* start tune */
+	
 	return mxl_phy_tune_rf;
 }
 
@@ -145,7 +140,7 @@ static int mxl1x1sf_tuner_set_if_output_freq(struct mxl111sf_tuner_state *state)
 	mxl_dbg("(IF polarity = %d, IF freq = 0x%02x)",
 		state->cfg->invert_spectrum, state->cfg->if_freq);
 
-	/* set IF polarity */
+	
 	ctrl = state->cfg->invert_spectrum;
 
 	ctrl |= state->cfg->if_freq;
@@ -157,7 +152,7 @@ static int mxl1x1sf_tuner_set_if_output_freq(struct mxl111sf_tuner_state *state)
 #if 0
 	if_freq /= 1000000;
 
-	/* do round */
+	
 	if_freq += 0.5;
 
 	if (MXL_IF_LO == state->cfg->if_freq) {
@@ -205,17 +200,17 @@ static int mxl1x1sf_tune_rf(struct dvb_frontend *fe, u32 freq, u8 bw)
 
 	mxl_dbg("(freq = %d, bw = 0x%x)", freq, bw);
 
-	/* stop tune */
+	
 	ret = mxl111sf_tuner_write_reg(state, START_TUNE_REG, 0);
 	if (mxl_fail(ret))
 		goto fail;
 
-	/* check device mode */
+	
 	ret = mxl111sf_tuner_read_reg(state, MXL_MODE_REG, &mxl_mode);
 	if (mxl_fail(ret))
 		goto fail;
 
-	/* Fill out registers for channel tune */
+	
 	reg_ctrl_array = mxl111sf_calc_phy_tune_regs(freq, bw);
 	if (!reg_ctrl_array)
 		return -EINVAL;
@@ -225,7 +220,7 @@ static int mxl1x1sf_tune_rf(struct dvb_frontend *fe, u32 freq, u8 bw)
 		goto fail;
 
 	if ((mxl_mode & MXL_DEV_MODE_MASK) == MXL_TUNER_MODE) {
-		/* IF tuner mode only */
+		
 		mxl1x1sf_tuner_top_master_ctrl(state, 0);
 		mxl1x1sf_tuner_top_master_ctrl(state, 1);
 		mxl1x1sf_tuner_set_if_output_freq(state);
@@ -270,7 +265,6 @@ static int mxl1x1sf_tuner_loop_thru_ctrl(struct mxl111sf_tuner_state *state,
 }
 #endif
 
-/* ------------------------------------------------------------------------ */
 
 static int mxl111sf_tuner_set_params(struct dvb_frontend *fe)
 {
@@ -284,10 +278,10 @@ static int mxl111sf_tuner_set_params(struct dvb_frontend *fe)
 
 	switch (delsys) {
 	case SYS_ATSC:
-		bw = 0; /* ATSC */
+		bw = 0; 
 		break;
 	case SYS_DVBC_ANNEX_B:
-		bw = 1; /* US CABLE */
+		bw = 1; 
 		break;
 	case SYS_DVBT:
 		switch (c->bandwidth_hz) {
@@ -319,7 +313,6 @@ fail:
 	return ret;
 }
 
-/* ------------------------------------------------------------------------ */
 
 #if 0
 static int mxl111sf_tuner_init(struct dvb_frontend *fe)
@@ -327,7 +320,7 @@ static int mxl111sf_tuner_init(struct dvb_frontend *fe)
 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
 	int ret;
 
-	/* wake from standby handled by usb driver */
+	
 
 	return ret;
 }
@@ -337,13 +330,12 @@ static int mxl111sf_tuner_sleep(struct dvb_frontend *fe)
 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
 	int ret;
 
-	/* enter standby mode handled by usb driver */
+	
 
 	return ret;
 }
 #endif
 
-/* ------------------------------------------------------------------------ */
 
 static int mxl111sf_tuner_get_status(struct dvb_frontend *fe, u32 *status)
 {
@@ -390,7 +382,6 @@ fail:
 	return ret;
 }
 
-/* ------------------------------------------------------------------------ */
 
 static int mxl111sf_tuner_get_frequency(struct dvb_frontend *fe, u32 *frequency)
 {
@@ -414,40 +405,40 @@ static int mxl111sf_tuner_get_if_frequency(struct dvb_frontend *fe,
 	*frequency = 0;
 
 	switch (state->if_freq) {
-	case MXL_IF_4_0:   /* 4.0   MHz */
+	case MXL_IF_4_0:   
 		*frequency = 4000000;
 		break;
-	case MXL_IF_4_5:   /* 4.5   MHz */
+	case MXL_IF_4_5:   
 		*frequency = 4500000;
 		break;
-	case MXL_IF_4_57:  /* 4.57  MHz */
+	case MXL_IF_4_57:  
 		*frequency = 4570000;
 		break;
-	case MXL_IF_5_0:   /* 5.0   MHz */
+	case MXL_IF_5_0:   
 		*frequency = 5000000;
 		break;
-	case MXL_IF_5_38:  /* 5.38  MHz */
+	case MXL_IF_5_38:  
 		*frequency = 5380000;
 		break;
-	case MXL_IF_6_0:   /* 6.0   MHz */
+	case MXL_IF_6_0:   
 		*frequency = 6000000;
 		break;
-	case MXL_IF_6_28:  /* 6.28  MHz */
+	case MXL_IF_6_28:  
 		*frequency = 6280000;
 		break;
-	case MXL_IF_7_2:   /* 7.2   MHz */
+	case MXL_IF_7_2:   
 		*frequency = 7200000;
 		break;
-	case MXL_IF_35_25: /* 35.25 MHz */
+	case MXL_IF_35_25: 
 		*frequency = 35250000;
 		break;
-	case MXL_IF_36:    /* 36    MHz */
+	case MXL_IF_36:    
 		*frequency = 36000000;
 		break;
-	case MXL_IF_36_15: /* 36.15 MHz */
+	case MXL_IF_36_15: 
 		*frequency = 36150000;
 		break;
-	case MXL_IF_44:    /* 44    MHz */
+	case MXL_IF_44:    
 		*frequency = 44000000;
 		break;
 	}
@@ -463,7 +454,6 @@ static int mxl111sf_tuner_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-/* ------------------------------------------------------------------------- */
 
 static struct dvb_tuner_ops mxl111sf_tuner_tuner_ops = {
 	.info = {
@@ -515,10 +505,3 @@ MODULE_AUTHOR("Michael Krufky <mkrufky@kernellabs.com>");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("0.1");
 
-/*
- * Overrides for Emacs so that we follow Linus's tabbing style.
- * ---------------------------------------------------------------------------
- * Local variables:
- * c-basic-offset: 8
- * End:
- */

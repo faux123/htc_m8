@@ -23,11 +23,6 @@
 
 #include "mpc83xx.h"
 
-/* ************************************************************************
- *
- * Setup the architecture
- *
- */
 static void __init asp834x_setup_arch(void)
 {
 	if (ppc_md.progress)
@@ -38,9 +33,6 @@ static void __init asp834x_setup_arch(void)
 
 machine_device_initcall(asp834x, mpc83xx_declare_of_platform_devices);
 
-/*
- * Called very early, MMU is off, device-tree isn't unflattened
- */
 static int __init asp834x_probe(void)
 {
 	unsigned long root = of_get_flat_dt_root();

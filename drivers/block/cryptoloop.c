@@ -42,13 +42,13 @@ cryptoloop_init(struct loop_device *lo, const struct loop_info64 *info)
 	int err = -EINVAL;
 	int cipher_len;
 	int mode_len;
-	char cms[LO_NAME_SIZE];			/* cipher-mode string */
+	char cms[LO_NAME_SIZE];			
 	char *cipher;
 	char *mode;
-	char *cmsp = cms;			/* c-m string pointer */
+	char *cmsp = cms;			
 	struct crypto_blkcipher *tfm;
 
-	/* encryption breaks for non sector aligned offsets */
+	
 
 	if (info->lo_offset % LOOP_IV_SECTOR_SIZE)
 		goto out;

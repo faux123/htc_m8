@@ -27,7 +27,6 @@ static int snd_opl3_ioctl_seq_oss(struct snd_seq_oss_arg *arg, unsigned int cmd,
 static int snd_opl3_load_patch_seq_oss(struct snd_seq_oss_arg *arg, int format, const char __user *buf, int offs, int count);
 static int snd_opl3_reset_seq_oss(struct snd_seq_oss_arg *arg);
 
-/* */
 
 static inline mm_segment_t snd_enter_user(void)
 {
@@ -41,7 +40,6 @@ static inline void snd_leave_user(mm_segment_t fs)
 	set_fs(fs);
 }
 
-/* operators */
 
 extern struct snd_midi_op opl3_ops;
 
@@ -64,7 +62,6 @@ static int snd_opl3_oss_event_input(struct snd_seq_event *ev, int direct,
 	return 0;
 }
 
-/* ------------------------------ */
 
 static void snd_opl3_oss_free_port(void *private_data)
 {
@@ -113,9 +110,7 @@ static int snd_opl3_oss_create_port(struct snd_opl3 * opl3)
 	return 0;
 }
 
-/* ------------------------------ */
 
-/* register OSS synth */
 void snd_opl3_init_seq_oss(struct snd_opl3 *opl3, char *name)
 {
 	struct snd_seq_oss_reg *arg;
@@ -140,23 +135,20 @@ void snd_opl3_init_seq_oss(struct snd_opl3 *opl3, char *name)
 	arg->private_data = opl3;
 
 	if (snd_opl3_oss_create_port(opl3)) {
-		/* register to OSS synth table */
+		
 		snd_device_register(opl3->card, dev);
 	}
 }
 
-/* unregister */
 void snd_opl3_free_seq_oss(struct snd_opl3 *opl3)
 {
 	if (opl3->oss_seq_dev) {
-		/* The instance should have been released in prior */
+		
 		opl3->oss_seq_dev = NULL;
 	}
 }
 
-/* ------------------------------ */
 
-/* open OSS sequencer */
 static int snd_opl3_open_seq_oss(struct snd_seq_oss_arg *arg, void *closure)
 {
 	struct snd_opl3 *opl3 = closure;
@@ -168,7 +160,7 @@ static int snd_opl3_open_seq_oss(struct snd_seq_oss_arg *arg, void *closure)
 	if ((err = snd_opl3_synth_setup(opl3)) < 0)
 		return err;
 
-	/* fill the argument data */
+	
 	arg->private_data = opl3;
 	arg->addr.client = opl3->oss_chset->client;
 	arg->addr.port = opl3->oss_chset->port;
@@ -180,7 +172,6 @@ static int snd_opl3_open_seq_oss(struct snd_seq_oss_arg *arg, void *closure)
 	return 0;
 }
 
-/* close OSS sequencer */
 static int snd_opl3_close_seq_oss(struct snd_seq_oss_arg *arg)
 {
 	struct snd_opl3 *opl3;
@@ -195,9 +186,7 @@ static int snd_opl3_close_seq_oss(struct snd_seq_oss_arg *arg)
 	return 0;
 }
 
-/* load patch */
 
-/* from sound_config.h */
 #define SBFM_MAXINSTR	256
 
 static int snd_opl3_load_patch_seq_oss(struct snd_seq_oss_arg *arg, int format,
@@ -243,7 +232,6 @@ static int snd_opl3_load_patch_seq_oss(struct snd_seq_oss_arg *arg, int format,
 	return sizeof(sbi);
 }
 
-/* ioctl */
 static int snd_opl3_ioctl_seq_oss(struct snd_seq_oss_arg *arg, unsigned int cmd,
 				  unsigned long ioarg)
 {
@@ -263,7 +251,7 @@ static int snd_opl3_ioctl_seq_oss(struct snd_seq_oss_arg *arg, unsigned int cmd,
 			return 0x7fffffff;
 
 		case SNDCTL_FM_4OP_ENABLE:
-			// handled automatically by OPL instrument type
+			
 			return 0;
 
 		default:
@@ -272,7 +260,6 @@ static int snd_opl3_ioctl_seq_oss(struct snd_seq_oss_arg *arg, unsigned int cmd,
 	return 0;
 }
 
-/* reset device */
 static int snd_opl3_reset_seq_oss(struct snd_seq_oss_arg *arg)
 {
 	struct snd_opl3 *opl3;

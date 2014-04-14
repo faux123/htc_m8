@@ -14,4 +14,4 @@
 
 extern unsigned long arch_align_stack(unsigned long sp);
 
-#endif /* _ASM_EXEC_H */
+#endif 

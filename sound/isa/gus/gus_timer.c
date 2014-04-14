@@ -25,9 +25,6 @@
 #include <sound/core.h>
 #include <sound/gus.h>
 
-/*
- *  Timer 1 - 80us
- */
 
 static int snd_gf1_timer1_start(struct snd_timer * timer)
 {
@@ -40,9 +37,9 @@ static int snd_gf1_timer1_start(struct snd_timer * timer)
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	ticks = timer->sticks;
 	tmp = (gus->gf1.timer_enabled |= 4);
-	snd_gf1_write8(gus, SNDRV_GF1_GB_ADLIB_TIMER_1, 256 - ticks);	/* timer 1 count */
-	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	/* enable timer 1 IRQ */
-	snd_gf1_adlib_write(gus, 0x04, tmp >> 2);	/* timer 2 start */
+	snd_gf1_write8(gus, SNDRV_GF1_GB_ADLIB_TIMER_1, 256 - ticks);	
+	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	
+	snd_gf1_adlib_write(gus, 0x04, tmp >> 2);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 	return 0;
 }
@@ -56,14 +53,11 @@ static int snd_gf1_timer1_stop(struct snd_timer * timer)
 	gus = snd_timer_chip(timer);
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	tmp = (gus->gf1.timer_enabled &= ~4);
-	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	/* disable timer #1 */
+	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 	return 0;
 }
 
-/*
- *  Timer 2 - 320us
- */
 
 static int snd_gf1_timer2_start(struct snd_timer * timer)
 {
@@ -76,9 +70,9 @@ static int snd_gf1_timer2_start(struct snd_timer * timer)
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	ticks = timer->sticks;
 	tmp = (gus->gf1.timer_enabled |= 8);
-	snd_gf1_write8(gus, SNDRV_GF1_GB_ADLIB_TIMER_2, 256 - ticks);	/* timer 2 count */
-	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	/* enable timer 2 IRQ */
-	snd_gf1_adlib_write(gus, 0x04, tmp >> 2);	/* timer 2 start */
+	snd_gf1_write8(gus, SNDRV_GF1_GB_ADLIB_TIMER_2, 256 - ticks);	
+	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	
+	snd_gf1_adlib_write(gus, 0x04, tmp >> 2);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 	return 0;
 }
@@ -92,14 +86,11 @@ static int snd_gf1_timer2_stop(struct snd_timer * timer)
 	gus = snd_timer_chip(timer);
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	tmp = (gus->gf1.timer_enabled &= ~8);
-	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	/* disable timer #1 */
+	snd_gf1_write8(gus, SNDRV_GF1_GB_SOUND_BLASTER_CONTROL, tmp);	
 	spin_unlock_irqrestore(&gus->reg_lock, flags);
 	return 0;
 }
 
-/*
-
- */
 
 static void snd_gf1_interrupt_timer1(struct snd_gus_card * gus)
 {
@@ -119,9 +110,6 @@ static void snd_gf1_interrupt_timer2(struct snd_gus_card * gus)
 	snd_timer_interrupt(timer, timer->sticks);
 }
 
-/*
-
- */
 
 static struct snd_timer_hardware snd_gf1_timer1 =
 {

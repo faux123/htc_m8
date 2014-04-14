@@ -24,9 +24,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
 
 #include <linux/mutex.h>
 #include <linux/slab.h>

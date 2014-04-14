@@ -19,7 +19,7 @@ typedef union {
 #define WRITE_LOCK_SUB(n)	__ASM_FORM_COMMA(subl n)
 #define WRITE_LOCK_CMP		RW_LOCK_BIAS
 
-#else /* CONFIG_NR_CPUS > 2048 */
+#else 
 
 #include <linux/const.h>
 
@@ -40,10 +40,9 @@ typedef union {
 #define WRITE_LOCK_SUB(n)	__ASM_FORM(decl)
 #define WRITE_LOCK_CMP		1
 
-#endif /* CONFIG_NR_CPUS */
+#endif 
 
 #define __ARCH_RW_LOCK_UNLOCKED		{ RW_LOCK_BIAS }
 
-/* Actual code is in asm/spinlock.h or in arch/x86/lib/rwlock.S */
 
-#endif /* _ASM_X86_RWLOCK_H */
+#endif 

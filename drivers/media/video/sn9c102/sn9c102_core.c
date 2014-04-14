@@ -41,7 +41,6 @@
 
 #include "sn9c102.h"
 
-/*****************************************************************************/
 
 #define SN9C102_MODULE_NAME     "V4L2 driver for SN9C1xx PC Camera Controllers"
 #define SN9C102_MODULE_ALIAS    "sn9c1xx"
@@ -50,7 +49,6 @@
 #define SN9C102_MODULE_LICENSE  "GPL"
 #define SN9C102_MODULE_VERSION  "1:1.48"
 
-/*****************************************************************************/
 
 MODULE_DEVICE_TABLE(usb, sn9c102_id_table);
 
@@ -116,27 +114,21 @@ MODULE_PARM_DESC(debug,
 		 "\n");
 #endif
 
-/*
-   Add the probe entries to this table. Be sure to add the entry in the right
-   place, since, on failure, the next probing routine is called according to
-   the order of the list below, from top to bottom.
-*/
 static int (*sn9c102_sensor_table[])(struct sn9c102_device *) = {
-	&sn9c102_probe_hv7131d, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_hv7131r, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_mi0343, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_mi0360, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_mt9v111, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_pas106b, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_pas202bcb, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_ov7630, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_ov7660, /* strong detection based on SENSOR ids */
-	&sn9c102_probe_tas5110c1b, /* detection based on USB pid/vid */
-	&sn9c102_probe_tas5110d, /* detection based on USB pid/vid */
-	&sn9c102_probe_tas5130d1b, /* detection based on USB pid/vid */
+	&sn9c102_probe_hv7131d, 
+	&sn9c102_probe_hv7131r, 
+	&sn9c102_probe_mi0343, 
+	&sn9c102_probe_mi0360, 
+	&sn9c102_probe_mt9v111, 
+	&sn9c102_probe_pas106b, 
+	&sn9c102_probe_pas202bcb, 
+	&sn9c102_probe_ov7630, 
+	&sn9c102_probe_ov7660, 
+	&sn9c102_probe_tas5110c1b, 
+	&sn9c102_probe_tas5110d, 
+	&sn9c102_probe_tas5130d1b, 
 };
 
-/*****************************************************************************/
 
 static u32
 sn9c102_request_buffers(struct sn9c102_device* cam, u32 count,
@@ -154,7 +146,7 @@ sn9c102_request_buffers(struct sn9c102_device* cam, u32 count,
 		count = SN9C102_MAX_FRAMES;
 
 	if (cam->bridge == BRIDGE_SN9C105 || cam->bridge == BRIDGE_SN9C120)
-		imagesize += 589 + 2; /* length of JPEG header + EOI marker */
+		imagesize += 589 + 2; 
 
 	cam->nbuffers = count;
 	while (cam->nbuffers > 0) {
@@ -231,12 +223,7 @@ static void sn9c102_queue_unusedframes(struct sn9c102_device* cam)
 		}
 }
 
-/*****************************************************************************/
 
-/*
-   Write a sequence of count value/register pairs. Returns -1 after the first
-   failed write, or 0 for no errors.
-*/
 int sn9c102_write_regs(struct sn9c102_device* cam, const u8 valreg[][2],
 		       int count)
 {
@@ -247,12 +234,6 @@ int sn9c102_write_regs(struct sn9c102_device* cam, const u8 valreg[][2],
 	for (i = 0; i < count; i++) {
 		u8 index = valreg[i][1];
 
-		/*
-		   index is a u8, so it must be <256 and can't be out of range.
-		   If we put in a check anyway, gcc annoys us with a warning
-		   hat our check is useless. People get all uppity when they
-		   see warnings in the kernel compile.
-		*/
 
 		*buff = valreg[i][0];
 
@@ -298,7 +279,6 @@ int sn9c102_write_reg(struct sn9c102_device* cam, u8 value, u16 index)
 }
 
 
-/* NOTE: with the SN9C10[123] reading some registers always returns 0 */
 int sn9c102_read_reg(struct sn9c102_device* cam, u16 index)
 {
 	struct usb_device* udev = cam->usbdev;
@@ -386,11 +366,11 @@ sn9c102_i2c_try_raw_read(struct sn9c102_device* cam,
 	u8* data = cam->control_buffer;
 	int i = 0, err = 0, res;
 
-	/* Write cycle */
+	
 	data[0] = ((sensor->interface == SN9C102_I2C_2WIRES) ? 0x80 : 0) |
 		  ((sensor->frequency & SN9C102_I2C_400KHZ) ? 0x01 : 0) | 0x10;
-	data[1] = data0; /* I2C slave id */
-	data[2] = data1; /* address */
+	data[1] = data0; 
+	data[2] = data1; 
 	data[7] = 0x10;
 	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x08, 0x41,
 			      0x08, 0, data, 8, SN9C102_CTRL_TIMEOUT);
@@ -399,7 +379,7 @@ sn9c102_i2c_try_raw_read(struct sn9c102_device* cam,
 
 	err += sn9c102_i2c_wait(cam, sensor);
 
-	/* Read cycle - n bytes */
+	
 	data[0] = ((sensor->interface == SN9C102_I2C_2WIRES) ? 0x80 : 0) |
 		  ((sensor->frequency & SN9C102_I2C_400KHZ) ? 0x01 : 0) |
 		  (n << 4) | 0x02;
@@ -412,7 +392,7 @@ sn9c102_i2c_try_raw_read(struct sn9c102_device* cam,
 
 	err += sn9c102_i2c_wait(cam, sensor);
 
-	/* The first read byte will be placed in data[4] */
+	
 	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
 			      0x0a, 0, data, 5, SN9C102_CTRL_TIMEOUT);
 	if (res < 0)
@@ -445,7 +425,7 @@ sn9c102_i2c_try_raw_write(struct sn9c102_device* cam,
 	u8* data = cam->control_buffer;
 	int err = 0, res;
 
-	/* Write cycle. It usually is address + value */
+	
 	data[0] = ((sensor->interface == SN9C102_I2C_2WIRES) ? 0x80 : 0) |
 		  ((sensor->frequency & SN9C102_I2C_400KHZ) ? 0x01 : 0)
 		  | ((n - 1) << 4);
@@ -505,7 +485,6 @@ int sn9c102_i2c_write(struct sn9c102_device* cam, u8 address, u8 value)
 	return sn9c102_i2c_try_write(cam, &cam->sensor, address, value);
 }
 
-/*****************************************************************************/
 
 static size_t sn9c102_sof_length(struct sn9c102_device* cam)
 {
@@ -536,7 +515,7 @@ sn9c102_find_sof_header(struct sn9c102_device* cam, void* mem, size_t len)
 	for (i = 0; i < len; i++) {
 		size_t b;
 
-		/* Read the variable part of the header */
+		
 		if (unlikely(cam->sof.bytesread >= sizeof(marker))) {
 			cam->sof.header[cam->sof.bytesread] = *(m+i);
 			if (++cam->sof.bytesread == soflen) {
@@ -546,7 +525,7 @@ sn9c102_find_sof_header(struct sn9c102_device* cam, void* mem, size_t len)
 			continue;
 		}
 
-		/* Search for the SOF marker (fixed part) in the header */
+		
 		for (j = 0, b=cam->sof.bytesread; j+b < sizeof(marker); j++) {
 			if (unlikely(i+j == len))
 				return NULL;
@@ -580,16 +559,11 @@ sn9c102_find_eof_header(struct sn9c102_device* cam, void* mem, size_t len)
 	};
 	size_t i, j;
 
-	/* The EOF header does not exist in compressed data */
+	
 	if (cam->sensor.pix_format.pixelformat == V4L2_PIX_FMT_SN9C10X ||
 	    cam->sensor.pix_format.pixelformat == V4L2_PIX_FMT_JPEG)
 		return NULL;
 
-	/*
-	   The EOF header might cross the packet boundary, but this is not a
-	   problem, since the end of a frame is determined by checking its size
-	   in the first place.
-	*/
 	for (i = 0; (len >= 4) && (i <= len - 4); i++)
 		for (j = 0; j < ARRAY_SIZE(eof_header); j++)
 			if (!memcmp(mem + i, eof_header[j], 4))
@@ -726,7 +700,7 @@ static void sn9c102_urb_complete(struct urb *urb)
 		     cam->sensor.pix_format.height *
 		     cam->sensor.pix_format.priv) / 8;
 	if (cam->sensor.pix_format.pixelformat == V4L2_PIX_FMT_JPEG)
-		imagesize += 589; /* length of jpeg header */
+		imagesize += 589; 
 	soflen = sn9c102_sof_length(cam);
 
 	for (i = 0; i < urb->number_of_packets; i++) {
@@ -817,7 +791,7 @@ end_of_frame:
 					    ((*f)->buf.bytesused));
 				}
 
-				if (sof) /* (1) */
+				if (sof) 
 					goto start_of_frame;
 
 			} else if (eof) {
@@ -845,7 +819,7 @@ start_of_frame:
 		} else if ((*f)->state == F_GRABBING) {
 			eof = sn9c102_find_eof_header(cam, pos, len);
 			if (eof && eof < sof)
-				goto end_of_frame; /* (1) */
+				goto end_of_frame; 
 			else {
 				if (cam->sensor.pix_format.pixelformat ==
 				    V4L2_PIX_FMT_SN9C10X ||
@@ -853,7 +827,7 @@ start_of_frame:
 				    V4L2_PIX_FMT_JPEG) {
 					if (sof - pos >= soflen) {
 						eof = sof - soflen;
-					} else { /* remove header */
+					} else { 
 						eof = pos;
 						(*f)->buf.bytesused -=
 							(soflen - (sof - pos));
@@ -927,7 +901,7 @@ static int sn9c102_start_transfer(struct sn9c102_device* cam)
 		}
 	}
 
-	/* Enable video */
+	
 	if (!(cam->reg[0x01] & 0x04)) {
 		err = sn9c102_write_reg(cam, cam->reg[0x01] | 0x04, 0x01);
 		if (err) {
@@ -985,7 +959,7 @@ static int sn9c102_stop_transfer(struct sn9c102_device* cam)
 		kfree(cam->transfer_buffer[i]);
 	}
 
-	err = usb_set_interface(udev, 0, 0); /* 0 Mb/s */
+	err = usb_set_interface(udev, 0, 0); 
 	if (err)
 		DBG(3, "usb_set_interface() failed");
 
@@ -1015,7 +989,6 @@ static int sn9c102_stream_interrupt(struct sn9c102_device* cam)
 	return 0;
 }
 
-/*****************************************************************************/
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static u16 sn9c102_strtou16(const char* buff, size_t len, ssize_t* count)
@@ -1043,11 +1016,6 @@ static u16 sn9c102_strtou16(const char* buff, size_t len, ssize_t* count)
 	return (u16)val;
 }
 
-/*
-   NOTE 1: being inside one of the following methods implies that the v4l
-	   device exists for sure (see kobjects and reference counters)
-   NOTE 2: buffers are PAGE_SIZE long
-*/
 
 static ssize_t sn9c102_show_reg(struct device* cd,
 				struct device_attribute *attr, char* buf)
@@ -1484,9 +1452,8 @@ err_reg:
 err_out:
 	return err;
 }
-#endif /* CONFIG_VIDEO_ADV_DEBUG */
+#endif 
 
-/*****************************************************************************/
 
 static int
 sn9c102_set_pix_format(struct sn9c102_device* cam, struct v4l2_pix_format* pix)
@@ -1637,7 +1604,7 @@ static int sn9c102_init(struct sn9c102_device* cam)
 		init_waitqueue_head(&cam->wait_open);
 		qctrl = s->qctrl;
 		rect = &(s->cropcap.defrect);
-	} else { /* use current values */
+	} else { 
 		qctrl = s->_qctrl;
 		rect = &(s->_rect);
 	}
@@ -1724,7 +1691,6 @@ static int sn9c102_init(struct sn9c102_device* cam)
 	return 0;
 }
 
-/*****************************************************************************/
 
 static void sn9c102_release_resources(struct kref *kref)
 {
@@ -1752,18 +1718,6 @@ static int sn9c102_open(struct file *filp)
 	struct sn9c102_device* cam;
 	int err = 0;
 
-	/*
-	   A read_trylock() in open() is the only safe way to prevent race
-	   conditions with disconnect(), one close() and multiple (not
-	   necessarily simultaneous) attempts to open(). For example, it
-	   prevents from waiting for a second access, while the device
-	   structure is being deallocated, after a possible disconnect() and
-	   during a following close() holding the write lock: given that, after
-	   this deallocation, no access will be possible anymore, using the
-	   non-trylock version would have let open() gain the access to the
-	   device structure improperly.
-	   For this reason the lock must also not be per-device.
-	*/
 	if (!down_read_trylock(&sn9c102_dev_lock))
 		return -ERESTARTSYS;
 
@@ -1776,9 +1730,6 @@ static int sn9c102_open(struct file *filp)
 
 	kref_get(&cam->kref);
 
-	/*
-	    Make sure to isolate all the simultaneous opens.
-	*/
 	if (mutex_lock_interruptible(&cam->open_mutex)) {
 		kref_put(&cam->kref, sn9c102_release_resources);
 		up_read(&sn9c102_dev_lock);
@@ -1795,10 +1746,6 @@ static int sn9c102_open(struct file *filp)
 		DBG(2, "Device %s is already in use",
 		    video_device_node_name(cam->v4ldev));
 		DBG(3, "Simultaneous opens are not supported");
-		/*
-		   open() must follow the open flags and should block
-		   eventually while the device is in use.
-		*/
 		if ((filp->f_flags & O_NONBLOCK) ||
 		    (filp->f_flags & O_NDELAY)) {
 			err = -EWOULDBLOCK;
@@ -1807,12 +1754,6 @@ static int sn9c102_open(struct file *filp)
 		DBG(2, "A blocking open() has been requested. Wait for the "
 		       "device to be released...");
 		up_read(&sn9c102_dev_lock);
-		/*
-		   We will not release the "open_mutex" lock, so that only one
-		   process can be in the wait queue below. This way the process
-		   will be sleeping while holding the lock, without losing its
-		   priority after any wake_up().
-		*/
 		err = wait_event_interruptible_exclusive(cam->wait_open,
 						(cam->state & DEV_DISCONNECTED)
 							 || !cam->users);
@@ -2072,7 +2013,7 @@ static void sn9c102_vm_open(struct vm_area_struct* vma)
 
 static void sn9c102_vm_close(struct vm_area_struct* vma)
 {
-	/* NOTE: buffers are not freed here */
+	
 	struct sn9c102_frame_t* f = vma->vm_private_data;
 	f->vma_use_count--;
 }
@@ -2132,7 +2073,7 @@ static int sn9c102_mmap(struct file* filp, struct vm_area_struct *vma)
 	vma->vm_flags |= VM_RESERVED;
 
 	pos = cam->frame[i].bufmem;
-	while (size > 0) { /* size is page-aligned */
+	while (size > 0) { 
 		if (vm_insert_page(vma, start, vmalloc_to_page(pos))) {
 			mutex_unlock(&cam->fileop_mutex);
 			return -EAGAIN;
@@ -2151,7 +2092,6 @@ static int sn9c102_mmap(struct file* filp, struct vm_area_struct *vma)
 	return 0;
 }
 
-/*****************************************************************************/
 
 static int
 sn9c102_vidioc_querycap(struct sn9c102_device* cam, void __user * arg)
@@ -2384,7 +2324,7 @@ sn9c102_vidioc_s_crop(struct sn9c102_device* cam, void __user * arg)
 				return -EBUSY;
 			}
 
-	/* Preserve R,G or B origin */
+	
 	rect->left = (s->_rect.left & 1L) ? rect->left | 1L : rect->left & ~1L;
 	rect->top = (s->_rect.top & 1L) ? rect->top | 1L : rect->top & ~1L;
 
@@ -2409,7 +2349,7 @@ sn9c102_vidioc_s_crop(struct sn9c102_device* cam, void __user * arg)
 	rect->height &= ~15L;
 
 	if (SN9C102_PRESERVE_IMGSCALE) {
-		/* Calculate the actual scaling factor */
+		
 		u32 a, b;
 		a = rect->width * rect->height;
 		b = pix_format->width * pix_format->height;
@@ -2434,7 +2374,7 @@ sn9c102_vidioc_s_crop(struct sn9c102_device* cam, void __user * arg)
 		err += s->set_crop(cam, rect);
 	err += sn9c102_set_scale(cam, scale);
 
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_CROP failed because of hardware problems. To "
 		       "use the camera, close and open %s again.",
@@ -2601,7 +2541,7 @@ sn9c102_vidioc_try_s_fmt(struct sn9c102_device* cam, unsigned int cmd,
 
 	memcpy(&rect, &(s->_rect), sizeof(rect));
 
-	{ /* calculate the actual scaling factor */
+	{ 
 		u32 a, b;
 		a = rect.width * rect.height;
 		b = pix->width * pix->height;
@@ -2623,7 +2563,7 @@ sn9c102_vidioc_try_s_fmt(struct sn9c102_device* cam, unsigned int cmd,
 	rect.width &= ~15L;
 	rect.height &= ~15L;
 
-	{ /* adjust the scaling factor */
+	{ 
 		u32 a, b;
 		a = rect.width * rect.height;
 		b = pix->width * pix->height;
@@ -2648,7 +2588,7 @@ sn9c102_vidioc_try_s_fmt(struct sn9c102_device* cam, unsigned int cmd,
 			pix->pixelformat = pfmt->pixelformat;
 		break;
 	}
-	pix->priv = pfmt->priv; /* bpp */
+	pix->priv = pfmt->priv; 
 	pix->colorspace = (pix->pixelformat == V4L2_PIX_FMT_JPEG) ?
 			  V4L2_COLORSPACE_JPEG : V4L2_COLORSPACE_SRGB;
 	pix->bytesperline = (pix->pixelformat == V4L2_PIX_FMT_SN9C10X ||
@@ -2691,7 +2631,7 @@ sn9c102_vidioc_try_s_fmt(struct sn9c102_device* cam, unsigned int cmd,
 		err += s->set_crop(cam, &rect);
 	err += sn9c102_set_scale(cam, scale);
 
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_FMT failed because of hardware problems. To "
 		       "use the camera, close and open %s again.",
@@ -2750,7 +2690,7 @@ sn9c102_vidioc_s_jpegcomp(struct sn9c102_device* cam, void __user * arg)
 			return err;
 
 	err += sn9c102_set_compression(cam, &jc);
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_JPEGCOMP failed because of hardware problems. "
 		       "To use the camera, close and open %s again.",
@@ -3225,7 +3165,6 @@ static long sn9c102_ioctl(struct file *filp,
 	return err;
 }
 
-/*****************************************************************************/
 
 static const struct v4l2_file_operations sn9c102_fops = {
 	.owner = THIS_MODULE,
@@ -3237,9 +3176,7 @@ static const struct v4l2_file_operations sn9c102_fops = {
 	.mmap = sn9c102_mmap,
 };
 
-/*****************************************************************************/
 
-/* It exists a single interface only. We do not need to validate anything. */
 static int
 sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
 {

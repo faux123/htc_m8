@@ -24,4 +24,4 @@ struct fsa9480_platform_data {
 	int wakeup;
 };
 
-#endif /* _FSA9480_H_ */
+#endif 

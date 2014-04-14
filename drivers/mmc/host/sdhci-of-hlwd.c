@@ -24,14 +24,8 @@
 #include <linux/mmc/host.h>
 #include "sdhci-pltfm.h"
 
-/*
- * Ops and quirks for the Nintendo Wii SDHCI controllers.
- */
 
-/*
- * We need a small delay after each write, or things go horribly wrong.
- */
-#define SDHCI_HLWD_WRITE_DELAY	5 /* usecs */
+#define SDHCI_HLWD_WRITE_DELAY	5 
 
 static void sdhci_hlwd_writel(struct sdhci_host *host, u32 val, int reg)
 {

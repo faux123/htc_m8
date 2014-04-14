@@ -8,15 +8,9 @@
 #ifndef _SPARC_MSI_H
 #define _SPARC_MSI_H
 
-/*
- * Locations of MSI Registers.
- */
-#define MSI_MBUS_ARBEN	0xe0001008	/* MBus Arbiter Enable register */
+#define MSI_MBUS_ARBEN	0xe0001008	
 
-/*
- * Useful bits in the MSI Registers.
- */
-#define MSI_ASYNC_MODE  0x80000000	/* Operate the MSI asynchronously */
+#define MSI_ASYNC_MODE  0x80000000	
 
 
 static inline void msi_set_sync(void)
@@ -28,4 +22,4 @@ static inline void msi_set_sync(void)
 			      "i" (ASI_M_CTL), "r" (MSI_ASYNC_MODE) : "g3");
 }
 
-#endif /* !(_SPARC_MSI_H) */
+#endif 

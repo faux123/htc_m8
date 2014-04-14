@@ -29,14 +29,8 @@ struct bfa_s;
 typedef void (*bfa_isr_func_t) (struct bfa_s *bfa, struct bfi_msg_s *m);
 typedef void (*bfa_cb_cbfn_status_t) (void *cbarg, bfa_status_t status);
 
-/*
- * Interrupt message handlers
- */
 void bfa_isr_unhandled(struct bfa_s *bfa, struct bfi_msg_s *m);
 
-/*
- * Request and response queue related defines
- */
 #define BFA_REQQ_NELEMS_MIN	(4)
 #define BFA_RSPQ_NELEMS_MIN	(4)
 
@@ -76,21 +70,18 @@ void bfa_isr_unhandled(struct bfa_s *bfa, struct bfi_msg_s *m);
 	(__index) &= ((__size) - 1);			\
 } while (0)
 
-/*
- * Circular queue usage assignments
- */
 enum {
-	BFA_REQQ_IOC	= 0,	/*  all low-priority IOC msgs	*/
-	BFA_REQQ_FCXP	= 0,	/*  all FCXP messages		*/
-	BFA_REQQ_LPS	= 0,	/*  all lport service msgs	*/
-	BFA_REQQ_PORT	= 0,	/*  all port messages		*/
-	BFA_REQQ_FLASH	= 0,	/*  for flash module		*/
-	BFA_REQQ_DIAG	= 0,	/*  for diag module		*/
-	BFA_REQQ_RPORT	= 0,	/*  all port messages		*/
-	BFA_REQQ_SBOOT	= 0,	/*  all san boot messages	*/
-	BFA_REQQ_QOS_LO	= 1,	/*  all low priority IO	*/
-	BFA_REQQ_QOS_MD	= 2,	/*  all medium priority IO	*/
-	BFA_REQQ_QOS_HI	= 3,	/*  all high priority IO	*/
+	BFA_REQQ_IOC	= 0,	
+	BFA_REQQ_FCXP	= 0,	
+	BFA_REQQ_LPS	= 0,	
+	BFA_REQQ_PORT	= 0,	
+	BFA_REQQ_FLASH	= 0,	
+	BFA_REQQ_DIAG	= 0,	
+	BFA_REQQ_RPORT	= 0,	
+	BFA_REQQ_SBOOT	= 0,	
+	BFA_REQQ_QOS_LO	= 1,	
+	BFA_REQQ_QOS_MD	= 2,	
+	BFA_REQQ_QOS_HI	= 3,	
 };
 
 static inline void
@@ -103,10 +94,6 @@ bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
 
 #define bfa_reqq(__bfa, __reqq)	(&(__bfa)->reqq_waitq[__reqq])
 
-/*
- * static inline void
- * bfa_reqq_wait(struct bfa_s *bfa, int reqq, struct bfa_reqq_wait_s *wqe)
- */
 #define bfa_reqq_wait(__bfa, __reqq, __wqe) do {			\
 									\
 		struct list_head *waitq = bfa_reqq(__bfa, __reqq);      \
@@ -147,9 +134,6 @@ bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
 	} while (0)
 
 
-/*
- * PCI devices supported by the current BFA
- */
 struct bfa_pciid_s {
 	u16	device_id;
 	u16	vendor_id;
@@ -168,9 +152,6 @@ struct bfa_iocfc_regs_s {
 	void __iomem	*rme_q_ctrl[BFI_IOC_MAX_CQS];
 };
 
-/*
- * MSIX vector handlers
- */
 #define BFA_MSIX_MAX_VECTORS	22
 typedef void (*bfa_msix_handler_t)(struct bfa_s *bfa, int vec);
 struct bfa_msix_s {
@@ -178,9 +159,6 @@ struct bfa_msix_s {
 	bfa_msix_handler_t handler[BFA_MSIX_MAX_VECTORS];
 };
 
-/*
- * Chip specific interfaces
- */
 struct bfa_hwif_s {
 	void (*hw_reginit)(struct bfa_s *bfa);
 	void (*hw_reqq_ack)(struct bfa_s *bfa, int reqq);
@@ -207,9 +185,6 @@ struct bfa_faa_cbfn_s {
 #define BFA_FAA_ENABLED		1
 #define BFA_FAA_DISABLED	2
 
-/*
- *	FAA attributes
- */
 struct bfa_faa_attr_s {
 	wwn_t	faa;
 	u8	faa_state;
@@ -237,8 +212,8 @@ struct bfa_iocfc_s {
 	struct bfa_cb_qe_s	en_hcb_qe;
 	struct bfa_cb_qe_s	stats_hcb_qe;
 	bfa_boolean_t		submod_enabled;
-	bfa_boolean_t		cb_reqd;	/* Driver call back reqd */
-	bfa_status_t		op_status;	/* Status of bfa iocfc op */
+	bfa_boolean_t		cb_reqd;	
+	bfa_status_t		op_status;	
 
 	struct bfa_dma_s	cfg_info;
 	struct bfi_iocfc_cfg_s *cfginfo;
@@ -248,10 +223,10 @@ struct bfa_iocfc_s {
 	struct bfa_dma_s	req_cq_shadow_ci[BFI_IOC_MAX_CQS];
 	struct bfa_dma_s	rsp_cq_ba[BFI_IOC_MAX_CQS];
 	struct bfa_dma_s	rsp_cq_shadow_pi[BFI_IOC_MAX_CQS];
-	struct bfa_iocfc_regs_s	bfa_regs;	/*  BFA device registers */
+	struct bfa_iocfc_regs_s	bfa_regs;	
 	struct bfa_hwif_s	hwif;
-	bfa_cb_iocfc_t		updateq_cbfn; /*  bios callback function */
-	void			*updateq_cbarg;	/*  bios callback arg */
+	bfa_cb_iocfc_t		updateq_cbfn; 
+	void			*updateq_cbarg;	
 	u32	intr_mask;
 	struct bfa_faa_args_s	faa_args;
 	struct bfa_mem_dma_s	ioc_dma;
@@ -295,9 +270,6 @@ struct bfa_iocfc_s {
 #define bfa_msix(__bfa, __vec)						\
 	((__bfa)->msix.handler[__vec](__bfa, __vec))
 
-/*
- * FC specific IOC functions.
- */
 void bfa_iocfc_meminfo(struct bfa_iocfc_cfg_s *cfg,
 			struct bfa_meminfo_s *meminfo,
 			struct bfa_s *bfa);
@@ -347,11 +319,6 @@ int bfa_iocfc_get_pbc_vports(struct bfa_s *bfa,
 				struct bfi_pbc_vport_s *pbc_vport);
 
 
-/*
- *----------------------------------------------------------------------
- *		BFA public interfaces
- *----------------------------------------------------------------------
- */
 #define bfa_stats(_mod, _stats)	((_mod)->stats._stats++)
 #define bfa_ioc_get_stats(__bfa, __ioc_stats)		\
 	bfa_ioc_fetch_stats(&(__bfa)->ioc, __ioc_stats)
@@ -382,10 +349,6 @@ int bfa_iocfc_get_pbc_vports(struct bfa_s *bfa,
 #define bfa_get_fw_clock_res(__bfa)		\
 	((__bfa)->iocfc.cfgrsp->fwcfg.fw_tick_res)
 
-/*
- * lun mask macros return NULL when min cfg is enabled and there is
- * no memory allocated for lunmask.
- */
 #define bfa_get_lun_mask(__bfa)					\
 	((&(__bfa)->modules.dconf_mod)->min_cfg) ? NULL :	\
 	 (&(BFA_DCONF_MOD(__bfa)->dconf->lun_mask))
@@ -433,10 +396,9 @@ void bfa_iocfc_disable(struct bfa_s *bfa);
 
 struct bfa_cb_pending_q_s {
 	struct bfa_cb_qe_s	hcb_qe;
-	void			*data;  /* Driver buffer */
+	void			*data;  
 };
 
-/* Common macros to operate on pending stats/attr apis */
 #define bfa_pending_q_init(__qe, __cbfn, __cbarg, __data) do {	\
 	bfa_q_qe_init(&((__qe)->hcb_qe.qe));			\
 	(__qe)->hcb_qe.cbfn = (__cbfn);				\
@@ -445,4 +407,4 @@ struct bfa_cb_pending_q_s {
 	(__qe)->data = (__data);				\
 } while (0)
 
-#endif /* __BFA_H__ */
+#endif 

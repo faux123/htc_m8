@@ -16,13 +16,6 @@
 #include <linux/spi/spi.h>
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
-/*
- * WARNING! Do not include this pl022-specific controller header
- * for any generic driver. It is only done in this dummy chip
- * because we alter the chip configuration in order to test some
- * different settings on the loopback device. Normal chip configs
- * shall be STATIC and not altered by the driver!
- */
 #include <linux/amba/pl022.h>
 
 struct dummy {
@@ -32,7 +25,6 @@ struct dummy {
 
 #define DMA_TEST_SIZE 2048
 
-/* When we cat /sys/bus/spi/devices/spi0.0/looptest this will be triggered */
 static ssize_t dummy_looptest(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -64,18 +56,14 @@ static ssize_t dummy_looptest(struct device *dev,
 	}
 	bigrxbuf_virtual = kmalloc(DMA_TEST_SIZE, GFP_KERNEL);
 
-	/* Fill TXBUF with some happy pattern */
+	
 	memset(bigtxbuf_virtual, 0xAA, DMA_TEST_SIZE);
 
-	/*
-	 * Force chip to 8 bit mode
-	 * WARNING: NEVER DO THIS IN REAL DRIVER CODE, THIS SHOULD BE STATIC!
-	 */
 	spi->bits_per_word = 8;
-	/* You should NOT DO THIS EITHER */
+	
 	spi->master->setup(spi);
 
-	/* Now run the tests for 8bit mode */
+	
 	pr_info("Simple test 1: write 0xAA byte, read back garbage byte "
 		"in 8bit mode\n");
 	status = spi_w8r8(spi, 0xAA);
@@ -154,12 +142,8 @@ static ssize_t dummy_looptest(struct device *dev,
 		pr_info("Simple test 6: SUCCESS!\n");
 
 
-	/*
-	 * Force chip to 16 bit mode
-	 * WARNING: NEVER DO THIS IN REAL DRIVER CODE, THIS SHOULD BE STATIC!
-	 */
 	spi->bits_per_word = 16;
-	/* You should NOT DO THIS EITHER */
+	
 	spi->master->setup(spi);
 
 	pr_info("Simple test 7: write 0xAA byte, read back garbage byte "
@@ -236,7 +220,7 @@ static int __devinit pl022_dummy_probe(struct spi_device *spi)
 	dev_set_drvdata(&spi->dev, p_dummy);
 	mutex_init(&p_dummy->lock);
 
-	/* sysfs hook */
+	
 	status = device_create_file(&spi->dev, &dev_attr_looptest);
 	if (status) {
 		dev_dbg(&spi->dev, "device_create_file looptest failure.\n");

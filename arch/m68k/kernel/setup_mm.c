@@ -4,9 +4,6 @@
  *  Copyright (C) 1995  Hamish Macdonald
  */
 
-/*
- * This file handles the architecture-dependent parts of system setup
- */
 
 #include <linux/kernel.h>
 #include <linux/mm.h>
@@ -79,11 +76,9 @@ struct mem_info m68k_ramdisk;
 static char m68k_command_line[CL_SIZE];
 
 void (*mach_sched_init) (irq_handler_t handler) __initdata = NULL;
-/* machine dependent irq functions */
 void (*mach_init_IRQ) (void) __initdata = NULL;
 void (*mach_get_model) (char *model);
 void (*mach_get_hardware_list) (struct seq_file *m);
-/* machine dependent timer functions */
 unsigned long (*mach_gettimeoffset) (void);
 int (*mach_hwclk) (int, struct rtc_time*);
 EXPORT_SYMBOL(mach_hwclk);
@@ -97,7 +92,7 @@ EXPORT_SYMBOL(mach_set_rtc_pll);
 void (*mach_reset)( void );
 void (*mach_halt)( void );
 void (*mach_power_off)( void );
-long mach_max_dma_address = 0x00ffffff; /* default set to the lower 16MB */
+long mach_max_dma_address = 0x00ffffff; 
 #ifdef CONFIG_HEARTBEAT
 void (*mach_heartbeat) (int);
 EXPORT_SYMBOL(mach_heartbeat);
@@ -153,7 +148,7 @@ static void __init m68k_parse_bootinfo(const struct bi_record *record)
 		case BI_CPUTYPE:
 		case BI_FPUTYPE:
 		case BI_MMUTYPE:
-			/* Already set up by head.S */
+			
 			break;
 
 		case BI_MEMCHUNK:
@@ -220,7 +215,7 @@ void __init setup_arch(char **cmdline_p)
 	int i;
 #endif
 
-	/* The bootinfo is located right after the kernel bss */
+	
 	if (!CPU_IS_COLDFIRE)
 		m68k_parse_bootinfo((const struct bi_record *)_end);
 
@@ -229,13 +224,8 @@ void __init setup_arch(char **cmdline_p)
 	else if (CPU_IS_060)
 		m68k_is040or060 = 6;
 
-	/* FIXME: m68k_fputype is passed in by Penguin booter, which can
-	 * be confused by software FPU emulation. BEWARE.
-	 * We should really do our own FPU check at startup.
-	 * [what do we do with buggy 68LC040s? if we have problems
-	 *  with them, we should add a test to check_bugs() below] */
 #ifndef CONFIG_M68KFPU_EMU_ONLY
-	/* clear the fpu if we have one */
+	
 	if (m68k_fputype & (FPU_68881|FPU_68882|FPU_68040|FPU_68060|FPU_COLDFIRE)) {
 		volatile int zero = 0;
 		asm volatile ("frestore %0" : : "m" (zero));
@@ -262,7 +252,7 @@ void __init setup_arch(char **cmdline_p)
 #if defined(CONFIG_BOOTPARAM)
 	strncpy(m68k_command_line, CONFIG_BOOTPARAM_STRING, CL_SIZE);
 	m68k_command_line[CL_SIZE - 1] = 0;
-#endif /* CONFIG_BOOTPARAM */
+#endif 
 	*cmdline_p = m68k_command_line;
 	memcpy(boot_command_line, *cmdline_p, CL_SIZE);
 
@@ -368,9 +358,8 @@ void __init setup_arch(char **cmdline_p)
 	}
 #endif
 
-#endif /* !CONFIG_SUN3 */
+#endif 
 
-/* set ISA defs early as possible */
 #if defined(CONFIG_ISA) && defined(MULTI_ISA)
 	if (MACH_IS_Q40) {
 		isa_type = ISA_TYPE_Q40;
@@ -539,7 +528,7 @@ void check_bugs(void)
 			"emulation project\n");
 		panic("no FPU");
 	}
-#endif /* !CONFIG_M68KFPU_EMU */
+#endif 
 }
 
 #ifdef CONFIG_ADB
@@ -550,4 +539,4 @@ static int __init adb_probe_sync_enable (char *str) {
 }
 
 __setup("adb_sync", adb_probe_sync_enable);
-#endif /* CONFIG_ADB */
+#endif 

@@ -1,8 +1,5 @@
 #ifndef __PERF_PARSE_EVENTS_H
 #define __PERF_PARSE_EVENTS_H
-/*
- * Parse symbolic events/counts passed in as options:
- */
 
 #include "../../../include/linux/perf_event.h"
 
@@ -23,7 +20,7 @@ extern bool have_tracepoints(struct list_head *evlist);
 
 const char *event_type(int type);
 const char *event_name(struct perf_evsel *event);
-extern const char *__event_name(int type, u64 config);
+extern const char *__event_name(int type, u64 config, char *name);
 
 extern int parse_events_option(const struct option *opt, const char *str,
 			       int unset);
@@ -67,6 +64,10 @@ int parse_events_add_tracepoint(struct list_head *list, int *idx,
 int parse_events_add_raw(struct perf_evlist *evlist, unsigned long config,
 			 unsigned long config1, unsigned long config2,
 			 char *mod);
+int parse_events_add_numeric_legacy(struct list_head *list, int *idx,
+			     const char *name, unsigned long config,
+			     struct list_head *head_config);
+
 int parse_events_add_numeric(struct list_head *list, int *idx,
 			     unsigned long type, unsigned long config,
 			     struct list_head *head_config);
@@ -90,4 +91,4 @@ extern int is_valid_tracepoint(const char *event_string);
 
 extern int valid_debugfs_mount(const char *debugfs);
 
-#endif /* __PERF_PARSE_EVENTS_H */
+#endif 

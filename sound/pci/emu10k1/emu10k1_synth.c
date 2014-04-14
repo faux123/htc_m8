@@ -26,9 +26,6 @@ MODULE_AUTHOR("Takashi Iwai");
 MODULE_DESCRIPTION("Routines for control of EMU10K1 WaveTable synth");
 MODULE_LICENSE("GPL");
 
-/*
- * create a new hardware dependent device for Emu10k1
- */
 static int snd_emu10k1_synth_new_device(struct snd_seq_device *dev)
 {
 	struct snd_emux *emux;
@@ -41,7 +38,7 @@ static int snd_emu10k1_synth_new_device(struct snd_seq_device *dev)
 		return -EINVAL;
 
 	if (arg->seq_ports <= 0)
-		return 0; /* nothing */
+		return 0; 
 	if (arg->max_voices < 1)
 		arg->max_voices = 1;
 	else if (arg->max_voices > 64)
@@ -57,12 +54,12 @@ static int snd_emu10k1_synth_new_device(struct snd_seq_device *dev)
 	emux->num_ports = arg->seq_ports;
 	emux->pitch_shift = -501;
 	emux->memhdr = hw->memhdr;
-	/* maximum two ports */
+	
 	emux->midi_ports = arg->seq_ports < 2 ? arg->seq_ports : 2;
-	/* audigy has two external midis */
+	
 	emux->midi_devidx = hw->audigy ? 2 : 1;
 	emux->linear_panning = 0;
-	emux->hwdep_idx = 2; /* FIXED */
+	emux->hwdep_idx = 2; 
 
 	if (snd_emux_register(emux, dev->card, arg->index, "Emu10k1") < 0) {
 		snd_emux_free(emux);
@@ -86,7 +83,7 @@ static int snd_emu10k1_synth_delete_device(struct snd_seq_device *dev)
 	unsigned long flags;
 
 	if (dev->driver_data == NULL)
-		return 0; /* not registered actually */
+		return 0; 
 
 	emux = dev->driver_data;
 
@@ -100,9 +97,6 @@ static int snd_emu10k1_synth_delete_device(struct snd_seq_device *dev)
 	return 0;
 }
 
-/*
- *  INIT part
- */
 
 static int __init alsa_emu10k1_synth_init(void)
 {

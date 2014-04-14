@@ -7,10 +7,6 @@
 #ifndef __ASM_M68K_PROCESSOR_H
 #define __ASM_M68K_PROCESSOR_H
 
-/*
- * Default implementation of macro that returns current
- * instruction pointer ("program counter").
- */
 #define current_text_addr() ({ __label__ _l; _l: &&_l;})
 
 #include <linux/thread_info.h>
@@ -25,7 +21,7 @@ static inline unsigned long rdusp(void)
 	return sw_usp;
 #else
 	register unsigned long usp __asm__("a0");
-	/* move %usp,%a0 */
+	
 	__asm__ __volatile__(".word 0x4e68" : "=a" (usp));
 	return usp;
 #endif
@@ -38,15 +34,11 @@ static inline void wrusp(unsigned long usp)
 	sw_usp = usp;
 #else
 	register unsigned long a0 __asm__("a0") = usp;
-	/* move %a0,%usp */
+	
 	__asm__ __volatile__(".word 0x4e60" : : "a" (a0) );
 #endif
 }
 
-/*
- * User space process size: 3.75GB. This is hardcoded into a few places,
- * so don't change it unless you know what you are doing.
- */
 #ifdef CONFIG_MMU
 #if defined(CONFIG_COLDFIRE)
 #define TASK_SIZE	(0xC0000000UL)
@@ -64,9 +56,6 @@ static inline void wrusp(unsigned long usp)
 #define STACK_TOP_MAX	STACK_TOP
 #endif
 
-/* This decides where the kernel will search for a free chunk of vm
- * space during mmap's.
- */
 #ifdef CONFIG_MMU
 #if defined(CONFIG_COLDFIRE)
 #define TASK_UNMAPPED_BASE	0x60000000UL
@@ -81,17 +70,17 @@ static inline void wrusp(unsigned long usp)
 #endif
 
 struct thread_struct {
-	unsigned long  ksp;		/* kernel stack pointer */
-	unsigned long  usp;		/* user stack pointer */
-	unsigned short sr;		/* saved status register */
-	unsigned short fs;		/* saved fs (sfc, dfc) */
-	unsigned long  crp[2];		/* cpu root pointer */
-	unsigned long  esp0;		/* points to SR of stack frame */
-	unsigned long  faddr;		/* info about last fault */
+	unsigned long  ksp;		
+	unsigned long  usp;		
+	unsigned short sr;		
+	unsigned short fs;		
+	unsigned long  crp[2];		
+	unsigned long  esp0;		
+	unsigned long  faddr;		
 	int            signo, code;
 	unsigned long  fp[8*3];
-	unsigned long  fpcntl[3];	/* fp control regs */
-	unsigned char  fpstate[FPSTATESIZE];  /* floating point state */
+	unsigned long  fpcntl[3];	
+	unsigned char  fpstate[FPSTATESIZE];  
 };
 
 #define INIT_THREAD  {							\
@@ -101,9 +90,6 @@ struct thread_struct {
 }
 
 #ifdef CONFIG_MMU
-/*
- * Do necessary setup to start up a newly executed thread.
- */
 static inline void start_thread(struct pt_regs * regs, unsigned long pc,
 				unsigned long usp)
 {
@@ -116,10 +102,6 @@ extern int handle_kernel_fault(struct pt_regs *regs);
 
 #else
 
-/*
- * Coldfire stacks need to be re-aligned on trap exit, conventional
- * 68k can handle this case cleanly.
- */
 #ifdef CONFIG_COLDFIRE
 #define reformat(_regs)		do { (_regs)->format = 0x4; } while(0)
 #else
@@ -139,28 +121,22 @@ do {                                                    \
 
 static inline  int handle_kernel_fault(struct pt_regs *regs)
 {
-	/* Any fault in kernel is fatal on non-mmu */
+	
 	return 0;
 }
 
 #endif
 
-/* Forward declaration, a strange C thing */
 struct task_struct;
 
-/* Free all resources held by a thread. */
 static inline void release_thread(struct task_struct *dead_task)
 {
 }
 
-/* Prepare to copy thread state - unlazy all lazy status */
 #define prepare_to_copy(tsk)	do { } while (0)
 
 extern int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags);
 
-/*
- * Free current thread data structures etc..
- */
 static inline void exit_thread(void)
 {
 }

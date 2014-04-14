@@ -4,14 +4,10 @@
 #include <linux/mempool.h>
 #include "messenger.h"
 
-/*
- * we use memory pools for preallocating messages we may receive, to
- * avoid unexpected OOM conditions.
- */
 struct ceph_msgpool {
 	const char *name;
 	mempool_t *pool;
-	int front_len;          /* preallocated payload size */
+	int front_len;          
 };
 
 extern int ceph_msgpool_init(struct ceph_msgpool *pool,

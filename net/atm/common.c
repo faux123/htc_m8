@@ -1,4 +1,3 @@
-/* net/atm/common.c - ATM sockets (common part for PVC and SVC) */
 
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
 
@@ -6,30 +5,30 @@
 
 #include <linux/module.h>
 #include <linux/kmod.h>
-#include <linux/net.h>		/* struct socket, struct proto_ops */
-#include <linux/atm.h>		/* ATM stuff */
+#include <linux/net.h>		
+#include <linux/atm.h>		
 #include <linux/atmdev.h>
-#include <linux/socket.h>	/* SOL_SOCKET */
-#include <linux/errno.h>	/* error codes */
+#include <linux/socket.h>	
+#include <linux/errno.h>	
 #include <linux/capability.h>
 #include <linux/mm.h>
 #include <linux/sched.h>
-#include <linux/time.h>		/* struct timeval */
+#include <linux/time.h>		
 #include <linux/skbuff.h>
 #include <linux/bitops.h>
 #include <linux/init.h>
 #include <linux/slab.h>
-#include <net/sock.h>		/* struct sock */
+#include <net/sock.h>		
 #include <linux/uaccess.h>
 #include <linux/poll.h>
 
 #include <linux/atomic.h>
 
-#include "resources.h"		/* atm_find_dev */
-#include "common.h"		/* prototypes */
-#include "protocols.h"		/* atm_init_<transport> */
-#include "addr.h"		/* address registry */
-#include "signaling.h"		/* for WAITING and sigd_attach */
+#include "resources.h"		
+#include "common.h"		
+#include "protocols.h"		
+#include "addr.h"		
+#include "signaling.h"		
 
 struct hlist_head vcc_hash[VCC_HTABLE_SIZE];
 EXPORT_SYMBOL(vcc_hash);
@@ -151,13 +150,13 @@ int vcc_create(struct net *net, struct socket *sock, int protocol, int family)
 	vcc->dev = NULL;
 	memset(&vcc->local, 0, sizeof(struct sockaddr_atmsvc));
 	memset(&vcc->remote, 0, sizeof(struct sockaddr_atmsvc));
-	vcc->qos.txtp.max_sdu = 1 << 16; /* for meta VCs */
+	vcc->qos.txtp.max_sdu = 1 << 16; 
 	atomic_set(&sk->sk_wmem_alloc, 1);
 	atomic_set(&sk->sk_rmem_alloc, 0);
 	vcc->push = NULL;
 	vcc->pop = NULL;
 	vcc->push_oam = NULL;
-	vcc->vpi = vcc->vci = 0; /* no VCI/VPI yet */
+	vcc->vpi = vcc->vci = 0; 
 	vcc->atm_options = vcc->aal_options = 0;
 	sk->sk_destruct = vcc_sock_destruct;
 	return 0;
@@ -174,7 +173,7 @@ static void vcc_destroy_socket(struct sock *sk)
 		if (vcc->dev->ops->close)
 			vcc->dev->ops->close(vcc);
 		if (vcc->push)
-			vcc->push(vcc, NULL); /* atmarpd has no push */
+			vcc->push(vcc, NULL); 
 
 		while ((skb = skb_dequeue(&sk->sk_receive_queue)) != NULL) {
 			atm_return(vcc, skb->truesize);
@@ -239,11 +238,11 @@ void atm_dev_signal_change(struct atm_dev *dev, char signal)
 	pr_debug("%s signal=%d dev=%p number=%d dev->signal=%d\n",
 		__func__, signal, dev, dev->number, dev->signal);
 
-	/* atm driver sending invalid signal */
+	
 	WARN_ON(signal < ATM_PHY_SIG_LOST || signal > ATM_PHY_SIG_FOUND);
 
 	if (dev->signal == signal)
-		return; /* no change */
+		return; 
 
 	dev->signal = signal;
 
@@ -289,7 +288,7 @@ static int adjust_tp(struct atm_trafprm *tp, unsigned char aal)
 		break;
 	default:
 		pr_warning("AAL problems ... (%d)\n", aal);
-		/* fall through */
+		
 	case ATM_AAL5:
 		max_sdu = ATM_MAX_AAL5_PDU;
 	}
@@ -321,16 +320,13 @@ static int check_ci(const struct atm_vcc *vcc, short vpi, int vci)
 			return -EADDRINUSE;
 	}
 
-	/* allow VCCs with same VPI/VCI iff they don't collide on
-	   TX/RX (but we may refuse such sharing for other reasons,
-	   e.g. if protocol requires to have both channels) */
 
 	return 0;
 }
 
 static int find_ci(const struct atm_vcc *vcc, short *vpi, int *vci)
 {
-	static short p;        /* poor man's per-device cache */
+	static short p;        
 	static int c;
 	short old_p;
 	int old_c;
@@ -340,7 +336,7 @@ static int find_ci(const struct atm_vcc *vcc, short *vpi, int *vci)
 		err = check_ci(vcc, *vpi, *vci);
 		return err;
 	}
-	/* last scan may have left values out of bounds for current device */
+	
 	if (*vpi != ATM_VPI_ANY)
 		p = *vpi;
 	else if (p >= 1 << vcc->dev->ci_range.vpi_bits)
@@ -408,9 +404,9 @@ static int __vcc_connect(struct atm_vcc *vcc, struct atm_dev *dev, short vpi,
 		vcc->stats = &dev->stats.aal34;
 		break;
 	case ATM_NO_AAL:
-		/* ATM_AAL5 is also used in the "0 for default" case */
+		
 		vcc->qos.aal = ATM_AAL5;
-		/* fall through */
+		
 	case ATM_AAL5:
 		error = atm_init_aal5(vcc);
 		vcc->stats = &dev->stats.aal5;
@@ -447,7 +443,7 @@ fail:
 	vcc_remove_socket(sk);
 fail_module_put:
 	module_put(dev->ops->owner);
-	/* ensure we get dev module ref count correct */
+	
 	vcc->dev = NULL;
 	return error;
 }
@@ -523,7 +519,7 @@ int vcc_recvmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
 	if (sock->state != SS_CONNECTED)
 		return -ENOTCONN;
 
-	/* only handle MSG_DONTWAIT and MSG_PEEK */
+	
 	if (flags & ~(MSG_DONTWAIT | MSG_PEEK))
 		return -EOPNOTSUPP;
 
@@ -579,7 +575,7 @@ int vcc_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *m,
 		goto out;
 	}
 	if (m->msg_iovlen != 1) {
-		error = -ENOSYS; /* fix this later @@@ */
+		error = -ENOSYS; 
 		goto out;
 	}
 	buff = m->msg_iov->iov_base;
@@ -601,7 +597,7 @@ int vcc_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *m,
 		goto out;
 	}
 
-	eff = (size+3) & ~3; /* align to word boundary */
+	eff = (size+3) & ~3; 
 	prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 	error = 0;
 	while (!(skb = alloc_tx(vcc, eff))) {
@@ -626,7 +622,7 @@ int vcc_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *m,
 	finish_wait(sk_sleep(sk), &wait);
 	if (error)
 		goto out;
-	skb->dev = NULL; /* for paths shared with net_device interfaces */
+	skb->dev = NULL; 
 	ATM_SKB(skb)->atm_options = vcc->atm_options;
 	if (copy_from_user(skb_put(skb, size), buff, size)) {
 		kfree_skb(skb);
@@ -653,7 +649,7 @@ unsigned int vcc_poll(struct file *file, struct socket *sock, poll_table *wait)
 
 	vcc = ATM_SD(sock);
 
-	/* exceptional events */
+	
 	if (sk->sk_err)
 		mask = POLLERR;
 
@@ -661,11 +657,11 @@ unsigned int vcc_poll(struct file *file, struct socket *sock, poll_table *wait)
 	    test_bit(ATM_VF_CLOSE, &vcc->flags))
 		mask |= POLLHUP;
 
-	/* readable? */
+	
 	if (!skb_queue_empty(&sk->sk_receive_queue))
 		mask |= POLLIN | POLLRDNORM;
 
-	/* writable? */
+	
 	if (sock->state == SS_CONNECTING &&
 	    test_bit(ATM_VF_WAITING, &vcc->flags))
 		return mask;
@@ -681,10 +677,6 @@ static int atm_change_qos(struct atm_vcc *vcc, struct atm_qos *qos)
 {
 	int error;
 
-	/*
-	 * Don't let the QoS change the already connected AAL type nor the
-	 * traffic class.
-	 */
 	if (qos->aal != vcc->qos.aal ||
 	    qos->rxtp.traffic_class != vcc->qos.rxtp.traffic_class ||
 	    qos->txtp.traffic_class != vcc->qos.txtp.traffic_class)
@@ -703,7 +695,7 @@ static int atm_change_qos(struct atm_vcc *vcc, struct atm_qos *qos)
 
 static int check_tp(const struct atm_trafprm *tp)
 {
-	/* @@@ Should be merged with adjust_tp */
+	
 	if (!tp->traffic_class || tp->traffic_class == ATM_ANYCLASS)
 		return 0;
 	if (tp->traffic_class != ATM_UBR && !tp->min_pcr && !tp->pcr &&
@@ -714,10 +706,6 @@ static int check_tp(const struct atm_trafprm *tp)
 	if (tp->min_pcr && tp->max_pcr && tp->max_pcr != ATM_MAX_PCR &&
 	    tp->min_pcr > tp->max_pcr)
 		return -EINVAL;
-	/*
-	 * We allow pcr to be outside [min_pcr,max_pcr], because later
-	 * adjustment may still push it in the valid range.
-	 */
 	return 0;
 }
 

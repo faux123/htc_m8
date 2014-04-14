@@ -1,13 +1,3 @@
-/*
- * Generic /dev/nvram driver for architectures providing some
- * "generic" hooks, that is :
- *
- * nvram_read_byte, nvram_write_byte, nvram_sync, nvram_get_size
- *
- * Note that an additional hook is supported for PowerMac only
- * for getting the nvram "partition" informations
- *
- */
 
 #define NVRAM_VERSION "1.1"
 
@@ -110,7 +100,7 @@ static int nvram_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			return -EFAULT;
 		break;
 	}
-#endif /* CONFIG_PPC_PMAC */
+#endif 
 	case IOC_NVRAM_SYNC:
 		nvram_sync();
 		break;

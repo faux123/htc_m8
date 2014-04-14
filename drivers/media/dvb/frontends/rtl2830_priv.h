@@ -45,7 +45,7 @@ struct rtl2830_priv {
 
 	bool sleeping;
 
-	u8 page; /* active register page */
+	u8 page; 
 };
 
 struct rtl2830_reg_val_mask {
@@ -54,4 +54,4 @@ struct rtl2830_reg_val_mask {
 	u8  mask;
 };
 
-#endif /* RTL2830_PRIV_H */
+#endif 

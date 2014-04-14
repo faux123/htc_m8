@@ -22,4 +22,4 @@
 
 #include <asm-generic/tlb.h>
 
-#endif /* _ASM_TILE_TLB_H */
+#endif 

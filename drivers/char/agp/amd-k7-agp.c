@@ -1,6 +1,3 @@
-/*
- * AMD K7 AGPGART routines.
- */
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -15,10 +12,10 @@
 #define AMD_APSIZE	0xac
 #define AMD_MODECNTL	0xb0
 #define AMD_MODECNTL2	0xb2
-#define AMD_GARTENABLE	0x02	/* In mmio region (16-bit register) */
-#define AMD_ATTBASE	0x04	/* In mmio region (32-bit register) */
-#define AMD_TLBFLUSH	0x0c	/* In mmio region (32-bit register) */
-#define AMD_CACHEENTRY	0x10	/* In mmio region (32-bit register) */
+#define AMD_GARTENABLE	0x02	
+#define AMD_ATTBASE	0x04	
+#define AMD_TLBFLUSH	0x0c	
+#define AMD_CACHEENTRY	0x10	
 
 static struct pci_device_id agp_amdk7_pci_table[];
 
@@ -46,7 +43,7 @@ static int amd_create_page_map(struct amd_page_map *page_map)
 
 	for (i = 0; i < PAGE_SIZE / sizeof(unsigned long); i++) {
 		writel(agp_bridge->scratch_page, page_map->remapped+i);
-		readl(page_map->remapped+i);	/* PCI Posting. */
+		readl(page_map->remapped+i);	
 	}
 
 	return 0;
@@ -108,9 +105,6 @@ static int amd_create_gatt_pages(int nr_tables)
 	return retval;
 }
 
-/* Since we don't need contiguous memory we just try
- * to get the gatt table once
- */
 
 #define GET_PAGE_DIR_OFF(addr) (addr >> 22)
 #define GET_PAGE_DIR_IDX(addr) (GET_PAGE_DIR_OFF(addr) - \
@@ -144,27 +138,23 @@ static int amd_create_gatt_table(struct agp_bridge_data *bridge)
 	agp_bridge->gatt_table = (u32 __iomem *)page_dir.remapped;
 	agp_bridge->gatt_bus_addr = virt_to_phys(page_dir.real);
 
-	/* Get the address for the gart region.
-	 * This is a bus address even on the alpha, b/c its
-	 * used to program the agp master not the cpu
-	 */
 
 	pci_read_config_dword(agp_bridge->dev, AGP_APBASE, &temp);
 	addr = (temp & PCI_BASE_ADDRESS_MEM_MASK);
 	agp_bridge->gart_bus_addr = addr;
 
-	/* Calculate the agp offset */
+	
 	for (i = 0; i < value->num_entries / 1024; i++, addr += 0x00400000) {
 		writel(virt_to_phys(amd_irongate_private.gatt_pages[i]->real) | 1,
 			page_dir.remapped+GET_PAGE_DIR_OFF(addr));
-		readl(page_dir.remapped+GET_PAGE_DIR_OFF(addr));	/* PCI Posting. */
+		readl(page_dir.remapped+GET_PAGE_DIR_OFF(addr));	
 	}
 
 	for (i = 0; i < value->num_entries; i++) {
 		addr = (i * PAGE_SIZE) + agp_bridge->gart_bus_addr;
 		cur_gatt = GET_GATT(addr);
 		writel(agp_bridge->scratch_page, cur_gatt+GET_GATT_OFF(addr));
-		readl(cur_gatt+GET_GATT_OFF(addr));	/* PCI Posting. */
+		readl(cur_gatt+GET_GATT_OFF(addr));	
 	}
 
 	return 0;
@@ -213,7 +203,7 @@ static int amd_irongate_configure(void)
 	current_size = A_SIZE_LVL2(agp_bridge->current_size);
 
 	if (!amd_irongate_private.registers) {
-		/* Get the memory mapped registers */
+		
 		pci_read_config_dword(agp_bridge->dev, AMD_MMBASE, &temp);
 		temp = (temp & PCI_BASE_ADDRESS_MEM_MASK);
 		amd_irongate_private.registers = (volatile u8 __iomem *) ioremap(temp, 4096);
@@ -221,30 +211,30 @@ static int amd_irongate_configure(void)
 			return -ENOMEM;
 	}
 
-	/* Write out the address of the gatt table */
+	
 	writel(agp_bridge->gatt_bus_addr, amd_irongate_private.registers+AMD_ATTBASE);
-	readl(amd_irongate_private.registers+AMD_ATTBASE);	/* PCI Posting. */
+	readl(amd_irongate_private.registers+AMD_ATTBASE);	
 
-	/* Write the Sync register */
+	
 	pci_write_config_byte(agp_bridge->dev, AMD_MODECNTL, 0x80);
 
-	/* Set indexing mode */
+	
 	pci_write_config_byte(agp_bridge->dev, AMD_MODECNTL2, 0x00);
 
-	/* Write the enable register */
+	
 	enable_reg = readw(amd_irongate_private.registers+AMD_GARTENABLE);
 	enable_reg = (enable_reg | 0x0004);
 	writew(enable_reg, amd_irongate_private.registers+AMD_GARTENABLE);
-	readw(amd_irongate_private.registers+AMD_GARTENABLE);	/* PCI Posting. */
+	readw(amd_irongate_private.registers+AMD_GARTENABLE);	
 
-	/* Write out the size register */
+	
 	pci_read_config_dword(agp_bridge->dev, AMD_APSIZE, &temp);
 	temp = (((temp & ~(0x0000000e)) | current_size->size_value) | 1);
 	pci_write_config_dword(agp_bridge->dev, AMD_APSIZE, temp);
 
-	/* Flush the tlb */
+	
 	writel(1, amd_irongate_private.registers+AMD_TLBFLUSH);
-	readl(amd_irongate_private.registers+AMD_TLBFLUSH);	/* PCI Posting.*/
+	readl(amd_irongate_private.registers+AMD_TLBFLUSH);	
 	return 0;
 }
 
@@ -259,9 +249,9 @@ static void amd_irongate_cleanup(void)
 	enable_reg = readw(amd_irongate_private.registers+AMD_GARTENABLE);
 	enable_reg = (enable_reg & ~(0x0004));
 	writew(enable_reg, amd_irongate_private.registers+AMD_GARTENABLE);
-	readw(amd_irongate_private.registers+AMD_GARTENABLE);	/* PCI Posting. */
+	readw(amd_irongate_private.registers+AMD_GARTENABLE);	
 
-	/* Write back the previous size and disable gart translation */
+	
 	pci_read_config_dword(agp_bridge->dev, AMD_APSIZE, &temp);
 	temp = ((temp & ~(0x0000000f)) | previous_size->size_value);
 	pci_write_config_dword(agp_bridge->dev, AMD_APSIZE, temp);
@@ -279,7 +269,7 @@ static void amd_irongate_cleanup(void)
 static void amd_irongate_tlbflush(struct agp_memory *temp)
 {
 	writel(1, amd_irongate_private.registers+AMD_TLBFLUSH);
-	readl(amd_irongate_private.registers+AMD_TLBFLUSH);	/* PCI Posting. */
+	readl(amd_irongate_private.registers+AMD_TLBFLUSH);	
 }
 
 static int amd_insert_memory(struct agp_memory *mem, off_t pg_start, int type)
@@ -318,7 +308,7 @@ static int amd_insert_memory(struct agp_memory *mem, off_t pg_start, int type)
 					       page_to_phys(mem->pages[i]),
 					       mem->type),
 		       cur_gatt+GET_GATT_OFF(addr));
-		readl(cur_gatt+GET_GATT_OFF(addr));	/* PCI Posting. */
+		readl(cur_gatt+GET_GATT_OFF(addr));	
 	}
 	amd_irongate_tlbflush(mem);
 	return 0;
@@ -338,7 +328,7 @@ static int amd_remove_memory(struct agp_memory *mem, off_t pg_start, int type)
 		addr = (i * PAGE_SIZE) + agp_bridge->gart_bus_addr;
 		cur_gatt = GET_GATT(addr);
 		writel(agp_bridge->scratch_page, cur_gatt+GET_GATT_OFF(addr));
-		readl(cur_gatt+GET_GATT_OFF(addr));	/* PCI Posting. */
+		readl(cur_gatt+GET_GATT_OFF(addr));	
 	}
 
 	amd_irongate_tlbflush(mem);
@@ -402,7 +392,7 @@ static struct agp_device_ids amd_agp_device_ids[] __devinitdata =
 		.device_id	= PCI_DEVICE_ID_AMD_FE_GATE_700C,
 		.chipset_name	= "760MP",
 	},
-	{ }, /* dummy final entry, always present */
+	{ }, 
 };
 
 static int __devinit agp_amdk7_probe(struct pci_dev *pdev,
@@ -429,10 +419,6 @@ static int __devinit agp_amdk7_probe(struct pci_dev *pdev,
 	bridge->dev = pdev;
 	bridge->capndx = cap_ptr;
 
-	/* 751 Errata (22564_B-1.PDF)
-	   erratum 20: strobe glitch with Nvidia NV10 GeForce cards.
-	   system controller may experience noise due to strong drive strengths
-	 */
 	if (agp_bridge->dev->device == PCI_DEVICE_ID_AMD_FE_GATE_7006) {
 		struct pci_dev *gfxcard=NULL;
 
@@ -446,9 +432,6 @@ static int __devinit agp_amdk7_probe(struct pci_dev *pdev,
 			cap_ptr = pci_find_capability(gfxcard, PCI_CAP_ID_AGP);
 		}
 
-		/* With so many variants of NVidia cards, it's simpler just
-		   to blacklist them all, and then whitelist them as needed
-		   (if necessary at all). */
 		if (gfxcard->vendor == PCI_VENDOR_ID_NVIDIA) {
 			agp_bridge->flags |= AGP_ERRATA_1X;
 			dev_info(&pdev->dev, "AMD 751 chipset with NVidia GeForce; forcing 1X due to errata\n");
@@ -456,12 +439,6 @@ static int __devinit agp_amdk7_probe(struct pci_dev *pdev,
 		pci_dev_put(gfxcard);
 	}
 
-	/* 761 Errata (23613_F.pdf)
-	 * Revisions B0/B1 were a disaster.
-	 * erratum 44: SYSCLK/AGPCLK skew causes 2X failures -- Force mode to 1X
-	 * erratum 45: Timing problem prevents fast writes -- Disable fast write.
-	 * erratum 46: Setup violation on AGP SBA pins - Disable side band addressing.
-	 * With this lot disabled, we should prevent lockups. */
 	if (agp_bridge->dev->device == PCI_DEVICE_ID_AMD_FE_GATE_700E) {
 		if (pdev->revision == 0x10 || pdev->revision == 0x11) {
 			agp_bridge->flags = AGP_ERRATA_FASTWRITES;
@@ -471,7 +448,7 @@ static int __devinit agp_amdk7_probe(struct pci_dev *pdev,
 		}
 	}
 
-	/* Fill in the mode register */
+	
 	pci_read_config_dword(pdev,
 			bridge->capndx+PCI_AGP_STATUS,
 			&bridge->mode);
@@ -506,9 +483,8 @@ static int agp_amdk7_resume(struct pci_dev *pdev)
 	return amd_irongate_driver.configure();
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
-/* must be the same order as name table above */
 static struct pci_device_id agp_amdk7_pci_table[] = {
 	{
 	.class		= (PCI_CLASS_BRIDGE_HOST << 8),

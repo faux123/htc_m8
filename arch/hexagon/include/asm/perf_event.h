@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,4 +19,4 @@
 #ifndef _ASM_PERF_EVENT_H
 #define _ASM_PERF_EVENT_H
 
-#endif /* _ASM_PERF_EVENT_H */
+#endif 

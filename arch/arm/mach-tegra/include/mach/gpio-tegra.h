@@ -26,8 +26,8 @@
 #define TEGRA_NR_GPIOS		INT_GPIO_NR
 
 struct tegra_gpio_table {
-	int	gpio;	/* GPIO number */
-	bool	enable;	/* Enable for GPIO at init? */
+	int	gpio;	
+	bool	enable;	
 };
 
 void tegra_gpio_config(struct tegra_gpio_table *table, int num);

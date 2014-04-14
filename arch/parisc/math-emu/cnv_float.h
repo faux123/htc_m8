@@ -23,9 +23,6 @@
     PA header file -- do not include this header file for non-PA builds.
 #endif
 
-/*
- * Some more constants
- */
 #define SGL_FX_MAX_EXP 30
 #define DBL_FX_MAX_EXP 62
 #define QUAD_FX_MAX_EXP 126
@@ -42,12 +39,6 @@
 #define Qintp3(object) (object)
 
 
-/*
- * These macros will be used specifically by the convert instructions.
- *
- *
- * Single format macros
- */
 
 #define Sgl_to_dbl_exponent(src_exponent,dest)			\
     Deposit_dexponent(dest,src_exponent+(DBL_BIAS-SGL_BIAS))
@@ -63,7 +54,7 @@
 #define Int_isinexact_to_sgl(int_value)	(int_value << 33 - SGL_EXP_LENGTH)
 
 #define Sgl_roundnearest_from_int(int_value,sgl_value)			\
-    if (int_value & 1<<(SGL_EXP_LENGTH - 2))   /* round bit */		\
+    if (int_value & 1<<(SGL_EXP_LENGTH - 2))   		\
     	if ((int_value << 34 - SGL_EXP_LENGTH) || Slow(sgl_value))	\
 		Sall(sgl_value)++
 
@@ -91,9 +82,6 @@
      Sall(sgl_value) << (SGL_EXP_LENGTH + 2 + exponent) : FALSE)
 
 
-/* 
- * Double format macros
- */
 
 #define Dbl_to_sgl_exponent(src_exponent,dest)			\
     dest = src_exponent + (SGL_BIAS - DBL_BIAS)
@@ -143,7 +131,7 @@
 			break;						\
 		}							\
 	    }								\
-		/* shift right by one to get correct result */		\
+				\
 		guard = odd;						\
 		sticky = inexact;					\
 		inexact |= guard;					\
@@ -210,7 +198,6 @@
       FALSE))
 
 
-/* Int macros */
 
 #define Int_from_sgl_mantissa(sgl_value,exponent)	\
     Sall(sgl_value) = 				\
@@ -224,10 +211,9 @@
 #define Int_negate(int_value) int_value = -int_value
 
 
-/* Dint macros */
 
 #define Dint_from_sgl_mantissa(sgl_value,exponent,dresultA,dresultB)	\
-    {Sall(sgl_value) <<= SGL_EXP_LENGTH;  /*  left-justify  */		\
+    {Sall(sgl_value) <<= SGL_EXP_LENGTH;  		\
     if (exponent <= 31) {						\
     	Dintp1(dresultA) = 0;						\
     	Dintp2(dresultB) = (unsigned)Sall(sgl_value) >> (31 - exponent); \
@@ -292,7 +278,6 @@
     dest->wd1 = Dintp2(srcB)
 
 
-/* other macros  */
 
 #define Find_ms_one_bit(value, position)	\
     {						\
@@ -308,9 +293,6 @@
     }
 
 
-/*
- * Unsigned int macros
- */
 #define Duint_copyfromptr(src,destA,destB) \
     Dint_copyfromptr(src,destA,destB)
 #define Duint_copytoptr(srcA,srcB,dest)	\
@@ -320,7 +302,7 @@
     (int_value << 32 - SGL_EXP_LENGTH)
 
 #define Sgl_roundnearest_from_suint(suint_value,sgl_value)		\
-    if (suint_value & 1<<(SGL_EXP_LENGTH - 1))   /* round bit */	\
+    if (suint_value & 1<<(SGL_EXP_LENGTH - 1))   	\
     	if ((suint_value << 33 - SGL_EXP_LENGTH) || Slow(sgl_value))	\
 		Sall(sgl_value)++
 
@@ -347,7 +329,7 @@
     Sgl_isinexact_to_fix(sgl_value,exponent)
 
 #define Duint_from_sgl_mantissa(sgl_value,exponent,dresultA,dresultB)	\
-  {Sall(sgl_value) <<= SGL_EXP_LENGTH;  /*  left-justify  */		\
+  {Sall(sgl_value) <<= SGL_EXP_LENGTH;  		\
     if (exponent <= 31) {						\
     	Dintp1(dresultA) = 0;						\
     	Dintp2(dresultB) = (unsigned)Sall(sgl_value) >> (31 - exponent); \
@@ -356,7 +338,7 @@
     	Dintp1(dresultA) = Sall(sgl_value) >> (63 - exponent);		\
     	Dintp2(dresultB) = Sall(sgl_value) << (exponent - 31);		\
     }									\
-    Sall(sgl_value) >>= SGL_EXP_LENGTH;  /* return to original */	\
+    Sall(sgl_value) >>= SGL_EXP_LENGTH;  	\
   }
 
 #define Duint_setzero(dresultA,dresultB) 	\

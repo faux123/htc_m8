@@ -21,7 +21,6 @@
 #include <linux/interrupt.h>
 #include <linux/sched.h>
 #include <linux/gpio.h>
-#include <linux/slab.h>
 #include <mach/msm_fb.h>
 
 static DECLARE_WAIT_QUEUE_HEAD(nt35399_vsync_wait);
@@ -47,7 +46,7 @@ nt35399_request_vsync(struct msm_panel_data *panel_data,
 	panel->fb_callback = callback;
 	if (panel->nt35399_got_int) {
 		panel->nt35399_got_int = 0;
-		client_data->activate_link(client_data); /* clears interrupt */
+		client_data->activate_link(client_data); 
 	}
 }
 
@@ -59,7 +58,7 @@ static void nt35399_wait_vsync(struct msm_panel_data *panel_data)
 
 	if (panel->nt35399_got_int) {
 		panel->nt35399_got_int = 0;
-		client_data->activate_link(client_data); /* clears interrupt */
+		client_data->activate_link(client_data); 
 	}
 
 	if (wait_event_timeout(nt35399_vsync_wait, panel->nt35399_got_int,
@@ -67,7 +66,7 @@ static void nt35399_wait_vsync(struct msm_panel_data *panel_data)
 		printk(KERN_ERR "timeout waiting for VSYNC\n");
 
 	panel->nt35399_got_int = 0;
-	/* interrupt clears when screen dma starts */
+	
 }
 
 static int nt35399_suspend(struct msm_panel_data *panel_data)

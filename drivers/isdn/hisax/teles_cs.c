@@ -1,4 +1,3 @@
-/* $Id: teles_cs.c,v 1.1.2.2 2004/01/25 15:07:06 keil Exp $ */
 /*======================================================================
 
   A teles S0 PCMCIA client driver
@@ -36,11 +35,9 @@ MODULE_AUTHOR("Christof Petig, christof.petig@wtal.de, Karsten Keil, kkeil@suse.
 MODULE_LICENSE("GPL");
 
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
-static int protocol = 2;        /* EURO-ISDN Default */
+static int protocol = 2;        
 module_param(protocol, int, 0);
 
 static int teles_cs_config(struct pcmcia_device *link) __devinit;
@@ -59,7 +56,7 @@ static int __devinit teles_probe(struct pcmcia_device *link)
 
 	dev_dbg(&link->dev, "teles_attach()\n");
 
-	/* Allocate space for private device-specific data */
+	
 	local = kzalloc(sizeof(local_info_t), GFP_KERNEL);
 	if (!local) return -ENOMEM;
 	local->cardnr = -1;
@@ -70,7 +67,7 @@ static int __devinit teles_probe(struct pcmcia_device *link)
 	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO;
 
 	return teles_cs_config(link);
-} /* teles_attach */
+} 
 
 static void __devexit teles_detach(struct pcmcia_device *link)
 {
@@ -82,7 +79,7 @@ static void __devexit teles_detach(struct pcmcia_device *link)
 	teles_cs_release(link);
 
 	kfree(info);
-} /* teles_detach */
+} 
 
 static int teles_cs_configcheck(struct pcmcia_device *p_dev, void *priv_data)
 {
@@ -145,7 +142,7 @@ static int __devinit teles_cs_config(struct pcmcia_device *link)
 cs_failed:
 	teles_cs_release(link);
 	return -ENODEV;
-} /* teles_cs_config */
+} 
 
 static void teles_cs_release(struct pcmcia_device *link)
 {
@@ -155,13 +152,13 @@ static void teles_cs_release(struct pcmcia_device *link)
 
 	if (local) {
 		if (local->cardnr >= 0) {
-			/* no unregister function with hisax */
+			
 			HiSax_closecard(local->cardnr);
 		}
 	}
 
 	pcmcia_disable_device(link);
-} /* teles_cs_release */
+} 
 
 static int teles_suspend(struct pcmcia_device *link)
 {

@@ -27,16 +27,16 @@ static inline int pfn_to_nid(unsigned long pfn)
 		return nid;
 }
 
-#ifdef CONFIG_IA64_DIG /* DIG systems are small */
+#ifdef CONFIG_IA64_DIG 
 # define MAX_PHYSNODE_ID	8
 # define NR_NODE_MEMBLKS	(MAX_NUMNODES * 8)
-#else /* sn2 is the biggest case, so we use that if !DIG */
+#else 
 # define MAX_PHYSNODE_ID	2048
 # define NR_NODE_MEMBLKS	(MAX_NUMNODES * 4)
 #endif
 
-#else /* CONFIG_NUMA */
+#else 
 # define NR_NODE_MEMBLKS	(MAX_NUMNODES * 4)
-#endif /* CONFIG_NUMA */
+#endif 
 
-#endif /* _ASM_IA64_MMZONE_H */
+#endif 

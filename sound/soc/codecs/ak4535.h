@@ -15,7 +15,6 @@
 #ifndef _AK4535_H
 #define _AK4535_H
 
-/* AK4535 register space */
 
 #define AK4535_PM1		0x0
 #define AK4535_PM2		0x1

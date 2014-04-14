@@ -19,8 +19,3 @@
 */
 
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */

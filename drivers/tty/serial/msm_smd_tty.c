@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -73,17 +73,13 @@ static void smd_tty_notify(void *priv, unsigned event)
 		avail = tty_prepare_flip_string(tty, &ptr, avail);
 
 		if (smd_read(info->ch, ptr, avail) != avail) {
-			/* shouldn't be possible since we're in interrupt
-			** context here and nobody else could 'steal' our
-			** characters.
-			*/
 			pr_err("OOPS - smd_tty_buffer mismatch?!");
 		}
 
 		tty_flip_buffer_push(tty);
 	}
 
-	/* XXX only when writable and necessary */
+	
 	tty_wakeup(tty);
 	tty_kref_put(tty);
 }
@@ -150,10 +146,6 @@ static int smd_tty_write(struct tty_struct *tty,
 	struct smd_tty_info *info = tty->driver_data;
 	int avail;
 
-	/* if we're writing to a packet channel we will
-	** never be able to write more data than there
-	** is currently space for
-	*/
 	avail = smd_write_avail(info->ch);
 	if (len > avail)
 		len = avail;

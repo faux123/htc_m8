@@ -14,9 +14,6 @@
  *
  ******************************************************************************/
 
-/*
-	Parameter Management Frame processing for SMT 7.2
-*/
 
 #include "h/types.h"
 #include "h/fddi.h"
@@ -50,31 +47,19 @@ static int port_to_mib(struct s_smc *smc, int p);
 #define MOFFPS(e)	offsetof(struct fddi_mib_p, e)
 
 
-#define AC_G	0x01		/* Get */
-#define AC_GR	0x02		/* Get/Set */
-#define AC_S	0x04		/* Set */
+#define AC_G	0x01		
+#define AC_GR	0x02		
+#define AC_S	0x04		
 #define AC_NA	0x08
-#define AC_GROUP	0x10		/* Group */
+#define AC_GROUP	0x10		
 #define MS2BCLK(x)	((x)*12500L)
-/*
-	F	LFag (byte)
-	B	byte
-	S	u_short	16 bit
-	C	Counter 32 bit
-	L	Long 32 bit
-	T	Timer_2	32 bit
-	P	TimeStamp ;
-	A	LongAddress (6 byte)
-	E	Enum 16 bit
-	R	ResId 16 Bit
-*/
 static const struct s_p_tab {
-	u_short	p_num ;		/* parameter code */
-	u_char	p_access ;	/* access rights */
-	u_short	p_offset ;	/* offset in mib */
-	char	p_swap[3] ;	/* format string */
+	u_short	p_num ;		
+	u_char	p_access ;	
+	u_short	p_offset ;	
+	char	p_swap[3] ;	
 } p_tab[] = {
-	/* StationIdGrp */
+	
 	{ SMT_P100A,AC_GROUP	} ,
 	{ SMT_P100B,AC_G,	MOFFSS(fddiSMTStationId),	"8"	} ,
 	{ SMT_P100D,AC_G,	MOFFSS(fddiSMTOpVersionId),	"S"	} ,
@@ -84,7 +69,7 @@ static const struct s_p_tab {
 	{ SMT_P1011,AC_GR,	MOFFSS(fddiSMTUserData),	"D"	} ,
 	{ SMT_P1012,AC_G,	MOFFSS(fddiSMTMIBVersionId),	"S"	} ,
 
-	/* StationConfigGrp */
+	
 	{ SMT_P1014,AC_GROUP	} ,
 	{ SMT_P1015,AC_G,	MOFFSS(fddiSMTMac_Ct),		"B"	} ,
 	{ SMT_P1016,AC_G,	MOFFSS(fddiSMTNonMaster_Ct),	"B"	} ,
@@ -100,7 +85,7 @@ static const struct s_p_tab {
 	{ SMT_P1021,AC_G,	MOFFSS(fddiSMTMACIndexes),	"I"	} ,
 	{ SMT_P1022,AC_G,	MOFFSS(fddiSMTBypassPresent),	"F"	} ,
 
-	/* StatusGrp */
+	
 	{ SMT_P1028,AC_GROUP	} ,
 	{ SMT_P1029,AC_G,	MOFFSS(fddiSMTECMState),	"E"	} ,
 	{ SMT_P102A,AC_G,	MOFFSS(fddiSMTCF_State),	"E"	} ,
@@ -108,20 +93,16 @@ static const struct s_p_tab {
 	{ SMT_P102D,AC_G,	MOFFSS(fddiSMTStationStatus),	"E"	} ,
 	{ SMT_P102E,AC_G,	MOFFSS(fddiSMTPeerWrapFlag),	"F"	} ,
 
-	/* MIBOperationGrp */
+	
 	{ SMT_P1032,AC_GROUP	} ,
 	{ SMT_P1033,AC_G,	MOFFSS(fddiSMTTimeStamp),"P"		} ,
 	{ SMT_P1034,AC_G,	MOFFSS(fddiSMTTransitionTimeStamp),"P"	} ,
-	/* NOTE : SMT_P1035 is already swapped ! SMT_P_SETCOUNT */
+	
 	{ SMT_P1035,AC_G,	MOFFSS(fddiSMTSetCount),"4P"		} ,
 	{ SMT_P1036,AC_G,	MOFFSS(fddiSMTLastSetStationId),"8"	} ,
 
 	{ SMT_P103C,AC_S,	0,				"wS"	} ,
 
-	/*
-	 * PRIVATE EXTENSIONS
-	 * only accessible locally to get/set passwd
-	 */
 	{ SMT_P10F0,AC_GR,	MOFFSS(fddiPRPMFPasswd),	"8"	} ,
 	{ SMT_P10F1,AC_GR,	MOFFSS(fddiPRPMFStation),	"8"	} ,
 #ifdef	ESS
@@ -136,13 +117,13 @@ static const struct s_p_tab {
 	{ SMT_P10F8,AC_GR,	MOFFSS(fddiSBACommand),		"bF"	} ,
 	{ SMT_P10F9,AC_GR,	MOFFSS(fddiSBAAvailable),	"bF"	} ,
 #endif
-	/* MAC Attributes */
+	
 	{ SMT_P200A,AC_GROUP	} ,
 	{ SMT_P200B,AC_G,	MOFFMS(fddiMACFrameStatusFunctions),"S"	} ,
 	{ SMT_P200D,AC_G,	MOFFMS(fddiMACT_MaxCapabilitiy),"T"	} ,
 	{ SMT_P200E,AC_G,	MOFFMS(fddiMACTVXCapabilitiy),"T"	} ,
 
-	/* ConfigGrp */
+	
 	{ SMT_P2014,AC_GROUP	} ,
 	{ SMT_P2016,AC_G,	MOFFMS(fddiMACAvailablePaths),	"B"	} ,
 	{ SMT_P2017,AC_G,	MOFFMS(fddiMACCurrentPath),	"S"	} ,
@@ -155,11 +136,11 @@ static const struct s_p_tab {
 	{ SMT_P2021,AC_G,	MOFFMS(fddiMACDownstreamPORTType),"E"	} ,
 	{ SMT_P2022,AC_G,	MOFFMS(fddiMACIndex),		"S"	} ,
 
-	/* AddressGrp */
+	
 	{ SMT_P2028,AC_GROUP	} ,
 	{ SMT_P2029,AC_G,	MOFFMS(fddiMACSMTAddress),	"A"	} ,
 
-	/* OperationGrp */
+	
 	{ SMT_P2032,AC_GROUP	} ,
 	{ SMT_P2033,AC_G,	MOFFMS(fddiMACT_Req),		"T"	} ,
 	{ SMT_P2034,AC_G,	MOFFMS(fddiMACT_Neg),		"T"	} ,
@@ -174,7 +155,7 @@ static const struct s_p_tab {
 	{ SMT_P203E,AC_G,	MOFFMS(fddiMACT_Pri6),		"T"	} ,
 
 
-	/* CountersGrp */
+	
 	{ SMT_P2046,AC_GROUP	} ,
 	{ SMT_P2047,AC_G,	MOFFMS(fddiMACFrame_Ct),	"C"	} ,
 	{ SMT_P2048,AC_G,	MOFFMS(fddiMACCopied_Ct),	"C"	} ,
@@ -186,17 +167,17 @@ static const struct s_p_tab {
 	{ SMT_P2054,AC_G,	MOFFMS(fddiMACNotCopied_Ct),	"C"	} ,
 	{ SMT_P2056,AC_G,	MOFFMS(fddiMACRingOp_Ct),	"C"	} ,
 
-	/* FrameErrorConditionGrp */
+	
 	{ SMT_P205A,AC_GROUP	} ,
 	{ SMT_P205F,AC_GR,	MOFFMS(fddiMACFrameErrorThreshold),"wS"	} ,
 	{ SMT_P2060,AC_G,	MOFFMS(fddiMACFrameErrorRatio),	"S"	} ,
 
-	/* NotCopiedConditionGrp */
+	
 	{ SMT_P2064,AC_GROUP	} ,
 	{ SMT_P2067,AC_GR,	MOFFMS(fddiMACNotCopiedThreshold),"wS"	} ,
 	{ SMT_P2069,AC_G,	MOFFMS(fddiMACNotCopiedRatio),	"S"	} ,
 
-	/* StatusGrp */
+	
 	{ SMT_P206E,AC_GROUP	} ,
 	{ SMT_P206F,AC_G,	MOFFMS(fddiMACRMTState),	"S"	} ,
 	{ SMT_P2070,AC_G,	MOFFMS(fddiMACDA_Flag),	"F"	} ,
@@ -207,22 +188,15 @@ static const struct s_p_tab {
 	{ SMT_P2075,AC_G,	MOFFMS(fddiMACHardwarePresent),	"F"	} ,
 	{ SMT_P2076,AC_GR,	MOFFMS(fddiMACMA_UnitdataEnable),"bF"	} ,
 
-	/*
-	 * PRIVATE EXTENSIONS
-	 * only accessible locally to get/set TMIN
-	 */
 	{ SMT_P20F0,AC_NA						} ,
 	{ SMT_P20F1,AC_GR,	MOFFMS(fddiMACT_Min),		"lT"	} ,
 
-	/* Path Attributes */
-	/*
-	 * DON't swap 320B,320F,3210: they are already swapped in swap_para()
-	 */
+	
 	{ SMT_P320A,AC_GROUP	} ,
 	{ SMT_P320B,AC_G,	MOFFAS(fddiPATHIndex),		"r"	} ,
 	{ SMT_P320F,AC_GR,	MOFFAS(fddiPATHSbaPayload),	"l4"	} ,
 	{ SMT_P3210,AC_GR,	MOFFAS(fddiPATHSbaOverhead),	"l4"	} ,
-	/* fddiPATHConfiguration */
+	
 	{ SMT_P3212,AC_G,	0,				""	} ,
 	{ SMT_P3213,AC_GR,	MOFFAS(fddiPATHT_Rmode),	"lT"	} ,
 	{ SMT_P3214,AC_GR,	MOFFAS(fddiPATHSbaAvailable),	"lL"	} ,
@@ -230,8 +204,8 @@ static const struct s_p_tab {
 	{ SMT_P3216,AC_GR,	MOFFAS(fddiPATHT_MaxLowerBound),"lT"	} ,
 	{ SMT_P3217,AC_GR,	MOFFAS(fddiPATHMaxT_Req),	"lT"	} ,
 
-	/* Port Attributes */
-	/* ConfigGrp */
+	
+	
 	{ SMT_P400A,AC_GROUP	} ,
 	{ SMT_P400C,AC_G,	MOFFPS(fddiPORTMy_Type),	"E"	} ,
 	{ SMT_P400D,AC_G,	MOFFPS(fddiPORTNeighborType),	"E"	} ,
@@ -245,18 +219,18 @@ static const struct s_p_tab {
 	{ SMT_P4017,AC_G,	MOFFPS(fddiPORTConnectionCapabilities),	"B"} ,
 	{ SMT_P401D,AC_G,	MOFFPS(fddiPORTIndex),		"R"	} ,
 
-	/* OperationGrp */
+	
 	{ SMT_P401E,AC_GROUP	} ,
 	{ SMT_P401F,AC_GR,	MOFFPS(fddiPORTMaint_LS),	"wE"	} ,
 	{ SMT_P4021,AC_G,	MOFFPS(fddiPORTBS_Flag),	"F"	} ,
 	{ SMT_P4022,AC_G,	MOFFPS(fddiPORTPC_LS),		"E"	} ,
 
-	/* ErrorCtrsGrp */
+	
 	{ SMT_P4028,AC_GROUP	} ,
 	{ SMT_P4029,AC_G,	MOFFPS(fddiPORTEBError_Ct),	"C"	} ,
 	{ SMT_P402A,AC_G,	MOFFPS(fddiPORTLCTFail_Ct),	"C"	} ,
 
-	/* LerGrp */
+	
 	{ SMT_P4032,AC_GROUP	} ,
 	{ SMT_P4033,AC_G,	MOFFPS(fddiPORTLer_Estimate),	"F"	} ,
 	{ SMT_P4034,AC_G,	MOFFPS(fddiPORTLem_Reject_Ct),	"C"	} ,
@@ -264,7 +238,7 @@ static const struct s_p_tab {
 	{ SMT_P403A,AC_GR,	MOFFPS(fddiPORTLer_Cutoff),	"bB"	} ,
 	{ SMT_P403B,AC_GR,	MOFFPS(fddiPORTLer_Alarm),	"bB"	} ,
 
-	/* StatusGrp */
+	
 	{ SMT_P403C,AC_GROUP	} ,
 	{ SMT_P403D,AC_G,	MOFFPS(fddiPORTConnectState),	"E"	} ,
 	{ SMT_P403E,AC_G,	MOFFPS(fddiPORTPCMStateX),	"E"	} ,
@@ -288,10 +262,6 @@ void smt_pmf_received_pack(struct s_smc *smc, SMbuf *mb, int local)
 #ifdef	DEBUG
 	dump_smt(smc,sm,"PMF Received") ;
 #endif
-	/*
-	 * Start the watchdog: It may be a long, long packet and
-	 * maybe the watchdog occurs ...
-	 */
 	smt_start_watchdog(smc) ;
 
 	if (sm->smt_class == SMT_PMF_GET ||
@@ -324,32 +294,23 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 	SK_LOC_DECL(struct s_pcon,pcon) ;
 	SK_LOC_DECL(struct s_pcon,set_pcon) ;
 
-	/*
-	 * build SMT header
-	 */
 	if (!(mb = smt_get_mbuf(smc)))
 		return mb;
 
 	smt = smtod(mb, struct smt_header *) ;
-	smt->smt_dest = req->smt_source ;	/* DA == source of request */
-	smt->smt_class = req->smt_class ;	/* same class (GET/SET) */
+	smt->smt_dest = req->smt_source ;	
+	smt->smt_class = req->smt_class ;	
 	smt->smt_type = SMT_REPLY ;
 	smt->smt_version = SMT_VID_2 ;
-	smt->smt_tid = req->smt_tid ;		/* same TID */
+	smt->smt_tid = req->smt_tid ;		
 	smt->smt_pad = 0 ;
 	smt->smt_len = 0 ;
 
-	/*
-	 * setup parameter status
-	 */
-	pcon.pc_len = SMT_MAX_INFO_LEN ;	/* max para length */
-	pcon.pc_err = 0 ;			/* no error */
-	pcon.pc_badset = 0 ;			/* no bad set count */
-	pcon.pc_p = (void *) (smt + 1) ;	/* paras start here */
+	pcon.pc_len = SMT_MAX_INFO_LEN ;	
+	pcon.pc_err = 0 ;			
+	pcon.pc_badset = 0 ;			
+	pcon.pc_p = (void *) (smt + 1) ;	
 
-	/*
-	 * check authoriziation and set count
-	 */
 	error = 0 ;
 	if (set) {
 		if (!local && smt_authorize(smc,req))
@@ -357,13 +318,10 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 		else if (smt_check_set_count(smc,req))
 			pcon.pc_badset = SMT_RDF_BADSET ;
 	}
-	/*
-	 * add reason code and all mandatory parameters
-	 */
 	res = (struct smt_p_reason *) pcon.pc_p ;
 	smt_add_para(smc,&pcon,(u_short) SMT_P_REASON,0,0) ;
 	smt_add_para(smc,&pcon,(u_short) SMT_P1033,0,0) ;
-	/* update 1035 and 1036 later if set */
+	
 	set_pcon = pcon ;
 	smt_add_para(smc,&pcon,(u_short) SMT_P1035,0,0) ;
 	smt_add_para(smc,&pcon,(u_short) SMT_P1036,0,0) ;
@@ -371,9 +329,6 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 	pcon.pc_err = error ;
 	len = req->smt_len ;
 	pa = (struct smt_para *) (req + 1) ;
-	/*
-	 * process list of paras
-	 */
 	while (!pcon.pc_err && len > 0 ) {
 		if (((u_short)len < pa->p_len + PARA_LEN) || (pa->p_len & 3)) {
 			pcon.pc_err = SMT_RDF_LENGTH ;
@@ -382,10 +337,7 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 
 		if (((range = (pa->p_type & 0xf000)) == 0x2000) ||
 			range == 0x3000 || range == 0x4000) {
-			/*
-			 * get index for PART,MAC ad PATH group
-			 */
-			index = *((u_char *)pa + PARA_LEN + 3) ;/* index */
+			index = *((u_char *)pa + PARA_LEN + 3) ;
 			idx_end = index ;
 			if (!set && (pa->p_len != 4)) {
 				pcon.pc_err = SMT_RDF_LENGTH ;
@@ -413,9 +365,6 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 			}
 		}
 		else {
-			/*
-			 * smt group has no index
-			 */
 			if (!set && (pa->p_len != 0)) {
 				pcon.pc_err = SMT_RDF_LENGTH ;
 				break ;
@@ -424,10 +373,6 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 			idx_end = 0 ;
 		}
 		while (index <= idx_end) {
-			/*
-			 * if group
-			 *	add all paras of group
-			 */
 			pt = smt_get_ptab(pa->p_type) ;
 			if (pt && pt->p_access == AC_GROUP && !set) {
 				pt++ ;
@@ -438,11 +383,6 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 					pt++ ;
 				}
 			}
-			/*
-			 * ignore
-			 *	AUTHORIZATION in get/set
-			 *	SET COUNT in set
-			 */
 			else if (pa->p_type != SMT_P_AUTHOR &&
 				 (!set || (pa->p_type != SMT_P1035))) {
 				int	st ;
@@ -452,9 +392,6 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 				}
 				else if (set) {
 					st = smt_set_para(smc,pa,index,local,1);
-					/*
-					 * return para even if error
-					 */
 					smt_add_para(smc,&pcon,pa->p_type,
 						index,local) ;
 					pcon.pc_err = st ;
@@ -478,15 +415,10 @@ static SMbuf *smt_build_pmf_response(struct s_smc *smc, struct smt_header *req,
 	smt->smt_len = SMT_MAX_INFO_LEN - pcon.pc_len ;
 	mb->sm_len = smt->smt_len + sizeof(struct smt_header) ;
 
-	/* update reason code */
+	
 	res->rdf_reason = pcon.pc_badset ? pcon.pc_badset :
 			pcon.pc_err ? pcon.pc_err : SMT_RDF_SUCCESS ;
 	if (set && (res->rdf_reason == SMT_RDF_SUCCESS)) {
-		/*
-		 * increment set count
-		 * set time stamp
-		 * store station id of last set
-		 */
 		smc->mib.fddiSMTSetCount.count++ ;
 		smt_set_timestamp(smc,smc->mib.fddiSMTSetCount.timestamp) ;
 		smc->mib.fddiSMTLastSetStationId = req->smt_sid ;
@@ -502,9 +434,6 @@ static int smt_authorize(struct s_smc *smc, struct smt_header *sm)
 	int		i ;
 	char		*p ;
 
-	/*
-	 * check source station id if not zero
-	 */
 	p = (char *) &smc->mib.fddiPRPMFStation ;
 	for (i = 0 ; i < 8 && !p[i] ; i++)
 		;
@@ -513,9 +442,6 @@ static int smt_authorize(struct s_smc *smc, struct smt_header *sm)
 			(char *) &smc->mib.fddiPRPMFStation,8))
 			return 1;
 	}
-	/*
-	 * check authoriziation parameter if passwd not zero
-	 */
 	p = (char *) smc->mib.fddiPRPMFPasswd ;
 	for (i = 0 ; i < 8 && !p[i] ; i++)
 		;
@@ -567,28 +493,19 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 	int		port ;
 	int		sp_len ;
 
-	/*
-	 * skip if error
-	 */
 	if (pcon->pc_err)
 		return ;
 
-	/*
-	 * actions don't have a value
-	 */
 	pt = smt_get_ptab(para) ;
 	if (pt && pt->p_access == AC_S)
 		return ;
 
-	to = (char *) (pcon->pc_p) ;	/* destination pointer */
-	len = pcon->pc_len ;		/* free space */
-	plen = len ;			/* remember start length */
-	pa = (struct smt_para *) to ;	/* type/length pointer */
-	to += PARA_LEN ;		/* skip smt_para */
+	to = (char *) (pcon->pc_p) ;	
+	len = pcon->pc_len ;		
+	plen = len ;			
+	pa = (struct smt_para *) to ;	
+	to += PARA_LEN ;		
 	len -= PARA_LEN ;
-	/*
-	 * set index if required
-	 */
 	if (((range = (para & 0xf000)) == 0x2000) ||
 		range == 0x3000 || range == 0x4000) {
 		if (len < 4)
@@ -603,9 +520,6 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 	mac = index - INDEX_MAC ;
 	path = index - INDEX_PATH ;
 	port = index - INDEX_PORT ;
-	/*
-	 * get pointer to mib
-	 */
 	switch (range) {
 	case 0x1000 :
 	default :
@@ -635,9 +549,6 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 		mib_p = (struct fddi_mib_p *) mib_addr ;
 		break ;
 	}
-	/*
-	 * check special paras
-	 */
 	swap = NULL;
 	switch (para) {
 	case SMT_P10F0 :
@@ -676,11 +587,11 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 		* (u_long *) to = 0 ;
 		sp_len = 4 ;
 		goto sp_done ;
-	case SMT_P1033 :			/* time stamp */
+	case SMT_P1033 :			
 		smt_set_timestamp(smc,smc->mib.fddiSMTTimeStamp) ;
 		break ;
 
-	case SMT_P1020:				/* port indexes */
+	case SMT_P1020:				
 #if	NUMPHYS == 12
 		swap = "IIIIIIIIIIII" ;
 #else
@@ -703,7 +614,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			sp_len = cem_build_path(smc,to,path) ;
 			goto sp_done ;
 		}
-	case SMT_P1048 :		/* peer wrap condition */
+	case SMT_P1048 :		
 		{
 			struct smt_p_1048	*sp ;
 			sp = (struct smt_p_1048 *) to ;
@@ -729,7 +640,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			sp_len = sizeof(struct smt_p_208c) ;
 			goto sp_done ;
 		}
-	case SMT_P208D :		/* frame error condition */
+	case SMT_P208D :		
 		{
 			struct smt_p_208d	*sp ;
 			sp = (struct smt_p_208d *) to ;
@@ -746,7 +657,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			sp_len = sizeof(struct smt_p_208d) ;
 			goto sp_done ;
 		}
-	case SMT_P208E :		/* not copied condition */
+	case SMT_P208E :		
 		{
 			struct smt_p_208e	*sp ;
 			sp = (struct smt_p_208e *) to ;
@@ -761,7 +672,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			sp_len = sizeof(struct smt_p_208e) ;
 			goto sp_done ;
 		}
-	case SMT_P208F :	/* neighbor change event */
+	case SMT_P208F :	
 		{
 			struct smt_p_208f	*sp ;
 			sp = (struct smt_p_208f *) to ;
@@ -870,17 +781,11 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 	default :
 		break ;
 	}
-	/*
-	 * in table ?
-	 */
 	if (!pt) {
 		pcon->pc_err = (para & 0xff00) ? SMT_RDF_NOPARAM :
 						SMT_RDF_ILLEGAL ;
 		return ;
 	}
-	/*
-	 * check access rights
-	 */
 	switch (pt->p_access) {
 	case AC_G :
 	case AC_GR :
@@ -891,11 +796,8 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 	}
 	from = mib_addr + pt->p_offset ;
 	if (!swap)
-		swap = pt->p_swap ;		/* pointer to swap string */
+		swap = pt->p_swap ;		
 
-	/*
-	 * copy values
-	 */
 	while ((c = *swap++)) {
 		switch(c) {
 		case 'b' :
@@ -926,7 +828,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			to += 4 ;
 			len -= 4 ;
 			break ;
-		case 'I' :		/* for SET of port indexes */
+		case 'I' :		
 			if (len < 2)
 				goto len_error ;
 #ifdef	LITTLE_ENDIAN
@@ -969,7 +871,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			len -= 4 ;
 			to += 4 ;
 			break ;
-		case '2' :		/* PortMacIndicated */
+		case '2' :		
 			if (len < 4)
 				goto len_error ;
 			to[0] = 0 ;
@@ -1015,7 +917,7 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 			from += 32 ;
 			len -= 32 ;
 			break ;
-		case 'P' :		/* timestamp is NOT swapped */
+		case 'P' :		
 			if (len < 8)
 				goto len_error ;
 			to[0] = *from++ ;
@@ -1036,10 +938,6 @@ void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
 	}
 
 done:
-	/*
-	 * make it even (in case of 'I' encoding)
-	 * note: len is DECREMENTED
-	 */
 	if (len & 3) {
 		to[0] = 0 ;
 		to[1] = 0 ;
@@ -1047,10 +945,10 @@ done:
 		len = len & ~ 3 ;
 	}
 
-	/* set type and length */
+	
 	pa->p_type = para ;
 	pa->p_len = plen - len - PARA_LEN ;
-	/* return values */
+	
 	pcon->pc_p = (void *) to ;
 	pcon->pc_len = len ;
 	return ;
@@ -1061,7 +959,7 @@ sp_done:
 	goto done ;
 
 len_error:
-	/* parameter does not fit in frame */
+	
 	pcon->pc_err = SMT_RDF_TOOLONG ;
 	return ;
 
@@ -1069,9 +967,6 @@ wrong_error:
 	pcon->pc_err = SMT_RDF_LENGTH ;
 }
 
-/*
- * set parameter
- */
 static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			int local, int set)
 {
@@ -1113,7 +1008,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 		}
 		mib_m = &smc->mib.m[mac] ;
 		mib_addr = (char *) mib_m ;
-		from += 4 ;		/* skip index */
+		from += 4 ;		
 		len -= 4 ;
 		break ;
 	case 0x3000 :
@@ -1122,7 +1017,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 		}
 		mib_a = &smc->mib.a[path] ;
 		mib_addr = (char *) mib_a ;
-		from += 4 ;		/* skip index */
+		from += 4 ;		
 		len -= 4 ;
 		break ;
 	case 0x4000 :
@@ -1131,7 +1026,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 		}
 		mib_p = &smc->mib.p[port_to_mib(smc,port)] ;
 		mib_addr = (char *) mib_p ;
-		from += 4 ;		/* skip index */
+		from += 4 ;		
 		len -= 4 ;
 		break ;
 	}
@@ -1167,7 +1062,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 		return SMT_RDF_ILLEGAL;
 	}
 	to = mib_addr + pt->p_offset ;
-	swap = pt->p_swap ;		/* pointer to swap string */
+	swap = pt->p_swap ;		
 
 	while (swap && (c = *swap++)) {
 		switch(c) {
@@ -1274,7 +1169,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			from += 32 ;
 			len -= 32 ;
 			break ;
-		case 'P' :		/* timestamp is NOT swapped */
+		case 'P' :		
 			if (set) {
 				to[0] = *from++ ;
 				to[1] = *from++ ;
@@ -1293,41 +1188,34 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			return SMT_RDF_ILLEGAL;
 		}
 	}
-	/*
-	 * actions and internal updates
-	 */
 	switch (pa->p_type) {
-	case SMT_P101A:			/* fddiSMTConfigPolicy */
+	case SMT_P101A:			
 		if (word_val & ~1)
 			goto val_error ;
 		IFSET(mib->fddiSMTConfigPolicy = word_val) ;
 		break ;
-	case SMT_P101B :		/* fddiSMTConnectionPolicy */
+	case SMT_P101B :		
 		if (!(word_val & POLICY_MM))
 			goto val_error ;
 		IFSET(mib->fddiSMTConnectionPolicy = word_val) ;
 		break ;
-	case SMT_P101D : 		/* fddiSMTTT_Notify */
+	case SMT_P101D : 		
 		if (word_val < 2 || word_val > 30)
 			goto val_error ;
 		IFSET(mib->fddiSMTTT_Notify = word_val) ;
 		break ;
-	case SMT_P101E :		/* fddiSMTStatRptPolicy */
+	case SMT_P101E :		
 		if (byte_val & ~1)
 			goto val_error ;
 		IFSET(mib->fddiSMTStatRptPolicy = byte_val) ;
 		break ;
-	case SMT_P101F :		/* fddiSMTTrace_MaxExpiration */
-		/*
-		 * note: lower limit trace_max = 6.001773... s
-		 * NO upper limit
-		 */
+	case SMT_P101F :		
 		if (long_val < (long)0x478bf51L)
 			goto val_error ;
 		IFSET(mib->fddiSMTTrace_MaxExpiration = long_val) ;
 		break ;
 #ifdef	ESS
-	case SMT_P10F2 :		/* fddiESSPayload */
+	case SMT_P10F2 :		
 		if (long_val > 1562)
 			goto val_error ;
 		if (set && smc->mib.fddiESSPayload != long_val) {
@@ -1335,7 +1223,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			smc->mib.fddiESSPayload = long_val ;
 		}
 		break ;
-	case SMT_P10F3 :		/* fddiESSOverhead */
+	case SMT_P10F3 :		
 		if (long_val < 50 || long_val > 5000)
 			goto val_error ;
 		if (set && smc->mib.fddiESSPayload &&
@@ -1344,54 +1232,54 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			smc->mib.fddiESSOverhead = long_val ;
 		}
 		break ;
-	case SMT_P10F4 :		/* fddiESSMaxTNeg */
+	case SMT_P10F4 :		
 		if (long_val > -MS2BCLK(5) || long_val < -MS2BCLK(165))
 			goto val_error ;
 		IFSET(mib->fddiESSMaxTNeg = long_val) ;
 		break ;
-	case SMT_P10F5 :		/* fddiESSMinSegmentSize */
+	case SMT_P10F5 :		
 		if (long_val < 1 || long_val > 4478)
 			goto val_error ;
 		IFSET(mib->fddiESSMinSegmentSize = long_val) ;
 		break ;
-	case SMT_P10F6 :		/* fddiESSCategory */
+	case SMT_P10F6 :		
 		if ((long_val & 0xffff) != 1)
 			goto val_error ;
 		IFSET(mib->fddiESSCategory = long_val) ;
 		break ;
-	case SMT_P10F7 :		/* fddiESSSyncTxMode */
+	case SMT_P10F7 :		
 		if (word_val > 1)
 			goto val_error ;
 		IFSET(mib->fddiESSSynchTxMode = word_val) ;
 		break ;
 #endif
 #ifdef	SBA
-	case SMT_P10F8 :		/* fddiSBACommand */
+	case SMT_P10F8 :		
 		if (byte_val != SB_STOP && byte_val != SB_START)
 			goto val_error ;
 		IFSET(mib->fddiSBACommand = byte_val) ;
 		break ;
-	case SMT_P10F9 :		/* fddiSBAAvailable */
+	case SMT_P10F9 :		
 		if (byte_val > 100)
 			goto val_error ;
 		IFSET(mib->fddiSBAAvailable = byte_val) ;
 		break ;
 #endif
-	case SMT_P2020 :		/* fddiMACRequestedPaths */
+	case SMT_P2020 :		
 		if ((word_val & (MIB_P_PATH_PRIM_PREFER |
 			MIB_P_PATH_PRIM_ALTER)) == 0 )
 			goto val_error ;
 		IFSET(mib_m->fddiMACRequestedPaths = word_val) ;
 		break ;
-	case SMT_P205F :		/* fddiMACFrameErrorThreshold */
-		/* 0 .. ffff acceptable */
+	case SMT_P205F :		
+		
 		IFSET(mib_m->fddiMACFrameErrorThreshold = word_val) ;
 		break ;
-	case SMT_P2067 :		/* fddiMACNotCopiedThreshold */
-		/* 0 .. ffff acceptable */
+	case SMT_P2067 :		
+		
 		IFSET(mib_m->fddiMACNotCopiedThreshold = word_val) ;
 		break ;
-	case SMT_P2076:			/* fddiMACMA_UnitdataEnable */
+	case SMT_P2076:			
 		if (byte_val & ~1)
 			goto val_error ;
 		if (set) {
@@ -1399,7 +1287,7 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			queue_event(smc,EVENT_RMT,RM_ENABLE_FLAG) ;
 		}
 		break ;
-	case SMT_P20F1 :		/* fddiMACT_Min */
+	case SMT_P20F1 :		
 		IFSET(mib_m->fddiMACT_Min = long_val) ;
 		break ;
 	case SMT_P320F :
@@ -1424,16 +1312,13 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 			ess_para_change(smc) ;
 #endif
 		break ;
-	case SMT_P3213:			/* fddiPATHT_Rmode */
-		/* no limit :
-		 * 0 .. 343.597 => 0 .. 2e32 * 80nS
-		 */
+	case SMT_P3213:			
 		if (set) {
 			mib_a->fddiPATHT_Rmode = long_val ;
 			rtm_set_timer(smc) ;
 		}
 		break ;
-	case SMT_P3214 :		/* fddiPATHSbaAvailable */
+	case SMT_P3214 :		
 		if (long_val > 0x00BEBC20L)
 			goto val_error ;
 #ifdef SBA 
@@ -1442,13 +1327,13 @@ static int smt_set_para(struct s_smc *smc, struct smt_para *pa, int index,
 #endif
 		IFSET(mib_a->fddiPATHSbaAvailable = long_val) ;
 		break ;
-	case SMT_P3215 :		/* fddiPATHTVXLowerBound */
+	case SMT_P3215 :		
 		IFSET(mib_a->fddiPATHTVXLowerBound = long_val) ;
 		goto change_mac_para ;
-	case SMT_P3216 :		/* fddiPATHT_MaxLowerBound */
+	case SMT_P3216 :		
 		IFSET(mib_a->fddiPATHT_MaxLowerBound = long_val) ;
 		goto change_mac_para ;
-	case SMT_P3217 :		/* fddiPATHMaxT_Req */
+	case SMT_P3217 :		
 		IFSET(mib_a->fddiPATHMaxT_Req = long_val) ;
 
 change_mac_para:
@@ -1458,40 +1343,37 @@ change_mac_para:
 			queue_event(smc,EVENT_ECM,EC_DISCONNECT) ;
 		}
 		break ;
-	case SMT_P400E :		/* fddiPORTConnectionPolicies */
+	case SMT_P400E :		
 		if (byte_val > 1)
 			goto val_error ;
 		IFSET(mib_p->fddiPORTConnectionPolicies = byte_val) ;
 		break ;
-	case SMT_P4011 :		/* fddiPORTRequestedPaths */
-		/* all 3*8 bits allowed */
+	case SMT_P4011 :		
+		
 		IFSET(memcpy((char *)mib_p->fddiPORTRequestedPaths,
 			(char *)&long_val,4)) ;
 		break ;
-	case SMT_P401F:			/* fddiPORTMaint_LS */
+	case SMT_P401F:			
 		if (word_val > 4)
 			goto val_error ;
 		IFSET(mib_p->fddiPORTMaint_LS = word_val) ;
 		break ;
-	case SMT_P403A :		/* fddiPORTLer_Cutoff */
+	case SMT_P403A :		
 		if (byte_val < 4 || byte_val > 15)
 			goto val_error ;
 		IFSET(mib_p->fddiPORTLer_Cutoff = byte_val) ;
 		break ;
-	case SMT_P403B :		/* fddiPORTLer_Alarm */
+	case SMT_P403B :		
 		if (byte_val < 4 || byte_val > 15)
 			goto val_error ;
 		IFSET(mib_p->fddiPORTLer_Alarm = byte_val) ;
 		break ;
 
-	/*
-	 * Actions
-	 */
-	case SMT_P103C :		/* fddiSMTStationAction */
+	case SMT_P103C :		
 		if (smt_action(smc,SMT_STATION_ACTION, (int) word_val, 0))
 			goto val_error ;
 		break ;
-	case SMT_P4046:			/* fddiPORTAction */
+	case SMT_P4046:			
 		if (smt_action(smc,SMT_PORT_ACTION, (int) word_val,
 			port_to_mib(smc,port)))
 			goto val_error ;
@@ -1502,20 +1384,15 @@ change_mac_para:
 	return 0;
 
 val_error:
-	/* parameter value in frame is out of range */
+	
 	return SMT_RDF_RANGE;
 
 len_error:
-	/* parameter value in frame is too short */
+	
 	return SMT_RDF_LENGTH;
 
 #if	0
 no_author_error:
-	/* parameter not setable, because the SBA is not active
-	 * Please note: we give the return code 'not authorizeed
-	 *  because SBA denied is not a valid return code in the
-	 * PMF protocol.
-	 */
 	return SMT_RDF_AUTHOR;
 #endif
 }
@@ -1656,8 +1533,8 @@ void dump_hex(char *p, int len)
 #endif
 	}
 }
-#endif	/* no BOOT */
-#endif	/* DEBUG */
+#endif	
+#endif	
 
 
-#endif	/* no SLIM_SMT */
+#endif	

@@ -34,7 +34,7 @@
 #include <asm/io.h>
 #include <linux/delay.h>
 
-#undef	DEBUG_PARPORT	/* undefine for production */
+#undef	DEBUG_PARPORT	
 #define DELAY_TIME 	0
 
 #if DELAY_TIME == 0
@@ -54,7 +54,6 @@ static __inline__ void parport_writeb( unsigned char value, unsigned long port )
 }
 #endif
 
-/* --- register definitions ------------------------------- */
 
 #define EPPDATA(p)  ((p)->base    + 0x4)
 #define EPPADDR(p)  ((p)->base    + 0x3)
@@ -63,20 +62,20 @@ static __inline__ void parport_writeb( unsigned char value, unsigned long port )
 #define DATA(p)     ((p)->base    + 0x0)
 
 struct parport_gsc_private {
-	/* Contents of CTR. */
+	
 	unsigned char ctr;
 
-	/* Bitmask of writable CTR bits. */
+	
 	unsigned char ctr_writable;
 
-	/* Number of bytes per portword. */
+	
 	int pword;
 
-	/* Not used yet. */
+	
 	int readIntrThreshold;
 	int writeIntrThreshold;
 
-	/* buffer suitable for DMA, if DMA enabled */
+	
 	char *dma_buf;
 	dma_addr_t dma_handle;
 	struct pci_dev *dev;
@@ -100,8 +99,6 @@ static inline unsigned char parport_gsc_read_data(struct parport *p)
 	return val;
 }
 
-/* __parport_gsc_frob_control differs from parport_gsc_frob_control in that
- * it doesn't do any extra masking. */
 static inline unsigned char __parport_gsc_frob_control(struct parport *p,
 							unsigned char mask,
 							unsigned char val)
@@ -114,9 +111,9 @@ static inline unsigned char __parport_gsc_frob_control(struct parport *p,
 		mask, val, ctr, ((ctr & ~mask) ^ val) & priv->ctr_writable);
 #endif
 	ctr = (ctr & ~mask) ^ val;
-	ctr &= priv->ctr_writable; /* only write writable bits. */
+	ctr &= priv->ctr_writable; 
 	parport_writeb (ctr, CONTROL (p));
-	priv->ctr = ctr;	/* Update soft copy */
+	priv->ctr = ctr;	
 	return ctr;
 }
 
@@ -138,7 +135,7 @@ static inline void parport_gsc_write_control(struct parport *p,
 				  PARPORT_CONTROL_INIT |
 				  PARPORT_CONTROL_SELECT);
 
-	/* Take this out when drivers have adapted to newer interface. */
+	
 	if (d & 0x20) {
 		printk (KERN_DEBUG "%s (%s): use data_reverse for this!\n",
 			p->name, p->cad->name);
@@ -155,7 +152,7 @@ static inline unsigned char parport_gsc_read_control(struct parport *p)
 				  PARPORT_CONTROL_INIT |
 				  PARPORT_CONTROL_SELECT);
 	const struct parport_gsc_private *priv = p->physport->private_data;
-	return priv->ctr & rm; /* Use soft copy */
+	return priv->ctr & rm; 
 }
 
 static inline unsigned char parport_gsc_frob_control(struct parport *p,
@@ -167,7 +164,7 @@ static inline unsigned char parport_gsc_frob_control(struct parport *p,
 				  PARPORT_CONTROL_INIT |
 				  PARPORT_CONTROL_SELECT);
 
-	/* Take this out when drivers have adapted to newer interface. */
+	
 	if (mask & 0x20) {
 		printk (KERN_DEBUG "%s (%s): use data_%s for this!\n",
 			p->name, p->cad->name,
@@ -178,7 +175,7 @@ static inline unsigned char parport_gsc_frob_control(struct parport *p,
 			parport_gsc_data_forward (p);
 	}
 
-	/* Restrict mask and val to control lines. */
+	
 	mask &= wm;
 	val &= wm;
 
@@ -219,4 +216,4 @@ extern struct parport *parport_gsc_probe_port(unsigned long base,
 						int irq, int dma,
 						struct pci_dev *dev);
 
-#endif	/* __DRIVERS_PARPORT_PARPORT_GSC_H */
+#endif	

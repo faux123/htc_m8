@@ -34,9 +34,6 @@
 #include <asm/portmux.h>
 #include <asm/dpmc.h>
 
-/*
- * Name the Board for the /proc/cpuinfo
- */
 const char bfin_board_name[] = "DNP/5370";
 #define FLASH_MAC               0x202f0000
 #define CONFIG_MTD_PHYSMAP_LEN  0x300000
@@ -55,7 +52,7 @@ static const unsigned short bfin_mac_peripherals[] = P_RMII0;
 static struct bfin_phydev_platform_data bfin_phydev_data[] = {
 	{
 		.addr = 1,
-		.irq = PHY_POLL, /* IRQ_MAC_PHYINT */
+		.irq = PHY_POLL, 
 	},
 };
 
@@ -111,9 +108,6 @@ static struct resource asmb_flash_resource = {
 	.flags = IORESOURCE_MEM,
 };
 
-/* 4 MB NOR flash attached to async memory banks 0-2,
- * therefore only 3 MB visible.
- */
 static struct platform_device asmb_flash_device = {
 	.name	  = "physmap-flash",
 	.id	  = 0,
@@ -130,15 +124,12 @@ static struct platform_device asmb_flash_device = {
 #if defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE)
 
 static struct bfin5xx_spi_chip mmc_spi_chip_info = {
-	.enable_dma    = 0,	 /* use no dma transfer with this chip*/
+	.enable_dma    = 0,	 
 };
 
 #endif
 
 #if defined(CONFIG_MTD_DATAFLASH) || defined(CONFIG_MTD_DATAFLASH_MODULE)
-/* This mapping is for at45db642 it has 1056 page size,
- * partition size and offset should be page aligned
- */
 static struct mtd_partition bfin_spi_dataflash_partitions[] = {
 	{
 		.name   = "JFFS2 dataflash(nor)",
@@ -160,12 +151,11 @@ static struct flash_platform_data bfin_spi_dataflash_data = {
 };
 
 static struct bfin5xx_spi_chip spi_dataflash_chip_info = {
-	.enable_dma    = 0,	 /* use no dma transfer with this chip*/
+	.enable_dma    = 0,	 
 };
 #endif
 
 static struct spi_board_info bfin_spi_board_info[] __initdata = {
-/* SD/MMC card reader at SPI bus */
 #if defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE)
 	{
 		.modalias	 = "mmc_spi",
@@ -177,7 +167,6 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 	},
 #endif
 
-/* 8 Megabyte Atmel NOR flash chip at SPI bus */
 #if defined(CONFIG_MTD_DATAFLASH) || defined(CONFIG_MTD_DATAFLASH_MODULE)
 	{
 	.modalias        = "mtd_dataflash",
@@ -186,13 +175,11 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 	.chip_select     = 2,
 	.platform_data   = &bfin_spi_dataflash_data,
 	.controller_data = &spi_dataflash_chip_info,
-	.mode            = SPI_MODE_3, /* SPI_CPHA and SPI_CPOL */
+	.mode            = SPI_MODE_3, 
 	},
 #endif
 };
 
-/* SPI controller data */
-/* SPI (0) */
 static struct resource bfin_spi0_resource[] = {
 	[0] = {
 		.start = SPI0_REGBASE,
@@ -213,17 +200,17 @@ static struct resource bfin_spi0_resource[] = {
 
 static struct bfin5xx_spi_master spi_bfin_master_info = {
 	.num_chipselect = 8,
-	.enable_dma     = 1,  /* master has the ability to do dma transfer */
+	.enable_dma     = 1,  
 	.pin_req        = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
 static struct platform_device spi_bfin_master_device = {
 	.name          = "bfin-spi",
-	.id            = 0, /* Bus number */
+	.id            = 0, 
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
 	.resource      = bfin_spi0_resource,
 	.dev           = {
-		.platform_data = &spi_bfin_master_info, /* Passed to driver */
+		.platform_data = &spi_bfin_master_info, 
 	},
 };
 #endif
@@ -273,7 +260,7 @@ static struct platform_device bfin_uart0_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
 	.resource = bfin_uart0_resources,
 	.dev = {
-		.platform_data = &bfin_uart0_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart0_peripherals, 
 	},
 };
 #endif
@@ -322,7 +309,7 @@ static struct platform_device bfin_uart1_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart1_resources),
 	.resource      = bfin_uart1_resources,
 	.dev = {
-		.platform_data = &bfin_uart1_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart1_peripherals, 
 	},
 };
 #endif
@@ -396,9 +383,6 @@ static int __init dnp5370_init(void)
 }
 arch_initcall(dnp5370_init);
 
-/*
- * Currently the MAC address is saved in Flash by U-Boot
- */
 int bfin_get_ether_addr(char *addr)
 {
 	*(u32 *)(&(addr[0])) = bfin_read32(FLASH_MAC);

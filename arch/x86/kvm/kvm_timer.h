@@ -1,10 +1,10 @@
 
 struct kvm_timer {
 	struct hrtimer timer;
-	s64 period; 				/* unit: ns */
+	s64 period; 				
 	u32 timer_mode_mask;
 	u64 tscdeadline;
-	atomic_t pending;			/* accumulated triggered timers */
+	atomic_t pending;			
 	bool reinject;
 	struct kvm_timer_ops *t_ops;
 	struct kvm *kvm;

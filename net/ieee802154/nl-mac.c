@@ -194,7 +194,7 @@ EXPORT_SYMBOL(ieee802154_nl_beacon_indic);
 
 int ieee802154_nl_scan_confirm(struct net_device *dev,
 		u8 status, u8 scan_type, u32 unscanned, u8 page,
-		u8 *edl/* , struct list_head *pan_desc_list */)
+		u8 *edl)
 {
 	struct sk_buff *msg;
 
@@ -286,7 +286,6 @@ out:
 	return -EMSGSIZE;
 }
 
-/* Requests from userspace */
 static struct net_device *ieee802154_nl_get_dev(struct genl_info *info)
 {
 	struct net_device *dev;
@@ -423,11 +422,6 @@ static int ieee802154_disassociate_req(struct sk_buff *skb,
 	return ret;
 }
 
-/*
- * PANid, channel, beacon_order = 15, superframe_order = 15,
- * PAN_coordinator, battery_life_extension = 0,
- * coord_realignment = 0, security_enable = 0
-*/
 static int ieee802154_start_req(struct sk_buff *skb, struct genl_info *info)
 {
 	struct net_device *dev;
@@ -522,8 +516,6 @@ static int ieee802154_scan_req(struct sk_buff *skb, struct genl_info *info)
 static int ieee802154_list_iface(struct sk_buff *skb,
 	struct genl_info *info)
 {
-	/* Request for interface name, index, type, IEEE address,
-	   PAN Id, short address */
 	struct sk_buff *msg;
 	struct net_device *dev = NULL;
 	int rc = -ENOBUFS;
@@ -590,9 +582,6 @@ static struct genl_ops ieee802154_coordinator_ops[] = {
 							ieee802154_dump_iface),
 };
 
-/*
- * No need to unregister as family unregistration will do it.
- */
 int nl802154_mac_register(void)
 {
 	int i;

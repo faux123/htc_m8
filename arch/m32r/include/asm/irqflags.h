@@ -101,4 +101,4 @@ static inline bool arch_irqs_disabled(void)
 	return arch_irqs_disabled_flags(arch_local_save_flags());
 }
 
-#endif /* _ASM_M32R_IRQFLAGS_H */
+#endif 

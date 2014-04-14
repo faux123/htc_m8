@@ -15,13 +15,10 @@
  * any later version.
  */
 
-/*********      Definitions for APCI-1500 card  *****/
 
-/* Card Specific information */
 #define APCI1500_BOARD_VENDOR_ID           0x10e8
 #define APCI1500_ADDRESS_RANGE              4
 
-/* DIGITAL INPUT-OUTPUT DEFINE */
 
 #define  APCI1500_DIGITAL_OP                 	2
 #define  APCI1500_DIGITAL_IP                    0
@@ -47,9 +44,6 @@
 #define  STOP                       		    1
 #define  TRIGGER                       		    2
 
-/*
- * Zillog I/O enumeration
- */
 enum {
 	APCI1500_Z8536_PORT_C,
 	APCI1500_Z8536_PORT_B,
@@ -57,9 +51,6 @@ enum {
 	APCI1500_Z8536_CONTROL_REGISTER
 };
 
-/*
- * Z8536 CIO Internal Address
- */
 enum {
 	APCI1500_RW_MASTER_INTERRUPT_CONTROL,
 	APCI1500_RW_MASTER_CONFIGURATION_CONTROL,
@@ -115,7 +106,7 @@ enum {
 	APCI1500_RW_PORT_B_PATTERN_MASK
 };
 
- /*----------DIGITAL INPUT----------------*/
+ 
 static int i_APCI1500_Initialisation(struct comedi_device *dev, struct comedi_subdevice *s,
 				     struct comedi_insn *insn, unsigned int *data);
 static int i_APCI1500_ConfigDigitalInputEvent(struct comedi_device *dev,
@@ -130,7 +121,6 @@ static int i_APCI1500_ReadMoreDigitalInput(struct comedi_device *dev,
 					   struct comedi_subdevice *s,
 					   struct comedi_insn *insn, unsigned int *data);
 
-/*----------	DIGITAL OUTPUT------------*/
 static int i_APCI1500_ConfigDigitalOutputErrorInterrupt(struct comedi_device *dev,
 							struct comedi_subdevice *s,
 							struct comedi_insn *insn,
@@ -139,7 +129,6 @@ static int i_APCI1500_WriteDigitalOutput(struct comedi_device *dev,
 					 struct comedi_subdevice *s,
 					 struct comedi_insn *insn, unsigned int *data);
 
-/*----------TIMER----------------*/
 static int i_APCI1500_ConfigCounterTimerWatchdog(struct comedi_device *dev,
 						 struct comedi_subdevice *s,
 						 struct comedi_insn *insn,
@@ -156,10 +145,8 @@ static int i_APCI1500_ReadInterruptMask(struct comedi_device *dev,
 					struct comedi_subdevice *s,
 					struct comedi_insn *insn, unsigned int *data);
 
-/*----------INTERRUPT HANDLER------*/
 static void v_APCI1500_Interrupt(int irq, void *d);
 static int i_APCI1500_ConfigureInterrupt(struct comedi_device *dev,
 					 struct comedi_subdevice *s,
 					 struct comedi_insn *insn, unsigned int *data);
-/*----------RESET---------------*/
 static int i_APCI1500_Reset(struct comedi_device *dev);

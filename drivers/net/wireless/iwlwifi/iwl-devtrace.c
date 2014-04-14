@@ -26,7 +26,6 @@
 
 #include <linux/module.h>
 
-/* sparse doesn't like tracepoint macros */
 #ifndef __CHECKER__
 #include "iwl-trans.h"
 

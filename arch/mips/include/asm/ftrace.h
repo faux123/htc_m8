@@ -13,7 +13,7 @@
 #ifdef CONFIG_FUNCTION_TRACER
 
 #define MCOUNT_ADDR ((unsigned long)(_mcount))
-#define MCOUNT_INSN_SIZE 4		/* sizeof mcount call */
+#define MCOUNT_INSN_SIZE 4		
 
 #ifndef __ASSEMBLY__
 extern void _mcount(void);
@@ -84,7 +84,7 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 struct dyn_arch_ftrace {
 };
 
-#endif /*  CONFIG_DYNAMIC_FTRACE */
-#endif /* __ASSEMBLY__ */
-#endif /* CONFIG_FUNCTION_TRACER */
-#endif /* _ASM_MIPS_FTRACE_H */
+#endif 
+#endif 
+#endif 
+#endif 

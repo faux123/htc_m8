@@ -48,40 +48,40 @@
 
 static unsigned long magician_pin_config[] __initdata = {
 
-	/* SDRAM and Static Memory I/O Signals */
+	
 	GPIO20_nSDCS_2,
 	GPIO21_nSDCS_3,
 	GPIO15_nCS_1,
-	GPIO78_nCS_2,   /* PASIC3 */
-	GPIO79_nCS_3,   /* EGPIO CPLD */
+	GPIO78_nCS_2,   
+	GPIO79_nCS_3,   
 	GPIO80_nCS_4,
 	GPIO33_nCS_5,
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 
-	/* PWM 0 */
+	
 	GPIO16_PWM0_OUT,
 
-	/* I2S */
+	
 	GPIO28_I2S_BITCLK_OUT,
 	GPIO29_I2S_SDATA_IN,
 	GPIO31_I2S_SYNC,
 	GPIO113_I2S_SYSCLK,
 
-	/* SSP 1 */
+	
 	GPIO23_SSP1_SCLK,
 	GPIO24_SSP1_SFRM,
 	GPIO25_SSP1_TXD,
 
-	/* SSP 2 */
+	
 	GPIO19_SSP2_SCLK,
 	GPIO14_SSP2_SFRM,
 	GPIO89_SSP2_TXD,
 	GPIO88_SSP2_RXD,
 
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
@@ -89,10 +89,10 @@ static unsigned long magician_pin_config[] __initdata = {
 	GPIO111_MMC_DAT_3,
 	GPIO112_MMC_CMD,
 
-	/* LCD */
+	
 	GPIOxx_LCD_TFT_16BPP,
 
-	/* QCI */
+	
 	GPIO12_CIF_DD_7,
 	GPIO17_CIF_DD_6,
 	GPIO50_CIF_DD_3,
@@ -106,31 +106,25 @@ static unsigned long magician_pin_config[] __initdata = {
 	GPIO84_CIF_FV,
 	GPIO85_CIF_LV,
 
-	/* Magician specific input GPIOs */
-	GPIO9_GPIO,	/* unknown */
-	GPIO10_GPIO,	/* GSM_IRQ */
-	GPIO13_GPIO,	/* CPLD_IRQ */
-	GPIO107_GPIO,	/* DS1WM_IRQ */
-	GPIO108_GPIO,	/* GSM_READY */
-	GPIO115_GPIO,	/* nPEN_IRQ */
+	
+	GPIO9_GPIO,	
+	GPIO10_GPIO,	
+	GPIO13_GPIO,	
+	GPIO107_GPIO,	
+	GPIO108_GPIO,	
+	GPIO115_GPIO,	
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 };
 
-/*
- * IRDA
- */
 
 static struct pxaficp_platform_data magician_ficp_info = {
 	.gpio_pwdown		= GPIO83_MAGICIAN_nIR_EN,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/*
- * GPIO Keys
- */
 
 #define INIT_KEY(_code, _gpio, _desc)	\
 	{				\
@@ -173,11 +167,6 @@ static struct platform_device gpio_keys = {
 };
 
 
-/*
- * EGPIO (Xilinx CPLD)
- *
- * 7 32-bit aligned 8-bit registers: 3x output, 1x irq, 3x input
- */
 
 static struct resource egpio_resources[] = {
 	[0] = {
@@ -198,7 +187,7 @@ static struct htc_egpio_chip egpio_chips[] = {
 		.gpio_base = MAGICIAN_EGPIO(0, 0),
 		.num_gpios = 24,
 		.direction = HTC_EGPIO_OUTPUT,
-		.initial_values = 0x40, /* EGPIO_MAGICIAN_GSM_RESET */
+		.initial_values = 0x40, 
 	},
 	[1] = {
 		.reg_start = 4,
@@ -228,9 +217,6 @@ static struct platform_device egpio = {
 	},
 };
 
-/*
- * LCD - Toppoly TD028STEB1 or Samsung LTP280QV
- */
 
 static struct pxafb_mode_info toppoly_modes[] = {
 	{
@@ -275,7 +261,7 @@ static void toppoly_lcd_power(int on, struct fb_var_screeninfo *si)
 		udelay(2000);
 		gpio_set_value(EGPIO_MAGICIAN_LCD_POWER, 1);
 		udelay(2000);
-		/* FIXME: enable LCDC here */
+		
 		udelay(2000);
 		gpio_set_value(GPIO104_MAGICIAN_LCD_POWER_1, 1);
 		udelay(2000);
@@ -342,9 +328,6 @@ static struct pxafb_mach_info samsung_info = {
 	.pxafb_lcd_power = samsung_lcd_power,
 };
 
-/*
- * Backlight
- */
 
 static struct gpio magician_bl_gpios[] = {
 	{ EGPIO_MAGICIAN_BL_POWER,  GPIOF_DIR_OUT, "Backlight power" },
@@ -392,9 +375,6 @@ static struct platform_device backlight = {
 	},
 };
 
-/*
- * LEDs
- */
 
 static struct gpio_led gpio_leds[] = {
 	{
@@ -458,9 +438,6 @@ static struct pasic3_leds_machinfo pasic3_leds_info = {
 	.leds       = pasic3_leds,
 };
 
-/*
- * PASIC3 with DS1WM
- */
 
 static struct resource pasic3_resources[] = {
 	[0] = {
@@ -468,7 +445,7 @@ static struct resource pasic3_resources[] = {
 		.end	= PXA_CS2_PHYS + 0x1b,
 		.flags  = IORESOURCE_MEM,
 	},
-	/* No IRQ handler in the PASIC3, DS1WM needs an external IRQ */
+	
 	[1] = {
 		.start  = PXA_GPIO_TO_IRQ(GPIO107_MAGICIAN_DS1WM_IRQ),
 		.end    = PXA_GPIO_TO_IRQ(GPIO107_MAGICIAN_DS1WM_IRQ),
@@ -491,9 +468,6 @@ static struct platform_device pasic3 = {
 	},
 };
 
-/*
- * USB "Transceiver"
- */
 
 static struct resource gpio_vbus_resource = {
 	.flags = IORESOURCE_IRQ,
@@ -516,9 +490,6 @@ static struct platform_device gpio_vbus = {
 	},
 };
 
-/*
- * External power
- */
 
 static int power_supply_init(struct device *dev)
 {
@@ -574,9 +545,6 @@ static struct platform_device power_supply = {
 	.num_resources = ARRAY_SIZE(power_supply_resources),
 };
 
-/*
- * Battery charger
- */
 
 static struct regulator_consumer_supply bq24022_consumers[] = {
 	{
@@ -630,9 +598,6 @@ static struct platform_device bq24022 = {
 	},
 };
 
-/*
- * MMC/SD
- */
 
 static int magician_mci_init(struct device *dev,
 				irq_handler_t detect_irq, void *data)
@@ -658,9 +623,6 @@ static struct pxamci_platform_data magician_mci_info = {
 };
 
 
-/*
- * USB OHCI
- */
 
 static struct pxaohci_platform_data magician_ohci_info = {
 	.port_mode	= PMM_PERPORT_MODE,
@@ -669,9 +631,6 @@ static struct pxaohci_platform_data magician_ohci_info = {
 };
 
 
-/*
- * StrataFlash
- */
 
 static void magician_set_vpp(struct platform_device *pdev, int vpp)
 {
@@ -699,17 +658,11 @@ static struct platform_device strataflash = {
 	},
 };
 
-/*
- * I2C
- */
 
 static struct i2c_pxa_platform_data i2c_info = {
 	.fast_mode = 1,
 };
 
-/*
- * Platform devices
- */
 
 static struct platform_device *devices[] __initdata = {
 	&gpio_keys,
@@ -755,7 +708,7 @@ static void __init magician_init(void)
 	pxa_set_mci_info(&magician_mci_info);
 	pxa_set_ohci_info(&magician_ohci_info);
 
-	/* Check LCD type we have */
+	
 	cpld = ioremap_nocache(PXA_CS3_PHYS, 0x1000);
 	if (cpld) {
 		u8 board_id = __raw_readb(cpld+0x14);

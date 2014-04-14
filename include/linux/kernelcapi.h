@@ -10,8 +10,8 @@
 #ifndef __KERNELCAPI_H__
 #define __KERNELCAPI_H__
 
-#define CAPI_MAXAPPL	240	/* maximum number of applications  */
-#define CAPI_MAXCONTR	32	/* maximum number of controller    */
+#define CAPI_MAXAPPL	240	
+#define CAPI_MAXCONTR	32	
 #define CAPI_MAXDATAWINDOW	8
 
 
@@ -28,14 +28,9 @@ typedef struct kcapi_carddef {
 	int		cardnr;
 } kcapi_carddef;
 
-/* new ioctls >= 10 */
 #define KCAPI_CMD_TRACE		10
-#define KCAPI_CMD_ADDCARD	11	/* OBSOLETE */
+#define KCAPI_CMD_ADDCARD	11	
 
-/* 
- * flag > 2 => trace also data
- * flag & 1 => show trace
- */
 #define KCAPI_TRACE_OFF			0
 #define KCAPI_TRACE_SHORT_NO_DATA	1
 #define KCAPI_TRACE_FULL_NO_DATA	2
@@ -56,7 +51,7 @@ struct capi20_appl {
 	void (*recv_message)(struct capi20_appl *ap, struct sk_buff *skb);
 	void *private;
 
-	/* internal to kernelcapi.o */
+	
 	unsigned long nrecvctlpkt;
 	unsigned long nrecvdatapkt;
 	unsigned long nsentctlpkt;
@@ -146,10 +141,10 @@ typedef enum {
 	CapiProtocolErrorLayer1                         = 0x3301,
 	CapiProtocolErrorLayer2                         = 0x3302,
 	CapiProtocolErrorLayer3                         = 0x3303,
-	CapiTimeOut                                     = 0x3303, // SuppServiceReason
+	CapiTimeOut                                     = 0x3303, 
 	CapiCallGivenToOtherApplication                 = 0x3304,
 } CAPI_REASON;
 
-#endif				/* __KERNEL__ */
+#endif				
 
-#endif				/* __KERNELCAPI_H__ */
+#endif				

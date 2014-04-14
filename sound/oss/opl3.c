@@ -28,10 +28,6 @@
 #include <linux/module.h>
 #include <linux/delay.h>
 
-/*
- * Major improvements to the FM handling 30AUG92 by Rob Hooft,
- * hooft@chem.ruu.nl
- */
 
 #include "sound_config.h"
 
@@ -49,7 +45,7 @@ struct voice_info
 	unsigned long   current_freq;
 	int             volume;
 	int             mode;
-	int             panning;	/* 0xffff means not set */
+	int             panning;	
 };
 
 typedef struct opl_devinfo
@@ -91,7 +87,7 @@ static void enter_4op_mode(void)
 		0, 1, 2, 9, 10, 11, 6, 7, 8, 15, 16, 17
 	};
 
-	devc->cmask = 0x3f;	/* Connect all possible 4 OP voice operators */
+	devc->cmask = 0x3f;	
 	opl3_command(devc->right_io, CONNECTION_SELECT_REGISTER, 0x3f);
 
 	for (i = 0; i < 3; i++)
@@ -145,16 +141,6 @@ static int opl3_ioctl(int dev, unsigned int cmd, void __user * arg)
 
 static int opl3_detect(int ioaddr)
 {
-	/*
-	 * This function returns 1 if the FM chip is present at the given I/O port
-	 * The detection algorithm plays with the timer built in the FM chip and
-	 * looks for a change in the status register.
-	 *
-	 * Note! The timers of the FM chip are not connected to AdLib (and compatible)
-	 * boards.
-	 *
-	 * Note2! The chip is initialized if detected.
-	 */
 
 	unsigned char stat1, signature;
 	int i;
@@ -183,13 +169,13 @@ static int opl3_detect(int ioaddr)
 
 	devc->base = ioaddr;
 
-	/* Reset timers 1 and 2 */
+	
 	opl3_command(ioaddr, TIMER_CONTROL_REGISTER, TIMER1_MASK | TIMER2_MASK);
 
-	/* Reset the IRQ of the FM chip */
+	
 	opl3_command(ioaddr, TIMER_CONTROL_REGISTER, IRQ_RESET);
 
-	signature = stat1 = inb(ioaddr);	/* Status register */
+	signature = stat1 = inb(ioaddr);	
 
 	if (signature != 0x00 && signature != 0x06 && signature != 0x02 &&
 		signature != 0x0f)
@@ -198,49 +184,44 @@ static int opl3_detect(int ioaddr)
 		goto cleanup_region;
 	}
 
-	if (signature == 0x06)		/* OPL2 */
+	if (signature == 0x06)		
 	{
 		detected_model = 2;
 	}
-	else if (signature == 0x00 || signature == 0x0f)	/* OPL3 or OPL4 */
+	else if (signature == 0x00 || signature == 0x0f)	
 	{
 		unsigned char tmp;
 
 		detected_model = 3;
 
-		/*
-		 * Detect availability of OPL4 (_experimental_). Works probably
-		 * only after a cold boot. In addition the OPL4 port
-		 * of the chip may not be connected to the PC bus at all.
-		 */
 
 		opl3_command(ioaddr + 2, OPL3_MODE_REGISTER, 0x00);
 		opl3_command(ioaddr + 2, OPL3_MODE_REGISTER, OPL3_ENABLE | OPL4_ENABLE);
 
-		if ((tmp = inb(ioaddr)) == 0x02)	/* Have a OPL4 */
+		if ((tmp = inb(ioaddr)) == 0x02)	
 		{
 			detected_model = 4;
 		}
 
-		if (request_region(ioaddr - 8, 2, "OPL4"))	/* OPL4 port was free */
+		if (request_region(ioaddr - 8, 2, "OPL4"))	
 		{
 			int tmp;
 
-			outb((0x02), ioaddr - 8);	/* Select OPL4 ID register */
+			outb((0x02), ioaddr - 8);	
 			udelay(10);
-			tmp = inb(ioaddr - 7);		/* Read it */
+			tmp = inb(ioaddr - 7);		
 			udelay(10);
 
-			if (tmp == 0x20)	/* OPL4 should return 0x20 here */
+			if (tmp == 0x20)	
 			{
 				detected_model = 4;
-				outb((0xF8), ioaddr - 8);	/* Select OPL4 FM mixer control */
+				outb((0xF8), ioaddr - 8);	
 				udelay(10);
-				outb((0x1B), ioaddr - 7);	/* Write value */
+				outb((0x1B), ioaddr - 7);	
 				udelay(10);
 			}
 			else
-			{ /* release OPL4 port */
+			{ 
 				release_region(ioaddr - 8, 2);
 				detected_model = 3;
 			}
@@ -248,14 +229,10 @@ static int opl3_detect(int ioaddr)
 		opl3_command(ioaddr + 2, OPL3_MODE_REGISTER, 0);
 	}
 	for (i = 0; i < 9; i++)
-		opl3_command(ioaddr, KEYON_BLOCK + i, 0);	/*
-								 * Note off
-								 */
+		opl3_command(ioaddr, KEYON_BLOCK + i, 0);	
 
 	opl3_command(ioaddr, TEST_REGISTER, ENABLE_WAVE_SELECT);
-	opl3_command(ioaddr, PERCOSSION_REGISTER, 0x00);	/*
-								 * Melodic mode.
-								 */
+	opl3_command(ioaddr, PERCOSSION_REGISTER, 0x00);	
 	return 1;
 cleanup_region:
 	release_region(ioaddr, 4);
@@ -284,7 +261,7 @@ static int opl3_kill_note  (int devno, int voice, int note, int velocity)
 	 devc->voc[voice].keyon_byte = 0;
 	 devc->voc[voice].bender = 0;
 	 devc->voc[voice].volume = 64;
-	 devc->voc[voice].panning = 0xffff;	/* Not set */
+	 devc->voc[voice].panning = 0xffff;	
 	 devc->voc[voice].bender_range = 200;
 	 devc->voc[voice].orig_freq = 0;
 	 devc->voc[voice].current_freq = 0;
@@ -313,21 +290,12 @@ static int opl3_set_instr  (int dev, int voice, int instr_no)
 	if (voice < 0 || voice >= devc->nr_voice)
 		return 0;
 	if (instr_no < 0 || instr_no >= SBFM_MAXINSTR)
-		instr_no = 0;	/* Acoustic piano (usually) */
+		instr_no = 0;	
 
 	devc->act_i[voice] = &devc->i_map[instr_no];
 	return 0;
 }
 
-/*
- * The next table looks magical, but it certainly is not. Its values have
- * been calculated as table[i]=8*log(i/64)/log(2) with an obvious exception
- * for i=0. This log-table converts a linear volume-scaling (0..127) to a
- * logarithmic scaling as present in the FM-synthesizer chips. so :    Volume
- * 64 =  0 db = relative volume  0 and:    Volume 32 = -6 db = relative
- * volume -8 it was implemented as a table because it is only 128 bytes and
- * it saves a lot of log() calculations. (RH)
- */
 
 static char fm_volume_table[128] =
 {
@@ -406,9 +374,7 @@ static void set_voice_volume(int voice, int volume, int main_vol)
 		opl3_command(map->ioaddr, KSL_LEVEL + map->op[1], vol2);
 	}
 	else
-	{	/*
-		 * 4 OP voice
-		 */
+	{	
 		int connection;
 
 		vol1 = instr->operators[2];
@@ -416,10 +382,6 @@ static void set_voice_volume(int voice, int volume, int main_vol)
 		vol3 = instr->operators[OFFS_4OP + 2];
 		vol4 = instr->operators[OFFS_4OP + 3];
 
-		/*
-		 * The connection method for 4 OP devc->voc is defined by the rightmost
-		 * bits at the offsets 10 and 10+OFFS_4OP
-		 */
 
 		connection = ((instr->operators[10] & 0x01) << 1) | (instr->operators[10 + OFFS_4OP] & 0x01);
 
@@ -471,27 +433,15 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 	if (map->voice_mode == 0)
 		return 0;
 
-	if (note == 255)	/*
-				 * Just change the volume
-				 */
+	if (note == 255)	
 	{
 		set_voice_volume(voice, volume, devc->voc[voice].volume);
 		return 0;
 	}
 
-	/*
-	 * Kill previous note before playing
-	 */
 	
-	opl3_command(map->ioaddr, KSL_LEVEL + map->op[1], 0xff);	/*
-									 * Carrier
-									 * volume to
-									 * min
-									 */
-	opl3_command(map->ioaddr, KSL_LEVEL + map->op[0], 0xff);	/*
-									 * Modulator
-									 * volume to
-									 */
+	opl3_command(map->ioaddr, KSL_LEVEL + map->op[1], 0xff);	
+	opl3_command(map->ioaddr, KSL_LEVEL + map->op[0], 0xff);	
 
 	if (map->voice_mode == 4)
 	{
@@ -499,10 +449,7 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 		opl3_command(map->ioaddr, KSL_LEVEL + map->op[3], 0xff);
 	}
 
-	opl3_command(map->ioaddr, KEYON_BLOCK + map->voice_num, 0x00);	/*
-									 * Note
-									 * off
-									 */
+	opl3_command(map->ioaddr, KEYON_BLOCK + map->voice_num, 0x00);	
 
 	instr = devc->act_i[voice];
 	
@@ -516,9 +463,7 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 	}
 
 	if (map->voice_mode == 2 && instr->key == OPL3_PATCH)
-		return 0;	/*
-				 * Cannot play
-				 */
+		return 0;	
 
 	voice_mode = map->voice_mode;
 
@@ -529,9 +474,7 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 		voice_shift = (map->ioaddr == devc->left_io) ? 0 : 3;
 		voice_shift += map->voice_num;
 
-		if (instr->key != OPL3_PATCH)	/*
-						 * Just 2 OP patch
-						 */
+		if (instr->key != OPL3_PATCH)	
 		{
 			voice_mode = 2;
 			devc->cmask &= ~(1 << voice_shift);
@@ -544,37 +487,22 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 		opl3_command(devc->right_io, CONNECTION_SELECT_REGISTER, devc->cmask);
 	}
 
-	/*
-	 * Set Sound Characteristics
-	 */
 	
 	opl3_command(map->ioaddr, AM_VIB + map->op[0], instr->operators[0]);
 	opl3_command(map->ioaddr, AM_VIB + map->op[1], instr->operators[1]);
 
-	/*
-	 * Set Attack/Decay
-	 */
 	
 	opl3_command(map->ioaddr, ATTACK_DECAY + map->op[0], instr->operators[4]);
 	opl3_command(map->ioaddr, ATTACK_DECAY + map->op[1], instr->operators[5]);
 
-	/*
-	 * Set Sustain/Release
-	 */
 	
 	opl3_command(map->ioaddr, SUSTAIN_RELEASE + map->op[0], instr->operators[6]);
 	opl3_command(map->ioaddr, SUSTAIN_RELEASE + map->op[1], instr->operators[7]);
 
-	/*
-	 * Set Wave Select
-	 */
 
 	opl3_command(map->ioaddr, WAVE_SELECT + map->op[0], instr->operators[8]);
 	opl3_command(map->ioaddr, WAVE_SELECT + map->op[1], instr->operators[9]);
 
-	/*
-	 * Set Feedback/Connection
-	 */
 	
 	fpc = instr->operators[10];
 
@@ -591,54 +519,32 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 	}
 
 	if (!(fpc & 0x30))
-		fpc |= 0x30;	/*
-				 * Ensure that at least one chn is enabled
-				 */
+		fpc |= 0x30;	
 	opl3_command(map->ioaddr, FEEDBACK_CONNECTION + map->voice_num, fpc);
 
-	/*
-	 * If the voice is a 4 OP one, initialize the operators 3 and 4 also
-	 */
 
 	if (voice_mode == 4)
 	{
-		/*
-		 * Set Sound Characteristics
-		 */
 	
 		opl3_command(map->ioaddr, AM_VIB + map->op[2], instr->operators[OFFS_4OP + 0]);
 		opl3_command(map->ioaddr, AM_VIB + map->op[3], instr->operators[OFFS_4OP + 1]);
 
-		/*
-		 * Set Attack/Decay
-		 */
 		
 		opl3_command(map->ioaddr, ATTACK_DECAY + map->op[2], instr->operators[OFFS_4OP + 4]);
 		opl3_command(map->ioaddr, ATTACK_DECAY + map->op[3], instr->operators[OFFS_4OP + 5]);
 
-		/*
-		 * Set Sustain/Release
-		 */
 		
 		opl3_command(map->ioaddr, SUSTAIN_RELEASE + map->op[2], instr->operators[OFFS_4OP + 6]);
 		opl3_command(map->ioaddr, SUSTAIN_RELEASE + map->op[3], instr->operators[OFFS_4OP + 7]);
 
-		/*
-		 * Set Wave Select
-		 */
 		
 		opl3_command(map->ioaddr, WAVE_SELECT + map->op[2], instr->operators[OFFS_4OP + 8]);
 		opl3_command(map->ioaddr, WAVE_SELECT + map->op[3], instr->operators[OFFS_4OP + 9]);
 
-		/*
-		 * Set Feedback/Connection
-		 */
 		
 		fpc = instr->operators[OFFS_4OP + 10];
 		if (!(fpc & 0x30))
-			 fpc |= 0x30;	/*
-					 * Ensure that at least one chn is enabled
-					 */
+			 fpc |= 0x30;	
 		opl3_command(map->ioaddr, FEEDBACK_CONNECTION + map->voice_num + 3, fpc);
 	}
 
@@ -647,23 +553,14 @@ static int opl3_start_note (int dev, int voice, int note, int volume)
 
 	freq = devc->voc[voice].orig_freq = note_to_freq(note) / 1000;
 
-	/*
-	 * Since the pitch bender may have been set before playing the note, we
-	 * have to calculate the bending now.
-	 */
 
 	freq = compute_finetune(devc->voc[voice].orig_freq, devc->voc[voice].bender, devc->voc[voice].bender_range, 0);
 	devc->voc[voice].current_freq = freq;
 
 	freq_to_fnum(freq, &block, &fnum);
 
-	/*
-	 * Play note
-	 */
 
-	data = fnum & 0xff;	/*
-				 * Least significant bits of fnumber
-				 */
+	data = fnum & 0xff;	
 	opl3_command(map->ioaddr, FNUM_LOW + map->voice_num, data);
 
 	data = 0x20 | ((block & 0x7) << 2) | ((fnum >> 8) & 0x3);
@@ -679,12 +576,6 @@ static void freq_to_fnum    (int freq, int *block, int *fnum)
 {
 	int f, octave;
 
-	/*
-	 * Converts the note frequency to block and fnum values for the FM chip
-	 */
-	/*
-	 * First try to compute the block -value (octave) where the note belongs
-	 */
 
 	f = freq;
 
@@ -720,10 +611,6 @@ static void opl3_command    (int io_addr, unsigned int addr, unsigned int val)
 {
 	 int i;
 
-	/*
-	 * The original 2-OP synth requires a quite long delay after writing to a
-	 * register. The OPL-3 survives with just two INBs
-	 */
 
 	outb(((unsigned char) (addr & 0xff)), io_addr);
 
@@ -796,9 +683,7 @@ static int opl3_open(int dev, int mode)
 		devc->v_alloc->alloc_times[i] = 0;
 	}
 
-	devc->cmask = 0x00;	/*
-				 * Just 2 OP mode
-				 */
+	devc->cmask = 0x00;	
 	if (devc->model == 2)
 		opl3_command(devc->right_io, CONNECTION_SELECT_REGISTER, devc->cmask);
 	return 0;
@@ -859,7 +744,7 @@ static void opl3_volume_method(int dev, int mode)
 #define SET_VIBRATO(cell) { \
 	tmp = instr->operators[(cell-1)+(((cell-1)/2)*OFFS_4OP)]; \
 	if (pressure > 110) \
-		tmp |= 0x40;		/* Vibrato on */ \
+		tmp |= 0x40;		 \
 	opl3_command (map->ioaddr, AM_VIB + map->op[cell-1], tmp);}
 
 static void opl3_aftertouch(int dev, int voice, int pressure)
@@ -878,9 +763,6 @@ static void opl3_aftertouch(int dev, int voice, int pressure)
 	if (map->voice_mode == 0)
 		return;
 
-	/*
-	 * Adjust the amount of vibrato depending the pressure
-	 */
 
 	instr = devc->act_i[voice];
 
@@ -914,17 +796,12 @@ static void opl3_aftertouch(int dev, int voice, int pressure)
 				break;
 
 		}
-		/*
-		 * Not implemented yet
-		 */
 	}
 	else
 	{
 		SET_VIBRATO(1);
 
-		if ((instr->operators[10] & 0x01))	/*
-							 * Additive synthesis
-							 */
+		if ((instr->operators[10] & 0x01))	
 			SET_VIBRATO(2);
 	}
 }
@@ -946,18 +823,14 @@ static void bend_pitch(int dev, int voice, int value)
 	if (!value)
 		return;
 	if (!(devc->voc[voice].keyon_byte & 0x20))
-		return;	/*
-			 * Not keyed on
-			 */
+		return;	
 
 	freq = compute_finetune(devc->voc[voice].orig_freq, devc->voc[voice].bender, devc->voc[voice].bender_range, 0);
 	devc->voc[voice].current_freq = freq;
 
 	freq_to_fnum(freq, &block, &fnum);
 
-	data = fnum & 0xff;	/*
-				 * Least significant bits of fnumber
-				 */
+	data = fnum & 0xff;	
 	opl3_command(map->ioaddr, FNUM_LOW + map->voice_num, data);
 
 	data = 0x20 | ((block & 0x7) << 2) | ((fnum >> 8) & 0x3);
@@ -1011,10 +884,10 @@ static int opl3_alloc_voice(int dev, int chn, int note, struct voice_alloc_info 
 		instr_no = devc->chn_info[chn].pgm_num;
 
 	instr = &devc->i_map[instr_no];
-	if (instr->channel < 0 ||	/* Instrument not loaded */
-		devc->nr_voice != 12)	/* Not in 4 OP mode */
+	if (instr->channel < 0 ||	
+		devc->nr_voice != 12)	
 		is4op = 0;
-	else if (devc->nr_voice == 12)	/* 4 OP mode */
+	else if (devc->nr_voice == 12)	
 		is4op = (instr->key == OPL3_PATCH);
 	else
 		is4op = 0;
@@ -1026,16 +899,13 @@ static int opl3_alloc_voice(int dev, int chn, int note, struct voice_alloc_info 
 	}
 	else
 	{
-		if (devc->nr_voice == 12)	/* 4 OP mode. Use the '2 OP only' operators first */
+		if (devc->nr_voice == 12)	
 			first = p = 6;
 		else
 			first = p = 0;
 		avail = devc->nr_voice;
 	}
 
-	/*
-	 *    Now try to find a free voice
-	 */
 	best = first;
 
 	for (i = 0; i < avail; i++)
@@ -1044,7 +914,7 @@ static int opl3_alloc_voice(int dev, int chn, int note, struct voice_alloc_info 
 		{
 			return p;
 		}
-		if (alloc->alloc_times[p] < best_time)		/* Find oldest playing note */
+		if (alloc->alloc_times[p] < best_time)		
 		{
 			best_time = alloc->alloc_times[p];
 			best = p;
@@ -1052,16 +922,13 @@ static int opl3_alloc_voice(int dev, int chn, int note, struct voice_alloc_info 
 		p = (p + 1) % avail;
 	}
 
-	/*
-	 *    Insert some kind of priority mechanism here.
-	 */
 
 	if (best < 0)
 		best = 0;
 	if (best > devc->nr_voice)
 		best -= devc->nr_voice;
 
-	return best;	/* All devc->voc in use. Select the first one. */
+	return best;	
 }
 
 static void opl3_setup_voice(int dev, int voice, int chn)
@@ -1209,7 +1076,7 @@ static int __init init_opl3 (void)
 {
 	printk(KERN_INFO "YM3812 and OPL-3 driver Copyright (C) by Hannu Savolainen, Rob Hooft 1993-1996\n");
 
-	if (io != -1)	/* User loading pure OPL3 module */
+	if (io != -1)	
 	{
 		if (!opl3_detect(io))
 		{
@@ -1243,7 +1110,7 @@ module_exit(cleanup_opl3);
 #ifndef MODULE
 static int __init setup_opl3(char *str)
 {
-        /* io  */
+        
 	int ints[2];
 	
 	str = get_options(str, ARRAY_SIZE(ints), ints);

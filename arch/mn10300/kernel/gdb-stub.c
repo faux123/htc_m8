@@ -15,110 +15,6 @@
  * Modified for Linux/mn10300 by David Howells <dhowells@redhat.com>
  */
 
-/*
- *  To enable debugger support, two things need to happen.  One, a
- *  call to set_debug_traps() is necessary in order to allow any breakpoints
- *  or error conditions to be properly intercepted and reported to gdb.
- *  Two, a breakpoint needs to be generated to begin communication.  This
- *  is most easily accomplished by a call to breakpoint().  Breakpoint()
- *  simulates a breakpoint by executing a BREAK instruction.
- *
- *
- *    The following gdb commands are supported:
- *
- * command          function                               Return value
- *
- *    g             return the value of the CPU registers  hex data or ENN
- *    G             set the value of the CPU registers     OK or ENN
- *
- *    mAA..AA,LLLL  Read LLLL bytes at address AA..AA      hex data or ENN
- *    MAA..AA,LLLL: Write LLLL bytes at address AA.AA      OK or ENN
- *
- *    c             Resume at current address              SNN   ( signal NN)
- *    cAA..AA       Continue at address AA..AA             SNN
- *
- *    s             Step one instruction                   SNN
- *    sAA..AA       Step one instruction from AA..AA       SNN
- *
- *    k             kill
- *
- *    ?             What was the last sigval ?             SNN   (signal NN)
- *
- *    bBB..BB	    Set baud rate to BB..BB		   OK or BNN, then sets
- *							   baud rate
- *
- * All commands and responses are sent with a packet which includes a
- * checksum.  A packet consists of
- *
- * $<packet info>#<checksum>.
- *
- * where
- * <packet info> :: <characters representing the command or response>
- * <checksum>    :: < two hex digits computed as modulo 256 sum of <packetinfo>>
- *
- * When a packet is received, it is first acknowledged with either '+' or '-'.
- * '+' indicates a successful transfer.  '-' indicates a failed transfer.
- *
- * Example:
- *
- * Host:                  Reply:
- * $m0,10#2a               +$00010203040506070809101112131415#42
- *
- *
- *  ==============
- *  MORE EXAMPLES:
- *  ==============
- *
- *  For reference -- the following are the steps that one
- *  company took (RidgeRun Inc) to get remote gdb debugging
- *  going. In this scenario the host machine was a PC and the
- *  target platform was a Galileo EVB64120A MIPS evaluation
- *  board.
- *
- *  Step 1:
- *  First download gdb-5.0.tar.gz from the internet.
- *  and then build/install the package.
- *
- *  Example:
- *    $ tar zxf gdb-5.0.tar.gz
- *    $ cd gdb-5.0
- *    $ ./configure --target=am33_2.0-linux-gnu
- *    $ make
- *    $ install
- *    am33_2.0-linux-gnu-gdb
- *
- *  Step 2:
- *  Configure linux for remote debugging and build it.
- *
- *  Example:
- *    $ cd ~/linux
- *    $ make menuconfig <go to "Kernel Hacking" and turn on remote debugging>
- *    $ make dep; make vmlinux
- *
- *  Step 3:
- *  Download the kernel to the remote target and start
- *  the kernel running. It will promptly halt and wait
- *  for the host gdb session to connect. It does this
- *  since the "Kernel Hacking" option has defined
- *  CONFIG_REMOTE_DEBUG which in turn enables your calls
- *  to:
- *     set_debug_traps();
- *     breakpoint();
- *
- *  Step 4:
- *  Start the gdb session on the host.
- *
- *  Example:
- *    $ am33_2.0-linux-gnu-gdb vmlinux
- *    (gdb) set remotebaud 115200
- *    (gdb) target remote /dev/ttyS1
- *    ...at this point you are connected to
- *       the remote target and can use gdb
- *       in the normal fasion. Setting
- *       breakpoints, single stepping,
- *       printing variables, etc.
- *
- */
 
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -138,13 +34,8 @@
 #include <unit/leds.h>
 #include <unit/serial.h>
 
-/* define to use F7F7 rather than FF which is subverted by JTAG debugger */
 #undef GDBSTUB_USE_F7F7_AS_BREAKPOINT
 
-/*
- * BUFMAX defines the maximum number of characters in inbound/outbound buffers
- * at least NUMREGBYTES*2 are needed for register packets
- */
 #define BUFMAX 2048
 
 static const char gdbstub_banner[] =
@@ -163,16 +54,13 @@ static char	output_buffer[BUFMAX];
 static char	trans_buffer[BUFMAX];
 
 struct gdbstub_bkpt {
-	u8	*addr;		/* address of breakpoint */
-	u8	len;		/* size of breakpoint */
-	u8	origbytes[7];	/* original bytes */
+	u8	*addr;		
+	u8	len;		
+	u8	origbytes[7];	
 };
 
 static struct gdbstub_bkpt gdbstub_bkpts[256];
 
-/*
- * local prototypes
- */
 static void getpacket(char *buffer);
 static int putpacket(char *buffer);
 static int computeSignal(enum exception_code excep);
@@ -183,9 +71,6 @@ static unsigned char *mem2hex(const void *mem, char *buf, int count,
 static const char *hex2mem(const char *buf, void *_mem, int count,
 			   int may_fault);
 
-/*
- * Convert ch from a hex digit to an int
- */
 static int hex(unsigned char ch)
 {
 	if (ch >= 'a' && ch <= 'f')
@@ -202,7 +87,7 @@ static int hex(unsigned char ch)
 void debug_to_serial(const char *p, int n)
 {
 	__debug_to_serial(p, n);
-	/* gdbstub_console_write(NULL, p, n); */
+	
 }
 
 void gdbstub_printk(const char *fmt, ...)
@@ -210,7 +95,7 @@ void gdbstub_printk(const char *fmt, ...)
 	va_list args;
 	int len;
 
-	/* Emit the output into the temporary buffer */
+	
 	va_start(args, fmt);
 	len = vsnprintf(trans_buffer, sizeof(trans_buffer), fmt, args);
 	va_end(args);
@@ -227,9 +112,6 @@ static inline char *gdbstub_strcpy(char *dst, const char *src)
 	return dst;
 }
 
-/*
- * scan for the sequence $<data>#<checksum>
- */
 static void getpacket(char *buffer)
 {
 	unsigned char checksum;
@@ -238,10 +120,6 @@ static void getpacket(char *buffer)
 	int count, i, ret, error;
 
 	for (;;) {
-		/*
-		 * wait around for the start character,
-		 * ignore all other characters
-		 */
 		do {
 			gdbstub_io_rx_char(&ch, 0);
 		} while (ch != '$');
@@ -251,9 +129,6 @@ static void getpacket(char *buffer)
 		count = 0;
 		error = 0;
 
-		/*
-		 * now, read until a # or end of buffer is found
-		 */
 		while (count < BUFMAX) {
 			ret = gdbstub_io_rx_char(&ch, 0);
 			if (ret < 0)
@@ -279,7 +154,7 @@ static void getpacket(char *buffer)
 
 		buffer[count] = 0;
 
-		/* read the checksum */
+		
 		ret = gdbstub_io_rx_char(&ch, 0);
 		if (ret < 0)
 			error = ret;
@@ -299,28 +174,21 @@ static void getpacket(char *buffer)
 			continue;
 		}
 
-		/* check the checksum */
+		
 		if (checksum != xmitcsum) {
 			gdbstub_io("### GDB Tx NAK\n");
-			gdbstub_io_tx_char('-');	/* failed checksum */
+			gdbstub_io_tx_char('-');	
 			continue;
 		}
 
 		gdbstub_proto("### GDB Rx '$%s#%02x' ###\n", buffer, checksum);
 		gdbstub_io("### GDB Tx ACK\n");
-		gdbstub_io_tx_char('+'); /* successful transfer */
+		gdbstub_io_tx_char('+'); 
 
-		/*
-		 * if a sequence char is present,
-		 * reply the sequence ID
-		 */
 		if (buffer[2] == ':') {
 			gdbstub_io_tx_char(buffer[0]);
 			gdbstub_io_tx_char(buffer[1]);
 
-			/*
-			 * remove sequence chars from buffer
-			 */
 			count = 0;
 			while (buffer[count])
 				count++;
@@ -332,20 +200,12 @@ static void getpacket(char *buffer)
 	}
 }
 
-/*
- * send the packet in buffer.
- * - return 0 if successfully ACK'd
- * - return 1 if abandoned due to new incoming packet
- */
 static int putpacket(char *buffer)
 {
 	unsigned char checksum;
 	unsigned char ch;
 	int count;
 
-	/*
-	 * $<packet info>#<checksum>.
-	 */
 	gdbstub_proto("### GDB Tx $'%s'#?? ###\n", buffer);
 
 	do {
@@ -379,10 +239,6 @@ static int putpacket(char *buffer)
 	return 1;
 }
 
-/*
- * While we find nice hex chars, build an int.
- * Return number of chars processed.
- */
 static int hexToInt(char **ptr, int *intValue)
 {
 	int numChars = 0;
@@ -405,13 +261,6 @@ static int hexToInt(char **ptr, int *intValue)
 }
 
 #ifdef CONFIG_GDBSTUB_ALLOW_SINGLE_STEP
-/*
- * We single-step by setting breakpoints. When an exception
- * is handled, we need to restore the instructions hoisted
- * when the breakpoints were set.
- *
- * This is where we save the original instructions.
- */
 static struct gdb_bp_save {
 	u8	*addr;
 	u8	opcode[2];
@@ -419,31 +268,31 @@ static struct gdb_bp_save {
 
 static const unsigned char gdbstub_insn_sizes[256] =
 {
-	/* 1  2  3  4  5  6  7  8  9  a  b  c  d  e  f */
-	1, 3, 3, 3, 1, 3, 3, 3, 1, 3, 3, 3, 1, 3, 3, 3,	/* 0 */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 1 */
-	2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, /* 2 */
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, /* 3 */
-	1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, /* 4 */
-	1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, /* 5 */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 6 */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 7 */
-	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, /* 8 */
-	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, /* 9 */
-	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, /* a */
-	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, /* b */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, /* c */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* d */
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* e */
-	0, 2, 2, 2, 2, 2, 2, 4, 0, 3, 0, 4, 0, 6, 7, 1  /* f */
+	
+	1, 3, 3, 3, 1, 3, 3, 3, 1, 3, 3, 3, 1, 3, 3, 3,	
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+	2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 
+	1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 
+	1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 
+	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 
+	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 
+	2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+	0, 2, 2, 2, 2, 2, 2, 4, 0, 3, 0, 4, 0, 6, 7, 1  
 };
 
 static int __gdbstub_mark_bp(u8 *addr, int ix)
 {
-	/* vmalloc area */
+	
 	if (((u8 *) VMALLOC_START <= addr) && (addr < (u8 *) VMALLOC_END))
 		goto okay;
-	/* SRAM, SDRAM */
+	
 	if (((u8 *) 0x80000000UL <= addr) && (addr < (u8 *) 0xa0000000UL))
 		goto okay;
 	return 0;
@@ -485,9 +334,6 @@ static inline void __gdbstub_restore_bp(void)
 	step_bp[1].opcode[1]	= 0;
 }
 
-/*
- * emulate single stepping by means of breakpoint instructions
- */
 static int gdbstub_single_step(struct pt_regs *regs)
 {
 	unsigned size;
@@ -517,7 +363,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 			goto fault;
 	} else {
 		switch (cur) {
-			/* Bxx (d8,PC) */
+			
 		case 0xc0 ... 0xca:
 			if (gdbstub_read_byte(pc + 1, (u8 *) &x) < 0)
 				goto fault;
@@ -528,7 +374,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 			break;
 
-			/* LXX (d8,PC) */
+			
 		case 0xd0 ... 0xda:
 			if (!__gdbstub_mark_bp(pc + 1, 0))
 				goto fault;
@@ -537,14 +383,12 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 			break;
 
-			/* SETLB - loads the next for bytes into the LIR
-			 * register */
 		case 0xdb:
 			if (!__gdbstub_mark_bp(pc + 1, 0))
 				goto fault;
 			break;
 
-			/* JMP (d16,PC) or CALL (d16,PC) */
+			
 		case 0xcc:
 		case 0xcd:
 			if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
@@ -554,7 +398,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 			break;
 
-			/* JMP (d32,PC) or CALL (d32,PC) */
+			
 		case 0xdc:
 		case 0xdd:
 			if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
@@ -566,13 +410,13 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 			break;
 
-			/* RETF */
+			
 		case 0xde:
 			if (!__gdbstub_mark_bp((u8 *) regs->mdr, 0))
 				goto fault;
 			break;
 
-			/* RET */
+			
 		case 0xdf:
 			if (gdbstub_read_byte(pc + 2, (u8 *) &x) < 0)
 				goto fault;
@@ -591,7 +435,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 
 			if (cur >= 0xf0 && cur <= 0xf7) {
-				/* JMP (An) / CALLS (An) */
+				
 				switch (cur & 3) {
 				case 0: x = regs->a0; break;
 				case 1: x = regs->a1; break;
@@ -601,7 +445,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				if (!__gdbstub_mark_bp((u8 *) x, 0))
 					goto fault;
 			} else if (cur == 0xfc) {
-				/* RETS */
+				
 				if (gdbstub_read_byte(
 					    sp + 0, ((u8 *) &x) + 0) < 0 ||
 				    gdbstub_read_byte(
@@ -614,7 +458,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				if (!__gdbstub_mark_bp((u8 *) x, 0))
 					goto fault;
 			} else if (cur == 0xfd) {
-				/* RTI */
+				
 				if (gdbstub_read_byte(
 					    sp + 4, ((u8 *) &x) + 0) < 0 ||
 				    gdbstub_read_byte(
@@ -633,7 +477,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 
 			break;
 
-			/* potential 3-byte conditional branches */
+			
 		case 0xf8:
 			if (gdbstub_read_byte(pc + 1, &cur) < 0)
 				goto fault;
@@ -655,7 +499,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 				goto fault;
 
 			if (cur == 0xff) {
-				/* CALLS (d16,PC) */
+				
 				if (gdbstub_read_byte(
 					    pc + 2, ((u8 *) &x) + 0) < 0 ||
 				    gdbstub_read_byte(
@@ -673,7 +517,7 @@ static int gdbstub_single_step(struct pt_regs *regs)
 			if (gdbstub_read_byte(pc + 1, &cur) < 0)
 				goto fault;
 			if (cur == 0xff) {
-				/* CALLS (d32,PC) */
+				
 				if (gdbstub_read_byte(
 					    pc + 2, ((u8 *) &x) + 0) < 0 ||
 				    gdbstub_read_byte(
@@ -725,11 +569,11 @@ static int gdbstub_single_step(struct pt_regs *regs)
 	return 0;
 
  fault:
-	/* uh-oh - silly address alert, try and restore things */
+	
 	__gdbstub_restore_bp();
 	return -EFAULT;
 }
-#endif /* CONFIG_GDBSTUB_ALLOW_SINGLE_STEP */
+#endif 
 
 #ifdef CONFIG_GDBSTUB_CONSOLE
 
@@ -768,7 +612,7 @@ void gdbstub_console_write(struct console *con, const char *p, unsigned n)
 
 static kdev_t gdbstub_console_dev(struct console *con)
 {
-	return MKDEV(1, 3); /* /dev/null */
+	return MKDEV(1, 3); 
 }
 
 static struct console gdbstub_console = {
@@ -781,13 +625,6 @@ static struct console gdbstub_console = {
 
 #endif
 
-/*
- * Convert the memory pointed to by mem into hex, placing result in buf.
- * - if successful, return a pointer to the last char put in buf (NUL)
- * - in case of mem fault, return NULL
- * may_fault is non-zero if we are reading from arbitrary memory, but is
- * currently not used.
- */
 static
 unsigned char *mem2hex(const void *_mem, char *buf, int count, int may_fault)
 {
@@ -912,14 +749,9 @@ const char *hex2mem(const char *buf, void *_mem, int count, int may_fault)
 	return buf;
 }
 
-/*
- * This table contains the mapping between MN10300 exception codes, and
- * signals, which are primarily what GDB understands.  It also indicates
- * which hardware traps we need to commandeer when initializing the stub.
- */
 static const struct excep_to_sig_map {
-	enum exception_code	excep;	/* MN10300 exception code */
-	unsigned char		signo;	/* Signal that we map this into */
+	enum exception_code	excep;	
+	unsigned char		signo;	
 } excep_to_sig_map[] = {
 	{ EXCEP_ITLBMISS,	SIGSEGV		},
 	{ EXCEP_DTLBMISS,	SIGSEGV		},
@@ -952,9 +784,6 @@ static const struct excep_to_sig_map {
 	{ 0, 0}
 };
 
-/*
- * convert the MN10300 exception code into a UNIX signal number
- */
 static int computeSignal(enum exception_code excep)
 {
 	const struct excep_to_sig_map *map;
@@ -963,14 +792,11 @@ static int computeSignal(enum exception_code excep)
 		if (map->excep == excep)
 			return map->signo;
 
-	return SIGHUP; /* default for things we don't know about */
+	return SIGHUP; 
 }
 
 static u32 gdbstub_fpcr, gdbstub_fpufs_array[32];
 
-/*
- *
- */
 static void gdbstub_store_fpu(void)
 {
 #ifdef CONFIG_FPU
@@ -1022,9 +848,6 @@ static void gdbstub_store_fpu(void)
 #endif
 }
 
-/*
- *
- */
 static void gdbstub_load_fpu(void)
 {
 #ifdef CONFIG_FPU
@@ -1076,9 +899,6 @@ static void gdbstub_load_fpu(void)
 #endif
 }
 
-/*
- * set a software breakpoint
- */
 int gdbstub_set_breakpoint(u8 *addr, int len)
 {
 	int bkpt, loop, xloop;
@@ -1138,9 +958,6 @@ restore:
 	return -EFAULT;
 }
 
-/*
- * clear a software breakpoint
- */
 int gdbstub_clear_breakpoint(u8 *addr, int len)
 {
 	int bkpt, loop;
@@ -1170,10 +987,6 @@ int gdbstub_clear_breakpoint(u8 *addr, int len)
 	return 0;
 }
 
-/*
- * This function does all command processing for interfacing to gdb
- * - returns 0 if the exception should be skipped, -ERROR otherwise.
- */
 static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 {
 	unsigned long *stack;
@@ -1201,13 +1014,11 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	gdbstub_store_fpu();
 
 #ifdef CONFIG_GDBSTUB_IMMEDIATE
-	/* skip the initial pause loop */
+	
 	if (regs->pc == (unsigned long) __gdbstub_pause)
 		regs->pc = (unsigned long) start_kernel;
 #endif
 
-	/* if we were single stepping, restore the opcodes hoisted for the
-	 * breakpoint[s] */
 	broke = 0;
 #ifdef CONFIG_GDBSTUB_ALLOW_SINGLE_STEP
 	if ((step_bp[0].addr && step_bp[0].addr == (u8 *) regs->pc) ||
@@ -1227,7 +1038,7 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	stack = (unsigned long *) regs->sp;
 	sigval = broke ? SIGTRAP : computeSignal(excep);
 
-	/* send information about a BUG() */
+	
 	if (!user_mode(regs) && excep == EXCEP_SYSCALL15) {
 		const struct bug_entry *bug;
 
@@ -1257,10 +1068,6 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 		sigval = SIGABRT;
 	}
 
-	/*
-	 * send a message to the debugger's user saying what happened if it may
-	 * not be clear cut (we can't map exceptions onto signals properly)
-	 */
 	if (sigval != SIGINT && sigval != SIGTRAP && sigval != SIGILL) {
 		static const char title[] = "Excep ", tbcberr[] = "BCBERR ";
 		static const char crlf[] = "\r\n";
@@ -1282,9 +1089,9 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 
 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
 		*ptr = 0;
-		putpacket(output_buffer);	/* send it off... */
+		putpacket(output_buffer);	
 
-		/* BCBERR */
+		
 		ptr = output_buffer;
 		*ptr++ = 'O';
 		ptr = mem2hex(tbcberr, ptr, sizeof(tbcberr) - 1, 0);
@@ -1308,39 +1115,24 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 
 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
 		*ptr = 0;
-		putpacket(output_buffer);	/* send it off... */
+		putpacket(output_buffer);	
 	}
 
-	/*
-	 * tell the debugger that an exception has occurred
-	 */
 	ptr = output_buffer;
 
-	/*
-	 * Send trap type (converted to signal)
-	 */
 	*ptr++ = 'T';
 	ptr = hex_byte_pack(ptr, sigval);
 
-	/*
-	 * Send Error PC
-	 */
 	ptr = hex_byte_pack(ptr, GDB_REGID_PC);
 	*ptr++ = ':';
 	ptr = mem2hex(&regs->pc, ptr, 4, 0);
 	*ptr++ = ';';
 
-	/*
-	 * Send frame pointer
-	 */
 	ptr = hex_byte_pack(ptr, GDB_REGID_FP);
 	*ptr++ = ':';
 	ptr = mem2hex(&regs->a3, ptr, 4, 0);
 	*ptr++ = ';';
 
-	/*
-	 * Send stack pointer
-	 */
 	ssp = (unsigned long) (regs + 1);
 	ptr = hex_byte_pack(ptr, GDB_REGID_SP);
 	*ptr++ = ':';
@@ -1348,18 +1140,15 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	*ptr++ = ';';
 
 	*ptr++ = 0;
-	putpacket(output_buffer);	/* send it off... */
+	putpacket(output_buffer);	
 
 packet_waiting:
-	/*
-	 * Wait for input from remote GDB
-	 */
 	while (1) {
 		output_buffer[0] = 0;
 		getpacket(input_buffer);
 
 		switch (input_buffer[0]) {
-			/* request repeat of last signal number */
+			
 		case '?':
 			output_buffer[0] = 'S';
 			output_buffer[1] = hex_asc_hi(sigval);
@@ -1368,12 +1157,9 @@ packet_waiting:
 			break;
 
 		case 'd':
-			/* toggle debug flag */
+			
 			break;
 
-			/*
-			 * Return the value of the CPU registers
-			 */
 		case 'g':
 			zero = 0;
 			ssp = (u32) (regs + 1);
@@ -1387,7 +1173,7 @@ packet_waiting:
 			ptr = mem2hex(&regs->a2, ptr, 4, 0);
 			ptr = mem2hex(&regs->a3, ptr, 4, 0);
 
-			ptr = mem2hex(&ssp, ptr, 4, 0);		/* 8 */
+			ptr = mem2hex(&ssp, ptr, 4, 0);		
 			ptr = mem2hex(&regs->pc, ptr, 4, 0);
 			ptr = mem2hex(&regs->mdr, ptr, 4, 0);
 			ptr = mem2hex(&regs->epsw, ptr, 4, 0);
@@ -1395,7 +1181,7 @@ packet_waiting:
 			ptr = mem2hex(&regs->lar, ptr, 4, 0);
 			ptr = mem2hex(&regs->mdrq, ptr, 4, 0);
 
-			ptr = mem2hex(&regs->e0, ptr, 4, 0);	/* 15 */
+			ptr = mem2hex(&regs->e0, ptr, 4, 0);	
 			ptr = mem2hex(&regs->e1, ptr, 4, 0);
 			ptr = mem2hex(&regs->e2, ptr, 4, 0);
 			ptr = mem2hex(&regs->e3, ptr, 4, 0);
@@ -1407,22 +1193,19 @@ packet_waiting:
 			ptr = mem2hex(&ssp, ptr, 4, 0);
 			ptr = mem2hex(&regs, ptr, 4, 0);
 			ptr = mem2hex(&regs->sp, ptr, 4, 0);
-			ptr = mem2hex(&regs->mcrh, ptr, 4, 0);	/* 26 */
+			ptr = mem2hex(&regs->mcrh, ptr, 4, 0);	
 			ptr = mem2hex(&regs->mcrl, ptr, 4, 0);
 			ptr = mem2hex(&regs->mcvf, ptr, 4, 0);
 
-			ptr = mem2hex(&gdbstub_fpcr, ptr, 4, 0); /* 29 - FPCR */
+			ptr = mem2hex(&gdbstub_fpcr, ptr, 4, 0); 
 			ptr = mem2hex(&zero, ptr, 4, 0);
 			ptr = mem2hex(&zero, ptr, 4, 0);
 			for (loop = 0; loop < 32; loop++)
 				ptr = mem2hex(&gdbstub_fpufs_array[loop],
-					      ptr, 4, 0); /* 32 - FS0-31 */
+					      ptr, 4, 0); 
 
 			break;
 
-			/*
-			 * set the value of the CPU registers - return OK
-			 */
 		case 'G':
 		{
 			const char *ptr;
@@ -1437,7 +1220,7 @@ packet_waiting:
 			ptr = hex2mem(ptr, &regs->a2, 4, 0);
 			ptr = hex2mem(ptr, &regs->a3, 4, 0);
 
-			ptr = hex2mem(ptr, &ssp, 4, 0);		/* 8 */
+			ptr = hex2mem(ptr, &ssp, 4, 0);		
 			ptr = hex2mem(ptr, &regs->pc, 4, 0);
 			ptr = hex2mem(ptr, &regs->mdr, 4, 0);
 			ptr = hex2mem(ptr, &regs->epsw, 4, 0);
@@ -1445,7 +1228,7 @@ packet_waiting:
 			ptr = hex2mem(ptr, &regs->lar, 4, 0);
 			ptr = hex2mem(ptr, &regs->mdrq, 4, 0);
 
-			ptr = hex2mem(ptr, &regs->e0, 4, 0);	/* 15 */
+			ptr = hex2mem(ptr, &regs->e0, 4, 0);	
 			ptr = hex2mem(ptr, &regs->e1, 4, 0);
 			ptr = hex2mem(ptr, &regs->e2, 4, 0);
 			ptr = hex2mem(ptr, &regs->e3, 4, 0);
@@ -1457,21 +1240,17 @@ packet_waiting:
 			ptr = hex2mem(ptr, &ssp, 4, 0);
 			ptr = hex2mem(ptr, &zero, 4, 0);
 			ptr = hex2mem(ptr, &regs->sp, 4, 0);
-			ptr = hex2mem(ptr, &regs->mcrh, 4, 0);	/* 26 */
+			ptr = hex2mem(ptr, &regs->mcrh, 4, 0);	
 			ptr = hex2mem(ptr, &regs->mcrl, 4, 0);
 			ptr = hex2mem(ptr, &regs->mcvf, 4, 0);
 
-			ptr = hex2mem(ptr, &zero, 4, 0);	/* 29 - FPCR */
+			ptr = hex2mem(ptr, &zero, 4, 0);	
 			ptr = hex2mem(ptr, &zero, 4, 0);
 			ptr = hex2mem(ptr, &zero, 4, 0);
-			for (loop = 0; loop < 32; loop++)     /* 32 - FS0-31 */
+			for (loop = 0; loop < 32; loop++)     
 				ptr = hex2mem(ptr, &zero, 4, 0);
 
 #if 0
-			/*
-			 * See if the stack pointer has moved. If so, then copy
-			 * the saved locals and ins to the new location.
-			 */
 			unsigned long *newsp = (unsigned long *) registers[SP];
 			if (sp != newsp)
 				sp = memcpy(newsp, sp, 16 * 4);
@@ -1481,9 +1260,6 @@ packet_waiting:
 		}
 		break;
 
-		/*
-		 * mAA..AA,LLLL  Read LLLL bytes at address AA..AA
-		 */
 		case 'm':
 			ptr = &input_buffer[1];
 
@@ -1500,10 +1276,6 @@ packet_waiting:
 			}
 			break;
 
-			/*
-			 * MAA..AA,LLLL: Write LLLL bytes at address AA.AA
-			 * return OK
-			 */
 		case 'M':
 			ptr = &input_buffer[1];
 
@@ -1523,42 +1295,23 @@ packet_waiting:
 			}
 			break;
 
-			/*
-			 * cAA..AA    Continue at address AA..AA(optional)
-			 */
 		case 'c':
-			/* try to read optional parameter, pc unchanged if no
-			 * parm */
 
 			ptr = &input_buffer[1];
 			if (hexToInt(&ptr, &addr))
 				regs->pc = addr;
 			goto done;
 
-			/*
-			 * kill the program
-			 */
 		case 'k' :
-			goto done;	/* just continue */
+			goto done;	
 
-			/*
-			 * Reset the whole machine (FIXME: system dependent)
-			 */
 		case 'r':
 			break;
 
-			/*
-			 * Step to next instruction
-			 */
 		case 's':
-			/* Using the T flag doesn't seem to perform single
-			 * stepping (it seems to wind up being caught by the
-			 * JTAG unit), so we have to use breakpoints and
-			 * continue instead.
-			 */
 #ifdef CONFIG_GDBSTUB_ALLOW_SINGLE_STEP
 			if (gdbstub_single_step(regs) < 0)
-				/* ignore any fault error for now */
+				
 				gdbstub_printk("unable to set single-step"
 					       " bp\n");
 			goto done;
@@ -1567,9 +1320,6 @@ packet_waiting:
 			break;
 #endif
 
-			/*
-			 * Set baud rate (bBB)
-			 */
 		case 'b':
 			do {
 				int baudrate;
@@ -1581,16 +1331,13 @@ packet_waiting:
 				}
 
 				if (baudrate) {
-					/* ACK before changing speed */
+					
 					putpacket("OK");
 					gdbstub_io_set_baud(baudrate);
 				}
 			} while (0);
 			break;
 
-			/*
-			 * Set breakpoint
-			 */
 		case 'Z':
 			ptr = &input_buffer[1];
 
@@ -1602,7 +1349,7 @@ packet_waiting:
 				break;
 			}
 
-			/* only support software breakpoints */
+			
 			gdbstub_strcpy(output_buffer, "E03");
 			if (loop != 0 ||
 			    length < 1 ||
@@ -1616,9 +1363,6 @@ packet_waiting:
 			gdbstub_strcpy(output_buffer, "OK");
 			break;
 
-			/*
-			 * Clear breakpoint
-			 */
 		case 'z':
 			ptr = &input_buffer[1];
 
@@ -1630,7 +1374,7 @@ packet_waiting:
 				break;
 			}
 
-			/* only support software breakpoints */
+			
 			gdbstub_strcpy(output_buffer, "E03");
 			if (loop != 0 ||
 			    length < 1 ||
@@ -1650,19 +1394,11 @@ packet_waiting:
 			break;
 		}
 
-		/* reply to the request */
+		
 		putpacket(output_buffer);
 	}
 
 done:
-	/*
-	 * Need to flush the instruction cache here, as we may
-	 * have deposited a breakpoint, and the icache probably
-	 * has no way of knowing that a data ref to some location
-	 * may have changed something that is in the instruction
-	 * cache.
-	 * NB: We flush both caches, just to be sure...
-	 */
 	if (gdbstub_flush_caches)
 		debugger_local_cache_flushinv();
 
@@ -1677,18 +1413,11 @@ done:
 	return 0;
 }
 
-/*
- * Determine if we hit a debugger special breakpoint that needs skipping over
- * automatically.
- */
 int at_debugger_breakpoint(struct pt_regs *regs)
 {
 	return 0;
 }
 
-/*
- * handle event interception
- */
 asmlinkage int debugger_intercept(enum exception_code excep,
 				  int signo, int si_code, struct pt_regs *regs)
 {
@@ -1743,9 +1472,6 @@ asmlinkage int debugger_intercept(enum exception_code excep,
 	return ret;
 }
 
-/*
- * handle the GDB stub itself causing an exception
- */
 asmlinkage void gdbstub_exception(struct pt_regs *regs,
 				  enum exception_code excep)
 {
@@ -1757,7 +1483,7 @@ asmlinkage void gdbstub_exception(struct pt_regs *regs,
 
 	while ((unsigned long) regs == 0xffffffff) {}
 
-	/* handle guarded memory accesses where we know it might fault */
+	
 	if (regs->pc == (unsigned) gdbstub_read_byte_guard) {
 		regs->pc = (unsigned) gdbstub_read_byte_cont;
 		goto fault;
@@ -1790,22 +1516,19 @@ asmlinkage void gdbstub_exception(struct pt_regs *regs,
 
 	gdbstub_printk("\n### GDB stub caused an exception ###\n");
 
-	/* something went horribly wrong */
+	
 	console_verbose();
 	show_registers(regs);
 
 	panic("GDB Stub caused an unexpected exception - can't continue\n");
 
-	/* we caught an attempt by the stub to access silly memory */
+	
 fault:
 	gdbstub_entry("<-- gdbstub exception() = EFAULT\n");
 	regs->d0 = -EFAULT;
 	return;
 }
 
-/*
- * send an exit message to GDB
- */
 void gdbstub_exit(int status)
 {
 	unsigned char checksum;
@@ -1832,15 +1555,12 @@ void gdbstub_exit(int status)
 	gdbstub_io_tx_char(hex_asc_hi(checksum));
 	gdbstub_io_tx_char(hex_asc_lo(checksum));
 
-	/* make sure the output is flushed, or else RedBoot might clobber it */
+	
 	gdbstub_io_tx_flush();
 
 	gdbstub_busy = 0;
 }
 
-/*
- * initialise the GDB stub
- */
 asmlinkage void __init gdbstub_init(void)
 {
 #ifdef CONFIG_GDBSTUB_IMMEDIATE
@@ -1856,26 +1576,21 @@ asmlinkage void __init gdbstub_init(void)
 
 	gdbstub_entry("--> gdbstub_init\n");
 
-	/* try to talk to GDB (or anyone insane enough to want to type GDB
-	 * protocol by hand) */
 	gdbstub_io("### GDB Tx ACK\n");
-	gdbstub_io_tx_char('+'); /* 'hello world' */
+	gdbstub_io_tx_char('+'); 
 
 #ifdef CONFIG_GDBSTUB_IMMEDIATE
 	gdbstub_printk("GDB Stub waiting for packet\n");
 
-	/* in case GDB is started before us, ACK any packets that are already
-	 * sitting there (presumably "$?#xx")
-	 */
 	do { gdbstub_io_rx_char(&ch, 0); } while (ch != '$');
 	do { gdbstub_io_rx_char(&ch, 0); } while (ch != '#');
-	/* eat first csum byte */
+	
 	do { ret = gdbstub_io_rx_char(&ch, 0); } while (ret != 0);
-	/* eat second csum byte */
+	
 	do { ret = gdbstub_io_rx_char(&ch, 0); } while (ret != 0);
 
 	gdbstub_io("### GDB Tx NAK\n");
-	gdbstub_io_tx_char('-'); /* NAK it */
+	gdbstub_io_tx_char('-'); 
 
 #else
 	printk("GDB Stub ready\n");
@@ -1885,9 +1600,6 @@ asmlinkage void __init gdbstub_init(void)
 	gdbstub_entry("<-- gdbstub_init\n");
 }
 
-/*
- * register the console at a more appropriate time
- */
 #ifdef CONFIG_GDBSTUB_CONSOLE
 static int __init gdbstub_postinit(void)
 {
@@ -1899,10 +1611,6 @@ static int __init gdbstub_postinit(void)
 __initcall(gdbstub_postinit);
 #endif
 
-/*
- * handle character reception on GDB serial port
- * - jump into the GDB stub if BREAK is detected on the serial line
- */
 asmlinkage void gdbstub_rx_irq(struct pt_regs *regs, enum exception_code excep)
 {
 	char ch;

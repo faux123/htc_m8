@@ -7,4 +7,4 @@ struct i2c_sh_mobile_platform_data {
 	unsigned long bus_speed;
 };
 
-#endif /* __I2C_SH_MOBILE_H__ */
+#endif 

@@ -42,9 +42,6 @@ extern unsigned long __hypercall(unsigned long a1, unsigned long a2,
 				 unsigned long a3, unsigned long a4,
 				 unsigned long a5, unsigned long cmd);
 
-/*
- * Assembler stubs for hyper-calls.
- */
 
 #define _hypercall0(type, name)					\
 ({								\
@@ -198,10 +195,8 @@ xencomm_arch_hypercall_opt_feature(struct xencomm_handle *arg)
 	return _hypercall1(long, opt_feature, arg);
 }
 
-/* for balloon driver */
 #define HYPERVISOR_update_va_mapping(va, new_val, flags) (0)
 
-/* Use xencomm to do hypercalls.  */
 #define HYPERVISOR_sched_op xencomm_hypercall_sched_op
 #define HYPERVISOR_event_channel_op xencomm_hypercall_event_channel_op
 #define HYPERVISOR_callback_op xencomm_hypercall_callback_op
@@ -213,7 +208,6 @@ xencomm_arch_hypercall_opt_feature(struct xencomm_handle *arg)
 #define HYPERVISOR_vcpu_op xencomm_hypercall_vcpu_op
 #define HYPERVISOR_opt_feature xencomm_hypercall_opt_feature
 
-/* to compile gnttab_copy_grant_page() in drivers/xen/core/gnttab.c */
 #define HYPERVISOR_mmu_update(req, count, success_count, domid) ({ BUG(); 0; })
 
 static inline int
@@ -229,8 +223,7 @@ HYPERVISOR_shutdown(
 	return rc;
 }
 
-/* for netfront.c, netback.c */
-#define MULTI_UVMFLAGS_INDEX 0 /* XXX any value */
+#define MULTI_UVMFLAGS_INDEX 0 
 
 static inline void
 MULTI_update_va_mapping(
@@ -262,4 +255,4 @@ MULTI_mmu_update(struct multicall_entry *mcl, struct mmu_update *req,
 	mcl->args[3] = domid;
 }
 
-#endif /* _ASM_IA64_XEN_HYPERCALL_H */
+#endif 

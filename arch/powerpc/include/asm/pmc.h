@@ -39,11 +39,11 @@ static inline void ppc_set_pmu_inuse(int inuse)
 
 extern void power4_enable_pmcs(void);
 
-#else /* CONFIG_PPC64 */
+#else 
 
 static inline void ppc_set_pmu_inuse(int inuse) { }
 
 #endif
 
-#endif /* __KERNEL__ */
-#endif /* _POWERPC_PMC_H */
+#endif 
+#endif 

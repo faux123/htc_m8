@@ -31,13 +31,11 @@ static struct op_x86_model_spec *model;
 static DEFINE_PER_CPU(struct op_msrs, cpu_msrs);
 static DEFINE_PER_CPU(unsigned long, saved_lvtpc);
 
-/* must be protected with get_online_cpus()/put_online_cpus(): */
 static int nmi_enabled;
 static int ctr_running;
 
 struct op_counter_config counter_config[OP_MAX_COUNTER];
 
-/* common functions */
 
 u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
 		    struct op_counter_config *counter_config)
@@ -102,7 +100,7 @@ static int nmi_start(void)
 {
 	get_online_cpus();
 	ctr_running = 1;
-	/* make ctr_running visible to the nmi handler: */
+	
 	smp_mb();
 	on_each_cpu(nmi_cpu_start, NULL, 1);
 	put_online_cpus();
@@ -232,7 +230,7 @@ static void nmi_cpu_switch(void *dummy)
 	nmi_cpu_stop(NULL);
 	nmi_cpu_save_mpx_registers(msrs);
 
-	/* move to next set */
+	
 	si += model->num_counters;
 	if ((si >= model->num_virt_counters) || (counter_config[si].count == 0))
 		per_cpu(switch_index, cpu) = 0;
@@ -246,11 +244,6 @@ static void nmi_cpu_switch(void *dummy)
 }
 
 
-/*
- * Quick check to see if multiplexing is necessary.
- * The check should be sufficient since counters are used
- * in ordre.
- */
 static int nmi_multiplex_on(void)
 {
 	return counter_config[model->num_counters].count ? 0 : -EINVAL;
@@ -259,9 +252,9 @@ static int nmi_multiplex_on(void)
 static int nmi_switch_event(void)
 {
 	if (!has_mux())
-		return -ENOSYS;		/* not implemented */
+		return -ENOSYS;		
 	if (nmi_multiplex_on() < 0)
-		return -EINVAL;		/* not necessary */
+		return -EINVAL;		
 
 	get_online_cpus();
 	if (ctr_running)
@@ -375,11 +368,6 @@ static void nmi_cpu_shutdown(void *dummy)
 	int cpu = smp_processor_id();
 	struct op_msrs *msrs = &per_cpu(cpu_msrs, cpu);
 
-	/* restoring APIC_LVTPC can trigger an apic error because the delivery
-	 * mode and vector nr combination can be illegal. That's by design: on
-	 * power on apic lvt contain a zero vector nr which are legal only for
-	 * NMI delivery mode. So inhibit apic err before restoring lvtpc
-	 */
 	v = apic_read(APIC_LVTERR);
 	apic_write(APIC_LVTERR, v | APIC_LVT_MASKED);
 	apic_write(APIC_LVTPC, per_cpu(saved_lvtpc, cpu));
@@ -411,11 +399,6 @@ static int nmi_create_files(struct super_block *sb, struct dentry *root)
 		struct dentry *dir;
 		char buf[4];
 
-		/* quick little hack to _not_ expose a counter if it is not
-		 * available for use.  This should protect userspace app.
-		 * NOTE:  assumes 1:1 mapping here (that counters are organized
-		 *        sequentially in their struct assignment).
-		 */
 		if (!avail_to_resrv_perfctr_nmi_bit(op_x86_virt_to_phys(i)))
 			continue;
 
@@ -461,11 +444,8 @@ static int nmi_setup(void)
 	if (!allocate_msrs())
 		return -ENOMEM;
 
-	/* We need to serialize save and setup for HT because the subset
-	 * of msrs are distinct for save and setup operations
-	 */
 
-	/* Assume saved/restored counters are the same on all CPUs */
+	
 	err = model->fill_in_addresses(&per_cpu(cpu_msrs, 0));
 	if (err)
 		goto fail;
@@ -487,7 +467,7 @@ static int nmi_setup(void)
 
 	nmi_enabled = 0;
 	ctr_running = 0;
-	/* make variables visible to the nmi handler: */
+	
 	smp_mb();
 	err = register_nmi_handler(NMI_LOCAL, profile_exceptions_notify,
 					0, "oprofile");
@@ -497,7 +477,7 @@ static int nmi_setup(void)
 	get_online_cpus();
 	register_cpu_notifier(&oprofile_cpu_nb);
 	nmi_enabled = 1;
-	/* make nmi_enabled visible to the nmi handler: */
+	
 	smp_mb();
 	on_each_cpu(nmi_cpu_setup, NULL, 1);
 	put_online_cpus();
@@ -518,7 +498,7 @@ static void nmi_shutdown(void)
 	nmi_enabled = 0;
 	ctr_running = 0;
 	put_online_cpus();
-	/* make variables visible to the nmi handler: */
+	
 	smp_mb();
 	unregister_nmi_handler(NMI_LOCAL, "oprofile");
 	msrs = &get_cpu_var(cpu_msrs);
@@ -531,7 +511,7 @@ static void nmi_shutdown(void)
 
 static int nmi_suspend(void)
 {
-	/* Only one CPU left, just stop that one */
+	
 	if (nmi_enabled == 1)
 		nmi_cpu_stop(NULL);
 	return 0;
@@ -563,7 +543,7 @@ static void exit_suspend_resume(void)
 static inline void init_suspend_resume(void) { }
 static inline void exit_suspend_resume(void) { }
 
-#endif /* CONFIG_PM */
+#endif 
 
 static int __init p4_init(char **cpu_type)
 {
@@ -596,7 +576,7 @@ static int __init p4_init(char **cpu_type)
 }
 
 enum __force_cpu_type {
-	reserved = 0,		/* do not force */
+	reserved = 0,		
 	timer,
 	arch_perfmon,
 };
@@ -622,23 +602,11 @@ module_param_call(cpu_type, set_cpu_type, NULL, NULL, 0);
 static int __init ppro_init(char **cpu_type)
 {
 	__u8 cpu_model = boot_cpu_data.x86_model;
-	struct op_x86_model_spec *spec = &op_ppro_spec;	/* default */
+	struct op_x86_model_spec *spec = &op_ppro_spec;	
 
 	if (force_cpu_type == arch_perfmon && cpu_has_arch_perfmon)
 		return 0;
 
-	/*
-	 * Documentation on identifying Intel processors by CPU family
-	 * and model can be found in the Intel Software Developer's
-	 * Manuals (SDM):
-	 *
-	 *  http://www.intel.com/products/processor/manuals/
-	 *
-	 * As of May 2010 the documentation for this was in the:
-	 * "Intel 64 and IA-32 Architectures Software Developer's
-	 * Manual Volume 3B: System Programming Guide", "Table B-1
-	 * CPUID Signature Values of DisplayFamily_DisplayModel".
-	 */
 	switch (cpu_model) {
 	case 0 ... 2:
 		*cpu_type = "i386/ppro";
@@ -673,7 +641,7 @@ static int __init ppro_init(char **cpu_type)
 		*cpu_type = "i386/atom";
 		break;
 	default:
-		/* Unknown */
+		
 		return 0;
 	}
 
@@ -696,17 +664,13 @@ int __init op_nmi_init(struct oprofile_operations *ops)
 
 	switch (vendor) {
 	case X86_VENDOR_AMD:
-		/* Needs to be at least an Athlon (or hammer in 32bit mode) */
+		
 
 		switch (family) {
 		case 6:
 			cpu_type = "i386/athlon";
 			break;
 		case 0xf:
-			/*
-			 * Actually it could be i386/hammer too, but
-			 * give user space an consistent name.
-			 */
 			cpu_type = "x86-64/hammer";
 			break;
 		case 0x10:
@@ -732,12 +696,12 @@ int __init op_nmi_init(struct oprofile_operations *ops)
 
 	case X86_VENDOR_INTEL:
 		switch (family) {
-			/* Pentium IV */
+			
 		case 0xf:
 			p4_init(&cpu_type);
 			break;
 
-			/* A P6-class processor */
+			
 		case 6:
 			ppro_init(&cpu_type);
 			break;
@@ -752,7 +716,7 @@ int __init op_nmi_init(struct oprofile_operations *ops)
 		if (!cpu_has_arch_perfmon)
 			return -ENODEV;
 
-		/* use arch perfmon as fallback */
+		
 		cpu_type = "i386/arch_perfmon";
 		model = &op_arch_perfmon_spec;
 		break;

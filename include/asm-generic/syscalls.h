@@ -4,10 +4,6 @@
 #include <linux/compiler.h>
 #include <linux/linkage.h>
 
-/*
- * Calling conventions for these system calls can differ, so
- * it's possible to override them.
- */
 #ifndef sys_clone
 asmlinkage long sys_clone(unsigned long clone_flags, unsigned long newsp,
 			void __user *parent_tid, void __user *child_tid,
@@ -59,4 +55,4 @@ asmlinkage long sys_rt_sigaction(int sig, const struct sigaction __user *act,
 			 struct sigaction __user *oact, size_t sigsetsize);
 #endif
 
-#endif /* __ASM_GENERIC_SYSCALLS_H */
+#endif 

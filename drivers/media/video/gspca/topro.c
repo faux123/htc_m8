@@ -30,12 +30,10 @@ MODULE_LICENSE("GPL");
 
 static int force_sensor = -1;
 
-/* JPEG header */
 static const u8 jpeg_head[] = {
-	0xff, 0xd8,			/* jpeg */
+	0xff, 0xd8,			
 
-/* quantization table quality 50% */
-	0xff, 0xdb, 0x00, 0x84,		/* DQT */
+	0xff, 0xdb, 0x00, 0x84,		
 0,
 #define JPEG_QT0_OFFSET 7
 	0x10, 0x0b, 0x0c, 0x0e, 0x0c, 0x0a, 0x10, 0x0e,
@@ -57,7 +55,7 @@ static const u8 jpeg_head[] = {
 	0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 	0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 
-	/* Define Huffman table (thanks to Thomas Kaiser) */
+	
 	0xff, 0xc4, 0x01, 0x5e,
 	0x00, 0x00, 0x02, 0x03,
 	0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00,
@@ -103,19 +101,19 @@ static const u8 jpeg_head[] = {
 	0xc6, 0xc7, 0xc8, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6,
 	0xd7, 0xd8, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7,
 	0xe8, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
-	0xff, 0xc0, 0x00, 0x11,		/* SOF0 (start of frame 0 */
-	0x08,				/* data precision */
+	0xff, 0xc0, 0x00, 0x11,		
+	0x08,				
 #define JPEG_HEIGHT_OFFSET 493
-	0x01, 0xe0,			/* height */
-	0x02, 0x80,			/* width */
-	0x03,				/* component number */
+	0x01, 0xe0,			
+	0x02, 0x80,			
+	0x03,				
 		0x01,
-			0x21,		/* samples Y = jpeg 422 */
-			0x00,		/* quant Y */
-		0x02, 0x11, 0x01,	/* samples CbCr - quant CbCr */
+			0x21,		
+			0x00,		
+		0x02, 0x11, 0x01,	
 		0x03, 0x11, 0x01,
 
-	0xff, 0xda, 0x00, 0x0c,		/* SOS (start of scan) */
+	0xff, 0xda, 0x00, 0x0c,		
 	0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00
 #define JPEG_HDR_SZ 521
 };
@@ -129,20 +127,20 @@ enum e_ctrl {
 	BGAIN,
 	GAMMA,
 	AUTOGAIN,
-	NCTRLS		/* number of controls */
+	NCTRLS		
 };
 
 #define AUTOGAIN_DEF 1
 
 struct sd {
-	struct gspca_dev gspca_dev;	/* !! must be the first item */
+	struct gspca_dev gspca_dev;	
 
 	struct gspca_ctrl ctrls[NCTRLS];
 
 	u8 framerate;
-	u8 quality;		/* webcam current JPEG quality (0..16) */
-	s8 ag_cnt;		/* autogain / start counter for tp6810 */
-#define AG_CNT_START 13		/* check gain every N frames */
+	u8 quality;		
+	s8 ag_cnt;		
+#define AG_CNT_START 13		
 
 	u8 bridge;
 	u8 sensor;
@@ -157,7 +155,7 @@ enum bridges {
 
 enum sensors {
 	SENSOR_CX0342,
-	SENSOR_SOI763A,		/* ~= ov7630 / ov7648 */
+	SENSOR_SOI763A,		
 	NSENSORS
 };
 
@@ -172,11 +170,6 @@ static const struct v4l2_pix_format vga_mode[] = {
 		.colorspace = V4L2_COLORSPACE_JPEG}
 };
 
-/*
- * JPEG quality
- * index: webcam compression
- * value: JPEG quality in %
- */
 static const u8 jpeg_q[17] = {
 	88, 77, 67, 57, 55, 55, 45, 45, 36, 36, 30, 30, 26, 26, 22, 22, 94
 };
@@ -209,12 +202,7 @@ static const struct framerates framerates_6810[] = {
 	}
 };
 
-/*
- * webcam quality in %
- * the last value is the ultra fine quality
- */
 
-/* TP6800 register offsets */
 #define TP6800_R10_SIF_TYPE		0x10
 #define TP6800_R11_SIF_CONTROL		0x11
 #define TP6800_R12_SIF_ADDR_S		0x12
@@ -259,7 +247,6 @@ static const struct framerates framerates_6810[] = {
 #define TP6800_R79_QUALITY		0x79
 #define TP6800_R7A_BLK_THRLD		0x7a
 
-/* CX0342 register offsets */
 
 #define CX0342_SENSOR_ID		0x00
 #define CX0342_VERSION_NO		0x01
@@ -449,8 +436,8 @@ struct cmd {
 };
 
 static const u8 DQT[17][130] = {
-	/* Define quantization table (thanks to Thomas Kaiser) */
-	{			/* Quality 0 */
+	
+	{			
 	 0x00,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
@@ -470,7 +457,7 @@ static const u8 DQT[17][130] = {
 	 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
 	 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
 	 },
-	{			/* Quality 1 */
+	{			
 	 0x00,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
@@ -490,7 +477,7 @@ static const u8 DQT[17][130] = {
 	 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,
 	 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,
 	 },
-	{			/* Quality 2 */
+	{			
 	 0x00,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
 	 0x04, 0x04, 0x06, 0x06, 0x06, 0x04, 0x04, 0x04,
@@ -510,7 +497,7 @@ static const u8 DQT[17][130] = {
 	 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a,
 	 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a,
 	 },
-	{			/* Quality 3 */
+	{			
 	 0x00,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
 	 0x04, 0x04, 0x08, 0x08, 0x08, 0x04, 0x04, 0x04,
@@ -530,7 +517,7 @@ static const u8 DQT[17][130] = {
 	 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 	 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 	 },
-	{			/* Quality 4 */
+	{			
 	 0x00,
 	 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
 	 0x05, 0x05, 0x0a, 0x0a, 0x0a, 0x05, 0x05, 0x05,
@@ -550,7 +537,7 @@ static const u8 DQT[17][130] = {
 	 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b,
 	 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b,
 	 },
-	{			/* Quality 5 */
+	{			
 	 0x00,
 	 0x04, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
 	 0x06, 0x06, 0x0c, 0x0c, 0x0c, 0x06, 0x06, 0x06,
@@ -570,7 +557,7 @@ static const u8 DQT[17][130] = {
 	 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
 	 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
 	 },
-	{			/* Quality 6 */
+	{			
 	 0x00,
 	 0x05, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 	 0x07, 0x07, 0x0e, 0x0e, 0x0e, 0x07, 0x07, 0x07,
@@ -590,7 +577,7 @@ static const u8 DQT[17][130] = {
 	 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad,
 	 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad,
 	 },
-	{			/* Quality 7 */
+	{			
 	 0x00,
 	 0x05, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 	 0x08, 0x08, 0x10, 0x10, 0x10, 0x08, 0x08, 0x08,
@@ -610,7 +597,7 @@ static const u8 DQT[17][130] = {
 	 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
 	 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
 	 },
-	{			/* Quality 8 */
+	{			
 	 0x00,
 	 0x06, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
 	 0x0a, 0x0a, 0x14, 0x14, 0x14, 0x0a, 0x0a, 0x0a,
@@ -630,7 +617,7 @@ static const u8 DQT[17][130] = {
 	 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
 	 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
 	 },
-	{			/* Quality 9 */
+	{			
 	 0x00,
 	 0x06, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
 	 0x0c, 0x0c, 0x18, 0x18, 0x18, 0x0c, 0x0c, 0x0c,
@@ -650,7 +637,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 10 */
+	{			
 	 0x00,
 	 0x07, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e,
 	 0x0e, 0x0e, 0x1c, 0x1c, 0x1c, 0x0e, 0x0e, 0x0e,
@@ -670,7 +657,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 11 */
+	{			
 	 0x00,
 	 0x07, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
 	 0x10, 0x10, 0x20, 0x20, 0x20, 0x10, 0x10, 0x10,
@@ -690,7 +677,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 12 */
+	{			
 	 0x00,
 	 0x08, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
 	 0x14, 0x14, 0x28, 0x28, 0x28, 0x14, 0x14, 0x14,
@@ -710,7 +697,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 13 */
+	{			
 	 0x00,
 	 0x08, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
 	 0x18, 0x18, 0x30, 0x30, 0x30, 0x18, 0x18, 0x18,
@@ -730,7 +717,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 14 */
+	{			
 	 0x00,
 	 0x0a, 0x1c, 0x1c, 0x1c, 0x1c, 0x1c, 0x1c, 0x1c,
 	 0x1c, 0x1c, 0x38, 0x38, 0x38, 0x1c, 0x1c, 0x1c,
@@ -750,7 +737,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 15 */
+	{			
 	 0x00,
 	 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 	 0x20, 0x20, 0x40, 0x40, 0x40, 0x20, 0x20, 0x20,
@@ -770,7 +757,7 @@ static const u8 DQT[17][130] = {
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	 },
-	{			/* Quality 16-31 */
+	{			
 	 0x00,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
 	 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
@@ -919,7 +906,7 @@ static const struct cmd tp6810_late_start[] = {
 	{0xef, 0x13},
 	{0x7d, 0x02},
 
-	/* later after isoc start */
+	
 	{0x7d, 0x08},
 	{0x7d, 0x00},
 };
@@ -962,7 +949,6 @@ static const struct cmd cx0342_timing_seq[] = {
 	{CX0342_TIMING_EN, 0x01},
 };
 
-/* define the JPEG header */
 static void jpeg_define(u8 *jpeg_hdr,
 			int height,
 			int width)
@@ -974,7 +960,6 @@ static void jpeg_define(u8 *jpeg_hdr,
 	jpeg_hdr[JPEG_HEIGHT_OFFSET + 3] = width;
 }
 
-/* set the JPEG quality for sensor soi763a */
 static void jpeg_set_qual(u8 *jpeg_hdr,
 			  int quality)
 {
@@ -1009,7 +994,6 @@ static void reg_w(struct gspca_dev *gspca_dev, u8 index, u8 value)
 	}
 }
 
-/* the returned value is in gspca_dev->usb_buf */
 static void reg_r(struct gspca_dev *gspca_dev, u8 index)
 {
 	struct usb_device *dev = gspca_dev->dev;
@@ -1051,7 +1035,7 @@ static int i2c_w(struct gspca_dev *gspca_dev, u8 index, u8 value)
 	if (gspca_dev->usb_buf[0] == 0)
 		return 0;
 	reg_w(gspca_dev, TP6800_R11_SIF_CONTROL, 0x00);
-	return -1;				/* error */
+	return -1;				
 }
 
 static void i2c_w_buf(struct gspca_dev *gspca_dev,
@@ -1128,23 +1112,23 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
-	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x04);	/* i2c 16 bits */
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x21);	/* ov??? */
+	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x04);	
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x21);	
 	reg_w(gspca_dev, TP6800_R1A_SIF_TX_DATA2, 0x00);
 	if (i2c_w(gspca_dev, 0x00, 0x00) >= 0)
 		return SENSOR_SOI763A;
 
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	/* i2c 8 bits */
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x7f);	/* (unknown i2c) */
+	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x7f);	
 	if (i2c_w(gspca_dev, 0x00, 0x00) >= 0)
 		return -2;
 
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	/* i2c 8 bits */
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x11);	/* tas??? / hv??? */
+	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x11);	
 	ret = i2c_r(gspca_dev, 0x00, 1);
 	if (ret > 0)
 		return -3;
@@ -1152,7 +1136,7 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x6e);	/* po??? */
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x6e);	
 	ret = i2c_r(gspca_dev, 0x00, 1);
 	if (ret > 0)
 		return -4;
@@ -1164,8 +1148,8 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x04);	/* i2c 16 bits */
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x5d);	/* mi/mt??? */
+	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x04);	
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x5d);	
 	ret = i2c_r(gspca_dev, 0x00, 2);
 	if (ret > 0)
 		return -6;
@@ -1173,7 +1157,7 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x5c);	/* mi/mt??? */
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x5c);	
 	ret = i2c_r(gspca_dev, 0x36, 2);
 	if (ret > 0)
 		return -7;
@@ -1181,7 +1165,7 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x61);	/* (unknown i2c) */
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x61);	
 	reg_w(gspca_dev, TP6800_R1A_SIF_TX_DATA2, 0x10);
 	if (i2c_w(gspca_dev, 0xff, 0x00) >= 0)
 		return -8;
@@ -1189,8 +1173,8 @@ static int probe_6810(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio);
 	reg_w(gspca_dev, TP6800_R18_GPIO_DATA, gpio | 0x20);
-	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	/* i2c 8 bits */
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x20);	/* cx0342 */
+	reg_w(gspca_dev, TP6800_R10_SIF_TYPE, 0x00);	
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x20);	
 	ret = i2c_r(gspca_dev, 0x00, 1);
 	if (ret > 0)
 		return SENSOR_CX0342;
@@ -1254,7 +1238,7 @@ static void cx0342_6810_init(struct gspca_dev *gspca_dev)
 			ARRAY_SIZE(tp6810_cx_init_common));
 	reg_w_buf(gspca_dev, reg_init_2, ARRAY_SIZE(reg_init_2));
 
-	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x20);	/* cx0342 I2C addr */
+	reg_w(gspca_dev, TP6800_R12_SIF_ADDR_S, 0x20);	
 	i2c_w_buf(gspca_dev, sensor_init, ARRAY_SIZE(sensor_init));
 	i2c_w_buf(gspca_dev, cx0342_timing_seq, ARRAY_SIZE(cx0342_timing_seq));
 }
@@ -1284,7 +1268,7 @@ static void soi763a_6810_init(struct gspca_dev *gspca_dev)
 		{0x07, 0x00},
 		{0x08, 0xff},
 		{0x09, 0xff},
-		{0x0a, 0x76},		/* 7630 = soi673a */
+		{0x0a, 0x76},		
 		{0x0b, 0x30},
 		{0x0c, 0x20},
 		{0x0d, 0x20},
@@ -1305,7 +1289,7 @@ static void soi763a_6810_init(struct gspca_dev *gspca_dev)
 		{0x19, 0x05},
 		{0x1a, 0xf6},
 		{0x1b, 0x04},
-		{0x1c, 0x7f},		/* omnivision */
+		{0x1c, 0x7f},		
 		{0x1d, 0xa2},
 		{0x1e, 0x00},
 		{0x1f, 0x00},
@@ -1409,12 +1393,11 @@ static void soi763a_6810_init(struct gspca_dev *gspca_dev)
 			ARRAY_SIZE(tp6810_ov_init_common));
 	reg_w_buf(gspca_dev, reg_init_2, ARRAY_SIZE(reg_init_2));
 
-	i2c_w(gspca_dev, 0x12, 0x80);		/* sensor reset */
+	i2c_w(gspca_dev, 0x12, 0x80);		
 	msleep(10);
 	i2c_w_buf(gspca_dev, sensor_init, ARRAY_SIZE(sensor_init));
 }
 
-/* set the gain and exposure */
 static void setexposure(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -1446,20 +1429,18 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		return;
 	}
 
-	/* soi763a */
-	i2c_w(gspca_dev, 0x10,		/* AEC_H (exposure time) */
+	
+	i2c_w(gspca_dev, 0x10,		
 			 sd->ctrls[EXPOSURE].val);
-/*	i2c_w(gspca_dev, 0x76, 0x02);	 * AEC_L ([1:0] */
-	i2c_w(gspca_dev, 0x00,		/* gain */
+	i2c_w(gspca_dev, 0x00,		
 			 sd->ctrls[GAIN].val);
 }
 
-/* set the JPEG quantization tables */
 static void set_dqt(struct gspca_dev *gspca_dev, u8 q)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	/* update the jpeg quantization tables */
+	
 	PDEBUG(D_STREAM, "q %d -> %d", sd->quality, q);
 	sd->quality = q;
 	if (q > 16)
@@ -1471,7 +1452,6 @@ static void set_dqt(struct gspca_dev *gspca_dev, u8 q)
 			DQT[q], sizeof DQT[0]);
 }
 
-/* set the JPEG compression quality factor */
 static void setquality(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -1485,7 +1465,7 @@ static void setquality(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R79_QUALITY, 0x04);
 	reg_w(gspca_dev, TP6800_R79_QUALITY, q);
 
-	/* auto quality */
+	
 	if (q == 15 && sd->bridge == BRIDGE_TP6810) {
 		msleep(4);
 		reg_w(gspca_dev, TP6800_R7A_BLK_THRLD, 0x19);
@@ -1499,13 +1479,13 @@ static const u8 color_null[18] = {
 };
 static const u8 color_gain[NSENSORS][18] = {
 [SENSOR_CX0342] =
-	{0x4c, 0x00, 0xa9, 0x00, 0x31, 0x00,	/* Y R/G/B (LE values) */
-	 0xb6, 0x03, 0x6c, 0x03, 0xe0, 0x00,	/* U R/G/B */
-	 0xdf, 0x00, 0x46, 0x03, 0xdc, 0x03},	/* V R/G/B */
+	{0x4c, 0x00, 0xa9, 0x00, 0x31, 0x00,	
+	 0xb6, 0x03, 0x6c, 0x03, 0xe0, 0x00,	
+	 0xdf, 0x00, 0x46, 0x03, 0xdc, 0x03},	
 [SENSOR_SOI763A] =
-	{0x4c, 0x00, 0x95, 0x00, 0x1d, 0x00,	/* Y R/G/B (LE values) */
-	 0xb6, 0x03, 0x6c, 0x03, 0xd7, 0x00,	/* U R/G/B */
-	 0xd5, 0x00, 0x46, 0x03, 0xdc, 0x03},	/* V R/G/B */
+	{0x4c, 0x00, 0x95, 0x00, 0x1d, 0x00,	
+	 0xb6, 0x03, 0x6c, 0x03, 0xd7, 0x00,	
+	 0xd5, 0x00, 0x46, 0x03, 0xdc, 0x03},	
 };
 
 static void setgamma(struct gspca_dev *gspca_dev)
@@ -1514,7 +1494,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 	int gamma;
 #define NGAMMA 6
 	static const u8 gamma_tb[NGAMMA][3][1024] = {
-	    {				/* gamma 0 - from tp6800 + soi763a */
+	    {				
 		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1900,7 +1880,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb,
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb}
 	    },
-	    {				/* gamma 1 - from tp6810 + soi763a */
+	    {				
 		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2286,7 +2266,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 		 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 	    },
-	    {							/* gamma 2 */
+	    {							
 		{0x00, 0x01, 0x02, 0x05, 0x07, 0x08, 0x0a, 0x0c,
 		 0x0d, 0x0e, 0x10, 0x12, 0x14, 0x15, 0x16, 0x17,
 		 0x18, 0x1a, 0x1b, 0x1c, 0x1e, 0x1f, 0x20, 0x22,
@@ -2672,7 +2652,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb,
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb}
 	    },
-	    {				/* gamma 3 - from tp6810 + cx0342 */
+	    {				
 		{0x08, 0x09, 0x0c, 0x0d, 0x10, 0x11, 0x14, 0x15,
 		 0x17, 0x18, 0x1a, 0x1c, 0x1e, 0x1f, 0x20, 0x23,
 		 0x25, 0x26, 0x27, 0x28, 0x2b, 0x2c, 0x2d, 0x2f,
@@ -3058,7 +3038,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 		 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 	    },
-	    {				/* gamma 4 - from tp6800 + soi763a */
+	    {				
 		{0x11, 0x14, 0x15, 0x17, 0x1a, 0x1b, 0x1e, 0x1f,
 		 0x22, 0x23, 0x25, 0x27, 0x28, 0x2b, 0x2c, 0x2d,
 		 0x2f, 0x31, 0x33, 0x34, 0x35, 0x38, 0x39, 0x3a,
@@ -3444,7 +3424,7 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb,
 		 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb, 0xfb}
 	    },
-	    {							/* gamma 5 */
+	    {							
 		{0x16, 0x18, 0x19, 0x1b, 0x1d, 0x1e, 0x20, 0x21,
 		 0x23, 0x24, 0x25, 0x27, 0x28, 0x2a, 0x2b, 0x2c,
 		 0x2d, 0x2f, 0x30, 0x31, 0x32, 0x34, 0x35, 0x36,
@@ -3835,7 +3815,6 @@ static void setgamma(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, TP6800_R21_ENDP_1_CTL, 0x00);
 	if (sd->bridge == BRIDGE_TP6810)
 		reg_w(gspca_dev, 0x02, 0x28);
-/*	msleep(50); */
 	gamma = sd->ctrls[GAMMA].val;
 	bulk_w(gspca_dev, 0x00, gamma_tb[gamma][0], 1024);
 	bulk_w(gspca_dev, 0x01, gamma_tb[gamma][1], 1024);
@@ -3861,7 +3840,6 @@ static void setgamma(struct gspca_dev *gspca_dev)
 		reg_w(gspca_dev, 0x02, 0x28);
 	}
 	reg_w(gspca_dev, TP6800_R21_ENDP_1_CTL, 0x03);
-/*	msleep(50); */
 }
 
 static void setsharpness(struct gspca_dev *gspca_dev)
@@ -3871,11 +3849,11 @@ static void setsharpness(struct gspca_dev *gspca_dev)
 
 	if (sd->bridge == BRIDGE_TP6800) {
 		val = sd->ctrls[SHARPNESS].val
-				| 0x08;		/* grid compensation enable */
+				| 0x08;		
 		if (gspca_dev->width == 640)
-			reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00); /* vga */
+			reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00); 
 		else
-			val |= 0x04;		/* scaling down enable */
+			val |= 0x04;		
 		reg_w(gspca_dev, TP6800_R5D_DEMOSAIC_CFG, val);
 	} else {
 		val = (sd->ctrls[SHARPNESS].val << 5) | 0x08;
@@ -3898,7 +3876,6 @@ static void setautogain(struct gspca_dev *gspca_dev)
 	}
 }
 
-/* set the resolution for sensor cx0342 */
 static void set_resolution(struct gspca_dev *gspca_dev)
 {
 	reg_w(gspca_dev, TP6800_R21_ENDP_1_CTL, 0x00);
@@ -3908,7 +3885,7 @@ static void set_resolution(struct gspca_dev *gspca_dev)
 		i2c_w(gspca_dev, CX0342_AUTO_ADC_CALIB, 0x01);
 		msleep(100);
 		reg_w(gspca_dev, TP6800_R21_ENDP_1_CTL, 0x03);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	/* qvga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	
 		reg_w(gspca_dev, TP6800_R5D_DEMOSAIC_CFG, 0x0d);
 		i2c_w(gspca_dev, CX0342_EXPO_LINE_L, 0x37);
 		i2c_w(gspca_dev, CX0342_EXPO_LINE_H, 0x01);
@@ -3918,7 +3895,7 @@ static void set_resolution(struct gspca_dev *gspca_dev)
 		i2c_w(gspca_dev, CX0342_AUTO_ADC_CALIB, 0x01);
 		msleep(100);
 		reg_w(gspca_dev, TP6800_R21_ENDP_1_CTL, 0x03);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	/* vga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	
 		reg_w(gspca_dev, TP6800_R5D_DEMOSAIC_CFG, 0x09);
 		i2c_w(gspca_dev, CX0342_EXPO_LINE_L, 0xcf);
 		i2c_w(gspca_dev, CX0342_EXPO_LINE_H, 0x00);
@@ -3930,7 +3907,6 @@ static void set_resolution(struct gspca_dev *gspca_dev)
 	setquality(gspca_dev);
 }
 
-/* convert the frame rate to a tp68x0 value */
 static int get_fr_idx(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -3941,24 +3917,24 @@ static int get_fr_idx(struct gspca_dev *gspca_dev)
 			if (sd->framerate >= rates[i])
 				break;
 		}
-		i = 6 - i;		/* 1 = 5fps .. 6 = 30fps */
+		i = 6 - i;		
 
-		/* 640x480 * 30 fps does not work */
-		if (i == 6			/* if 30 fps */
+		
+		if (i == 6			
 		 && gspca_dev->width == 640)
-			i = 0x05;		/* 15 fps */
+			i = 0x05;		
 	} else {
 		for (i = 0; i < ARRAY_SIZE(rates_6810) - 1; i++) {
 			if (sd->framerate >= rates_6810[i])
 				break;
 		}
-		i = 7 - i;		/* 3 = 5fps .. 7 = 30fps */
+		i = 7 - i;		
 
-		/* 640x480 * 30 fps does not work */
-		if (i == 7			/* if 30 fps */
+		
+		if (i == 7			
 		 && gspca_dev->width == 640)
-			i = 6;			/* 15 fps */
-		i |= 0x80;			/* clock * 1 */
+			i = 6;			
+		i |= 0x80;			
 	}
 	return i;
 }
@@ -3975,7 +3951,7 @@ static void setframerate(struct gspca_dev *gspca_dev)
 		reg_w(gspca_dev, 0x7b,
 			sd->sensor == SENSOR_CX0342 ? 0x10 : 0x90);
 		if (sd->ctrls[EXPOSURE].val >= 128)
-			fr_idx = 0xf0;		/* lower frame rate */
+			fr_idx = 0xf0;		
 	}
 
 	reg_w(gspca_dev, TP6800_R3F_FRAME_RATE, fr_idx);
@@ -4026,7 +4002,6 @@ static void setbgain(struct gspca_dev *gspca_dev)
 	i2c_w(gspca_dev, CX0342_SYS_CTRL_0, 0x80);
 }
 
-/* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
 		     const struct usb_device_id *id)
 {
@@ -4039,29 +4014,28 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	gspca_dev->cam.mode_framerates = sd->bridge == BRIDGE_TP6800 ?
 			framerates : framerates_6810;
 
-	sd->framerate = 30;		/* default: 30 fps */
+	sd->framerate = 30;		
 	gspca_dev->cam.ctrls = sd->ctrls;
 	return 0;
 }
 
-/* this function is called at probe and resume time */
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	static const struct cmd tp6800_preinit[] = {
-		{TP6800_R10_SIF_TYPE, 0x01},	/* sif */
+		{TP6800_R10_SIF_TYPE, 0x01},	
 		{TP6800_R11_SIF_CONTROL, 0x01},
 		{TP6800_R15_GPIO_PU, 0x9f},
 		{TP6800_R16_GPIO_PD, 0x9f},
 		{TP6800_R17_GPIO_IO, 0x80},
-		{TP6800_R18_GPIO_DATA, 0x40},	/* LED off */
+		{TP6800_R18_GPIO_DATA, 0x40},	
 	};
 	static const struct cmd tp6810_preinit[] = {
 		{TP6800_R2F_TIMING_CFG, 0x2f},
 		{TP6800_R15_GPIO_PU, 0x6f},
 		{TP6800_R16_GPIO_PD, 0x40},
 		{TP6800_R17_GPIO_IO, 0x9f},
-		{TP6800_R18_GPIO_DATA, 0xc1},	/* LED off */
+		{TP6800_R18_GPIO_DATA, 0xc1},	
 	};
 
 	if (sd->bridge == BRIDGE_TP6800)
@@ -4073,19 +4047,12 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	msleep(15);
 	reg_r(gspca_dev, TP6800_R18_GPIO_DATA);
 	PDEBUG(D_PROBE, "gpio: %02x", gspca_dev->usb_buf[0]);
-/* values:
- *	0x80: snapshot button
- *	0x40: LED
- *	0x20: (bridge / sensor) reset for tp6810 ?
- *	0x07: sensor type ?
- */
 
-	/* guess the sensor type */
+	
 	if (force_sensor >= 0) {
 		sd->sensor = force_sensor;
 	} else {
 		if (sd->bridge == BRIDGE_TP6800) {
-/*fixme: not sure this is working*/
 			switch (gspca_dev->usb_buf[0] & 0x07) {
 			case 0:
 				sd->sensor = SENSOR_SOI763A;
@@ -4133,12 +4100,11 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	}
 
 	if (sd->bridge == BRIDGE_TP6810)
-		sd->ctrls[QUALITY].def = 0;	/* auto quality */
+		sd->ctrls[QUALITY].def = 0;	
 	set_dqt(gspca_dev, 0);
 	return 0;
 }
 
-/* This function is called before choosing the alt setting */
 static int sd_isoc_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -4159,9 +4125,9 @@ static int sd_isoc_init(struct gspca_dev *gspca_dev)
 		{0x4f, 0x00},
 	};
 	static const struct cmd ov_sensor_init[] = {
-		{0x10, 0x75},		/* exposure */
+		{0x10, 0x75},		
 		{0x76, 0x03},
-		{0x00, 0x00},		/* gain */
+		{0x00, 0x00},		
 	};
 	static const struct cmd ov_bridge_init[] = {
 		{0x7b, 0x90},
@@ -4208,10 +4174,9 @@ static void set_led(struct gspca_dev *gspca_dev, int on)
 static void cx0342_6800_start(struct gspca_dev *gspca_dev)
 {
 	static const struct cmd reg_init[] = {
-/*fixme: is this usefull?*/
 		{TP6800_R17_GPIO_IO, 0x9f},
 		{TP6800_R16_GPIO_PD, 0x40},
-		{TP6800_R10_SIF_TYPE, 0x00},	/* i2c 8 bits */
+		{TP6800_R10_SIF_TYPE, 0x00},	
 		{TP6800_R50, 0x00},
 		{TP6800_R51, 0x00},
 		{TP6800_R52, 0xff},
@@ -4220,7 +4185,7 @@ static void cx0342_6800_start(struct gspca_dev *gspca_dev)
 		{TP6800_R5C_EDGE_THRLD, 0x40},
 		{TP6800_R7A_BLK_THRLD, 0x40},
 		{TP6800_R2F_TIMING_CFG, 0x17},
-		{TP6800_R30_SENSOR_CFG, 0x18},	/* G1B..RG0 */
+		{TP6800_R30_SENSOR_CFG, 0x18},	
 		{TP6800_R37_FRONT_DARK_ST, 0x00},
 		{TP6800_R38_FRONT_DARK_END, 0x00},
 		{TP6800_R39_REAR_DARK_ST_L, 0x00},
@@ -4238,7 +4203,7 @@ static void cx0342_6800_start(struct gspca_dev *gspca_dev)
 		{TP6800_R35_LINE_END_L, 0xf4},
 		{TP6800_R36_LINE_END_H, 0x01},
 		{TP6800_R78_FORMAT, 0x00},
-		{TP6800_R12_SIF_ADDR_S, 0x20},	/* cx0342 i2c addr */
+		{TP6800_R12_SIF_ADDR_S, 0x20},	
 	};
 	static const struct cmd sensor_init[] = {
 		{CX0342_OUTPUT_CTRL, 0x07},
@@ -4331,7 +4296,6 @@ static void cx0342_6810_start(struct gspca_dev *gspca_dev)
 	static const struct cmd sensor_init_4[] = {
 		{CX0342_EXPO_LINE_L, 0xd3},
 		{CX0342_EXPO_LINE_H, 0x01},
-/*fixme: gains, but 00..80 only*/
 		{CX0342_RAW_GRGAIN_L, 0x40},
 		{CX0342_RAW_GBGAIN_L, 0x40},
 		{CX0342_RAW_RGAIN_L, 0x40},
@@ -4360,11 +4324,11 @@ static void cx0342_6810_start(struct gspca_dev *gspca_dev)
 	if (gspca_dev->curr_mode) {
 		reg_w(gspca_dev, 0x4a, 0x7f);
 		reg_w(gspca_dev, 0x07, 0x05);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	/* vga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	
 	} else {
 		reg_w(gspca_dev, 0x4a, 0xff);
 		reg_w(gspca_dev, 0x07, 0x85);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	/* qvga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	
 	}
 	setgamma(gspca_dev);
 	reg_w_buf(gspca_dev, tp6810_bridge_start,
@@ -4380,7 +4344,6 @@ static void cx0342_6810_start(struct gspca_dev *gspca_dev)
 	i2c_w_buf(gspca_dev, sensor_init_5, ARRAY_SIZE(sensor_init_5));
 
 	set_led(gspca_dev, 1);
-/*	setquality(gspca_dev); */
 }
 
 static void soi763a_6800_start(struct gspca_dev *gspca_dev)
@@ -4388,7 +4351,7 @@ static void soi763a_6800_start(struct gspca_dev *gspca_dev)
 	static const struct cmd reg_init[] = {
 		{TP6800_R79_QUALITY, 0x04},
 		{TP6800_R79_QUALITY, 0x01},
-		{TP6800_R10_SIF_TYPE, 0x00},	/* i2c 8 bits */
+		{TP6800_R10_SIF_TYPE, 0x00},	
 
 		{TP6800_R50, 0x00},
 		{TP6800_R51, 0x00},
@@ -4401,7 +4364,7 @@ static void soi763a_6800_start(struct gspca_dev *gspca_dev)
 		{TP6800_R7A_BLK_THRLD, 0x40},
 
 		{TP6800_R2F_TIMING_CFG, 0x46},
-		{TP6800_R30_SENSOR_CFG, 0x10},	/* BG1..G0R */
+		{TP6800_R30_SENSOR_CFG, 0x10},	
 		{TP6800_R37_FRONT_DARK_ST, 0x00},
 		{TP6800_R38_FRONT_DARK_END, 0x00},
 		{TP6800_R39_REAR_DARK_ST_L, 0x00},
@@ -4412,8 +4375,8 @@ static void soi763a_6800_start(struct gspca_dev *gspca_dev)
 		{TP6800_R3E_HORIZ_DARK_LINE_H, 0x00},
 		{TP6800_R21_ENDP_1_CTL, 0x03},
 
-		{TP6800_R3F_FRAME_RATE, 0x04},	/* 15 fps */
-		{TP6800_R5D_DEMOSAIC_CFG, 0x0e}, /* scale down - medium edge */
+		{TP6800_R3F_FRAME_RATE, 0x04},	
+		{TP6800_R5D_DEMOSAIC_CFG, 0x0e}, 
 
 		{TP6800_R31_PIXEL_START, 0x1b},
 		{TP6800_R32_PIXEL_END_L, 0x9a},
@@ -4421,21 +4384,21 @@ static void soi763a_6800_start(struct gspca_dev *gspca_dev)
 		{TP6800_R34_LINE_START, 0x0f},
 		{TP6800_R35_LINE_END_L, 0xf4},
 		{TP6800_R36_LINE_END_H, 0x01},
-		{TP6800_R78_FORMAT, 0x01},	/* qvga */
-		{TP6800_R12_SIF_ADDR_S, 0x21},	/* soi763a i2c addr */
+		{TP6800_R78_FORMAT, 0x01},	
+		{TP6800_R12_SIF_ADDR_S, 0x21},	
 		{TP6800_R1A_SIF_TX_DATA2, 0x00},
 	};
 	static const struct cmd sensor_init[] = {
-		{0x12, 0x48},		/* mirror - RGB */
-		{0x13, 0xa0},		/* clock - no AGC nor AEC */
-		{0x03, 0xa4},		/* saturation */
-		{0x04, 0x30},		/* hue */
-		{0x05, 0x88},		/* contrast */
-		{0x06, 0x60},		/* brightness */
-		{0x10, 0x41},		/* AEC */
-		{0x11, 0x40},		/* clock rate */
+		{0x12, 0x48},		
+		{0x13, 0xa0},		
+		{0x03, 0xa4},		
+		{0x04, 0x30},		
+		{0x05, 0x88},		
+		{0x06, 0x60},		
+		{0x10, 0x41},		
+		{0x11, 0x40},		
 		{0x13, 0xa0},
-		{0x14, 0x00},		/* 640x480 */
+		{0x14, 0x00},		
 		{0x15, 0x14},
 		{0x1f, 0x41},
 		{0x20, 0x80},
@@ -4466,17 +4429,17 @@ static void soi763a_6800_start(struct gspca_dev *gspca_dev)
 		{0x74, 0x20},
 		{0x75, 0x86},
 		{0x77, 0xb5},
-		{0x17, 0x18},		/* H href start */
-		{0x18, 0xbf},		/* H href end */
-		{0x19, 0x03},		/* V start */
-		{0x1a, 0xf8},		/* V end */
-		{0x01, 0x80},		/* blue gain */
-		{0x02, 0x80},		/* red gain */
+		{0x17, 0x18},		
+		{0x18, 0xbf},		
+		{0x19, 0x03},		
+		{0x1a, 0xf8},		
+		{0x01, 0x80},		
+		{0x02, 0x80},		
 	};
 
 	reg_w_buf(gspca_dev, reg_init, ARRAY_SIZE(reg_init));
 
-	i2c_w(gspca_dev, 0x12, 0x80);		/* sensor reset */
+	i2c_w(gspca_dev, 0x12, 0x80);		
 	msleep(10);
 
 	i2c_w_buf(gspca_dev, sensor_init, ARRAY_SIZE(sensor_init));
@@ -4528,11 +4491,11 @@ static void soi763a_6810_start(struct gspca_dev *gspca_dev)
 	if (gspca_dev->curr_mode) {
 		reg_w(gspca_dev, 0x4a, 0x7f);
 		reg_w(gspca_dev, 0x07, 0x05);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	/* vga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x00);	
 	} else {
 		reg_w(gspca_dev, 0x4a, 0xff);
 		reg_w(gspca_dev, 0x07, 0x85);
-		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	/* qvga */
+		reg_w(gspca_dev, TP6800_R78_FORMAT, 0x01);	
 	}
 	setgamma(gspca_dev);
 	reg_w_buf(gspca_dev, tp6810_bridge_start,
@@ -4554,7 +4517,6 @@ static void soi763a_6810_start(struct gspca_dev *gspca_dev)
 	reg_w_buf(gspca_dev, bridge_init_6, ARRAY_SIZE(bridge_init_6));
 }
 
-/* -- start the camera -- */
 static int sd_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -4602,16 +4564,8 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	/* the start of frame contains:
-	 *	ff d8
-	 *	ff fe
-	 *	width / 16
-	 *	height / 8
-	 *	quality
-	 */
 	if (sd->bridge == BRIDGE_TP6810) {
 		if (*data != 0x5a) {
-/*fixme: don't discard the whole frame..*/
 			if (*data == 0xaa || *data == 0x00)
 				return;
 			if (*data > 0xc0) {
@@ -4623,7 +4577,6 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 		data++;
 		len--;
 		if (*data == 0xff && data[1] == 0xd8) {
-/*fixme: there may be information in the 4 high bits*/
 			if ((data[6] & 0x0f) != sd->quality)
 				set_dqt(gspca_dev, data[6] & 0x0f);
 			gspca_frame_add(gspca_dev, FIRST_PACKET,
@@ -4648,7 +4601,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 		 || data[1] != 0xff || data[2] != 0xd8
 		 || data[3] != 0xff || data[4] != 0xfe) {
 
-			/* Have only seen this with corrupt frames */
+			
 			gspca_dev->last_packet_type = DISCARD_PACKET;
 			return;
 		}
@@ -4672,10 +4625,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	}
 }
 
-/* -- do autogain -- */
-/* gain setting is done in setexposure() for tp6810 */
 static void setgain(struct gspca_dev *gspca_dev) {}
-/* !! coarse_grained_expo_autogain is not used !! */
 #define exp_too_low_cnt bridge
 #define exp_too_high_cnt sensor
 
@@ -4691,7 +4641,6 @@ static void sd_dq_callback(struct gspca_dev *gspca_dev)
 	if (--sd->ag_cnt > 5)
 		return;
 	switch (sd->ag_cnt) {
-/*	case 5: */
 	default:
 		reg_w(gspca_dev, 0x7d, 0x00);
 		break;
@@ -4712,7 +4661,7 @@ static void sd_dq_callback(struct gspca_dev *gspca_dev)
 			pr_err("bulk err %d\n", ret);
 			break;
 		}
-		/* values not used (unknown) */
+		
 		break;
 	case 1:
 		reg_w(gspca_dev, 0x27, 0xd0);
@@ -4743,10 +4692,10 @@ static void sd_dq_callback(struct gspca_dev *gspca_dev)
 
 		expo = sd->ctrls[EXPOSURE].val;
 		ret = auto_gain_n_exposure(gspca_dev, luma,
-				60,	/* desired luma */
-				6,	/* dead zone */
-				2,	/* gain knee */
-				70);	/* expo knee */
+				60,	
+				6,	
+				2,	
+				70);	
 		sd->ag_cnt = AG_CNT_START;
 		if (sd->bridge == BRIDGE_TP6810) {
 			if ((expo >= 128 && sd->ctrls[EXPOSURE].val < 128)
@@ -4757,7 +4706,6 @@ static void sd_dq_callback(struct gspca_dev *gspca_dev)
 	}
 }
 
-/* get stream parameters (framerate) */
 static void sd_get_streamparm(struct gspca_dev *gspca_dev,
 			     struct v4l2_streamparm *parm)
 {
@@ -4780,7 +4728,6 @@ static void sd_get_streamparm(struct gspca_dev *gspca_dev,
 	tpf->denominator = fr;
 }
 
-/* set stream parameters (framerate) */
 static void sd_set_streamparm(struct gspca_dev *gspca_dev,
 			     struct v4l2_streamparm *parm)
 {
@@ -4793,7 +4740,7 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
 	if (gspca_dev->streaming)
 		setframerate(gspca_dev);
 
-	/* Return the actual framerate */
+	
 	i = get_fr_idx(gspca_dev);
 	if (i & 0x80)
 		fr = rates_6810[7 - (i & 0x07)];
@@ -4810,9 +4757,6 @@ static int sd_set_jcomp(struct gspca_dev *gspca_dev,
 
 	if (sd->sensor == SENSOR_SOI763A)
 		jpeg_set_qual(sd->jpeg_hdr, jcomp->quality);
-/*	else
-		fixme: TODO
-*/
 	return gspca_dev->usb_err;
 }
 
@@ -4947,7 +4891,7 @@ static const struct sd_desc sd_desc = {
 static const struct usb_device_id device_table[] = {
 	{USB_DEVICE(0x06a2, 0x0003), .driver_info = BRIDGE_TP6800},
 	{USB_DEVICE(0x06a2, 0x6810), .driver_info = BRIDGE_TP6810},
-	{}			/* Terminating entry */
+	{}			
 };
 
 MODULE_DEVICE_TABLE(usb, device_table);

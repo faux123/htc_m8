@@ -24,7 +24,7 @@
 		    "i" (sizeof(struct bug_entry)));		\
 } while (0)
 
-#else /* CONFIG_DEBUG_BUGVERBOSE */
+#else 
 
 #define __EMIT_BUG(x) do {				\
 	asm volatile(					\
@@ -39,7 +39,7 @@
 		    "i" (sizeof(struct bug_entry)));	\
 } while (0)
 
-#endif /* CONFIG_DEBUG_BUGVERBOSE */
+#endif 
 
 #define BUG() do {					\
 	__EMIT_BUG(0);					\
@@ -64,8 +64,8 @@
 
 #define HAVE_ARCH_BUG
 #define HAVE_ARCH_WARN_ON
-#endif /* CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
 
-#endif /* _ASM_S390_BUG_H */
+#endif 

@@ -3,4 +3,4 @@
 
 #include <asm-generic/siginfo.h>
 
-#endif /* __ASM_SH_SIGINFO_H */
+#endif 

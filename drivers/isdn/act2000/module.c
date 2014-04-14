@@ -27,9 +27,8 @@ static unsigned short act2000_isa_ports[] =
 
 static act2000_card *cards = (act2000_card *) NULL;
 
-/* Parameters to be set by insmod */
 static int   act_bus  =  0;
-static int   act_port = -1;  /* -1 = Autoprobe  */
+static int   act_port = -1;  
 static int   act_irq  = -1;
 static char *act_id   = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
@@ -56,9 +55,6 @@ find_channel(act2000_card *card, int channel)
 	return NULL;
 }
 
-/*
- * Free MSN list
- */
 static void
 act2000_clear_msn(act2000_card *card)
 {
@@ -76,11 +72,6 @@ act2000_clear_msn(act2000_card *card)
 	}
 }
 
-/*
- * Find an MSN entry in the list.
- * If ia5 != 0, return IA5-encoded EAZ, else
- * return a bitmask with corresponding bit set.
- */
 static __u16
 act2000_find_msn(act2000_card *card, char *msn, int ia5)
 {
@@ -100,10 +91,6 @@ act2000_find_msn(act2000_card *card, char *msn, int ia5)
 		return eaz;
 }
 
-/*
- * Find an EAZ entry in the list.
- * return a string with corresponding msn.
- */
 char *
 act2000_find_eaz(act2000_card *card, char eaz)
 {
@@ -117,12 +104,6 @@ act2000_find_eaz(act2000_card *card, char eaz)
 	return ("\0");
 }
 
-/*
- * Add or delete an MSN to the MSN list
- *
- * First character of msneaz is EAZ, rest is MSN.
- * If length of eazmsn is 1, delete that entry.
- */
 static int
 act2000_set_msn(act2000_card *card, char *eazmsn)
 {
@@ -139,7 +120,7 @@ act2000_set_msn(act2000_card *card, char *eazmsn)
 		if (!isdigit(eazmsn[i]))
 			return -EINVAL;
 	if (strlen(eazmsn) == 1) {
-		/* Delete a single MSN */
+		
 		while (p) {
 			if (p->eaz == eazmsn[0]) {
 				spin_lock_irqsave(&card->lock, flags);
@@ -159,9 +140,9 @@ act2000_set_msn(act2000_card *card, char *eazmsn)
 		}
 		return 0;
 	}
-	/* Add a single MSN */
+	
 	while (p) {
-		/* Found in list, replace MSN */
+		
 		if (p->eaz == eazmsn[0]) {
 			spin_lock_irqsave(&card->lock, flags);
 			strcpy(p->msn, &eazmsn[1]);
@@ -174,7 +155,7 @@ act2000_set_msn(act2000_card *card, char *eazmsn)
 		}
 		p = p->next;
 	}
-	/* Not found in list, add new entry */
+	
 	p = kmalloc(sizeof(msn_entry), GFP_KERNEL);
 	if (!p)
 		return -ENOMEM;
@@ -460,7 +441,7 @@ act2000_sendbuf(act2000_card *card, int channel, int ack, struct sk_buff *skb)
 	msg->msg.data_b3_req.datalen = len;
 	msg->msg.data_b3_req.blocknr = (msg->hdr.msgnum & 0xff);
 	msg->msg.data_b3_req.fakencci = MAKE_NCCI(chan->plci, 0, chan->ncci);
-	msg->msg.data_b3_req.flags = ack; /* Will be set to 0 on actual sending */
+	msg->msg.data_b3_req.flags = ack; 
 	actcapi_debug_msg(xmit_skb, 1);
 	chan->queued += len;
 	skb_queue_tail(&card->sndq, xmit_skb);
@@ -469,7 +450,6 @@ act2000_sendbuf(act2000_card *card, int channel, int ack, struct sk_buff *skb)
 }
 
 
-/* Read the Status-replies from the Interface */
 static int
 act2000_readstatus(u_char __user *buf, int len, act2000_card *card)
 {
@@ -486,9 +466,6 @@ act2000_readstatus(u_char __user *buf, int len, act2000_card *card)
 	return count;
 }
 
-/*
- * Find card with given driverId
- */
 static inline act2000_card *
 act2000_findcard(int driverid)
 {
@@ -502,9 +479,6 @@ act2000_findcard(int driverid)
 	return (act2000_card *) 0;
 }
 
-/*
- * Wrapper functions for interface to linklevel
- */
 static int
 if_command(isdn_ctrl *c)
 {
@@ -564,10 +538,6 @@ if_sendbuf(int id, int channel, int ack, struct sk_buff *skb)
 }
 
 
-/*
- * Allocate a new card-struct, initialize it
- * link it into cards-list.
- */
 static void
 act2000_alloccard(int bus, int port, int irq, char *id)
 {
@@ -616,9 +586,6 @@ act2000_alloccard(int bus, int port, int irq, char *id)
 	cards = card;
 }
 
-/*
- * register card at linklevel
- */
 static int
 act2000_registercard(act2000_card *card)
 {
@@ -679,12 +646,9 @@ act2000_addcard(int bus, int port, int irq, char *id)
 	if (!bus)
 		bus = ACT2000_BUS_ISA;
 	if (port != -1) {
-		/* Port defined, do fixed setup */
+		
 		act2000_alloccard(bus, port, irq, id);
 	} else {
-		/* No port defined, perform autoprobing.
-		 * This may result in more than one card detected.
-		 */
 		switch (bus) {
 		case ACT2000_BUS_ISA:
 			for (i = 0; i < ARRAY_SIZE(act2000_isa_ports); i++)
@@ -709,9 +673,6 @@ act2000_addcard(int bus, int port, int irq, char *id)
 	while (p) {
 		initialized = 0;
 		if (!p->interface.statcallb) {
-			/* Not yet registered.
-			 * Try to register and activate it.
-			 */
 			added++;
 			switch (p->bus) {
 			case ACT2000_BUS_ISA:
@@ -729,7 +690,7 @@ act2000_addcard(int bus, int port, int irq, char *id)
 					if (act2000_isa_config_irq(p, p->irq)) {
 						printk(KERN_INFO
 						       "act2000: No IRQ available, fallback to polling\n");
-						/* Fall back to polled operation */
+						
 						p->irq = 0;
 					}
 					printk(KERN_INFO
@@ -752,14 +713,14 @@ act2000_addcard(int bus, int port, int irq, char *id)
 				       p->bus);
 			}
 		} else
-			/* Card already initialized */
+			
 			initialized = 1;
 		if (initialized) {
-			/* Init OK, next card ... */
+			
 			q = p;
 			p = p->next;
 		} else {
-			/* Init failed, remove card from list, free memory */
+			
 			printk(KERN_WARNING
 			       "act2000: Initialization of %s failed\n",
 			       p->interface.id);

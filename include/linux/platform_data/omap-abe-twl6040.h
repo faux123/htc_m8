@@ -24,13 +24,12 @@
 #ifndef _OMAP_ABE_TWL6040_H_
 #define _OMAP_ABE_TWL6040_H_
 
-/* To select if only one channel is connected in a stereo port */
 #define ABE_TWL6040_LEFT	(1 << 0)
 #define ABE_TWL6040_RIGHT	(1 << 1)
 
 struct omap_abe_twl6040_data {
 	char *card_name;
-	/* Feature flags for connected audio pins */
+	
 	u8	has_hs;
 	u8	has_hf;
 	bool	has_ep;
@@ -41,9 +40,9 @@ struct omap_abe_twl6040_data {
 	bool	has_mainmic;
 	bool	has_submic;
 	u8	has_afm;
-	/* Other features */
-	bool	jack_detection;	/* board can detect jack events */
-	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
+	
+	bool	jack_detection;	
+	int	mclk_freq;	
 };
 
-#endif /* _OMAP_ABE_TWL6040_H_ */
+#endif 

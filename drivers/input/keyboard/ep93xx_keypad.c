@@ -31,14 +31,10 @@
 #include <mach/hardware.h>
 #include <mach/ep93xx_keypad.h>
 
-/*
- * Keypad Interface Register offsets
- */
-#define KEY_INIT		0x00	/* Key Scan Initialization register */
-#define KEY_DIAG		0x04	/* Key Scan Diagnostic register */
-#define KEY_REG			0x08	/* Key Value Capture register */
+#define KEY_INIT		0x00	
+#define KEY_DIAG		0x04	
+#define KEY_REG			0x08	
 
-/* Key Scan Initialization Register bit defines */
 #define KEY_INIT_DBNC_MASK	(0x00ff0000)
 #define KEY_INIT_DBNC_SHIFT	(16)
 #define KEY_INIT_DIS3KY		(1<<15)
@@ -48,11 +44,9 @@
 #define KEY_INIT_PRSCL_MASK	(0x000003ff)
 #define KEY_INIT_PRSCL_SHIFT	(0)
 
-/* Key Scan Diagnostic Register bit defines */
 #define KEY_DIAG_MASK		(0x0000003f)
 #define KEY_DIAG_SHIFT		(0)
 
-/* Key Value Capture Register bit defines */
 #define KEY_REG_K		(1<<15)
 #define KEY_REG_INT		(1<<14)
 #define KEY_REG_2KEYS		(1<<13)
@@ -183,12 +177,6 @@ static void ep93xx_keypad_close(struct input_dev *pdev)
 
 
 #ifdef CONFIG_PM
-/*
- * NOTE: I don't know if this is correct, or will work on the ep93xx.
- *
- * None of the existing ep93xx drivers have power management support.
- * But, this is basically what the pxa27x_keypad driver does.
- */
 static int ep93xx_keypad_suspend(struct platform_device *pdev,
 				 pm_message_t state)
 {
@@ -232,10 +220,10 @@ static int ep93xx_keypad_resume(struct platform_device *pdev)
 
 	return 0;
 }
-#else	/* !CONFIG_PM */
+#else	
 #define ep93xx_keypad_suspend	NULL
 #define ep93xx_keypad_resume	NULL
-#endif	/* !CONFIG_PM */
+#endif	
 
 static int __devinit ep93xx_keypad_probe(struct platform_device *pdev)
 {

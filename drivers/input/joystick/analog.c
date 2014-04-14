@@ -2,9 +2,6 @@
  *  Copyright (c) 1996-2001 Vojtech Pavlik
  */
 
-/*
- * Analog joystick and gamepad driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -43,9 +40,6 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Option parsing.
- */
 
 #define ANALOG_PORTS		16
 
@@ -55,9 +49,6 @@ static int analog_options[ANALOG_PORTS];
 module_param_array_named(map, js, charp, &js_nargs, 0);
 MODULE_PARM_DESC(map, "Describes analog joysticks type/capabilities");
 
-/*
- * Times, feature definitions.
- */
 
 #define ANALOG_RUDDER		0x00004
 #define ANALOG_THROTTLE		0x00008
@@ -83,14 +74,14 @@ MODULE_PARM_DESC(map, "Describes analog joysticks type/capabilities");
 #define ANALOG_EXTENSIONS	0x7ff00
 #define ANALOG_GAMEPAD		0x80000
 
-#define ANALOG_MAX_TIME		3	/* 3 ms */
-#define ANALOG_LOOP_TIME	2000	/* 2 * loop */
-#define ANALOG_SAITEK_DELAY	200	/* 200 us */
-#define ANALOG_SAITEK_TIME	2000	/* 2000 us */
-#define ANALOG_AXIS_TIME	2	/* 2 * refresh */
-#define ANALOG_INIT_RETRIES	8	/* 8 times */
-#define ANALOG_FUZZ_BITS	2	/* 2 bit more */
-#define ANALOG_FUZZ_MAGIC	36	/* 36 u*ms/loop */
+#define ANALOG_MAX_TIME		3	
+#define ANALOG_LOOP_TIME	2000	
+#define ANALOG_SAITEK_DELAY	200	
+#define ANALOG_SAITEK_TIME	2000	
+#define ANALOG_AXIS_TIME	2	
+#define ANALOG_INIT_RETRIES	8	
+#define ANALOG_FUZZ_BITS	2	
+#define ANALOG_FUZZ_MAGIC	36	
 
 #define ANALOG_MAX_NAME_LENGTH  128
 #define ANALOG_MAX_PHYS_LENGTH	32
@@ -130,9 +121,6 @@ struct analog_port {
 	int axtime;
 };
 
-/*
- * Time macros.
- */
 
 #ifdef __i386__
 
@@ -175,9 +163,6 @@ static unsigned long analog_faketime = 0;
 #warning Precise timer not defined for this architecture.
 #endif
 
-/*
- * analog_decode() decodes analog joystick data and reports input events.
- */
 
 static void analog_decode(struct analog *analog, int *axes, int *initial, int buttons)
 {
@@ -223,9 +208,6 @@ static void analog_decode(struct analog *analog, int *axes, int *initial, int bu
 	input_sync(dev);
 }
 
-/*
- * analog_cooked_read() reads analog joystick data.
- */
 
 static int analog_cooked_read(struct analog_port *port)
 {
@@ -304,9 +286,6 @@ static int analog_button_read(struct analog_port *port, char saitek, char chf)
 	return -(!t || (i == 16));
 }
 
-/*
- * analog_poll() repeatedly polls the Analog joysticks.
- */
 
 static void analog_poll(struct gameport *gameport)
 {
@@ -338,9 +317,6 @@ static void analog_poll(struct gameport *gameport)
 			analog_decode(port->analog + i, port->axes, port->initial, port->buttons);
 }
 
-/*
- * analog_open() is a callback from the input open routine.
- */
 
 static int analog_open(struct input_dev *dev)
 {
@@ -350,9 +326,6 @@ static int analog_open(struct input_dev *dev)
 	return 0;
 }
 
-/*
- * analog_close() is a callback from the input close routine.
- */
 
 static void analog_close(struct input_dev *dev)
 {
@@ -361,10 +334,6 @@ static void analog_close(struct input_dev *dev)
 	gameport_stop_polling(port->gameport);
 }
 
-/*
- * analog_calibrate_timer() calibrates the timer and computes loop
- * and timeout values for a joystick port.
- */
 
 static void analog_calibrate_timer(struct analog_port *port)
 {
@@ -400,9 +369,6 @@ static void analog_calibrate_timer(struct analog_port *port)
         port->loop = tx / 50;
 }
 
-/*
- * analog_name() constructs a name for an analog joystick.
- */
 
 static void analog_name(struct analog *analog)
 {
@@ -425,9 +391,6 @@ static void analog_name(struct analog *analog)
 		sizeof(analog->name));
 }
 
-/*
- * analog_init_device()
- */
 
 static int analog_init_device(struct analog_port *port, struct analog *analog, int index)
 {
@@ -517,9 +480,6 @@ static int analog_init_device(struct analog_port *port, struct analog *analog, i
 	return 0;
 }
 
-/*
- * analog_init_devices() sets up device-specific values and registers the input devices.
- */
 
 static int analog_init_masks(struct analog_port *port)
 {
@@ -538,7 +498,7 @@ static int analog_init_masks(struct analog_port *port)
 	}
 
 
-	i = analog_options[0]; /* FIXME !!! - need to specify options for different ports */
+	i = analog_options[0]; 
 
 	analog[0].mask = i & 0xfffff;
 
@@ -619,8 +579,8 @@ static int analog_init_port(struct gameport *gameport, struct gameport_driver *d
 		while ((gameport_read(port->gameport) & port->mask) && (v < t))
 			v++;
 
-		if (v < (u >> 1)) { /* FIXME - more than one port */
-			analog_options[0] |= /* FIXME - more than one port */
+		if (v < (u >> 1)) { 
+			analog_options[0] |= 
 				ANALOG_SAITEK | ANALOG_BTNS_CHF | ANALOG_HBTN_CHF | ANALOG_HAT1_CHF;
 			return 0;
 		}
@@ -745,9 +705,6 @@ static void analog_parse_options(void)
 		analog_options[i] = 0xff;
 }
 
-/*
- * The gameport device structure.
- */
 
 static struct gameport_driver analog_drv = {
 	.driver		= {

@@ -3,4 +3,4 @@
 
 #include <asm-generic/termbits.h>
 
-#endif /* _ASM_SCORE_TERMBITS_H */
+#endif 

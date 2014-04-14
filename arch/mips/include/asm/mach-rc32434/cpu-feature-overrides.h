@@ -25,9 +25,6 @@
 #ifndef __ASM_MACH_RC32434_CPU_FEATURE_OVERRIDES_H
 #define __ASM_MACH_RC32434_CPU_FEATURE_OVERRIDES_H
 
-/*
- * The IDT RC32434 SOC has a built-in MIPS 4Kc core.
- */
 #define cpu_has_tlb			1
 #define cpu_has_4kex			1
 #define cpu_has_3k_cache		0
@@ -62,7 +59,6 @@
 #define cpu_has_dsp			0
 #define cpu_has_mipsmt			0
 
-/* #define cpu_has_nofpuex		? */
 #define cpu_has_64bits			0
 #define cpu_has_64bit_zero_reg		0
 #define cpu_has_64bit_gp_regs		0
@@ -73,4 +69,4 @@
 #define cpu_dcache_line_size()		16
 #define cpu_icache_line_size()		16
 
-#endif /* __ASM_MACH_RC32434_CPU_FEATURE_OVERRIDES_H */
+#endif 

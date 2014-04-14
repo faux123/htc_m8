@@ -1,9 +1,3 @@
-/*
- * Picvue PVC160206 display driver
- *
- * Brian Murphy <brian.murphy@eicon.com>
- *
- */
 struct pvc_defs {
 	volatile u32 *reg;
 	u32 data_shift;

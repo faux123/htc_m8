@@ -1,7 +1,7 @@
 /*
  * Time related functions for Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -33,14 +33,6 @@
 #include <asm/timer-regs.h>
 #include <asm/hexagon_vm.h>
 
-/*
- * For the clocksource we need:
- *	pcycle frequency (600MHz)
- * For the loops_per_jiffy we need:
- *	thread/cpu frequency (100MHz)
- * And for the timer, we need:
- *	sleep clock rate
- */
 
 cycles_t	pcycle_freq_mhz;
 cycles_t	thread_freq_mhz;
@@ -61,15 +53,13 @@ static struct platform_device rtos_timer_device = {
 	.resource	= rtos_timer_resources,
 };
 
-/*  A lot of this stuff should move into a platform specific section.  */
 struct adsp_hw_timer_struct {
-	u32 match;   /*  Match value  */
+	u32 match;   
 	u32 count;
-	u32 enable;  /*  [1] - CLR_ON_MATCH_EN, [0] - EN  */
-	u32 clear;   /*  one-shot register that clears the count  */
+	u32 enable;  
+	u32 clear;   
 };
 
-/*  Look for "TCX0" for related constants.  */
 static __iomem struct adsp_hw_timer_struct *rtos_timer;
 
 static cycle_t timer_get_cycles(struct clocksource *cs)
@@ -87,7 +77,7 @@ static struct clocksource hexagon_clocksource = {
 
 static int set_next_event(unsigned long delta, struct clock_event_device *evt)
 {
-	/*  Assuming the timer will be disabled when we enter here.  */
+	
 
 	iowrite32(1, &rtos_timer->clear);
 	iowrite32(0, &rtos_timer->clear);
@@ -97,22 +87,18 @@ static int set_next_event(unsigned long delta, struct clock_event_device *evt)
 	return 0;
 }
 
-/*
- * Sets the mode (periodic, shutdown, oneshot, etc) of a timer.
- */
 static void set_mode(enum clock_event_mode mode,
 	struct clock_event_device *evt)
 {
 	switch (mode) {
 	case CLOCK_EVT_MODE_SHUTDOWN:
-		/* XXX implement me */
+		
 	default:
 		break;
 	}
 }
 
 #ifdef CONFIG_SMP
-/*  Broadcast mechanism  */
 static void broadcast(const struct cpumask *mask)
 {
 	send_ipi(mask, IPI_TIMER);
@@ -151,7 +137,6 @@ void setup_percpu_clockdev(void)
 	clockevents_register_device(dummy_clock_dev);
 }
 
-/*  Called from smp.c for each CPU's timer ipi call  */
 void ipi_timer(void)
 {
 	int cpu = smp_processor_id();
@@ -159,7 +144,7 @@ void ipi_timer(void)
 
 	ce_dev->event_handler(ce_dev);
 }
-#endif /* CONFIG_SMP */
+#endif 
 
 static irqreturn_t timer_interrupt(int irq, void *devid)
 {
@@ -171,22 +156,12 @@ static irqreturn_t timer_interrupt(int irq, void *devid)
 	return IRQ_HANDLED;
 }
 
-/*  This should also be pulled from devtree  */
 static struct irqaction rtos_timer_intdesc = {
 	.handler = timer_interrupt,
 	.flags = IRQF_TIMER | IRQF_TRIGGER_RISING,
 	.name = "rtos_timer"
 };
 
-/*
- * time_init_deferred - called by start_kernel to set up timer/clock source
- *
- * Install the IRQ handler for the clock, setup timers.
- * This is done late, as that way, we can use ioremap().
- *
- * This runs just before the delay loop is calibrated, and
- * is used for delay calibration.
- */
 void __init time_init_deferred(void)
 {
 	struct resource *resource = NULL;
@@ -200,7 +175,7 @@ void __init time_init_deferred(void)
 	if (!resource)
 		resource = rtos_timer_device.resource;
 
-	/*  ioremap here means this has to run later, after paging init  */
+	
 	rtos_timer = ioremap(resource->start, resource->end
 		- resource->start + 1);
 
@@ -210,12 +185,8 @@ void __init time_init_deferred(void)
 	}
 	clocksource_register_khz(&hexagon_clocksource, pcycle_freq_mhz * 1000);
 
-	/*  Note: the sim generic RTOS clock is apparently really 18750Hz  */
+	
 
-	/*
-	 * Last arg is some guaranteed seconds for which the conversion will
-	 * work without overflow.
-	 */
 	clockevents_calc_mult_shift(ce_dev, sleep_clk_freq, 4);
 
 	ce_dev->max_delta_ns = clockevent_delta2ns(0x7fffffff, ce_dev);
@@ -234,11 +205,7 @@ void __init time_init(void)
 	late_time_init = time_init_deferred;
 }
 
-/*
- * This could become parametric or perhaps even computed at run-time,
- * but for now we take the observed simulator jitter.
- */
-static long long fudgefactor = 350;  /* Maybe lower if kernel optimized. */
+static long long fudgefactor = 350;  
 
 void __udelay(unsigned long usecs)
 {
@@ -246,6 +213,6 @@ void __udelay(unsigned long usecs)
 	unsigned long long finish = (pcycle_freq_mhz * usecs) - fudgefactor;
 
 	while ((__vmgettime() - start) < finish)
-		cpu_relax(); /*  not sure how this improves readability  */
+		cpu_relax(); 
 }
 EXPORT_SYMBOL(__udelay);

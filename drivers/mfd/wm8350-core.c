@@ -37,7 +37,6 @@
 #define WM8350_CLOCK_CONTROL_1		0x28
 #define WM8350_AIF_TEST			0x74
 
-/* debug */
 #define WM8350_BUS_DEBUG 0
 #if WM8350_BUS_DEBUG
 #define dump(regs, src) do { \
@@ -59,14 +58,9 @@
 #define ldbg(format, arg...)
 #endif
 
-/*
- * WM8350 Device IO
- */
 static DEFINE_MUTEX(io_mutex);
 static DEFINE_MUTEX(reg_lock_mutex);
 
-/* Perform a physical read from the device.
- */
 static int wm8350_phys_read(struct wm8350 *wm8350, u8 reg, int num_regs,
 			    u16 *dest)
 {
@@ -77,10 +71,10 @@ static int wm8350_phys_read(struct wm8350 *wm8350, u8 reg, int num_regs,
 	ret = wm8350->read_dev(wm8350, reg, bytes, (char *)dest);
 
 	for (i = reg; i < reg + num_regs; i++) {
-		/* Cache is CPU endian */
+		
 		dest[i - reg] = be16_to_cpu(dest[i - reg]);
 
-		/* Mask out non-readable bits */
+		
 		dest[i - reg] &= wm8350_reg_io_map[i].readable;
 	}
 
@@ -109,7 +103,7 @@ static int wm8350_read(struct wm8350 *wm8350, u8 reg, int num_regs, u16 *dest)
 		"%s R%d(0x%2.2x) %d regs\n", __func__, reg, reg, num_regs);
 
 #if WM8350_BUS_DEBUG
-	/* we can _safely_ read any register, but warn if read not supported */
+	
 	for (i = reg; i < end; i++) {
 		if (!wm8350_reg_io_map[i].readable)
 			dev_warn(wm8350->dev,
@@ -117,12 +111,12 @@ static int wm8350_read(struct wm8350 *wm8350, u8 reg, int num_regs, u16 *dest)
 	}
 #endif
 
-	/* if any volatile registers are required, then read back all */
+	
 	for (i = reg; i < end; i++)
 		if (wm8350_reg_io_map[i].vol)
 			return wm8350_phys_read(wm8350, reg, num_regs, dest);
 
-	/* no volatiles, then cache is good */
+	
 	dev_dbg(wm8350->dev, "cache read\n");
 	memcpy(dest, &wm8350->reg_cache[reg], bytes);
 	dump(num_regs, dest);
@@ -158,7 +152,7 @@ static int wm8350_write(struct wm8350 *wm8350, u8 reg, int num_regs, u16 *src)
 		return -EINVAL;
 	}
 
-	/* it's generally not a good idea to write to RO or locked registers */
+	
 	for (i = reg; i < end; i++) {
 		if (!wm8350_reg_io_map[i].writable) {
 			dev_err(wm8350->dev,
@@ -181,13 +175,10 @@ static int wm8350_write(struct wm8350 *wm8350, u8 reg, int num_regs, u16 *src)
 		src[i - reg] = cpu_to_be16(src[i - reg]);
 	}
 
-	/* Actually write it out */
+	
 	return wm8350->write_dev(wm8350, reg, bytes, (char *)src);
 }
 
-/*
- * Safe read, modify, write methods
- */
 int wm8350_clear_bits(struct wm8350 *wm8350, u16 reg, u16 mask)
 {
 	u16 data;
@@ -291,13 +282,6 @@ int wm8350_block_write(struct wm8350 *wm8350, int start_reg, int regs,
 }
 EXPORT_SYMBOL_GPL(wm8350_block_write);
 
-/**
- * wm8350_reg_lock()
- *
- * The WM8350 has a hardware lock which can be used to prevent writes to
- * some registers (generally those which can cause particularly serious
- * problems if misused).  This function enables that lock.
- */
 int wm8350_reg_lock(struct wm8350 *wm8350)
 {
 	u16 key = WM8350_LOCK_KEY;
@@ -313,15 +297,6 @@ int wm8350_reg_lock(struct wm8350 *wm8350)
 }
 EXPORT_SYMBOL_GPL(wm8350_reg_lock);
 
-/**
- * wm8350_reg_unlock()
- *
- * The WM8350 has a hardware lock which can be used to prevent writes to
- * some registers (generally those which can cause particularly serious
- * problems if misused).  This function disables that lock so updates
- * can be performed.  For maximum safety this should be done only when
- * required.
- */
 int wm8350_reg_unlock(struct wm8350 *wm8350)
 {
 	u16 key = WM8350_UNLOCK_KEY;
@@ -349,7 +324,7 @@ int wm8350_read_auxadc(struct wm8350 *wm8350, int channel, int scale, int vref)
 
 	mutex_lock(&wm8350->auxadc_mutex);
 
-	/* Turn on the ADC */
+	
 	reg = wm8350_reg_read(wm8350, WM8350_POWER_MGMT_5);
 	wm8350_reg_write(wm8350, WM8350_POWER_MGMT_5, reg | WM8350_AUXADC_ENA);
 
@@ -363,13 +338,8 @@ int wm8350_read_auxadc(struct wm8350 *wm8350, int channel, int scale, int vref)
 	reg |= 1 << channel | WM8350_AUXADC_POLL;
 	wm8350_reg_write(wm8350, WM8350_DIGITISER_CONTROL_1, reg);
 
-	/* If a late IRQ left the completion signalled then consume
-	 * the completion. */
 	try_wait_for_completion(&wm8350->auxadc_done);
 
-	/* We ignore the result of the completion and just check for a
-	 * conversion result, allowing us to soldier on if the IRQ
-	 * infrastructure is not set up for the chip. */
 	wait_for_completion_timeout(&wm8350->auxadc_done, msecs_to_jiffies(5));
 
 	reg = wm8350_reg_read(wm8350, WM8350_DIGITISER_CONTROL_1);
@@ -379,7 +349,7 @@ int wm8350_read_auxadc(struct wm8350 *wm8350, int channel, int scale, int vref)
 		result = wm8350_reg_read(wm8350,
 					 WM8350_AUX1_READBACK + channel);
 
-	/* Turn off the ADC */
+	
 	reg = wm8350_reg_read(wm8350, WM8350_POWER_MGMT_5);
 	wm8350_reg_write(wm8350, WM8350_POWER_MGMT_5,
 			 reg & ~WM8350_AUXADC_ENA);
@@ -399,9 +369,6 @@ static irqreturn_t wm8350_auxadc_irq(int irq, void *irq_data)
 	return IRQ_HANDLED;
 }
 
-/*
- * Cache is always host endian.
- */
 static int wm8350_create_cache(struct wm8350 *wm8350, int type, int mode)
 {
 	int i, ret = 0;
@@ -511,10 +478,6 @@ static int wm8350_create_cache(struct wm8350 *wm8350, int type, int mode)
 	if (wm8350->reg_cache == NULL)
 		return -ENOMEM;
 
-	/* Read the initial cache state back from the device - this is
-	 * a PMIC so the device many not be in a virgin state and we
-	 * can't rely on the silicon values.
-	 */
 	ret = wm8350->read_dev(wm8350, 0,
 			       sizeof(u16) * (WM8350_MAX_REGISTER + 1),
 			       wm8350->reg_cache);
@@ -524,7 +487,7 @@ static int wm8350_create_cache(struct wm8350 *wm8350, int type, int mode)
 		goto out;
 	}
 
-	/* Mask out uncacheable/unreadable bits and the audio. */
+	
 	for (i = 0; i < WM8350_MAX_REGISTER; i++) {
 		if (wm8350_reg_io_map[i].readable &&
 		    (i < WM8350_CLOCK_CONTROL_1 || i > WM8350_AIF_TEST)) {
@@ -540,10 +503,6 @@ out:
 	return ret;
 }
 
-/*
- * Register a client device.  This is non-fatal since there is no need to
- * fail the entire device init due to a single platform device failing.
- */
 static void wm8350_client_dev_register(struct wm8350 *wm8350,
 				       const char *name,
 				       struct platform_device **pdev)
@@ -575,7 +534,7 @@ int wm8350_device_init(struct wm8350 *wm8350, int irq,
 
 	dev_set_drvdata(wm8350->dev, wm8350);
 
-	/* get WM8350 revision and config mode */
+	
 	ret = wm8350->read_dev(wm8350, WM8350_RESET_ID, sizeof(id1), &id1);
 	if (ret != 0) {
 		dev_err(wm8350->dev, "Failed to read ID: %d\n", ret);
@@ -640,7 +599,7 @@ int wm8350_device_init(struct wm8350 *wm8350, int irq,
 			wm8350->power.rev_g_coeff = 1;
 			break;
 		default:
-			/* For safety we refuse to run on unknown hardware */
+			
 			dev_err(wm8350->dev, "Unknown WM8350 CHIP_REV\n");
 			ret = -ENODEV;
 			goto err;

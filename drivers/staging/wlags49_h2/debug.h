@@ -64,27 +64,21 @@
 
 
 
-/* Turn on debugging here if not done with a preprocessor define */
 #ifndef DBG
 #define DBG 0
 #else
 #undef	DBG
 #define DBG 1
-#endif /* DBG */
+#endif 
 
 
 
 
 #if DBG
-/****************************************************************************/
 
-/* Set the level of debugging if not done with a preprocessor define. See
-   wl_main.c, init_module() for how the debug level translates into the
-   the types of messages displayed */
 #ifndef DBG_LVL
-#define DBG_LVL 5			/* yields nothing via init_module,
-							   original value of 5 yields DBG_TRACE_ON and DBG_VERBOSE_ON */
-#endif  /*  DBG_LVL*/
+#define DBG_LVL 5			
+#endif  
 
 
 #define DBG_ERROR_ON        0x00000001L
@@ -107,22 +101,22 @@
 
 #ifndef PRINTK
 #   define PRINTK(S...)     printk(S)
-#endif /* PRINTK */
+#endif 
 
 
 #ifndef DBG_PRINT
 #   define DBG_PRINT(S...)  PRINTK(KERN_DEBUG S)
-#endif /* DBG_PRINT */
+#endif 
 
 
 #ifndef DBG_PRINTC
 #   define DBG_PRINTC(S...) PRINTK(S)
-#endif /* DBG_PRINTC */
+#endif 
 
 
 #ifndef DBG_TRAP
 #   define DBG_TRAP         {}
-#endif /* DBG_TRAP */
+#endif 
 
 
 #define _ENTER_STR          ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
@@ -203,9 +197,7 @@ typedef struct {
 } dbg_info_t;
 
 
-/****************************************************************************/
-#else /* DBG */
-/****************************************************************************/
+#else 
 
 #define DBG_DEFN
 #define DBG_TRAP
@@ -223,11 +215,10 @@ typedef struct {
 #define DBG_DS(A, S...)
 #define DBG_ASSERT(C)
 
-#endif /* DBG */
-/****************************************************************************/
+#endif 
 
 
 
 
-#endif /* _DEBUG_H */
+#endif 
 

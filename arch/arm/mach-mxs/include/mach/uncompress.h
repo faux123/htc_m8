@@ -28,11 +28,6 @@ unsigned long mxs_duart_base;
 #define MXS_DUART_CR		0x30
 #define MXS_DUART_CR_UARTEN	(1 << 0)
 
-/*
- * The following code assumes the serial port has already been
- * initialized by the bootloader. If it's not, the output is
- * simply discarded.
- */
 
 static void putc(int ch)
 {
@@ -74,4 +69,4 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
 #define arch_decomp_setup()	__arch_decomp_setup(arch_id)
 #define arch_decomp_wdog()
 
-#endif /* __MACH_MXS_UNCOMPRESS_H__ */
+#endif 

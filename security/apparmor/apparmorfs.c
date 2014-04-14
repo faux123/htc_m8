@@ -27,17 +27,6 @@
 #include "include/policy.h"
 #include "include/resource.h"
 
-/**
- * aa_simple_write_to_buffer - common routine for getting policy from user
- * @op: operation doing the user buffer copy
- * @userbuf: user buffer to copy data from  (NOT NULL)
- * @alloc_size: size of user buffer (REQUIRES: @alloc_size >= @copy_size)
- * @copy_size: size of data to copy from user buffer
- * @pos: position write is at in the file (NOT NULL)
- *
- * Returns: kernel buffer containing copy of user buffer data or an
- *          ERR_PTR on failure.
- */
 static char *aa_simple_write_to_buffer(int op, const char __user *userbuf,
 				       size_t alloc_size, size_t copy_size,
 				       loff_t *pos)
@@ -47,17 +36,13 @@ static char *aa_simple_write_to_buffer(int op, const char __user *userbuf,
 	BUG_ON(copy_size > alloc_size);
 
 	if (*pos != 0)
-		/* only writes from pos 0, that is complete writes */
+		
 		return ERR_PTR(-ESPIPE);
 
-	/*
-	 * Don't allow profile load/replace/remove from profiles that don't
-	 * have CAP_MAC_ADMIN
-	 */
 	if (!aa_may_manage_policy(op))
 		return ERR_PTR(-EACCES);
 
-	/* freed by caller to simple_write_to_buffer */
+	
 	data = kvmalloc(alloc_size);
 	if (data == NULL)
 		return ERR_PTR(-ENOMEM);
@@ -71,7 +56,6 @@ static char *aa_simple_write_to_buffer(int op, const char __user *userbuf,
 }
 
 
-/* .load file hook fn to load policy */
 static ssize_t profile_load(struct file *f, const char __user *buf, size_t size,
 			    loff_t *pos)
 {
@@ -94,7 +78,6 @@ static const struct file_operations aa_fs_profile_load = {
 	.llseek = default_llseek,
 };
 
-/* .replace file hook fn to load and/or replace policy */
 static ssize_t profile_replace(struct file *f, const char __user *buf,
 			       size_t size, loff_t *pos)
 {
@@ -116,17 +99,12 @@ static const struct file_operations aa_fs_profile_replace = {
 	.llseek = default_llseek,
 };
 
-/* .remove file hook fn to remove loaded policy */
 static ssize_t profile_remove(struct file *f, const char __user *buf,
 			      size_t size, loff_t *pos)
 {
 	char *data;
 	ssize_t error;
 
-	/*
-	 * aa_remove_profile needs a null terminated string so 1 extra
-	 * byte is allocated and the copied data is null terminated.
-	 */
 	data = aa_simple_write_to_buffer(OP_PROF_RM, buf, size + 1, size, pos);
 
 	error = PTR_ERR(data);
@@ -162,7 +140,7 @@ static int aa_fs_seq_show(struct seq_file *seq, void *v)
 		seq_printf(seq, "%#08lx\n", fs_file->v.u64);
 		break;
 	default:
-		/* Ignore unpritable entry types. */
+		
 		break;
 	}
 
@@ -182,7 +160,6 @@ const struct file_operations aa_fs_seq_file_ops = {
 	.release	= single_release,
 };
 
-/** Base file system setup **/
 
 static struct aa_fs_entry aa_fs_entry_file[] = {
 	AA_FS_FILE_STRING("mask", "create read write exec append mmap_exec " \
@@ -217,13 +194,6 @@ static struct aa_fs_entry aa_fs_entry_apparmor[] = {
 static struct aa_fs_entry aa_fs_entry =
 	AA_FS_DIR("apparmor", aa_fs_entry_apparmor);
 
-/**
- * aafs_create_file - create a file entry in the apparmor securityfs
- * @fs_file: aa_fs_entry to build an entry for (NOT NULL)
- * @parent: the parent dentry in the securityfs
- *
- * Use aafs_remove_file to remove entries created with this fn.
- */
 static int __init aafs_create_file(struct aa_fs_entry *fs_file,
 				   struct dentry *parent)
 {
@@ -240,13 +210,6 @@ static int __init aafs_create_file(struct aa_fs_entry *fs_file,
 	return error;
 }
 
-/**
- * aafs_create_dir - recursively create a directory entry in the securityfs
- * @fs_dir: aa_fs_entry (and all child entries) to build (NOT NULL)
- * @parent: the parent dentry in the securityfs
- *
- * Use aafs_remove_dir to remove entries created with this fn.
- */
 static int __init aafs_create_dir(struct aa_fs_entry *fs_dir,
 				  struct dentry *parent)
 {
@@ -275,10 +238,6 @@ failed:
 	return error;
 }
 
-/**
- * aafs_remove_file - drop a single file entry in the apparmor securityfs
- * @fs_file: aa_fs_entry to detach from the securityfs (NOT NULL)
- */
 static void __init aafs_remove_file(struct aa_fs_entry *fs_file)
 {
 	if (!fs_file->dentry)
@@ -288,10 +247,6 @@ static void __init aafs_remove_file(struct aa_fs_entry *fs_file)
 	fs_file->dentry = NULL;
 }
 
-/**
- * aafs_remove_dir - recursively drop a directory entry from the securityfs
- * @fs_dir: aa_fs_entry (and all child entries) to detach (NOT NULL)
- */
 static void __init aafs_remove_dir(struct aa_fs_entry *fs_dir)
 {
 	struct aa_fs_entry *fs_file;
@@ -306,23 +261,11 @@ static void __init aafs_remove_dir(struct aa_fs_entry *fs_dir)
 	aafs_remove_file(fs_dir);
 }
 
-/**
- * aa_destroy_aafs - cleanup and free aafs
- *
- * releases dentries allocated by aa_create_aafs
- */
 void __init aa_destroy_aafs(void)
 {
 	aafs_remove_dir(&aa_fs_entry);
 }
 
-/**
- * aa_create_aafs - create the apparmor security filesystem
- *
- * dentries created here are released by aa_destroy_aafs
- *
- * Returns: error on failure
- */
 static int __init aa_create_aafs(void)
 {
 	int error;
@@ -335,14 +278,14 @@ static int __init aa_create_aafs(void)
 		return -EEXIST;
 	}
 
-	/* Populate fs tree. */
+	
 	error = aafs_create_dir(&aa_fs_entry, NULL);
 	if (error)
 		goto error;
 
-	/* TODO: add support for apparmorfs_null and apparmorfs_mnt */
+	
 
-	/* Report that AppArmor fs is enabled */
+	
 	aa_info_message("AppArmor Filesystem Enabled");
 	return 0;
 

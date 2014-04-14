@@ -13,27 +13,19 @@
 #include "internal.h"
 
 static const char cachefiles_charmap[64] =
-	"0123456789"			/* 0 - 9 */
-	"abcdefghijklmnopqrstuvwxyz"	/* 10 - 35 */
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"	/* 36 - 61 */
-	"_-"				/* 62 - 63 */
+	"0123456789"			
+	"abcdefghijklmnopqrstuvwxyz"	
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"	
+	"_-"				
 	;
 
 static const char cachefiles_filecharmap[256] = {
-	/* we skip space and tab and control chars */
-	[33 ... 46] = 1,		/* '!' -> '.' */
-	/* we skip '/' as it's significant to pathwalk */
-	[48 ... 127] = 1,		/* '0' -> '~' */
+	
+	[33 ... 46] = 1,		
+	
+	[48 ... 127] = 1,		
 };
 
-/*
- * turn the raw key into something cooked
- * - the raw key should include the length in the two bytes at the front
- * - the key may be up to 514 bytes in length (including the length word)
- *   - "base64" encode the strange keys, mapping 3 bytes of raw to four of
- *     cooked
- *   - need to cut the cooked key into 252 char lengths (189 raw bytes)
- */
 char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 {
 	unsigned char csum, ch;
@@ -54,27 +46,23 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 	}
 
 	if (print) {
-		/* if the path is usable ASCII, then we render it directly */
+		
 		max = keylen - 2;
-		max += 2;	/* two base64'd length chars on the front */
-		max += 5;	/* @checksum/M */
-		max += 3 * 2;	/* maximum number of segment dividers (".../M")
-				 * is ((514 + 251) / 252) = 3
-				 */
-		max += 1;	/* NUL on end */
+		max += 2;	
+		max += 5;	
+		max += 3 * 2;	
+		max += 1;	
 	} else {
-		/* calculate the maximum length of the cooked key */
+		
 		keylen = (keylen + 2) / 3;
 
 		max = keylen * 4;
-		max += 5;	/* @checksum/M */
-		max += 3 * 2;	/* maximum number of segment dividers (".../M")
-				 * is ((514 + 188) / 189) = 3
-				 */
-		max += 1;	/* NUL on end */
+		max += 5;	
+		max += 3 * 2;	
+		max += 1;	
 	}
 
-	max += 1;	/* 2nd NUL on end */
+	max += 1;	
 
 	_debug("max: %d", max);
 
@@ -84,7 +72,7 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 
 	len = 0;
 
-	/* build the cooked key */
+	
 	sprintf(key, "@%02x%c+", (unsigned) csum, 0);
 	len = 5;
 	mark = len - 1;

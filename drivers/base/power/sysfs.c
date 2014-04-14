@@ -1,6 +1,3 @@
-/*
- * drivers/base/power/sysfs.c - sysfs entries for device PM
- */
 
 #include <linux/device.h>
 #include <linux/string.h>
@@ -243,7 +240,7 @@ static ssize_t pm_qos_latency_store(struct device *dev,
 
 static DEVICE_ATTR(pm_qos_resume_latency_us, 0644,
 		   pm_qos_latency_show, pm_qos_latency_store);
-#endif /* CONFIG_PM_RUNTIME */
+#endif 
 
 #ifdef CONFIG_PM_SLEEP
 static ssize_t
@@ -314,22 +311,41 @@ static ssize_t wakeup_active_count_show(struct device *dev,
 
 static DEVICE_ATTR(wakeup_active_count, 0444, wakeup_active_count_show, NULL);
 
-static ssize_t wakeup_hit_count_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+static ssize_t wakeup_abort_count_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	unsigned long count = 0;
 	bool enabled = false;
 
 	spin_lock_irq(&dev->power.lock);
 	if (dev->power.wakeup) {
-		count = dev->power.wakeup->hit_count;
+		count = dev->power.wakeup->wakeup_count;
 		enabled = true;
 	}
 	spin_unlock_irq(&dev->power.lock);
 	return enabled ? sprintf(buf, "%lu\n", count) : sprintf(buf, "\n");
 }
 
-static DEVICE_ATTR(wakeup_hit_count, 0444, wakeup_hit_count_show, NULL);
+static DEVICE_ATTR(wakeup_abort_count, 0444, wakeup_abort_count_show, NULL);
+
+static ssize_t wakeup_expire_count_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
+{
+	unsigned long count = 0;
+	bool enabled = false;
+
+	spin_lock_irq(&dev->power.lock);
+	if (dev->power.wakeup) {
+		count = dev->power.wakeup->expire_count;
+		enabled = true;
+	}
+	spin_unlock_irq(&dev->power.lock);
+	return enabled ? sprintf(buf, "%lu\n", count) : sprintf(buf, "\n");
+}
+
+static DEVICE_ATTR(wakeup_expire_count, 0444, wakeup_expire_count_show, NULL);
 
 static ssize_t wakeup_active_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
@@ -398,7 +414,28 @@ static ssize_t wakeup_last_time_show(struct device *dev,
 }
 
 static DEVICE_ATTR(wakeup_last_time_ms, 0444, wakeup_last_time_show, NULL);
-#endif /* CONFIG_PM_SLEEP */
+
+#ifdef CONFIG_PM_AUTOSLEEP
+static ssize_t wakeup_prevent_sleep_time_show(struct device *dev,
+					      struct device_attribute *attr,
+					      char *buf)
+{
+	s64 msec = 0;
+	bool enabled = false;
+
+	spin_lock_irq(&dev->power.lock);
+	if (dev->power.wakeup) {
+		msec = ktime_to_ms(dev->power.wakeup->prevent_sleep_time);
+		enabled = true;
+	}
+	spin_unlock_irq(&dev->power.lock);
+	return enabled ? sprintf(buf, "%lld\n", msec) : sprintf(buf, "\n");
+}
+
+static DEVICE_ATTR(wakeup_prevent_sleep_time_ms, 0444,
+		   wakeup_prevent_sleep_time_show, NULL);
+#endif 
+#endif 
 
 #ifdef CONFIG_PM_ADVANCED_DEBUG
 #ifdef CONFIG_PM_RUNTIME
@@ -460,7 +497,7 @@ static ssize_t async_store(struct device *dev, struct device_attribute *attr,
 }
 
 static DEVICE_ATTR(async, 0644, async_show, async_store);
-#endif /* CONFIG_PM_ADVANCED_DEBUG */
+#endif 
 
 static struct attribute *power_attrs[] = {
 #ifdef CONFIG_PM_ADVANCED_DEBUG
@@ -473,7 +510,7 @@ static struct attribute *power_attrs[] = {
 	&dev_attr_runtime_active_kids.attr,
 	&dev_attr_runtime_enabled.attr,
 #endif
-#endif /* CONFIG_PM_ADVANCED_DEBUG */
+#endif 
 	NULL,
 };
 static struct attribute_group pm_attr_group = {
@@ -486,11 +523,15 @@ static struct attribute *wakeup_attrs[] = {
 	&dev_attr_wakeup.attr,
 	&dev_attr_wakeup_count.attr,
 	&dev_attr_wakeup_active_count.attr,
-	&dev_attr_wakeup_hit_count.attr,
+	&dev_attr_wakeup_abort_count.attr,
+	&dev_attr_wakeup_expire_count.attr,
 	&dev_attr_wakeup_active.attr,
 	&dev_attr_wakeup_total_time_ms.attr,
 	&dev_attr_wakeup_max_time_ms.attr,
 	&dev_attr_wakeup_last_time_ms.attr,
+#ifdef CONFIG_PM_AUTOSLEEP
+	&dev_attr_wakeup_prevent_sleep_time_ms.attr,
+#endif
 #endif
 	NULL,
 };
@@ -508,7 +549,7 @@ static struct attribute *runtime_attrs[] = {
 	&dev_attr_runtime_suspended_time.attr,
 	&dev_attr_runtime_active_time.attr,
 	&dev_attr_autosuspend_delay_ms.attr,
-#endif /* CONFIG_PM_RUNTIME */
+#endif 
 	NULL,
 };
 static struct attribute_group pm_runtime_attr_group = {
@@ -519,7 +560,7 @@ static struct attribute_group pm_runtime_attr_group = {
 static struct attribute *pm_qos_attrs[] = {
 #ifdef CONFIG_PM_RUNTIME
 	&dev_attr_pm_qos_resume_latency_us.attr,
-#endif /* CONFIG_PM_RUNTIME */
+#endif 
 	NULL,
 };
 static struct attribute_group pm_qos_attr_group = {

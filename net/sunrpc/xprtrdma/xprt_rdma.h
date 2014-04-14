@@ -40,23 +40,20 @@
 #ifndef _LINUX_SUNRPC_XPRT_RDMA_H
 #define _LINUX_SUNRPC_XPRT_RDMA_H
 
-#include <linux/wait.h> 		/* wait_queue_head_t, etc */
-#include <linux/spinlock.h> 		/* spinlock_t, etc */
-#include <linux/atomic.h>			/* atomic_t, etc */
+#include <linux/wait.h> 		
+#include <linux/spinlock.h> 		
+#include <linux/atomic.h>			
 
-#include <rdma/rdma_cm.h>		/* RDMA connection api */
-#include <rdma/ib_verbs.h>		/* RDMA verbs api */
+#include <rdma/rdma_cm.h>		
+#include <rdma/ib_verbs.h>		
 
-#include <linux/sunrpc/clnt.h> 		/* rpc_xprt */
-#include <linux/sunrpc/rpc_rdma.h> 	/* RPC/RDMA protocol */
-#include <linux/sunrpc/xprtrdma.h> 	/* xprt parameters */
+#include <linux/sunrpc/clnt.h> 		
+#include <linux/sunrpc/rpc_rdma.h> 	
+#include <linux/sunrpc/xprtrdma.h> 	
 
-#define RDMA_RESOLVE_TIMEOUT	(5000)	/* 5 seconds */
-#define RDMA_CONNECT_RETRY_MAX	(2)	/* retries if no listener backlog */
+#define RDMA_RESOLVE_TIMEOUT	(5000)	
+#define RDMA_CONNECT_RETRY_MAX	(2)	
 
-/*
- * Interface Adapter -- one per transport instance
- */
 struct rpcrdma_ia {
 	struct rdma_cm_id 	*ri_id;
 	struct ib_pd		*ri_pd;
@@ -68,9 +65,6 @@ struct rpcrdma_ia {
 	enum rpcrdma_memreg	ri_memreg_strategy;
 };
 
-/*
- * RDMA Endpoint -- one per transport instance
- */
 
 struct rpcrdma_ep {
 	atomic_t		rep_cqcount;
@@ -80,10 +74,10 @@ struct rpcrdma_ep {
 	struct ib_cq		*rep_cq;
 	struct ib_qp_init_attr	rep_attr;
 	wait_queue_head_t 	rep_connect_wait;
-	struct ib_sge		rep_pad;	/* holds zeroed pad */
-	struct ib_mr		*rep_pad_mr;	/* holds zeroed pad */
+	struct ib_sge		rep_pad;	
+	struct ib_mr		*rep_pad_mr;	
 	void			(*rep_func)(struct rpcrdma_ep *);
-	struct rpc_xprt		*rep_xprt;	/* for rep_func */
+	struct rpc_xprt		*rep_xprt;	
 	struct rdma_conn_param	rep_remote_cma;
 	struct sockaddr_storage	rep_remote_addr;
 };
@@ -91,73 +85,33 @@ struct rpcrdma_ep {
 #define INIT_CQCOUNT(ep) atomic_set(&(ep)->rep_cqcount, (ep)->rep_cqinit)
 #define DECR_CQCOUNT(ep) atomic_sub_return(1, &(ep)->rep_cqcount)
 
-/*
- * struct rpcrdma_rep -- this structure encapsulates state required to recv
- * and complete a reply, asychronously. It needs several pieces of
- * state:
- *   o recv buffer (posted to provider)
- *   o ib_sge (also donated to provider)
- *   o status of reply (length, success or not)
- *   o bookkeeping state to get run by tasklet (list, etc)
- *
- * These are allocated during initialization, per-transport instance;
- * however, the tasklet execution list itself is global, as it should
- * always be pretty short.
- *
- * N of these are associated with a transport instance, and stored in
- * struct rpcrdma_buffer. N is the max number of outstanding requests.
- */
 
-/* temporary static scatter/gather max */
-#define RPCRDMA_MAX_DATA_SEGS	(64)	/* max scatter/gather */
-#define RPCRDMA_MAX_SEGS 	(RPCRDMA_MAX_DATA_SEGS + 2) /* head+tail = 2 */
+#define RPCRDMA_MAX_DATA_SEGS	(64)	
+#define RPCRDMA_MAX_SEGS 	(RPCRDMA_MAX_DATA_SEGS + 2) 
 #define MAX_RPCRDMAHDR	(\
-	/* max supported RPC/RDMA header */ \
+	 \
 	sizeof(struct rpcrdma_msg) + (2 * sizeof(u32)) + \
 	(sizeof(struct rpcrdma_read_chunk) * RPCRDMA_MAX_SEGS) + sizeof(u32))
 
 struct rpcrdma_buffer;
 
 struct rpcrdma_rep {
-	unsigned int	rr_len;		/* actual received reply length */
-	struct rpcrdma_buffer *rr_buffer; /* home base for this structure */
-	struct rpc_xprt	*rr_xprt;	/* needed for request/reply matching */
-	void (*rr_func)(struct rpcrdma_rep *);/* called by tasklet in softint */
-	struct list_head rr_list;	/* tasklet list */
-	wait_queue_head_t rr_unbind;	/* optional unbind wait */
-	struct ib_sge	rr_iov;		/* for posting */
-	struct ib_mr	*rr_handle;	/* handle for mem in rr_iov */
-	char	rr_base[MAX_RPCRDMAHDR]; /* minimal inline receive buffer */
+	unsigned int	rr_len;		
+	struct rpcrdma_buffer *rr_buffer; 
+	struct rpc_xprt	*rr_xprt;	
+	void (*rr_func)(struct rpcrdma_rep *);
+	struct list_head rr_list;	
+	wait_queue_head_t rr_unbind;	
+	struct ib_sge	rr_iov;		
+	struct ib_mr	*rr_handle;	
+	char	rr_base[MAX_RPCRDMAHDR]; 
 };
 
-/*
- * struct rpcrdma_req -- structure central to the request/reply sequence.
- *
- * N of these are associated with a transport instance, and stored in
- * struct rpcrdma_buffer. N is the max number of outstanding requests.
- *
- * It includes pre-registered buffer memory for send AND recv.
- * The recv buffer, however, is not owned by this structure, and
- * is "donated" to the hardware when a recv is posted. When a
- * reply is handled, the recv buffer used is given back to the
- * struct rpcrdma_req associated with the request.
- *
- * In addition to the basic memory, this structure includes an array
- * of iovs for send operations. The reason is that the iovs passed to
- * ib_post_{send,recv} must not be modified until the work request
- * completes.
- *
- * NOTES:
- *   o RPCRDMA_MAX_SEGS is the max number of addressible chunk elements we
- *     marshal. The number needed varies depending on the iov lists that
- *     are passed to us, the memory registration mode we are in, and if
- *     physical addressing is used, the layout.
- */
 
-struct rpcrdma_mr_seg {		/* chunk descriptors */
-	union {				/* chunk memory handles */
-		struct ib_mr	*rl_mr;		/* if registered directly */
-		struct rpcrdma_mw {		/* if registered from region */
+struct rpcrdma_mr_seg {		
+	union {				
+		struct ib_mr	*rl_mr;		
+		struct rpcrdma_mw {		
 			union {
 				struct ib_mw	*mw;
 				struct ib_fmr	*fmr;
@@ -170,46 +124,40 @@ struct rpcrdma_mr_seg {		/* chunk descriptors */
 			struct list_head mw_list;
 		} *rl_mw;
 	} mr_chunk;
-	u64		mr_base;	/* registration result */
-	u32		mr_rkey;	/* registration result */
-	u32		mr_len;		/* length of chunk or segment */
-	int		mr_nsegs;	/* number of segments in chunk or 0 */
-	enum dma_data_direction	mr_dir;	/* segment mapping direction */
-	dma_addr_t	mr_dma;		/* segment mapping address */
-	size_t		mr_dmalen;	/* segment mapping length */
-	struct page	*mr_page;	/* owning page, if any */
-	char		*mr_offset;	/* kva if no page, else offset */
+	u64		mr_base;	
+	u32		mr_rkey;	
+	u32		mr_len;		
+	int		mr_nsegs;	
+	enum dma_data_direction	mr_dir;	
+	dma_addr_t	mr_dma;		
+	size_t		mr_dmalen;	
+	struct page	*mr_page;	
+	char		*mr_offset;	
 };
 
 struct rpcrdma_req {
-	size_t 		rl_size;	/* actual length of buffer */
-	unsigned int	rl_niovs;	/* 0, 2 or 4 */
-	unsigned int	rl_nchunks;	/* non-zero if chunks */
-	unsigned int	rl_connect_cookie;	/* retry detection */
-	struct rpcrdma_buffer *rl_buffer; /* home base for this structure */
-	struct rpcrdma_rep	*rl_reply;/* holder for reply buffer */
-	struct rpcrdma_mr_seg rl_segments[RPCRDMA_MAX_SEGS];/* chunk segments */
-	struct ib_sge	rl_send_iov[4];	/* for active requests */
-	struct ib_sge	rl_iov;		/* for posting */
-	struct ib_mr	*rl_handle;	/* handle for mem in rl_iov */
-	char		rl_base[MAX_RPCRDMAHDR]; /* start of actual buffer */
-	__u32 		rl_xdr_buf[0];	/* start of returned rpc rq_buffer */
+	size_t 		rl_size;	
+	unsigned int	rl_niovs;	
+	unsigned int	rl_nchunks;	
+	unsigned int	rl_connect_cookie;	
+	struct rpcrdma_buffer *rl_buffer; 
+	struct rpcrdma_rep	*rl_reply;
+	struct rpcrdma_mr_seg rl_segments[RPCRDMA_MAX_SEGS];
+	struct ib_sge	rl_send_iov[4];	
+	struct ib_sge	rl_iov;		
+	struct ib_mr	*rl_handle;	
+	char		rl_base[MAX_RPCRDMAHDR]; 
+	__u32 		rl_xdr_buf[0];	
 };
 #define rpcr_to_rdmar(r) \
 	container_of((r)->rq_buffer, struct rpcrdma_req, rl_xdr_buf[0])
 
-/*
- * struct rpcrdma_buffer -- holds list/queue of pre-registered memory for
- * inline requests/replies, and client/server credits.
- *
- * One of these is associated with a transport instance
- */
 struct rpcrdma_buffer {
-	spinlock_t	rb_lock;	/* protects indexes */
-	atomic_t	rb_credits;	/* most recent server credits */
-	unsigned long	rb_cwndscale;	/* cached framework rpc_cwndscale */
-	int		rb_max_requests;/* client max requests */
-	struct list_head rb_mws;	/* optional memory windows/fmrs/frmrs */
+	spinlock_t	rb_lock;	
+	atomic_t	rb_credits;	
+	unsigned long	rb_cwndscale;	
+	int		rb_max_requests;
+	struct list_head rb_mws;	
 	int		rb_send_index;
 	struct rpcrdma_req	**rb_send_bufs;
 	int		rb_recv_index;
@@ -218,20 +166,14 @@ struct rpcrdma_buffer {
 };
 #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
 
-/*
- * Internal structure for transport instance creation. This
- * exists primarily for modularity.
- *
- * This data should be set with mount options
- */
 struct rpcrdma_create_data_internal {
-	struct sockaddr_storage	addr;	/* RDMA server address */
-	unsigned int	max_requests;	/* max requests (slots) in flight */
-	unsigned int	rsize;		/* mount rsize - max read hdr+data */
-	unsigned int	wsize;		/* mount wsize - max write hdr+data */
-	unsigned int	inline_rsize;	/* max non-rdma read data payload */
-	unsigned int	inline_wsize;	/* max non-rdma write data payload */
-	unsigned int	padding;	/* non-rdma write header padding */
+	struct sockaddr_storage	addr;	
+	unsigned int	max_requests;	
+	unsigned int	rsize;		
+	unsigned int	wsize;		
+	unsigned int	inline_rsize;	
+	unsigned int	inline_wsize;	
+	unsigned int	padding;	
 };
 
 #define RPCRDMA_INLINE_READ_THRESHOLD(rq) \
@@ -243,9 +185,6 @@ struct rpcrdma_create_data_internal {
 #define RPCRDMA_INLINE_PAD_VALUE(rq)\
 	rpcx_to_rdmad(rq->rq_task->tk_xprt).padding
 
-/*
- * Statistics for RPCRDMA
- */
 struct rpcrdma_stats {
 	unsigned long		read_chunk_count;
 	unsigned long		write_chunk_count;
@@ -261,16 +200,6 @@ struct rpcrdma_stats {
 	unsigned long		bad_reply_count;
 };
 
-/*
- * RPCRDMA transport -- encapsulates the structures above for
- * integration with RPC.
- *
- * The contained structures are embedded, not pointers,
- * for convenience. This structure need not be visible externally.
- *
- * It is allocated and initialized during mount, and released
- * during unmount.
- */
 struct rpcrdma_xprt {
 	struct rpc_xprt		xprt;
 	struct rpcrdma_ia	rx_ia;
@@ -284,20 +213,11 @@ struct rpcrdma_xprt {
 #define rpcx_to_rdmax(x) container_of(x, struct rpcrdma_xprt, xprt)
 #define rpcx_to_rdmad(x) (rpcx_to_rdmax(x)->rx_data)
 
-/* Setting this to 0 ensures interoperability with early servers.
- * Setting this to 1 enhances certain unaligned read/write performance.
- * Default is 0, see sysctl entry and rpc_rdma.c rpcrdma_convert_iovs() */
 extern int xprt_rdma_pad_optimize;
 
-/*
- * Interface Adapter calls - xprtrdma/verbs.c
- */
 int rpcrdma_ia_open(struct rpcrdma_xprt *, struct sockaddr *, int);
 void rpcrdma_ia_close(struct rpcrdma_ia *);
 
-/*
- * Endpoint calls - xprtrdma/verbs.c
- */
 int rpcrdma_ep_create(struct rpcrdma_ep *, struct rpcrdma_ia *,
 				struct rpcrdma_create_data_internal *);
 int rpcrdma_ep_destroy(struct rpcrdma_ep *, struct rpcrdma_ia *);
@@ -309,9 +229,6 @@ int rpcrdma_ep_post(struct rpcrdma_ia *, struct rpcrdma_ep *,
 int rpcrdma_ep_post_recv(struct rpcrdma_ia *, struct rpcrdma_ep *,
 				struct rpcrdma_rep *);
 
-/*
- * Buffer calls - xprtrdma/verbs.c
- */
 int rpcrdma_buffer_create(struct rpcrdma_buffer *, struct rpcrdma_ep *,
 				struct rpcrdma_ia *,
 				struct rpcrdma_create_data_internal *);
@@ -332,22 +249,13 @@ int rpcrdma_register_external(struct rpcrdma_mr_seg *,
 int rpcrdma_deregister_external(struct rpcrdma_mr_seg *,
 				struct rpcrdma_xprt *, void *);
 
-/*
- * RPC/RDMA connection management calls - xprtrdma/rpc_rdma.c
- */
 void rpcrdma_conn_func(struct rpcrdma_ep *);
 void rpcrdma_reply_handler(struct rpcrdma_rep *);
 
-/*
- * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
- */
 int rpcrdma_marshal_req(struct rpc_rqst *);
 
-/* Temporary NFS request map cache. Created in svc_rdma.c  */
 extern struct kmem_cache *svc_rdma_map_cachep;
-/* WR context cache. Created in svc_rdma.c  */
 extern struct kmem_cache *svc_rdma_ctxt_cachep;
-/* Workqueue created in svc_rdma.c */
 extern struct workqueue_struct *svc_rdma_wq;
 
-#endif				/* _LINUX_SUNRPC_XPRT_RDMA_H */
+#endif				

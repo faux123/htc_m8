@@ -11,7 +11,6 @@
 
 #define WM8962_MAX_GPIO 6
 
-/* Use to set GPIO default values to zero */
 #define WM8962_GPIO_SET 0x10000
 
 #define WM8962_GPIO_FN_CLKOUT           0
@@ -48,12 +47,8 @@ struct wm8962_pdata {
 
 	bool irq_active_low;
 
-	bool spk_mono;   /* Speaker outputs tied together as mono */
+	bool spk_mono;   
 
-	/**
-	 * This flag should be set if one or both IN4 inputs is wired
-	 * in a DC measurement configuration.
-	 */
 	bool in4_dc_measure;
 };
 

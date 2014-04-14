@@ -35,7 +35,6 @@
 #include "card.h"
 #include "wpa2.h"
 
-/*---------------------  Export Definitions -------------------------*/
 #define RATE_1M         0
 #define RATE_2M         1
 #define RATE_5M         2
@@ -51,7 +50,6 @@
 #define RATE_AUTO      12
 #define MAX_RATE       12
 
-// key CipherSuite
 #define KEY_CTL_WEP         0x00
 #define KEY_CTL_NONE        0x01
 #define KEY_CTL_TKIP        0x02
@@ -62,7 +60,6 @@
 
 #define MAX_BSS_NUM             42
 
-// Pre-configured Authenticaiton Mode (from XP)
 typedef enum tagWMAC_AUTHENTICATION_MODE {
 
     WMAC_AUTH_OPEN,
@@ -73,7 +70,7 @@ typedef enum tagWMAC_AUTHENTICATION_MODE {
     WMAC_AUTH_WPANONE,
     WMAC_AUTH_WPA2,
     WMAC_AUTH_WPA2PSK,
-    WMAC_AUTH_MAX       // Not a real mode, defined as upper bound
+    WMAC_AUTH_MAX       
 
 } WMAC_AUTHENTICATION_MODE, *PWMAC_AUTHENTICATION_MODE;
 
@@ -90,7 +87,6 @@ typedef enum tagWMAC_ENCRYPTION_MODE {
 
 } WMAC_ENCRYPTION_MODE, *PWMAC_ENCRYPTION_MODE;
 
-// Pre-configured Mode (from XP)
 
 typedef enum tagWMAC_CONFIG_MODE {
 
@@ -130,15 +126,11 @@ typedef enum tagWMAC_POWER_MODE {
         WLAN_GET_CAP_INFO_ESS(wCapInfo)                 \
 
 
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
-/*---------------------  Export Types  ------------------------------*/
 
 
-/*---------------------  Export Functions  --------------------------*/
+
 
 void
 VNTWIFIvSetIBSSParameter (
@@ -239,13 +231,6 @@ VNTWIFIvGetTxRate(
     unsigned char *pbyCCKBasicRate,
     unsigned char *pbyOFDMBasicRate
     );
-/*
-bool
-VNTWIFIbInit(
-    void *pAdapterHandler,
-    void **pMgmtHandler
-    );
-*/
 
 unsigned char
 VNTWIFIbyGetKeyCypher(
@@ -273,7 +258,6 @@ VNTWIFIwGetMaxSupportRate(
     void *pMgmtObject
     );
 
-// for 802.11h
 void
 VNTWIFIvSet11h (
     void *pMgmtObject,
@@ -296,12 +280,5 @@ VNTWIFIbChannelSwitch(
     void *pMgmtObject,
     unsigned char byNewChannel
     );
-/*
-bool
-VNTWIFIbRadarPresent(
-    void *pMgmtObject,
-    unsigned char byChannel
-    );
-*/
 
-#endif //__VNTWIFI_H__
+#endif 

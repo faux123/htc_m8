@@ -21,10 +21,6 @@
 #include "vnic_resource.h"
 #include "vnic_devcmd.h"
 
-/*
- * These defines avoid symbol clash between fnic and enic (Cisco 10G Eth
- * Driver) when both are built with CONFIG options =y
- */
 #define vnic_dev_priv fnic_dev_priv
 #define vnic_dev_get_res_count fnic_dev_get_res_count
 #define vnic_dev_get_res fnic_dev_get_res
@@ -158,4 +154,4 @@ struct vnic_dev *vnic_dev_register(struct vnic_dev *vdev,
 				   void *priv, struct pci_dev *pdev,
 				   struct vnic_dev_bar *bar);
 
-#endif /* _VNIC_DEV_H_ */
+#endif 

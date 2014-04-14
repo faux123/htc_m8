@@ -30,27 +30,18 @@ MODULE_AUTHOR("John Sung <penmount.touch@gmail.com>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Definitions & global arrays.
- */
 
 #define	PM_MAX_LENGTH	6
 #define	PM_MAX_MTSLOT	16
 #define	PM_3000_MTSLOT	2
 #define	PM_6250_MTSLOT	12
 
-/*
- * Multi-touch slot
- */
 
 struct mt_slot {
 	unsigned short x, y;
-	bool active; /* is the touch valid? */
+	bool active; 
 };
 
-/*
- * Per-touchscreen data.
- */
 
 struct pm {
 	struct input_dev *dev;
@@ -64,9 +55,6 @@ struct pm {
 	void (*parse_packet)(struct pm *);
 };
 
-/*
- * pm_mtevent() sends mt events and also emulates pointer movement
- */
 
 static void pm_mtevent(struct pm *pm, struct input_dev *input)
 {
@@ -86,9 +74,6 @@ static void pm_mtevent(struct pm *pm, struct input_dev *input)
 	input_sync(input);
 }
 
-/*
- * pm_checkpacket() checks if data packet is valid
- */
 
 static bool pm_checkpacket(unsigned char *packet)
 {
@@ -175,9 +160,6 @@ static irqreturn_t pm_interrupt(struct serio *serio,
 	return IRQ_HANDLED;
 }
 
-/*
- * pm_disconnect() is the opposite of pm_connect()
- */
 
 static void pm_disconnect(struct serio *serio)
 {
@@ -191,11 +173,6 @@ static void pm_disconnect(struct serio *serio)
 	serio_set_drvdata(serio, NULL);
 }
 
-/*
- * pm_connect() is the routine that is called when someone adds a
- * new serio device that supports PenMount protocol and registers it as
- * an input device.
- */
 
 static int pm_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -290,9 +267,6 @@ static int pm_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * The serio driver structure.
- */
 
 static struct serio_device_id pm_serio_ids[] = {
 	{
@@ -317,9 +291,6 @@ static struct serio_driver pm_drv = {
 	.disconnect	= pm_disconnect,
 };
 
-/*
- * The functions for inserting/removing us as a module.
- */
 
 static int __init pm_init(void)
 {

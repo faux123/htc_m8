@@ -1,11 +1,6 @@
 #ifndef __CPUPOWER_BITMASK__
 #define __CPUPOWER_BITMASK__
 
-/* Taken over from libbitmask, a project initiated from sgi:
- * Url:            http://oss.sgi.com/projects/cpusets/
- * Unfortunately it's not very widespread, therefore relevant parts are
- * pasted here.
- */
 
 struct bitmask {
 	unsigned int size;
@@ -30,4 +25,4 @@ int bitmask_displaylist(char *buf, int len, const struct bitmask *bmp);
 
 
 
-#endif /*__CPUPOWER_BITMASK__ */
+#endif 

@@ -8,20 +8,8 @@ struct device_node;
 
 #ifdef CONFIG_NUMA
 
-/*
- * Before going off node we want the VM to try and reclaim from the local
- * node. It does this if the remote distance is larger than RECLAIM_DISTANCE.
- * With the default REMOTE_DISTANCE of 20 and the default RECLAIM_DISTANCE of
- * 20, we never reclaim and go off node straight away.
- *
- * To fix this we choose a smaller value of RECLAIM_DISTANCE.
- */
 #define RECLAIM_DISTANCE 10
 
-/*
- * Avoid creating an extra level of balancing (SD_ALLNODES) on the largest
- * POWER7 boxes which have a maximum of 32 nodes.
- */
 #define SD_NODES_PER_DOMAIN 32
 
 #include <asm/mmzone.h>
@@ -51,7 +39,6 @@ static inline int pcibus_to_node(struct pci_bus *bus)
 				 cpu_all_mask :				\
 				 cpumask_of_node(pcibus_to_node(bus)))
 
-/* sched_domains SD_NODE_INIT for PPC64 machines */
 #define SD_NODE_INIT (struct sched_domain) {				\
 	.min_interval		= 8,					\
 	.max_interval		= 32,					\
@@ -102,7 +89,7 @@ static inline void sysfs_remove_device_from_node(struct device *dev,
 						int nid)
 {
 }
-#endif /* CONFIG_NUMA */
+#endif 
 
 #if defined(CONFIG_NUMA) && defined(CONFIG_PPC_SPLPAR)
 extern int start_topology_update(void);
@@ -116,7 +103,7 @@ static inline int stop_topology_update(void)
 {
 	return 0;
 }
-#endif /* CONFIG_NUMA && CONFIG_PPC_SPLPAR */
+#endif 
 
 #include <asm-generic/topology.h>
 
@@ -133,5 +120,5 @@ static inline int stop_topology_update(void)
 #endif
 #endif
 
-#endif /* __KERNEL__ */
-#endif	/* _ASM_POWERPC_TOPOLOGY_H */
+#endif 
+#endif	

@@ -1,7 +1,3 @@
-/*
- * linux/drivers/char/ds1620.c: Dallas Semiconductors DS1620
- *   thermometer driver (as used in the Rebel.com NetWinder)
- */
 #include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <linux/delay.h>
@@ -16,11 +12,9 @@
 #include <asm/therm.h>
 
 #ifdef CONFIG_PROC_FS
-/* define for /proc interface */
 #define THERM_USE_PROC
 #endif
 
-/* Definitions for DS1620 chip */
 #define THERM_START_CONVERT	0xee
 #define THERM_RESET		0xaf
 #define THERM_READ_CONFIG	0xac
@@ -37,13 +31,6 @@
 static DEFINE_MUTEX(ds1620_mutex);
 static const char *fan_state[] = { "off", "on", "on (hardwired)" };
 
-/*
- * Start of NetWinder specifics
- *  Note!  We have to hold the gpio lock with IRQs disabled over the
- *  whole of our transaction to the Dallas chip, since there is a
- *  chance that the WaveArtist driver could touch these bits to
- *  enable or disable the speaker.
- */
 extern unsigned int system_rev;
 
 static inline void netwinder_ds1620_set_clk(int clk)
@@ -99,9 +86,6 @@ static inline int netwinder_get_fan(void)
 	return (nw_gpio_read() & GPIO_FAN) ? FAN_ON : FAN_OFF;
 }
 
-/*
- * End of NetWinder specifics
- */
 
 static void ds1620_send_bits(int nr, int value)
 {
@@ -222,7 +206,7 @@ ds1620_read(struct file *file, char __user *buf, size_t count, loff_t *ptr)
 
 	cur_temp = cvt_9_to_int(ds1620_in(THERM_READ_TEMP, 9)) >> 1;
 
-	/* convert to Fahrenheit, as per wdt.c */
+	
 	cur_temp_degF = (cur_temp * 9) / 5 + 32;
 
 	if (copy_to_user(buf, &cur_temp_degF, 1))
@@ -378,11 +362,6 @@ static int __init ds1620_init(void)
 	ds1620_out(THERM_WRITE_CONFIG, 8, CFG_CPU);
 	ds1620_out(THERM_START_CONVERT, 0, 0);
 
-	/*
-	 * Trigger the fan to start by setting
-	 * temperature high point low.  This kicks
-	 * the fan into action.
-	 */
 	ds1620_read_state(&th);
 	th_start.lo = 0;
 	th_start.hi = 1;

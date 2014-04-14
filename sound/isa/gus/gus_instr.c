@@ -23,9 +23,6 @@
 #include <sound/core.h>
 #include <sound/gus.h>
 
-/*
- *
- */
 
 int snd_gus_iwffff_put_sample(void *private_data, struct iwffff_wave *wave,
 			      char __user *data, long len, int atomic)
@@ -35,9 +32,9 @@ int snd_gus_iwffff_put_sample(void *private_data, struct iwffff_wave *wave,
 	int err;
 
 	if (wave->format & IWFFFF_WAVE_ROM)
-		return 0;	/* it's probably ok - verify the address? */
+		return 0;	
 	if (wave->format & IWFFFF_WAVE_STEREO)
-		return -EINVAL;	/* not supported */
+		return -EINVAL;	
 	block = snd_gf1_mem_alloc(&gus->gf1.mem_alloc,
 				  SNDRV_GF1_MEM_OWNER_WAVE_IWFFFF,
 				  NULL, wave->size,
@@ -72,13 +69,10 @@ int snd_gus_iwffff_remove_sample(void *private_data, struct iwffff_wave *wave,
 	struct snd_gus_card *gus = private_data;
 
 	if (wave->format & IWFFFF_WAVE_ROM)
-		return 0;	/* it's probably ok - verify the address? */	
+		return 0;		
 	return snd_gf1_mem_free(&gus->gf1.mem_alloc, wave->address.memory);
 }
 
-/*
- *
- */
 
 int snd_gus_gf1_put_sample(void *private_data, struct gf1_wave *wave,
 			   char __user *data, long len, int atomic)
@@ -88,7 +82,7 @@ int snd_gus_gf1_put_sample(void *private_data, struct gf1_wave *wave,
 	int err;
 
 	if (wave->format & GF1_WAVE_STEREO)
-		return -EINVAL;	/* not supported */
+		return -EINVAL;	
 	block = snd_gf1_mem_alloc(&gus->gf1.mem_alloc,
 				  SNDRV_GF1_MEM_OWNER_WAVE_GF1,
 				  NULL, wave->size,
@@ -124,9 +118,6 @@ int snd_gus_gf1_remove_sample(void *private_data, struct gf1_wave *wave,
 	return snd_gf1_mem_free(&gus->gf1.mem_alloc, wave->address.memory);
 }
 
-/*
- *
- */
 
 int snd_gus_simple_put_sample(void *private_data, struct simple_instrument *instr,
 			      char __user *data, long len, int atomic)
@@ -136,7 +127,7 @@ int snd_gus_simple_put_sample(void *private_data, struct simple_instrument *inst
 	int err;
 
 	if (instr->format & SIMPLE_WAVE_STEREO)
-		return -EINVAL;	/* not supported */
+		return -EINVAL;	
 	block = snd_gf1_mem_alloc(&gus->gf1.mem_alloc,
 				  SNDRV_GF1_MEM_OWNER_WAVE_SIMPLE,
 				  NULL, instr->size,

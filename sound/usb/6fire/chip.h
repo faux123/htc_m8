@@ -18,8 +18,8 @@
 struct sfire_chip {
 	struct usb_device *dev;
 	struct snd_card *card;
-	int intf_count; /* number of registered interfaces */
-	int regidx; /* index in module parameter arrays */
+	int intf_count; 
+	int regidx; 
 	bool shutdown;
 
 	struct midi_runtime *midi;
@@ -27,5 +27,5 @@ struct sfire_chip {
 	struct control_runtime *control;
 	struct comm_runtime *comm;
 };
-#endif /* USB6FIRE_CHIP_H */
+#endif 
 

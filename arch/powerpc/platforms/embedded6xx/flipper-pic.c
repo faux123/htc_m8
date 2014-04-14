@@ -24,27 +24,14 @@
 
 #define FLIPPER_NR_IRQS		32
 
-/*
- * Each interrupt has a corresponding bit in both
- * the Interrupt Cause (ICR) and Interrupt Mask (IMR) registers.
- *
- * Enabling/disabling an interrupt line involves setting/clearing
- * the corresponding bit in IMR.
- * Except for the RSW interrupt, all interrupts get deasserted automatically
- * when the source deasserts the interrupt.
- */
 #define FLIPPER_ICR		0x00
-#define FLIPPER_ICR_RSS		(1<<16) /* reset switch state */
+#define FLIPPER_ICR_RSS		(1<<16) 
 
 #define FLIPPER_IMR		0x04
 
 #define FLIPPER_RESET		0x24
 
 
-/*
- * IRQ chip hooks.
- *
- */
 
 static void flipper_pic_mask_and_ack(struct irq_data *d)
 {
@@ -53,7 +40,7 @@ static void flipper_pic_mask_and_ack(struct irq_data *d)
 	u32 mask = 1 << irq;
 
 	clrbits32(io_base + FLIPPER_IMR, mask);
-	/* this is at least needed for RSW */
+	
 	out_be32(io_base + FLIPPER_ICR, mask);
 }
 
@@ -62,7 +49,7 @@ static void flipper_pic_ack(struct irq_data *d)
 	int irq = irqd_to_hwirq(d);
 	void __iomem *io_base = irq_data_get_irq_chip_data(d);
 
-	/* this is at least needed for RSW */
+	
 	out_be32(io_base + FLIPPER_ICR, 1 << irq);
 }
 
@@ -91,10 +78,6 @@ static struct irq_chip flipper_pic = {
 	.irq_unmask	= flipper_pic_unmask,
 };
 
-/*
- * IRQ host hooks.
- *
- */
 
 static struct irq_domain *flipper_irq_host;
 
@@ -118,14 +101,10 @@ static const struct irq_domain_ops flipper_irq_domain_ops = {
 	.match = flipper_pic_match,
 };
 
-/*
- * Platform hooks.
- *
- */
 
 static void __flipper_quiesce(void __iomem *io_base)
 {
-	/* mask and ack all IRQs */
+	
 	out_be32(io_base + FLIPPER_IMR, 0x00000000);
 	out_be32(io_base + FLIPPER_ICR, 0xffffffff);
 }
@@ -179,16 +158,12 @@ unsigned int flipper_pic_get_irq(void)
 	irq_status = in_be32(io_base + FLIPPER_ICR) &
 		     in_be32(io_base + FLIPPER_IMR);
 	if (irq_status == 0)
-		return NO_IRQ;	/* no more IRQs pending */
+		return NO_IRQ;	
 
 	irq = __ffs(irq_status);
 	return irq_linear_revmap(flipper_irq_host, irq);
 }
 
-/*
- * Probe function.
- *
- */
 
 void __init flipper_pic_probe(void)
 {
@@ -205,17 +180,7 @@ void __init flipper_pic_probe(void)
 	of_node_put(np);
 }
 
-/*
- * Misc functions related to the flipper chipset.
- *
- */
 
-/**
- * flipper_quiesce() - quiesce flipper irq controller
- *
- * Mask and ack all interrupt sources.
- *
- */
 void flipper_quiesce(void)
 {
 	void __iomem *io_base = flipper_irq_host->host_data;
@@ -223,9 +188,6 @@ void flipper_quiesce(void)
 	__flipper_quiesce(io_base);
 }
 
-/*
- * Resets the platform.
- */
 void flipper_platform_reset(void)
 {
 	void __iomem *io_base;
@@ -236,9 +198,6 @@ void flipper_platform_reset(void)
 	}
 }
 
-/*
- * Returns non-zero if the reset button is pressed.
- */
 int flipper_is_reset_button_pressed(void)
 {
 	void __iomem *io_base;

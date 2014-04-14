@@ -20,10 +20,6 @@
 
 #include "mpi-internal.h"
 
-/****************
- * Find the greatest common divisor G of A and B.
- * Return: true if this 1, false in all other cases
- */
 int mpi_gcd(MPI g, const MPI xa, const MPI xb)
 {
 	MPI a = NULL, b = NULL;
@@ -34,11 +30,11 @@ int mpi_gcd(MPI g, const MPI xa, const MPI xb)
 	if (mpi_copy(&b, xb) < 0)
 		goto nomem;
 
-	/* TAOCP Vol II, 4.5.2, Algorithm A */
+	
 	a->sign = 0;
 	b->sign = 0;
 	while (mpi_cmp_ui(b, 0)) {
-		if (mpi_fdiv_r(g, a, b) < 0)	/* g used as temorary variable */
+		if (mpi_fdiv_r(g, a, b) < 0)	
 			goto nomem;
 		if (mpi_set(a, b) < 0)
 			goto nomem;

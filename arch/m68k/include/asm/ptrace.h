@@ -23,8 +23,6 @@
 
 #ifndef __ASSEMBLY__
 
-/* this struct defines the way the registers are stored on the
-   stack during a system call. */
 
 struct pt_regs {
   long     d1;
@@ -39,22 +37,18 @@ struct pt_regs {
   long     orig_d0;
   long     stkadj;
 #ifdef CONFIG_COLDFIRE
-  unsigned format :  4; /* frame format specifier */
-  unsigned vector : 12; /* vector offset */
+  unsigned format :  4; 
+  unsigned vector : 12; 
   unsigned short sr;
   unsigned long  pc;
 #else
   unsigned short sr;
   unsigned long  pc;
-  unsigned format :  4; /* frame format specifier */
-  unsigned vector : 12; /* vector offset */
+  unsigned format :  4; 
+  unsigned vector : 12; 
 #endif
 };
 
-/*
- * This is the extended stack used by signal handlers and the context
- * switcher: it's pushed after the normal "struct pt_regs".
- */
 struct switch_stack {
 	unsigned long  d6;
 	unsigned long  d7;
@@ -65,7 +59,6 @@ struct switch_stack {
 	unsigned long  retpc;
 };
 
-/* Arbitrarily choose the same ptrace numbers as used by the Sparc code. */
 #define PTRACE_GETREGS            12
 #define PTRACE_SETREGS            13
 #define PTRACE_GETFPREGS          14
@@ -73,7 +66,7 @@ struct switch_stack {
 
 #define PTRACE_GET_THREAD_AREA    25
 
-#define PTRACE_SINGLEBLOCK	33	/* resume execution until next branch */
+#define PTRACE_SINGLEBLOCK	33	
 
 #ifdef __KERNEL__
 
@@ -92,6 +85,6 @@ struct switch_stack {
 #define arch_has_block_step()	(1)
 #endif
 
-#endif /* __KERNEL__ */
-#endif /* __ASSEMBLY__ */
-#endif /* _M68K_PTRACE_H */
+#endif 
+#endif 
+#endif 

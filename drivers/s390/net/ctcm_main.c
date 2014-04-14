@@ -54,25 +54,11 @@
 #include "ctcm_fsms.h"
 #include "ctcm_main.h"
 
-/* Some common global variables */
 
-/**
- * The root device for ctcm group devices
- */
 static struct device *ctcm_root_dev;
 
-/*
- * Linked list of all detected channels.
- */
 struct channel *channels;
 
-/**
- * Unpack a just received skb and hand it over to
- * upper layers.
- *
- *  ch		The channel where this skb has been received.
- *  pskb	The received skb.
- */
 void ctcm_unpack_skb(struct channel *ch, struct sk_buff *pskb)
 {
 	struct net_device *dev = ch->netdev;
@@ -93,12 +79,6 @@ void ctcm_unpack_skb(struct channel *ch, struct sk_buff *pskb)
 		    (header->type != ETH_P_IP)) {
 			if (!(ch->logflags & LOG_FLAG_ILLEGALPKT)) {
 				ch->logflags |= LOG_FLAG_ILLEGALPKT;
-				/*
-				 * Check packet type only if we stick strictly
-				 * to S/390's protocol of OS390. This only
-				 * supports IP. Otherwise allow any packet
-				 * type.
-				 */
 				CTCM_DBF_TEXT_(ERROR, CTC_DBF_ERROR,
 					"%s(%s): Illegal packet type 0x%04x"
 					" - dropping",
@@ -161,9 +141,6 @@ void ctcm_unpack_skb(struct channel *ch, struct sk_buff *pskb)
 		skb->protocol = pskb->protocol;
 		pskb->ip_summed = CHECKSUM_UNNECESSARY;
 		skblen = skb->len;
-		/*
-		 * reset logflags
-		 */
 		ch->logflags = 0;
 		priv->stats.rx_packets++;
 		priv->stats.rx_bytes += skblen;
@@ -181,11 +158,6 @@ void ctcm_unpack_skb(struct channel *ch, struct sk_buff *pskb)
 	}
 }
 
-/**
- * Release a specific channel in the channel list.
- *
- *  ch		Pointer to channel struct to be released.
- */
 static void channel_free(struct channel *ch)
 {
 	CTCM_DBF_TEXT_(SETUP, CTC_DBF_INFO, "%s(%s)", CTCM_FUNTAIL, ch->id);
@@ -193,11 +165,6 @@ static void channel_free(struct channel *ch)
 	fsm_newstate(ch->fsm, CTC_STATE_IDLE);
 }
 
-/**
- * Remove a specific channel in the channel list.
- *
- *  ch		Pointer to channel struct to be released.
- */
 static void channel_remove(struct channel *ch)
 {
 	struct channel **c = &channels;
@@ -241,15 +208,6 @@ static void channel_remove(struct channel *ch)
 			chid, ok ? "OK" : "failed");
 }
 
-/**
- * Get a specific channel from the channel list.
- *
- *  type	Type of channel we are interested in.
- *  id		Id of channel we are interested in.
- *  direction	Direction we want to use this channel for.
- *
- * returns Pointer to a channel or NULL if no matching channel available.
- */
 static struct channel *channel_get(enum ctcm_channel_types type,
 					char *id, int direction)
 {
@@ -301,12 +259,6 @@ static long ctcm_check_irb_error(struct ccw_device *cdev, struct irb *irb)
 }
 
 
-/**
- * Check sense of a unit check.
- *
- *  ch		The channel, the sense code belongs to.
- *  sense	The sense code to inspect.
- */
 static inline void ccw_unit_check(struct channel *ch, __u8 sense)
 {
 	CTCM_DBF_TEXT_(TRACE, CTC_DBF_DEBUG,
@@ -356,9 +308,9 @@ static inline void ccw_unit_check(struct channel *ch, __u8 sense)
 					CTCM_FUNTAIL, ch->id, sense);
 			ch->sense_rc = SNS0_BUS_OUT_CHECK;
 		}
-		if (sense & 0x04)	/* data-streaming timeout */
+		if (sense & 0x04)	
 			fsm_event(ch->fsm, CTC_EVENT_UC_TXTIMEOUT, ch);
-		else			/* Data-transfer parity error */
+		else			
 			fsm_event(ch->fsm, CTC_EVENT_UC_TXPARITY, ch);
 	} else if (sense & SNS0_CMD_REJECT) {
 		if (ch->sense_rc != SNS0_CMD_REJECT) {
@@ -411,18 +363,7 @@ int ctcm_ch_alloc_buffer(struct channel *ch)
 	return 0;
 }
 
-/*
- * Interface API for upper network layers
- */
 
-/**
- * Open an interface.
- * Called from generic network layer when ifconfig up is run.
- *
- *  dev		Pointer to interface struct.
- *
- * returns 0 on success, -ERRNO on failure. (Never fails.)
- */
 int ctcm_open(struct net_device *dev)
 {
 	struct ctcm_priv *priv = dev->ml_priv;
@@ -433,14 +374,6 @@ int ctcm_open(struct net_device *dev)
 	return 0;
 }
 
-/**
- * Close an interface.
- * Called from generic network layer when ifconfig down is run.
- *
- *  dev		Pointer to interface struct.
- *
- * returns 0 on success, -ERRNO on failure. (Never fails.)
- */
 int ctcm_close(struct net_device *dev)
 {
 	struct ctcm_priv *priv = dev->ml_priv;
@@ -452,17 +385,6 @@ int ctcm_close(struct net_device *dev)
 }
 
 
-/**
- * Transmit a packet.
- * This is a helper function for ctcm_tx().
- *
- *  ch		Channel to be used for sending.
- *  skb		Pointer to struct sk_buff of packet to send.
- *            The linklevel header has already been set up
- *            by ctcm_tx().
- *
- * returns 0 on success, -ERRNO on failure. (Never fails.)
- */
 static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 {
 	unsigned long saveflags;
@@ -473,10 +395,6 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 	struct sk_buff *nskb;
 	unsigned long hi;
 
-	/* we need to acquire the lock for testing the state
-	 * otherwise we can have an IRQ changing the state to
-	 * TXIDLE after the test but before acquiring the lock.
-	 */
 	spin_lock_irqsave(&ch->collect_lock, saveflags);
 	if (fsm_getstate(ch->fsm) != CTC_STATE_TXIDLE) {
 		int l = skb->len + LL_HEADER_LENGTH;
@@ -498,10 +416,6 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 				goto done;
 	}
 	spin_unlock_irqrestore(&ch->collect_lock, saveflags);
-	/*
-	 * Protect skb against beeing free'd by upper
-	 * layers.
-	 */
 	atomic_inc(&skb->users);
 	ch->prof.txlen += skb->len;
 	header.length = skb->len + LL_HEADER_LENGTH;
@@ -511,10 +425,6 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 	block_len = skb->len + 2;
 	*((__u16 *)skb_push(skb, 2)) = block_len;
 
-	/*
-	 * IDAL support in CTCM is broken, so we have to
-	 * care about skb's above 2G ourselves.
-	 */
 	hi = ((unsigned long)skb_tail_pointer(skb) + LL_HEADER_LENGTH) >> 31;
 	if (hi) {
 		nskb = alloc_skb(skb->len, GFP_ATOMIC | GFP_DMA);
@@ -534,16 +444,7 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 
 	ch->ccw[4].count = block_len;
 	if (set_normalized_cda(&ch->ccw[4], skb->data)) {
-		/*
-		 * idal allocation failed, try via copying to
-		 * trans_skb. trans_skb usually has a pre-allocated
-		 * idal.
-		 */
 		if (ctcm_checkalloc_buffer(ch)) {
-			/*
-			 * Remove our header. It gets added
-			 * again on retransmit.
-			 */
 			atomic_dec(&skb->users);
 			skb_pull(skb, LL_HEADER_LENGTH + 2);
 			ctcm_clear_busy(ch->netdev);
@@ -569,7 +470,7 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 	fsm_newstate(ch->fsm, CTC_STATE_TX);
 	fsm_addtimer(&ch->timer, CTCM_TIME_5_SEC, CTC_EVENT_TIMER, ch);
 	spin_lock_irqsave(get_ccwdev_lock(ch->cdev), saveflags);
-	ch->prof.send_stamp = current_kernel_time(); /* xtime */
+	ch->prof.send_stamp = current_kernel_time(); 
 	rc = ccw_device_start(ch->cdev, &ch->ccw[ccw_idx],
 					(unsigned long)ch, 0xff, 0);
 	spin_unlock_irqrestore(get_ccwdev_lock(ch->cdev), saveflags);
@@ -580,10 +481,6 @@ static int ctcm_transmit_skb(struct channel *ch, struct sk_buff *skb)
 		ctcm_ccw_check_rc(ch, rc, "single skb TX");
 		if (ccw_idx == 3)
 			skb_dequeue_tail(&ch->io_queue);
-		/*
-		 * Remove our header. It gets added
-		 * again on retransmit.
-		 */
 		skb_pull(skb, LL_HEADER_LENGTH + 2);
 	} else if (ccw_idx == 0) {
 		struct net_device *dev = ch->netdev;
@@ -604,14 +501,14 @@ static void ctcmpc_send_sweep_req(struct channel *rch)
 	struct th_sweep *header;
 	struct sk_buff *sweep_skb;
 	struct channel *ch;
-	/* int rc = 0; */
+	
 
 	priv = dev->ml_priv;
 	grp = priv->mpcg;
 	ch = priv->channel[CTCM_WRITE];
 
-	/* sweep processing is not complete until response and request */
-	/* has completed for all read channels in group		       */
+	
+	
 	if (grp->in_sweep == 0) {
 		grp->in_sweep = 1;
 		grp->sweep_rsp_pend_num = grp->active_channels[CTCM_READ];
@@ -621,7 +518,7 @@ static void ctcmpc_send_sweep_req(struct channel *rch)
 	sweep_skb = __dev_alloc_skb(MPC_BUFSIZE_DEFAULT, GFP_ATOMIC|GFP_DMA);
 
 	if (sweep_skb == NULL)	{
-		/* rc = -ENOMEM; */
+		
 				goto nomem;
 	}
 
@@ -629,12 +526,12 @@ static void ctcmpc_send_sweep_req(struct channel *rch)
 
 	if (!header) {
 		dev_kfree_skb_any(sweep_skb);
-		/* rc = -ENOMEM; */
+		
 				goto nomem;
 	}
 
 	header->th.th_seg	= 0x00 ;
-	header->th.th_ch_flag	= TH_SWEEP_REQ;  /* 0x0f */
+	header->th.th_ch_flag	= TH_SWEEP_REQ;  
 	header->th.th_blk_flag	= 0x00;
 	header->th.th_is_xid	= 0x00;
 	header->th.th_seq_num	= 0x00;
@@ -659,9 +556,6 @@ nomem:
 	return;
 }
 
-/*
- * MPC mode version of transmit_skb
- */
 static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 {
 	struct pdu *p_header;
@@ -673,7 +567,7 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 	int rc = 0;
 	int ccw_idx;
 	unsigned long hi;
-	unsigned long saveflags = 0;	/* avoids compiler warning */
+	unsigned long saveflags = 0;	
 
 	CTCM_PR_DEBUG("Enter %s: %s, cp=%i ch=0x%p id=%s state=%s\n",
 			__func__, dev->name, smp_processor_id(), ch,
@@ -714,16 +608,8 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 			goto done;
 	}
 
-	/*
-	 * Protect skb against beeing free'd by upper
-	 * layers.
-	 */
 	atomic_inc(&skb->users);
 
-	/*
-	 * IDAL support in CTCM is broken, so we have to
-	 * care about skb's above 2G ourselves.
-	 */
 	hi = ((unsigned long)skb->tail + TH_HEADER_LENGTH) >> 31;
 	if (hi) {
 		nskb = __dev_alloc_skb(skb->len, GFP_ATOMIC | GFP_DMA);
@@ -775,16 +661,16 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 		goto nomem_exit;
 
 	header->th_seg = 0x00;
-	header->th_ch_flag = TH_HAS_PDU;  /* Normal data */
+	header->th_ch_flag = TH_HAS_PDU;  
 	header->th_blk_flag = 0x00;
-	header->th_is_xid = 0x00;          /* Just data here */
+	header->th_is_xid = 0x00;          
 	ch->th_seq_num++;
 	header->th_seq_num = ch->th_seq_num;
 
 	CTCM_PR_DBGDATA("%s(%s) ToVTAM_th_seq= %08x\n" ,
 		       __func__, dev->name, ch->th_seq_num);
 
-	/* put the TH on the packet */
+	
 	memcpy(skb_push(skb, TH_HEADER_LENGTH), header, TH_HEADER_LENGTH);
 
 	kfree(header);
@@ -796,15 +682,7 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 
 	ch->ccw[4].count = skb->len;
 	if (set_normalized_cda(&ch->ccw[4], skb->data)) {
-		/*
-		 * idal allocation failed, try via copying to trans_skb.
-		 * trans_skb usually has a pre-allocated idal.
-		 */
 		if (ctcm_checkalloc_buffer(ch)) {
-			/*
-			 * Remove our header.
-			 * It gets added again on retransmit.
-			 */
 				goto nomem_exit;
 		}
 
@@ -833,7 +711,7 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 					sizeof(struct ccw1) * 3);
 
 	spin_lock_irqsave(get_ccwdev_lock(ch->cdev), saveflags);
-	ch->prof.send_stamp = current_kernel_time(); /* xtime */
+	ch->prof.send_stamp = current_kernel_time(); 
 	rc = ccw_device_start(ch->cdev, &ch->ccw[ccw_idx],
 					(unsigned long)ch, 0xff, 0);
 	spin_unlock_irqrestore(get_ccwdev_lock(ch->cdev), saveflags);
@@ -848,7 +726,7 @@ static int ctcmpc_transmit_skb(struct channel *ch, struct sk_buff *skb)
 		priv->stats.tx_packets++;
 		priv->stats.tx_bytes += skb->len - TH_HEADER_LENGTH;
 	}
-	if (ch->th_seq_num > 0xf0000000)	/* Chose at random. */
+	if (ch->th_seq_num > 0xf0000000)	
 		ctcmpc_send_sweep_req(ch);
 
 	goto done;
@@ -865,18 +743,6 @@ done:
 	return rc;
 }
 
-/**
- * Start transmission of a packet.
- * Called from generic network device layer.
- *
- *  skb		Pointer to buffer containing the packet.
- *  dev		Pointer to interface struct.
- *
- * returns 0 if packet consumed, !0 if packet rejected.
- *         Note: If we return !0, then the packet is free'd by
- *               the generic network layer.
- */
-/* first merge version - leaving both functions separated */
 static int ctcm_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	struct ctcm_priv *priv = dev->ml_priv;
@@ -897,10 +763,6 @@ static int ctcm_tx(struct sk_buff *skb, struct net_device *dev)
 		return NETDEV_TX_OK;
 	}
 
-	/*
-	 * If channels are not running, try to restart them
-	 * and throw away packet.
-	 */
 	if (fsm_getstate(priv->fsm) != DEV_STATE_RUNNING) {
 		fsm_event(priv->fsm, DEV_EVENT_START, dev);
 		dev_kfree_skb(skb);
@@ -919,7 +781,6 @@ static int ctcm_tx(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-/* unmerged MPC variant of ctcm_tx */
 static int ctcmpc_tx(struct sk_buff *skb, struct net_device *dev)
 {
 	int len = 0;
@@ -927,9 +788,6 @@ static int ctcmpc_tx(struct sk_buff *skb, struct net_device *dev)
 	struct mpc_group *grp  = priv->mpcg;
 	struct sk_buff *newskb = NULL;
 
-	/*
-	 * Some sanity checks ...
-	 */
 	if (skb == NULL) {
 		CTCM_DBF_TEXT_(MPC_ERROR, CTC_DBF_ERROR,
 			"%s(%s): NULL sk_buff passed",
@@ -967,11 +825,6 @@ static int ctcmpc_tx(struct sk_buff *skb, struct net_device *dev)
 		skb = newskb;
 	}
 
-	/*
-	 * If channels are not running,
-	 * notify anybody about a link failure and throw
-	 * away packet.
-	 */
 	if ((fsm_getstate(priv->fsm) != DEV_STATE_RUNNING) ||
 	   (fsm_getstate(grp->fsm) <  MPCG_STATE_XID2INITW)) {
 		dev_kfree_skb_any(skb);
@@ -1014,21 +867,10 @@ done:
 	if (do_debug)
 		MPC_DBF_DEV_NAME(TRACE, dev, "exit");
 
-	return NETDEV_TX_OK;	/* handle freeing of skb here */
+	return NETDEV_TX_OK;	
 }
 
 
-/**
- * Sets MTU of an interface.
- *
- *  dev		Pointer to interface struct.
- *  new_mtu	The new MTU to use for this interface.
- *
- * returns 0 on success, -EINVAL if MTU is out of valid range.
- *         (valid range is 576 .. 65527). If VM is on the
- *         remote side, maximum MTU is 32760, however this is
- *         not checked here.
- */
 static int ctcm_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct ctcm_priv *priv;
@@ -1053,13 +895,6 @@ static int ctcm_change_mtu(struct net_device *dev, int new_mtu)
 	return 0;
 }
 
-/**
- * Returns interface statistics of a device.
- *
- *  dev		Pointer to interface struct.
- *
- * returns Pointer to stats struct of this interface.
- */
 static struct net_device_stats *ctcm_stats(struct net_device *dev)
 {
 	return &((struct ctcm_priv *)dev->ml_priv)->stats;
@@ -1092,10 +927,6 @@ static void ctcm_free_netdevice(struct net_device *dev)
 		}
 		kfree(priv->xid);
 		priv->xid = NULL;
-	/*
-	 * Note: kfree(priv); is done in "opposite" function of
-	 * allocator function probe_device which is remove_device.
-	 */
 	}
 #ifdef MODULE
 	free_netdev(dev);
@@ -1127,10 +958,6 @@ void static ctcm_dev_setup(struct net_device *dev)
 	dev->flags = IFF_POINTOPOINT | IFF_NOARP;
 }
 
-/*
- * Initialize everything of the net device except the name and the
- * channel structs.
- */
 static struct net_device *ctcm_init_netdevice(struct ctcm_priv *priv)
 {
 	struct net_device *dev;
@@ -1162,7 +989,7 @@ static struct net_device *ctcm_init_netdevice(struct ctcm_priv *priv)
 	fsm_settimer(priv->fsm, &priv->restart_timer);
 
 	if (IS_MPC(priv)) {
-		/*  MPC Group Initializations  */
+		
 		grp = ctcmpc_init_mpc_group(priv);
 		if (grp == NULL) {
 			MPC_DBF_DEV(SETUP, dev, "init_mpc_group error");
@@ -1188,13 +1015,6 @@ static struct net_device *ctcm_init_netdevice(struct ctcm_priv *priv)
 	return dev;
 }
 
-/**
- * Main IRQ handler.
- *
- *  cdev	The ccw_device the interrupt is for.
- *  intparm	interruption parameter.
- *  irb		interruption response block.
- */
 static void ctcm_irq_handler(struct ccw_device *cdev,
 				unsigned long intparm, struct irb *irb)
 {
@@ -1216,7 +1036,7 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 	cstat = irb->scsw.cmd.cstat;
 	dstat = irb->scsw.cmd.dstat;
 
-	/* Check for unsolicited interrupts. */
+	
 	if (cgdev == NULL) {
 		CTCM_DBF_TEXT_(TRACE, CTC_DBF_ERROR,
 			"%s(%s) unsolicited irq: c-%02x d-%02x\n",
@@ -1228,7 +1048,7 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 
 	priv = dev_get_drvdata(&cgdev->dev);
 
-	/* Try to extract channel from driver data. */
+	
 	if (priv->channel[CTCM_READ]->cdev == cdev)
 		ch = priv->channel[CTCM_READ];
 	else if (priv->channel[CTCM_WRITE]->cdev == cdev)
@@ -1238,7 +1058,7 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 			"%s: Internal error: Can't determine channel for "
 			"interrupt device %s\n",
 			__func__, dev_name(&cdev->dev));
-			/* Explain: inconsistent internal structures */
+			
 		return;
 	}
 
@@ -1247,14 +1067,14 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 		dev_err(&cdev->dev,
 			"%s Internal error: net_device is NULL, ch = 0x%p\n",
 			__func__, ch);
-			/* Explain: inconsistent internal structures */
+			
 		return;
 	}
 
-	/* Copy interruption response block. */
+	
 	memcpy(ch->irb, irb, sizeof(struct irb));
 
-	/* Issue error message and return on subchannel error code */
+	
 	if (irb->scsw.cmd.cstat) {
 		fsm_event(ch->fsm, CTC_EVENT_SC_UNKNOWN, ch);
 		CTCM_DBF_TEXT_(TRACE, CTC_DBF_WARN,
@@ -1265,10 +1085,10 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 		return;
 	}
 
-	/* Check the reason-code of a unit check */
+	
 	if (irb->scsw.cmd.dstat & DEV_STAT_UNIT_CHECK) {
 		if ((irb->ecw[0] & ch->sense_rc) == 0)
-			/* print it only once */
+			
 			CTCM_DBF_TEXT_(TRACE, CTC_DBF_WARN,
 				"%s(%s): sense=%02x, ds=%02x",
 				CTCM_FUNTAIL, ch->id, irb->ecw[0], dstat);
@@ -1296,14 +1116,6 @@ static void ctcm_irq_handler(struct ccw_device *cdev,
 
 }
 
-/**
- * Add ctcm specific attributes.
- * Add ctcm private data.
- *
- *  cgdev	pointer to ccwgroup_device just added
- *
- * returns 0 on success, !0 on failure.
- */
 static int ctcm_probe_device(struct ccwgroup_device *cgdev)
 {
 	struct ctcm_priv *priv;
@@ -1339,16 +1151,6 @@ static int ctcm_probe_device(struct ccwgroup_device *cgdev)
 	return 0;
 }
 
-/**
- * Add a new channel to the list of channels.
- * Keeps the channel list sorted.
- *
- *  cdev	The ccw_device to be added.
- *  type	The type class of the new channel.
- *  priv	Points to the private data of the ccwgroup_device.
- *
- * returns 0 on success, !0 on error.
- */
 static int add_channel(struct ccw_device *cdev, enum ctcm_channel_types type,
 				struct ctcm_priv *priv)
 {
@@ -1389,49 +1191,6 @@ static int add_channel(struct ccw_device *cdev, enum ctcm_channel_types type,
 	snprintf(ch->id, CTCM_ID_SIZE, "ch-%s", dev_name(&cdev->dev));
 	ch->type = type;
 
-	/**
-	 * "static" ccws are used in the following way:
-	 *
-	 * ccw[0..2] (Channel program for generic I/O):
-	 *           0: prepare
-	 *           1: read or write (depending on direction) with fixed
-	 *              buffer (idal allocated once when buffer is allocated)
-	 *           2: nop
-	 * ccw[3..5] (Channel program for direct write of packets)
-	 *           3: prepare
-	 *           4: write (idal allocated on every write).
-	 *           5: nop
-	 * ccw[6..7] (Channel program for initial channel setup):
-	 *           6: set extended mode
-	 *           7: nop
-	 *
-	 * ch->ccw[0..5] are initialized in ch_action_start because
-	 * the channel's direction is yet unknown here.
-	 *
-	 * ccws used for xid2 negotiations
-	 *  ch-ccw[8-14] need to be used for the XID exchange either
-	 *    X side XID2 Processing
-	 *       8:  write control
-	 *       9:  write th
-	 *	     10: write XID
-	 *	     11: read th from secondary
-	 *	     12: read XID   from secondary
-	 *	     13: read 4 byte ID
-	 *	     14: nop
-	 *    Y side XID Processing
-	 *	     8:  sense
-	 *       9:  read th
-	 *	     10: read XID
-	 *	     11: write th
-	 *	     12: write XID
-	 *	     13: write 4 byte ID
-	 *	     14: nop
-	 *
-	 *  ccws used for double noop due to VM timing issues
-	 *  which result in unrecoverable Busy on channel
-	 *       15: nop
-	 *       16: nop
-	 */
 	ch->ccw[6].cmd_code	= CCW_CMD_SET_EXTENDED;
 	ch->ccw[6].flags	= CCW_FLAG_SLI;
 
@@ -1494,7 +1253,7 @@ static int add_channel(struct ccw_device *cdev, enum ctcm_channel_types type,
 nomem_return:
 	rc = -ENOMEM;
 
-free_return:	/* note that all channel pointers are 0 or valid */
+free_return:	
 	kfree(ch->ccw);
 	kfree(ch->discontact_th);
 	kfree_fsm(ch->fsm);
@@ -1503,9 +1262,6 @@ free_return:	/* note that all channel pointers are 0 or valid */
 	return rc;
 }
 
-/*
- * Return type of a detected device.
- */
 static enum ctcm_channel_types get_channel_type(struct ccw_device_id *id)
 {
 	enum ctcm_channel_types type;
@@ -1517,14 +1273,6 @@ static enum ctcm_channel_types get_channel_type(struct ccw_device_id *id)
 	return type;
 }
 
-/**
- *
- * Setup an interface.
- *
- *  cgdev	Device to be setup.
- *
- * returns 0 on success, !0 on failure.
- */
 static int ctcm_new_device(struct ccwgroup_device *cgdev)
 {
 	char read_id[CTCM_ID_SIZE];
@@ -1603,7 +1351,7 @@ static int ctcm_new_device(struct ccwgroup_device *cgdev)
 		priv->channel[direction]->protocol = priv->protocol;
 		priv->channel[direction]->max_bufsize = priv->buffer_size;
 	}
-	/* sysfs magic */
+	
 	SET_NETDEV_DEV(dev, &cgdev->dev);
 
 	if (register_netdev(dev)) {
@@ -1647,13 +1395,6 @@ out_err_result:
 	return result;
 }
 
-/**
- * Shutdown an interface.
- *
- *  cgdev	Device to be shut down.
- *
- * returns 0 on success, !0 on failure.
- */
 static int ctcm_shutdown_device(struct ccwgroup_device *cgdev)
 {
 	struct ctcm_priv *priv;
@@ -1666,7 +1407,7 @@ static int ctcm_shutdown_device(struct ccwgroup_device *cgdev)
 	if (priv->channel[CTCM_READ]) {
 		dev = priv->channel[CTCM_READ]->netdev;
 		CTCM_DBF_DEV(SETUP, dev, "");
-		/* Close the device */
+		
 		ctcm_close(dev);
 		dev->flags &= ~IFF_RUNNING;
 		ctcm_remove_attributes(&cgdev->dev);
@@ -1779,7 +1520,7 @@ static struct ccwgroup_driver ctcm_group_driver = {
 		.name	= CTC_DRIVER_NAME,
 	},
 	.max_slaves  = 2,
-	.driver_id   = 0xC3E3C3D4,	/* CTCM */
+	.driver_id   = 0xC3E3C3D4,	
 	.probe       = ctcm_probe_device,
 	.remove      = ctcm_remove_device,
 	.set_online  = ctcm_new_device,
@@ -1817,16 +1558,7 @@ static const struct attribute_group *ctcm_group_attr_groups[] = {
 	NULL,
 };
 
-/*
- * Module related routines
- */
 
-/*
- * Prepare to be unloaded. Free IRQ's and release all resources.
- * This is called just before this module is unloaded. It is
- * not called, if the usage count is !0, so we don't need to check
- * for that.
- */
 static void __exit ctcm_exit(void)
 {
 	driver_remove_file(&ctcm_group_driver.driver, &driver_attr_group);
@@ -1837,20 +1569,11 @@ static void __exit ctcm_exit(void)
 	pr_info("CTCM driver unloaded\n");
 }
 
-/*
- * Print Banner.
- */
 static void print_banner(void)
 {
 	pr_info("CTCM driver initialized\n");
 }
 
-/**
- * Initialize module.
- * This is called just after the module is loaded.
- *
- * returns 0 on success, !0 on error.
- */
 static int __init ctcm_init(void)
 {
 	int ret;

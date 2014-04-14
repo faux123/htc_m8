@@ -31,4 +31,4 @@ static void arch_decomp_puts(const char *ptr)
 }
 #define ARCH_HAVE_DECOMP_PUTS
 
-#endif /* __MACH_PUV3_UNCOMPRESS_H__ */
+#endif 

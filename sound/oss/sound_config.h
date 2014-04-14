@@ -1,7 +1,3 @@
-/* sound_config.h
- *
- * A driver for sound cards, misc. configuration parameters.
- */
 /*
  * Copyright (C) by Hannu Savolainen 1993-1997
  *
@@ -29,30 +25,24 @@
 #define MAX_REALTIME_FACTOR	4
 #endif
 
-/*
- * Use always 64k buffer size. There is no reason to use shorter.
- */
 #undef DSP_BUFFSIZE
 #define DSP_BUFFSIZE		(64*1024)
 
 #ifndef DSP_BUFFCOUNT
-#define DSP_BUFFCOUNT		1	/* 1 is recommended. */
+#define DSP_BUFFCOUNT		1	
 #endif
 
-#define FM_MONO		0x388	/* This is the I/O address used by AdLib */
+#define FM_MONO		0x388	
 
 #ifndef CONFIG_PAS_BASE
 #define CONFIG_PAS_BASE	0x388
 #endif
 
-/* SEQ_MAX_QUEUE is the maximum number of sequencer events buffered by the
-   driver. (There is no need to alter this) */
 #define SEQ_MAX_QUEUE	1024
 
-#define SBFM_MAXINSTR		(256)	/* Size of the FM Instrument bank */
-/* 128 instruments for general MIDI setup and 16 unassigned	 */
+#define SBFM_MAXINSTR		(256)	
 
-#define SND_NDEVS	256	/* Number of supported devices */
+#define SND_NDEVS	256	
 
 #define DSP_DEFAULT_SPEED	8000
 
@@ -67,14 +57,14 @@ struct address_info {
 	int irq;
 	int dma;
 	int dma2;
-	int always_detect;	/* 1=Trust me, it's there */
+	int always_detect;	
 	char *name;
-	int driver_use_1;	/* Driver defined field 1 */
-	int driver_use_2;	/* Driver defined field 2 */
-	int *osp;	/* OS specific info */
-	int card_subtype;	/* Driver specific. Usually 0 */
-	void *memptr;           /* Module memory chainer */
-	int slots[6];           /* To remember driver slot ids */
+	int driver_use_1;	
+	int driver_use_2;	
+	int *osp;	
+	int card_subtype;	
+	void *memptr;           
+	int slots[6];           
 };
 
 #define SYNTH_MAX_VOICES	32
@@ -82,8 +72,8 @@ struct address_info {
 struct voice_alloc_info {
 		int max_voice;
 		int used_voices;
-		int ptr;		/* For device specific use */
-		unsigned short map[SYNTH_MAX_VOICES]; /* (ch << 8) | (note+1) */
+		int ptr;		
+		unsigned short map[SYNTH_MAX_VOICES]; 
 		int timestamp;
 		int alloc_times[SYNTH_MAX_VOICES];
 	};
@@ -95,9 +85,6 @@ struct channel_info {
 		unsigned char controllers[128];
 	};
 
-/*
- * Process wakeup reasons
- */
 #define WK_NONE		0x00
 #define WK_WAKEUP	0x01
 #define WK_TIMEOUT	0x02

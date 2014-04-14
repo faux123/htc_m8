@@ -170,10 +170,5 @@
 #define V6_DIG_RF_PWR_LSB_REG  0x46
 #define V6_DIG_RF_PWR_MSB_REG  0x47
 
-#endif /* _DVB_USB_MXL111SF_REG_H_ */
+#endif 
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */

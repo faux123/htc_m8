@@ -14,18 +14,11 @@
 #ifndef __ASM_ARCH_HARDWARE_H
 #define __ASM_ARCH_HARDWARE_H
 
-/* PCI IO info */
 
 #include "ixp23xx.h"
 
-/*
- * Platform helper functions
- */
 #include "platform.h"
 
-/*
- * Platform-specific headers
- */
 #include "ixdp2351.h"
 
 

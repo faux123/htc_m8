@@ -5,9 +5,6 @@
  *	Trystan Larey-Williams
  */
 
-/*
- * ThrustMaster DirectConnect (BSP) joystick family driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -44,8 +41,8 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-#define TMDC_MAX_START		600	/* 600 us */
-#define TMDC_MAX_STROBE		60	/* 60 us */
+#define TMDC_MAX_START		600	
+#define TMDC_MAX_STROBE		60	
 #define TMDC_MAX_LENGTH		13
 
 #define TMDC_MODE_M3DI		1
@@ -140,9 +137,6 @@ struct tmdc {
 	unsigned char exists;
 };
 
-/*
- * tmdc_read_packet() reads a ThrustMaster packet.
- */
 
 static int tmdc_read_packet(struct gameport *gameport, unsigned char data[2][TMDC_MAX_LENGTH])
 {
@@ -170,15 +164,15 @@ static int tmdc_read_packet(struct gameport *gameport, unsigned char data[2][TMD
 			if (~v & u & 2) {
 				if (t[k] <= 0 || i[k] >= TMDC_MAX_LENGTH) continue;
 				t[k] = p;
-				if (j[k] == 0) {				 /* Start bit */
+				if (j[k] == 0) {				 
 					if (~v & 1) t[k] = 0;
 					data[k][i[k]] = 0; j[k]++; continue;
 				}
-				if (j[k] == 9) {				/* Stop bit */
+				if (j[k] == 9) {				
 					if (v & 1) t[k] = 0;
 					j[k] = 0; i[k]++; continue;
 				}
-				data[k][i[k]] |= (~v & 1) << (j[k]++ - 1);	/* Data bit */
+				data[k][i[k]] |= (~v & 1) << (j[k]++ - 1);	
 			}
 			t[k]--;
 		}
@@ -233,9 +227,6 @@ static int tmdc_parse_packet(struct tmdc_port *port, unsigned char *data)
 	return 0;
 }
 
-/*
- * tmdc_poll() reads and analyzes ThrustMaster joystick data.
- */
 
 static void tmdc_poll(struct gameport *gameport)
 {
@@ -294,7 +285,7 @@ static int tmdc_setup_port(struct tmdc *tmdc, int idx, unsigned char *data)
 	port->mode = data[TMDC_BYTE_ID];
 
 	for (model = tmdc_models; model->id && model->id != port->mode; model++)
-		/* empty */;
+		;
 
 	port->abs = model->axes;
 	port->btn = model->buttons;
@@ -357,9 +348,6 @@ static int tmdc_setup_port(struct tmdc *tmdc, int idx, unsigned char *data)
 	return err;
 }
 
-/*
- * tmdc_probe() probes for ThrustMaster type joysticks.
- */
 
 static int tmdc_connect(struct gameport *gameport, struct gameport_driver *drv)
 {

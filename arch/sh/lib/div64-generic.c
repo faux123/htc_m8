@@ -1,6 +1,3 @@
-/*
- * Generic __div64_32 wrapper for __xdiv64_32.
- */
 
 #include <linux/types.h>
 #include <asm/div64.h>

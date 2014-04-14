@@ -3,8 +3,8 @@
 struct ioapic_scope {
 	struct intel_iommu *iommu;
 	unsigned int id;
-	unsigned int bus;	/* PCI bus number */
-	unsigned int devfn;	/* PCI devfn number */
+	unsigned int bus;	
+	unsigned int devfn;	
 };
 
 struct hpet_scope {

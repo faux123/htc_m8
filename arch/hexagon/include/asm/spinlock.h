@@ -1,7 +1,7 @@
 /*
  * Spinlock support for the Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,19 +24,7 @@
 
 #include <asm/irqflags.h>
 
-/*
- * This file is pulled in for SMP builds.
- * Really need to check all the barrier stuff for "true" SMP
- */
 
-/*
- * Read locks:
- * - load the lock value
- * - increment it
- * - if the lock value is still negative, go back and try again.
- * - unsuccessful store is unsuccessful.  Go back and try again.  Loser.
- * - successful store new lock value if positive -> lock acquired
- */
 static inline void arch_read_lock(arch_rwlock_t *lock)
 {
 	__asm__ __volatile__(
@@ -66,7 +54,6 @@ static inline void arch_read_unlock(arch_rwlock_t *lock)
 
 }
 
-/*  I think this returns 0 on fail, 1 on success.  */
 static inline int arch_read_trylock(arch_rwlock_t *lock)
 {
 	int temp;
@@ -94,7 +81,6 @@ static inline int arch_write_can_lock(arch_rwlock_t *rwlock)
 	return rwlock->lock == 0;
 }
 
-/*  Stuffs a -1 in the lock value?  */
 static inline void arch_write_lock(arch_rwlock_t *lock)
 {
 	__asm__ __volatile__(
@@ -172,9 +158,6 @@ static inline unsigned int arch_spin_trylock(arch_spinlock_t *lock)
 	return temp;
 }
 
-/*
- * SMP spinlocks are intended to allow only a single CPU at the lock
- */
 #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
 #define arch_spin_unlock_wait(lock) \
 	do {while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)

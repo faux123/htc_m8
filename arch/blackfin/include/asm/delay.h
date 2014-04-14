@@ -22,11 +22,8 @@ __asm__ __volatile__ (
 		);
 }
 
-#include <linux/param.h>	/* needed for HZ */
+#include <linux/param.h>	
 
-/*
- * close approximation borrowed from m68knommu to avoid 64-bit math
- */
 
 #define	HZSCALE		(268435456 / (1000000/HZ))
 

@@ -37,7 +37,6 @@
 #ifndef _TIPC_CONFIG_H
 #define _TIPC_CONFIG_H
 
-/* ---------------------------------------------------------------------- */
 
 #include "link.h"
 

@@ -9,12 +9,6 @@
 
 #define TAG_CONTEXT_BITS	((_AC(1,UL) << CTX_NR_BITS) - _AC(1,UL))
 
-/* UltraSPARC-III+ and later have a feature whereby you can
- * select what page size the various Data-TLB instances in the
- * chip.  In order to gracefully support this, we put the version
- * field in a spot outside of the areas of the context register
- * where this parameter is specified.
- */
 #define CTX_VERSION_SHIFT	22
 #define CTX_VERSION_MASK	((~0UL) << CTX_VERSION_SHIFT)
 
@@ -48,9 +42,6 @@
 
 #define CTX_PGSZ_KERN	CTX_PGSZ_4MB
 
-/* Thus, when running on UltraSPARC-III+ and later, we use the following
- * PRIMARY_CONTEXT register values for the kernel context.
- */
 #define CTX_CHEETAH_PLUS_NUC \
 	((CTX_PGSZ_KERN << CTX_PGSZ0_NUC_SHIFT) | \
 	 (CTX_PGSZ_BASE << CTX_PGSZ1_NUC_SHIFT))
@@ -59,10 +50,6 @@
 	((CTX_PGSZ_KERN << CTX_PGSZ0_SHIFT) | \
 	 (CTX_PGSZ_BASE << CTX_PGSZ1_SHIFT))
 
-/* If you want "the TLB context number" use CTX_NR_MASK.  If you
- * want "the bits I program into the context registers" use
- * CTX_HW_MASK.
- */
 #define CTX_NR_MASK		TAG_CONTEXT_BITS
 #define CTX_HW_MASK		(CTX_NR_MASK | CTX_PGSZ_MASK)
 
@@ -111,7 +98,7 @@ typedef struct {
 	struct hv_tsb_descr	tsb_descr[MM_NUM_TSBS];
 } mm_context_t;
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
 #define TSB_CONFIG_TSB		0x00
 #define TSB_CONFIG_RSS_LIMIT	0x08
@@ -120,4 +107,4 @@ typedef struct {
 #define TSB_CONFIG_MAP_VADDR	0x20
 #define TSB_CONFIG_MAP_PTE	0x28
 
-#endif /* __MMU_H */
+#endif 

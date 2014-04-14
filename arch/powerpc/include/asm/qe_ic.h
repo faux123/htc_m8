@@ -22,7 +22,6 @@ struct qe_ic;
 
 #define NUM_OF_QE_IC_GROUPS	6
 
-/* Flags when we init the QE IC */
 #define QE_IC_SPREADMODE_GRP_W			0x00000001
 #define QE_IC_SPREADMODE_GRP_X			0x00000002
 #define QE_IC_SPREADMODE_GRP_Y			0x00000004
@@ -47,14 +46,13 @@ struct qe_ic;
 #define QE_IC_GRP_RISCB_PRI1_DEST_SIGNAL_HIGH	0x00800000
 #define QE_IC_GRP_W_DEST_SIGNAL_SHIFT		(12)
 
-/* QE interrupt sources groups */
 enum qe_ic_grp_id {
-	QE_IC_GRP_W = 0,	/* QE interrupt controller group W */
-	QE_IC_GRP_X,		/* QE interrupt controller group X */
-	QE_IC_GRP_Y,		/* QE interrupt controller group Y */
-	QE_IC_GRP_Z,		/* QE interrupt controller group Z */
-	QE_IC_GRP_RISCA,	/* QE interrupt controller RISC group A */
-	QE_IC_GRP_RISCB		/* QE interrupt controller RISC group B */
+	QE_IC_GRP_W = 0,	
+	QE_IC_GRP_X,		
+	QE_IC_GRP_Y,		
+	QE_IC_GRP_Z,		
+	QE_IC_GRP_RISCA,	
+	QE_IC_GRP_RISCB		
 };
 
 #ifdef CONFIG_QUICC_ENGINE
@@ -72,7 +70,7 @@ static inline unsigned int qe_ic_get_low_irq(struct qe_ic *qe_ic)
 { return 0; }
 static inline unsigned int qe_ic_get_high_irq(struct qe_ic *qe_ic)
 { return 0; }
-#endif /* CONFIG_QUICC_ENGINE */
+#endif 
 
 void qe_ic_set_highest_priority(unsigned int virq, int high);
 int qe_ic_set_priority(unsigned int virq, unsigned int priority);
@@ -141,4 +139,4 @@ static inline void qe_ic_cascade_muxed_mpic(unsigned int irq,
 	chip->irq_eoi(&desc->irq_data);
 }
 
-#endif /* _ASM_POWERPC_QE_IC_H */
+#endif 

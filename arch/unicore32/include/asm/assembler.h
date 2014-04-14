@@ -18,9 +18,6 @@
 
 #include <asm/ptrace.h>
 
-/*
- * Little Endian independent macros for shifting bytes within registers.
- */
 #define pull            >>
 #define push            <<
 #define get_byte_0      << #0
@@ -37,9 +34,6 @@
 #define csub		cmpsub
 #define cxor		cmpxor
 
-/*
- * Enable and disable interrupts
- */
 	.macro disable_irq, temp
 	mov	\temp, asr
 	andn     \temp, \temp, #0xFF

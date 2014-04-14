@@ -3,4 +3,4 @@
 
 #include <asm-generic/kdebug.h>
 
-#endif /* _ASM_SCORE_KDEBUG_H */
+#endif 

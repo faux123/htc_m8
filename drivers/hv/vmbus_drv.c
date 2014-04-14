@@ -124,12 +124,6 @@ static void print_alias_name(struct hv_device *hv_dev, char *alias_name)
 		sprintf(&alias_name[i], "%02x", hv_dev->dev_type.b[i/2]);
 }
 
-/*
- * vmbus_show_device_attr - Show the device attribute in sysfs.
- *
- * This is invoked when user does a
- * "cat /sys/bus/vmbus/devices/<busdevice>/<attr name>"
- */
 static ssize_t vmbus_show_device_attr(struct device *dev,
 				      struct device_attribute *dev_attr,
 				      char *buf)
@@ -236,7 +230,6 @@ static ssize_t vmbus_show_device_attr(struct device *dev,
 	return ret;
 }
 
-/* Set up per device attributes in /sys/bus/vmbus/devices/<bus device> */
 static struct device_attribute vmbus_device_attrs[] = {
 	__ATTR(id, S_IRUGO, vmbus_show_device_attr, NULL),
 	__ATTR(state, S_IRUGO, vmbus_show_device_attr, NULL),
@@ -268,17 +261,6 @@ static struct device_attribute vmbus_device_attrs[] = {
 };
 
 
-/*
- * vmbus_uevent - add uevent for our device
- *
- * This routine is invoked when a device is added or removed on the vmbus to
- * generate a uevent to udev in the userspace. The udev will then look at its
- * rule and the uevent generated here to load the appropriate driver
- *
- * The alias string will be of the form vmbus:guid where guid is the string
- * representation of the device guid (each byte of the guid will be
- * represented with two hex characters.
- */
 static int vmbus_uevent(struct device *device, struct kobj_uevent_env *env)
 {
 	struct hv_device *dev = device_to_hv_device(device);
@@ -299,10 +281,6 @@ static inline bool is_null_guid(const __u8 *guid)
 	return true;
 }
 
-/*
- * Return a matching hv_vmbus_device_id pointer.
- * If there is no match, return NULL.
- */
 static const struct hv_vmbus_device_id *hv_vmbus_get_id(
 					const struct hv_vmbus_device_id *id,
 					__u8 *guid)
@@ -316,9 +294,6 @@ static const struct hv_vmbus_device_id *hv_vmbus_get_id(
 
 
 
-/*
- * vmbus_match - Attempt to match the specified device to the specified driver
- */
 static int vmbus_match(struct device *device, struct device_driver *driver)
 {
 	struct hv_driver *drv = drv_to_hv_drv(driver);
@@ -330,9 +305,6 @@ static int vmbus_match(struct device *device, struct device_driver *driver)
 	return 0;
 }
 
-/*
- * vmbus_probe - Add the new vmbus's child device
- */
 static int vmbus_probe(struct device *child_device)
 {
 	int ret = 0;
@@ -356,9 +328,6 @@ static int vmbus_probe(struct device *child_device)
 	return ret;
 }
 
-/*
- * vmbus_remove - Remove a vmbus device
- */
 static int vmbus_remove(struct device *child_device)
 {
 	struct hv_driver *drv = drv_to_hv_drv(child_device->driver);
@@ -374,16 +343,13 @@ static int vmbus_remove(struct device *child_device)
 }
 
 
-/*
- * vmbus_shutdown - Shutdown a vmbus device
- */
 static void vmbus_shutdown(struct device *child_device)
 {
 	struct hv_driver *drv;
 	struct hv_device *dev = device_to_hv_device(child_device);
 
 
-	/* The device may not be attached yet */
+	
 	if (!child_device->driver)
 		return;
 
@@ -396,9 +362,6 @@ static void vmbus_shutdown(struct device *child_device)
 }
 
 
-/*
- * vmbus_device_release - Final callback release of the vmbus child device
- */
 static void vmbus_device_release(struct device *device)
 {
 	struct hv_device *hv_dev = device_to_hv_device(device);
@@ -407,7 +370,6 @@ static void vmbus_device_release(struct device *device)
 
 }
 
-/* The one and only one */
 static struct bus_type  hv_bus = {
 	.name =		"vmbus",
 	.match =		vmbus_match,
@@ -446,7 +408,7 @@ static void vmbus_on_msg_dpc(unsigned long data)
 
 	while (1) {
 		if (msg->header.message_type == HVMSG_NONE) {
-			/* no msg */
+			
 			break;
 		} else {
 			ctx = kmalloc(sizeof(*ctx), GFP_ATOMIC);
@@ -459,21 +421,9 @@ static void vmbus_on_msg_dpc(unsigned long data)
 
 		msg->header.message_type = HVMSG_NONE;
 
-		/*
-		 * Make sure the write to MessageType (ie set to
-		 * HVMSG_NONE) happens before we read the
-		 * MessagePending and EOMing. Otherwise, the EOMing
-		 * will not deliver any more messages since there is
-		 * no empty slot
-		 */
 		smp_mb();
 
 		if (msg->header.message_flags.msg_pending) {
-			/*
-			 * This will cause message queue rescan to
-			 * possibly deliver another msg from the
-			 * hypervisor
-			 */
 			wrmsrl(HV_X64_MSR_EOM, 0);
 		}
 	}
@@ -487,16 +437,11 @@ static irqreturn_t vmbus_isr(int irq, void *dev_id)
 	union hv_synic_event_flags *event;
 	bool handled = false;
 
-	/*
-	 * Check for events before checking for messages. This is the order
-	 * in which events and messages are checked in Windows guests on
-	 * Hyper-V, and the Windows team suggested we do the same.
-	 */
 
 	page_addr = hv_context.synic_event_page[cpu];
 	event = (union hv_synic_event_flags *)page_addr + VMBUS_MESSAGE_SINT;
 
-	/* Since we are a child, we only need to check bit 0 */
+	
 	if (sync_test_and_clear_bit(0, (unsigned long *) &event->flags32[0])) {
 		handled = true;
 		tasklet_schedule(&event_dpc);
@@ -505,7 +450,7 @@ static irqreturn_t vmbus_isr(int irq, void *dev_id)
 	page_addr = hv_context.synic_message_page[cpu];
 	msg = (struct hv_message *)page_addr + VMBUS_MESSAGE_SINT;
 
-	/* Check if there are actual msgs to be processed */
+	
 	if (msg->header.message_type != HVMSG_NONE) {
 		handled = true;
 		tasklet_schedule(&msg_dpc);
@@ -517,21 +462,12 @@ static irqreturn_t vmbus_isr(int irq, void *dev_id)
 		return IRQ_NONE;
 }
 
-/*
- * vmbus_bus_init -Main vmbus driver initialization routine.
- *
- * Here, we
- *	- initialize the vmbus driver context
- *	- invoke the vmbus hv main init routine
- *	- get the irq resource
- *	- retrieve the channel offers
- */
 static int vmbus_bus_init(int irq)
 {
 	int ret;
 	unsigned int vector;
 
-	/* Hypervisor initialization...setup hypercall page..etc */
+	
 	ret = hv_init();
 	if (ret != 0) {
 		pr_err("Unable to initialize the hypervisor - 0x%x\n", ret);
@@ -556,10 +492,6 @@ static int vmbus_bus_init(int irq)
 
 	vector = IRQ0_VECTOR + irq;
 
-	/*
-	 * Notify the hypervisor of our irq and
-	 * connect to the host.
-	 */
 	on_each_cpu(hv_synic_init, (void *)&vector, 1);
 	ret = vmbus_connect();
 	if (ret)
@@ -581,17 +513,6 @@ err_cleanup:
 	return ret;
 }
 
-/**
- * __vmbus_child_driver_register - Register a vmbus's driver
- * @drv: Pointer to driver structure you want to register
- * @owner: owner module of the drv
- * @mod_name: module name string
- *
- * Registers the given driver with Linux through the 'driver_register()' call
- * and sets up the hyper-v vmbus handling for this driver.
- * It will return the state of the 'driver_register()' call.
- *
- */
 int __vmbus_driver_register(struct hv_driver *hv_driver, struct module *owner, const char *mod_name)
 {
 	int ret;
@@ -615,13 +536,6 @@ int __vmbus_driver_register(struct hv_driver *hv_driver, struct module *owner, c
 }
 EXPORT_SYMBOL_GPL(__vmbus_driver_register);
 
-/**
- * vmbus_driver_unregister() - Unregister a vmbus's driver
- * @drv: Pointer to driver structure you want to un-register
- *
- * Un-register the given driver that was previous registered with a call to
- * vmbus_driver_register()
- */
 void vmbus_driver_unregister(struct hv_driver *hv_driver)
 {
 	pr_info("unregistering driver %s\n", hv_driver->name);
@@ -631,10 +545,6 @@ void vmbus_driver_unregister(struct hv_driver *hv_driver)
 }
 EXPORT_SYMBOL_GPL(vmbus_driver_unregister);
 
-/*
- * vmbus_device_create - Creates and registers a new child device
- * on the vmbus.
- */
 struct hv_device *vmbus_device_create(uuid_le *type,
 					    uuid_le *instance,
 					    struct vmbus_channel *channel)
@@ -656,9 +566,6 @@ struct hv_device *vmbus_device_create(uuid_le *type,
 	return child_device_obj;
 }
 
-/*
- * vmbus_device_register - Register the child device
- */
 int vmbus_device_register(struct hv_device *child_device_obj)
 {
 	int ret = 0;
@@ -672,10 +579,6 @@ int vmbus_device_register(struct hv_device *child_device_obj)
 	child_device_obj->device.parent = &hv_acpi_dev->dev;
 	child_device_obj->device.release = vmbus_device_release;
 
-	/*
-	 * Register with the LDM. This will kick off the driver/device
-	 * binding...which will eventually call vmbus_match() and vmbus_probe()
-	 */
 	ret = device_register(&child_device_obj->device);
 
 	if (ret)
@@ -687,16 +590,8 @@ int vmbus_device_register(struct hv_device *child_device_obj)
 	return ret;
 }
 
-/*
- * vmbus_device_unregister - Remove the specified child device
- * from the vmbus.
- */
 void vmbus_device_unregister(struct hv_device *device_obj)
 {
-	/*
-	 * Kick off the process of unregistering the device.
-	 * This will call vmbus_remove() and eventually vmbus_device_release()
-	 */
 	device_unregister(&device_obj->device);
 
 	pr_info("child device %s unregistered\n",
@@ -704,10 +599,6 @@ void vmbus_device_unregister(struct hv_device *device_obj)
 }
 
 
-/*
- * VMBUS is an acpi enumerated device. Get the the IRQ information
- * from DSDT.
- */
 
 static acpi_status vmbus_walk_resources(struct acpi_resource *res, void *irq)
 {
@@ -760,9 +651,6 @@ static int __init hv_acpi_init(void)
 
 	init_completion(&probe_event);
 
-	/*
-	 * Get irq resources first.
-	 */
 
 	ret = acpi_bus_register_driver(&vmbus_acpi_driver);
 

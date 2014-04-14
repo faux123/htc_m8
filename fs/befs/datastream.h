@@ -1,7 +1,3 @@
-/*
- * datastream.h
- *
- */
 
 struct buffer_head *befs_read_datastream(struct super_block *sb,
 					 befs_data_stream * ds, befs_off_t pos,

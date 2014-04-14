@@ -1,9 +1,3 @@
-/*
- * PCI Backend - Provides a Virtual PCI bus (with real devices)
- *               to the frontend
- *
- *   Author: Ryan Wilson <hap9@epoch.ncsc.mil>
- */
 
 #include <linux/list.h>
 #include <linux/slab.h>
@@ -14,7 +8,7 @@
 #define PCI_SLOT_MAX 32
 
 struct vpci_dev_data {
-	/* Access to dev_list must be protected by lock */
+	
 	struct list_head dev_list[PCI_SLOT_MAX];
 	struct mutex lock;
 };
@@ -89,7 +83,7 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 
 	mutex_lock(&vpci_dev->lock);
 
-	/* Keep multi-function devices together on the virtual PCI bus */
+	
 	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
 		if (!list_empty(&vpci_dev->dev_list[slot])) {
 			t = list_entry(list_first(&vpci_dev->dev_list[slot]),
@@ -108,7 +102,7 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 		}
 	}
 
-	/* Assign to a new slot on the virtual PCI bus */
+	
 	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
 		if (list_empty(&vpci_dev->dev_list[slot])) {
 			printk(KERN_INFO DRV_NAME
@@ -128,7 +122,7 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 unlock:
 	mutex_unlock(&vpci_dev->lock);
 
-	/* Publish this device. */
+	
 	if (!err)
 		err = publish_cb(pdev, 0, 0, PCI_DEVFN(slot, func), devid);
 
@@ -187,7 +181,7 @@ static int __xen_pcibk_init_devices(struct xen_pcibk_device *pdev)
 static int __xen_pcibk_publish_pci_roots(struct xen_pcibk_device *pdev,
 					 publish_pci_root_cb publish_cb)
 {
-	/* The Virtual PCI bus has only one root */
+	
 	return publish_cb(pdev, 0, 0);
 }
 

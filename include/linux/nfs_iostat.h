@@ -70,23 +70,6 @@ enum nfs_stat_bytecounters {
 	__NFSIOS_BYTESMAX,
 };
 
-/*
- * NFS event counters
- *
- * These counters provide a low-overhead way of monitoring client
- * activity without enabling NFS trace debugging.  The counters
- * show the rate at which VFS requests are made, and how often the
- * client invalidates its data and attribute caches.  This allows
- * system administrators to monitor such things as how close-to-open
- * is working, and answer questions such as "why are there so many
- * GETATTR requests on the wire?"
- *
- * They also count anamolous events such as short reads and writes,
- * silly renames due to close-after-delete, and operations that
- * change the size of a file (such operations can often be the
- * source of data corruption if applications aren't using file
- * locking properly).
- */
 enum nfs_stat_eventcounters {
 	NFSIOS_INODEREVALIDATE = 0,
 	NFSIOS_DENTRYREVALIDATE,
@@ -118,9 +101,6 @@ enum nfs_stat_eventcounters {
 	__NFSIOS_COUNTSMAX,
 };
 
-/*
- * NFS local caching servicing counters
- */
 enum nfs_stat_fscachecounters {
 	NFSIOS_FSCACHE_PAGES_READ_OK,
 	NFSIOS_FSCACHE_PAGES_READ_FAIL,
@@ -130,4 +110,4 @@ enum nfs_stat_fscachecounters {
 	__NFSIOS_FSCACHEMAX,
 };
 
-#endif	/* _LINUX_NFS_IOSTAT */
+#endif	

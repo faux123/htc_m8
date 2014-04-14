@@ -38,9 +38,6 @@ struct stat {
 	unsigned long  __unused5;
 };
 
-/* This matches struct stat64 in glibc2.1, hence the absolutely
- * insane amounts of padding around dev_t's.
- */
 struct stat64 {
 	unsigned long long	st_dev;
 	unsigned char	__pad1[2];
@@ -60,7 +57,7 @@ struct stat64 {
 	long long	st_size;
 	unsigned long	st_blksize;
 
-	unsigned long long	st_blocks;	/* Number 512-byte blocks allocated. */
+	unsigned long long	st_blocks;	
 
 	unsigned long	st_atime;
 	unsigned long	st_atime_nsec;
@@ -74,4 +71,4 @@ struct stat64 {
 	unsigned long long	st_ino;
 };
 
-#endif /* _M68K_STAT_H */
+#endif 

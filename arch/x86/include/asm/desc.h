@@ -26,10 +26,6 @@ static inline void fill_ldt(struct desc_struct *desc, const struct user_desc *in
 	desc->g			= info->limit_in_pages;
 
 	desc->base2		= (info->base_addr & 0xff000000) >> 24;
-	/*
-	 * Don't allow setting of the lm bit. It would confuse
-	 * user_64bit_mode and would get overridden by sysret anyway.
-	 */
 	desc->l			= 0;
 }
 
@@ -111,7 +107,7 @@ static inline void paravirt_alloc_ldt(struct desc_struct *ldt, unsigned entries)
 static inline void paravirt_free_ldt(struct desc_struct *ldt, unsigned entries)
 {
 }
-#endif	/* CONFIG_PARAVIRT */
+#endif	
 
 #define store_ldt(ldt) asm("sldt %0" : "=m"(ldt))
 
@@ -176,13 +172,6 @@ static inline void __set_tss_desc(unsigned cpu, unsigned int entry, void *addr)
 	struct desc_struct *d = get_cpu_gdt_table(cpu);
 	tss_desc tss;
 
-	/*
-	 * sizeof(unsigned long) coming from an extra "long" at the end
-	 * of the iobitmap. See tss_struct definition in processor.h
-	 *
-	 * -1? seg base+limit should be pointing to the address of the
-	 * last valid byte
-	 */
 	set_tssldt_descriptor(&tss, (unsigned long)addr, DESC_TSS,
 			      IO_BITMAP_OFFSET + IO_BITMAP_BYTES +
 			      sizeof(unsigned long) - 1);
@@ -271,9 +260,6 @@ static inline void clear_LDT(void)
 	set_ldt(NULL, 0);
 }
 
-/*
- * load one particular LDT into the current CPU
- */
 static inline void load_LDT_nolock(mm_context_t *pc)
 {
 	set_ldt(pc->ldt, pc->size);
@@ -325,19 +311,9 @@ static inline void _set_gate(int gate, unsigned type, void *addr,
 	gate_desc s;
 
 	pack_gate(&s, type, (unsigned long)addr, dpl, ist, seg);
-	/*
-	 * does not need to be atomic because it is only done once at
-	 * setup time
-	 */
 	write_idt_entry(idt_table, gate, &s);
 }
 
-/*
- * This needs to use 'idt_table' rather than 'idt', and
- * thus use the _nonmapped_ version of the IDT, as the
- * Pentium F0 0F bugfix can have resulted in the mapped
- * IDT being write-protected.
- */
 static inline void set_intr_gate(unsigned int n, void *addr)
 {
 	BUG_ON((unsigned)n > 0xFF);
@@ -345,7 +321,6 @@ static inline void set_intr_gate(unsigned int n, void *addr)
 }
 
 extern int first_system_vector;
-/* used_vectors is BITMAP for irq is not managed by percpu vector_irq */
 extern unsigned long used_vectors[];
 
 static inline void alloc_system_vector(int vector)
@@ -365,9 +340,6 @@ static inline void alloc_intr_gate(unsigned int n, void *addr)
 	set_intr_gate(n, addr);
 }
 
-/*
- * This routine sets up an interrupt gate at directory privilege level 3.
- */
 static inline void set_system_intr_gate(unsigned int n, void *addr)
 {
 	BUG_ON((unsigned)n > 0xFF);
@@ -404,4 +376,4 @@ static inline void set_system_intr_gate_ist(int n, void *addr, unsigned ist)
 	_set_gate(n, GATE_INTERRUPT, addr, 0x3, ist, __KERNEL_CS);
 }
 
-#endif /* _ASM_X86_DESC_H */
+#endif 

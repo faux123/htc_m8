@@ -39,42 +39,36 @@
 #define MPI_TOOLBOX_BEACON_TOOL                     (0x05)
 
 
-/****************************************************************************/
-/* Toolbox reply                                                            */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_REPLY
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      MsgLength;                  /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U16                     Reserved3;                  /* 0Ch */
-    U16                     IOCStatus;                  /* 0Eh */
-    U32                     IOCLogInfo;                 /* 10h */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      MsgLength;                  
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U16                     Reserved3;                  
+    U16                     IOCStatus;                  
+    U32                     IOCLogInfo;                 
 } MSG_TOOLBOX_REPLY, MPI_POINTER PTR_MSG_TOOLBOX_REPLY,
   ToolboxReply_t, MPI_POINTER pToolboxReply_t;
 
 
-/****************************************************************************/
-/* Toolbox Clean Tool request                                               */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_CLEAN_REQUEST
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U32                     Flags;                      /* 0Ch */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U32                     Flags;                      
 } MSG_TOOLBOX_CLEAN_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_CLEAN_REQUEST,
   ToolboxCleanRequest_t, MPI_POINTER pToolboxCleanRequest_t;
 
@@ -89,51 +83,45 @@ typedef struct _MSG_TOOLBOX_CLEAN_REQUEST
 #define MPI_TOOLBOX_CLEAN_BOOT_SERVICES             (0x80000000)
 
 
-/****************************************************************************/
-/* Toolbox Memory Move request                                              */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_MEM_MOVE_REQUEST
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    SGE_SIMPLE_UNION        SGL;                        /* 0Ch */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    SGE_SIMPLE_UNION        SGL;                        
 } MSG_TOOLBOX_MEM_MOVE_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_MEM_MOVE_REQUEST,
   ToolboxMemMoveRequest_t, MPI_POINTER pToolboxMemMoveRequest_t;
 
 
-/****************************************************************************/
-/* Toolbox Diagnostic Data Upload request                                   */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_DIAG_DATA_UPLOAD_REQUEST
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U32                     Flags;                      /* 0Ch */
-    U32                     Reserved3;                  /* 10h */
-    SGE_SIMPLE_UNION        SGL;                        /* 14h */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U32                     Flags;                      
+    U32                     Reserved3;                  
+    SGE_SIMPLE_UNION        SGL;                        
 } MSG_TOOLBOX_DIAG_DATA_UPLOAD_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_DIAG_DATA_UPLOAD_REQUEST,
   ToolboxDiagDataUploadRequest_t, MPI_POINTER pToolboxDiagDataUploadRequest_t;
 
 typedef struct _DIAG_DATA_UPLOAD_HEADER
 {
-    U32                     DiagDataLength;             /* 00h */
-    U8                      FormatCode;                 /* 04h */
-    U8                      Reserved;                   /* 05h */
-    U16                     Reserved1;                  /* 06h */
+    U32                     DiagDataLength;             
+    U8                      FormatCode;                 
+    U8                      Reserved;                   
+    U16                     Reserved1;                  
 } DIAG_DATA_UPLOAD_HEADER, MPI_POINTER PTR_DIAG_DATA_UPLOAD_HEADER,
   DiagDataUploadHeader_t, MPI_POINTER pDiagDataUploadHeader_t;
 
@@ -143,32 +131,29 @@ typedef struct _DIAG_DATA_UPLOAD_HEADER
 #define MPI_TB_DIAG_FORMAT_FC_TRACE_1               (0x04)
 
 
-/****************************************************************************/
-/* Toolbox ISTWI Read Write request                                         */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_ISTWI_READ_WRITE_REQUEST
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U8                      Flags;                      /* 0Ch */
-    U8                      BusNum;                     /* 0Dh */
-    U16                     Reserved3;                  /* 0Eh */
-    U8                      NumAddressBytes;            /* 10h */
-    U8                      Reserved4;                  /* 11h */
-    U16                     DataLength;                 /* 12h */
-    U8                      DeviceAddr;                 /* 14h */
-    U8                      Addr1;                      /* 15h */
-    U8                      Addr2;                      /* 16h */
-    U8                      Addr3;                      /* 17h */
-    U32                     Reserved5;                  /* 18h */
-    SGE_SIMPLE_UNION        SGL;                        /* 1Ch */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U8                      Flags;                      
+    U8                      BusNum;                     
+    U16                     Reserved3;                  
+    U8                      NumAddressBytes;            
+    U8                      Reserved4;                  
+    U16                     DataLength;                 
+    U8                      DeviceAddr;                 
+    U8                      Addr1;                      
+    U8                      Addr2;                      
+    U8                      Addr3;                      
+    U32                     Reserved5;                  
+    SGE_SIMPLE_UNION        SGL;                        
 } MSG_TOOLBOX_ISTWI_READ_WRITE_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_ISTWI_READ_WRITE_REQUEST,
   ToolboxIstwiReadWriteRequest_t, MPI_POINTER pToolboxIstwiReadWriteRequest_t;
 
@@ -176,36 +161,29 @@ typedef struct _MSG_TOOLBOX_ISTWI_READ_WRITE_REQUEST
 #define MPI_TB_ISTWI_FLAGS_READ                     (0x01)
 
 
-/****************************************************************************/
-/* Toolbox FC Management request                                            */
-/****************************************************************************/
 
-/* ActionInfo for Bus and TargetId */
 typedef struct _MPI_TB_FC_MANAGE_BUS_TID_AI
 {
-    U16                     Reserved;                   /* 00h */
-    U8                      Bus;                        /* 02h */
-    U8                      TargetId;                   /* 03h */
+    U16                     Reserved;                   
+    U8                      Bus;                        
+    U8                      TargetId;                   
 } MPI_TB_FC_MANAGE_BUS_TID_AI, MPI_POINTER PTR_MPI_TB_FC_MANAGE_BUS_TID_AI,
   MpiTbFcManageBusTidAi_t, MPI_POINTER pMpiTbFcManageBusTidAi_t;
 
-/* ActionInfo for port identifier */
 typedef struct _MPI_TB_FC_MANAGE_PID_AI
 {
-    U32                     PortIdentifier;             /* 00h */
+    U32                     PortIdentifier;             
 } MPI_TB_FC_MANAGE_PID_AI, MPI_POINTER PTR_MPI_TB_FC_MANAGE_PID_AI,
   MpiTbFcManagePidAi_t, MPI_POINTER pMpiTbFcManagePidAi_t;
 
-/* ActionInfo for set max frame size */
 typedef struct _MPI_TB_FC_MANAGE_FRAME_SIZE_AI
 {
-    U16                     FrameSize;                  /* 00h */
-    U8                      PortNum;                    /* 02h */
-    U8                      Reserved1;                  /* 03h */
+    U16                     FrameSize;                  
+    U8                      PortNum;                    
+    U8                      Reserved1;                  
 } MPI_TB_FC_MANAGE_FRAME_SIZE_AI, MPI_POINTER PTR_MPI_TB_FC_MANAGE_FRAME_SIZE_AI,
   MpiTbFcManageFrameSizeAi_t, MPI_POINTER pMpiTbFcManageFrameSizeAi_t;
 
-/* union of ActionInfo */
 typedef union _MPI_TB_FC_MANAGE_AI_UNION
 {
     MPI_TB_FC_MANAGE_BUS_TID_AI     BusTid;
@@ -216,46 +194,42 @@ typedef union _MPI_TB_FC_MANAGE_AI_UNION
 
 typedef struct _MSG_TOOLBOX_FC_MANAGE_REQUEST
 {
-    U8                          Tool;                   /* 00h */
-    U8                          Reserved;               /* 01h */
-    U8                          ChainOffset;            /* 02h */
-    U8                          Function;               /* 03h */
-    U16                         Reserved1;              /* 04h */
-    U8                          Reserved2;              /* 06h */
-    U8                          MsgFlags;               /* 07h */
-    U32                         MsgContext;             /* 08h */
-    U8                          Action;                 /* 0Ch */
-    U8                          Reserved3;              /* 0Dh */
-    U16                         Reserved4;              /* 0Eh */
-    MPI_TB_FC_MANAGE_AI_UNION   ActionInfo;             /* 10h */
+    U8                          Tool;                   
+    U8                          Reserved;               
+    U8                          ChainOffset;            
+    U8                          Function;               
+    U16                         Reserved1;              
+    U8                          Reserved2;              
+    U8                          MsgFlags;               
+    U32                         MsgContext;             
+    U8                          Action;                 
+    U8                          Reserved3;              
+    U16                         Reserved4;              
+    MPI_TB_FC_MANAGE_AI_UNION   ActionInfo;             
 } MSG_TOOLBOX_FC_MANAGE_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_FC_MANAGE_REQUEST,
   ToolboxFcManageRequest_t, MPI_POINTER pToolboxFcManageRequest_t;
 
-/* defines for the Action field */
 #define MPI_TB_FC_MANAGE_ACTION_DISC_ALL            (0x00)
 #define MPI_TB_FC_MANAGE_ACTION_DISC_PID            (0x01)
 #define MPI_TB_FC_MANAGE_ACTION_DISC_BUS_TID        (0x02)
 #define MPI_TB_FC_MANAGE_ACTION_SET_MAX_FRAME_SIZE  (0x03)
 
 
-/****************************************************************************/
-/* Toolbox Beacon Tool request                                               */
-/****************************************************************************/
 
 typedef struct _MSG_TOOLBOX_BEACON_REQUEST
 {
-    U8                      Tool;                       /* 00h */
-    U8                      Reserved;                   /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U8                      ConnectNum;                 /* 0Ch */
-    U8                      PortNum;                    /* 0Dh */
-    U8                      Reserved3;                  /* 0Eh */
-    U8                      Flags;                      /* 0Fh */
+    U8                      Tool;                       
+    U8                      Reserved;                   
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U8                      ConnectNum;                 
+    U8                      PortNum;                    
+    U8                      Reserved3;                  
+    U8                      Flags;                      
 } MSG_TOOLBOX_BEACON_REQUEST, MPI_POINTER PTR_MSG_TOOLBOX_BEACON_REQUEST,
   ToolboxBeaconRequest_t, MPI_POINTER pToolboxBeaconRequest_t;
 
@@ -263,88 +237,79 @@ typedef struct _MSG_TOOLBOX_BEACON_REQUEST
 #define MPI_TOOLBOX_FLAGS_BEACON_MODE_ON        (0x01)
 
 
-/****************************************************************************/
-/* Diagnostic Buffer Post request                                           */
-/****************************************************************************/
 
 typedef struct _MSG_DIAG_BUFFER_POST_REQUEST
 {
-    U8                      TraceLevel;                 /* 00h */
-    U8                      BufferType;                 /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved1;                  /* 04h */
-    U8                      Reserved2;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U32                     ExtendedType;               /* 0Ch */
-    U32                     BufferLength;               /* 10h */
-    U32                     ProductSpecific[4];         /* 14h */
-    U32                     Reserved3;                  /* 24h */
-    U64                     BufferAddress;              /* 28h */
+    U8                      TraceLevel;                 
+    U8                      BufferType;                 
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved1;                  
+    U8                      Reserved2;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U32                     ExtendedType;               
+    U32                     BufferLength;               
+    U32                     ProductSpecific[4];         
+    U32                     Reserved3;                  
+    U64                     BufferAddress;              
 } MSG_DIAG_BUFFER_POST_REQUEST, MPI_POINTER PTR_MSG_DIAG_BUFFER_POST_REQUEST,
   DiagBufferPostRequest_t, MPI_POINTER pDiagBufferPostRequest_t;
 
 #define MPI_DIAG_BUF_TYPE_TRACE                     (0x00)
 #define MPI_DIAG_BUF_TYPE_SNAPSHOT                  (0x01)
 #define MPI_DIAG_BUF_TYPE_EXTENDED                  (0x02)
-/* count of the number of buffer types */
 #define MPI_DIAG_BUF_TYPE_COUNT                     (0x03)
 
 #define MPI_DIAG_EXTENDED_QTAG                      (0x00000001)
 
 
-/* Diagnostic Buffer Post reply */
 typedef struct _MSG_DIAG_BUFFER_POST_REPLY
 {
-    U8                      Reserved1;                  /* 00h */
-    U8                      BufferType;                 /* 01h */
-    U8                      MsgLength;                  /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved2;                  /* 04h */
-    U8                      Reserved3;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U16                     Reserved4;                  /* 0Ch */
-    U16                     IOCStatus;                  /* 0Eh */
-    U32                     IOCLogInfo;                 /* 10h */
-    U32                     TransferLength;             /* 14h */
+    U8                      Reserved1;                  
+    U8                      BufferType;                 
+    U8                      MsgLength;                  
+    U8                      Function;                   
+    U16                     Reserved2;                  
+    U8                      Reserved3;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U16                     Reserved4;                  
+    U16                     IOCStatus;                  
+    U32                     IOCLogInfo;                 
+    U32                     TransferLength;             
 } MSG_DIAG_BUFFER_POST_REPLY, MPI_POINTER PTR_MSG_DIAG_BUFFER_POST_REPLY,
   DiagBufferPostReply_t, MPI_POINTER pDiagBufferPostReply_t;
 
 
-/****************************************************************************/
-/* Diagnostic Release request                                               */
-/****************************************************************************/
 
 typedef struct _MSG_DIAG_RELEASE_REQUEST
 {
-    U8                      Reserved1;                  /* 00h */
-    U8                      BufferType;                 /* 01h */
-    U8                      ChainOffset;                /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved2;                  /* 04h */
-    U8                      Reserved3;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
+    U8                      Reserved1;                  
+    U8                      BufferType;                 
+    U8                      ChainOffset;                
+    U8                      Function;                   
+    U16                     Reserved2;                  
+    U8                      Reserved3;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
 } MSG_DIAG_RELEASE_REQUEST, MPI_POINTER PTR_MSG_DIAG_RELEASE_REQUEST,
   DiagReleaseRequest_t, MPI_POINTER pDiagReleaseRequest_t;
 
 
-/* Diagnostic Release reply */
 typedef struct _MSG_DIAG_RELEASE_REPLY
 {
-    U8                      Reserved1;                  /* 00h */
-    U8                      BufferType;                 /* 01h */
-    U8                      MsgLength;                  /* 02h */
-    U8                      Function;                   /* 03h */
-    U16                     Reserved2;                  /* 04h */
-    U8                      Reserved3;                  /* 06h */
-    U8                      MsgFlags;                   /* 07h */
-    U32                     MsgContext;                 /* 08h */
-    U16                     Reserved4;                  /* 0Ch */
-    U16                     IOCStatus;                  /* 0Eh */
-    U32                     IOCLogInfo;                 /* 10h */
+    U8                      Reserved1;                  
+    U8                      BufferType;                 
+    U8                      MsgLength;                  
+    U8                      Function;                   
+    U16                     Reserved2;                  
+    U8                      Reserved3;                  
+    U8                      MsgFlags;                   
+    U32                     MsgContext;                 
+    U16                     Reserved4;                  
+    U16                     IOCStatus;                  
+    U32                     IOCLogInfo;                 
 } MSG_DIAG_RELEASE_REPLY, MPI_POINTER PTR_MSG_DIAG_RELEASE_REPLY,
   DiagReleaseReply_t, MPI_POINTER pDiagReleaseReply_t;
 

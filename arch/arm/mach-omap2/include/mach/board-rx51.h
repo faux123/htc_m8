@@ -1,6 +1,3 @@
-/*
- * Defines for rx51 boards
- */
 
 #ifndef _OMAP_BOARD_RX51_H
 #define _OMAP_BOARD_RX51_H

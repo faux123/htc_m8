@@ -87,7 +87,7 @@ static void b43_wa_divider(struct b43_wldev *dev)
 	b43_phy_write(dev, 0x008E, 0x58C1);
 }
 
-static void b43_wa_gt(struct b43_wldev *dev) /* Gain table. */
+static void b43_wa_gt(struct b43_wldev *dev) 
 {
 	if (dev->phy.rev <= 2) {
 		b43_ofdmtab_write16(dev, B43_OFDMTAB_GAIN2, 0, 15);
@@ -116,11 +116,11 @@ static void b43_wa_gt(struct b43_wldev *dev) /* Gain table. */
 	}
 }
 
-static void b43_wa_rssi_lt(struct b43_wldev *dev) /* RSSI lookup table */
+static void b43_wa_rssi_lt(struct b43_wldev *dev) 
 {
 	int i;
 
-	if (0 /* FIXME: For APHY.rev=2 this might be needed */) {
+	if (0 ) {
 		for (i = 0; i < 8; i++)
 			b43_ofdmtab_write16(dev, B43_OFDMTAB_RSSI, i, i + 8);
 		for (i = 8; i < 16; i++)
@@ -159,7 +159,7 @@ static void b43_wa_dac(struct b43_wldev *dev)
 			(b43_ofdmtab_read16(dev, B43_OFDMTAB_DAC, 1) & ~0x0078) | 0x0010);
 }
 
-static void b43_wa_fft(struct b43_wldev *dev) /* Fine frequency table */
+static void b43_wa_fft(struct b43_wldev *dev) 
 {
 	int i;
 
@@ -171,7 +171,7 @@ static void b43_wa_fft(struct b43_wldev *dev) /* Fine frequency table */
 			b43_ofdmtab_write16(dev, B43_OFDMTAB_DACRFPABB, i, b43_tab_finefreqg[i]);
 }
 
-static void b43_wa_nft(struct b43_wldev *dev) /* Noise figure table */
+static void b43_wa_nft(struct b43_wldev *dev) 
 {
 	struct b43_phy *phy = &dev->phy;
 	int i;
@@ -193,7 +193,7 @@ static void b43_wa_nft(struct b43_wldev *dev) /* Noise figure table */
 	}
 }
 
-static void b43_wa_rt(struct b43_wldev *dev) /* Rotor table */
+static void b43_wa_rt(struct b43_wldev *dev) 
 {
 	int i;
 
@@ -217,7 +217,7 @@ static void b43_write_nst(struct b43_wldev *dev, const u16 *nst)
 		b43_ofdmtab_write16(dev, B43_OFDMTAB_NOISESCALE, i, nst[i]);
 }
 
-static void b43_wa_nst(struct b43_wldev *dev) /* Noise scale table */
+static void b43_wa_nst(struct b43_wldev *dev) 
 {
 	struct b43_phy *phy = &dev->phy;
 
@@ -242,7 +242,7 @@ static void b43_wa_nst(struct b43_wldev *dev) /* Noise scale table */
 	}
 }
 
-static void b43_wa_art(struct b43_wldev *dev) /* ADV retard table */
+static void b43_wa_art(struct b43_wldev *dev) 
 {
 	int i;
 
@@ -277,7 +277,7 @@ static void b43_wa_mixedsignal(struct b43_wldev *dev)
 	b43_ofdmtab_write16(dev, B43_OFDMTAB_DAC, 1, 3);
 }
 
-static void b43_wa_msst(struct b43_wldev *dev) /* Min sigma square table */
+static void b43_wa_msst(struct b43_wldev *dev) 
 {
 	struct b43_phy *phy = &dev->phy;
 	int i;
@@ -436,10 +436,10 @@ static void b43_wa_altagc(struct b43_wldev *dev)
 		b43_phy_mask(dev, B43_PHY_OFDM(0x26), ~0x0003);
 		b43_phy_mask(dev, B43_PHY_OFDM(0x26), ~0x1000);
 	}
-	b43_phy_read(dev, B43_PHY_VERSION_OFDM); /* Dummy read */
+	b43_phy_read(dev, B43_PHY_VERSION_OFDM); 
 }
 
-static void b43_wa_tr_ltov(struct b43_wldev *dev) /* TR Lookup Table Original Values */
+static void b43_wa_tr_ltov(struct b43_wldev *dev) 
 {
 	b43_gtab_write(dev, B43_GTAB_ORIGTR, 0, 0xC480);
 }
@@ -626,7 +626,7 @@ void b43_wa_all(struct b43_wldev *dev)
 			B43_WARN_ON(1);
 		}
 		b43_wa_boards_g(dev);
-	} else { /* No N PHY support so far, LP PHY is in phy_lp.c */
+	} else { 
 		B43_WARN_ON(1);
 	}
 

@@ -28,22 +28,16 @@
 #include <linux/timer.h>
 #include <linux/pps_kernel.h>
 
-/*
- * Global variables
- */
 
 static struct pps_device *pps;
 static struct timer_list ktimer;
 
-/*
- * The kernel timer
- */
 
 static void pps_ktimer_event(unsigned long ptr)
 {
 	struct pps_event_time ts;
 
-	/* First of all we get the time stamp... */
+	
 	pps_get_ts(&ts);
 
 	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
@@ -51,9 +45,6 @@ static void pps_ktimer_event(unsigned long ptr)
 	mod_timer(&ktimer, jiffies + HZ);
 }
 
-/*
- * The PPS info struct
- */
 
 static struct pps_source_info pps_ktimer_info = {
 	.name		= "ktimer",
@@ -64,9 +55,6 @@ static struct pps_source_info pps_ktimer_info = {
 	.owner		= THIS_MODULE,
 };
 
-/*
- * Module staff
- */
 
 static void __exit pps_ktimer_exit(void)
 {

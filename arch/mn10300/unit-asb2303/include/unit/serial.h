@@ -19,16 +19,10 @@
 #define SERIAL_PORT0_BASE_ADDRESS	0xA6FB0000
 #define SERIAL_PORT1_BASE_ADDRESS	0xA6FC0000
 
-#define SERIAL_IRQ	XIRQ0	/* Dual serial (PC16552)	(Hi) */
+#define SERIAL_IRQ	XIRQ0	
 
-/*
- * The ASB2303 has an 18.432 MHz clock the UART
- */
 #define BASE_BAUD	(18432000 / 16)
 
-/*
- * dispose of the /dev/ttyS0 and /dev/ttyS1 serial ports
- */
 #ifndef CONFIG_GDBSTUB_ON_TTYSx
 
 #define SERIAL_PORT_DFNS						\
@@ -55,11 +49,11 @@ static inline void __debug_to_serial(const char *p, int n)
 {
 }
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#else /* CONFIG_GDBSTUB_ON_TTYSx */
+#else 
 
-#define SERIAL_PORT_DFNS /* both stolen by gdb-stub because they share an IRQ */
+#define SERIAL_PORT_DFNS 
 
 #if defined(CONFIG_GDBSTUB_ON_TTYS0)
 #define GDBPORT_SERIAL_RX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_RX  * 4, u8)
@@ -134,8 +128,8 @@ static inline void __debug_to_serial(const char *p, int n)
 	FLOWCTL_CLEAR(DTR);
 }
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* CONFIG_GDBSTUB_ON_TTYSx */
+#endif 
 
-#endif /* _ASM_UNIT_SERIAL_H */
+#endif 

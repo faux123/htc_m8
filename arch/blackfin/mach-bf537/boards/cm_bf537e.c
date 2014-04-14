@@ -26,13 +26,9 @@
 #include <asm/portmux.h>
 #include <asm/dpmc.h>
 
-/*
- * Name the Board for the /proc/cpuinfo
- */
 const char bfin_board_name[] = "Bluetechnix CM BF537E";
 
 #if defined(CONFIG_SPI_BFIN5XX) || defined(CONFIG_SPI_BFIN5XX_MODULE)
-/* all SPI peripherals info goes here */
 
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 static struct mtd_partition bfin_spi_flash_partitions[] = {
@@ -59,9 +55,8 @@ static struct flash_platform_data bfin_spi_flash_data = {
 	.type = "m25p64",
 };
 
-/* SPI flash chip (m25p64) */
 static struct bfin5xx_spi_chip spi_flash_chip_info = {
-	.enable_dma = 0,         /* use dma transfer with this chip*/
+	.enable_dma = 0,         
 };
 #endif
 
@@ -74,11 +69,11 @@ static struct bfin5xx_spi_chip  mmc_spi_chip_info = {
 static struct spi_board_info bfin_spi_board_info[] __initdata = {
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 	{
-		/* the modalias must be the same as spi device driver name */
-		.modalias = "m25p80", /* Name of spi_driver for this device */
-		.max_speed_hz = 25000000,     /* max spi clock (SCK) speed in HZ */
-		.bus_num = 0, /* Framework bus number */
-		.chip_select = 1, /* Framework chip select. On STAMP537 it is SPISSEL1*/
+		
+		.modalias = "m25p80", 
+		.max_speed_hz = 25000000,     
+		.bus_num = 0, 
+		.chip_select = 1, 
 		.platform_data = &bfin_spi_flash_data,
 		.controller_data = &spi_flash_chip_info,
 		.mode = SPI_MODE_3,
@@ -88,7 +83,7 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 #if defined(CONFIG_SND_BF5XX_SOC_AD183X) || defined(CONFIG_SND_BF5XX_SOC_AD183X_MODULE)
 	{
 		.modalias = "ad183x",
-		.max_speed_hz = 3125000,     /* max spi clock (SCK) speed in HZ */
+		.max_speed_hz = 3125000,     
 		.bus_num = 0,
 		.chip_select = 4,
 	},
@@ -97,7 +92,7 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 #if defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE)
 	{
 		.modalias = "mmc_spi",
-		.max_speed_hz = 20000000,     /* max spi clock (SCK) speed in HZ */
+		.max_speed_hz = 20000000,     
 		.bus_num = 0,
 		.chip_select = 1,
 		.controller_data = &mmc_spi_chip_info,
@@ -106,7 +101,6 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 #endif
 };
 
-/* SPI (0) */
 static struct resource bfin_spi0_resource[] = {
 	[0] = {
 		.start = SPI0_REGBASE,
@@ -125,23 +119,22 @@ static struct resource bfin_spi0_resource[] = {
 	},
 };
 
-/* SPI controller data */
 static struct bfin5xx_spi_master bfin_spi0_info = {
 	.num_chipselect = 8,
-	.enable_dma = 1,  /* master has the ability to do dma transfer */
+	.enable_dma = 1,  
 	.pin_req = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
 static struct platform_device bfin_spi0_device = {
 	.name = "bfin-spi",
-	.id = 0, /* Bus number */
+	.id = 0, 
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
 	.resource = bfin_spi0_resource,
 	.dev = {
-		.platform_data = &bfin_spi0_info, /* Passed to driver */
+		.platform_data = &bfin_spi0_info, 
 	},
 };
-#endif  /* spi master and devices */
+#endif  
 
 #if defined(CONFIG_RTC_DRV_BFIN) || defined(CONFIG_RTC_DRV_BFIN_MODULE)
 static struct platform_device rtc_device = {
@@ -332,17 +325,11 @@ static struct resource bfin_uart0_resources[] = {
 	},
 #ifdef CONFIG_BFIN_UART0_CTSRTS
 	{
-		/*
-		 * Refer to arch/blackfin/mach-xxx/include/mach/gpio.h for the GPIO map.
-		 */
 		.start = -1,
 		.end = -1,
 		.flags = IORESOURCE_IO,
 	},
 	{
-		/*
-		 * Refer to arch/blackfin/mach-xxx/include/mach/gpio.h for the GPIO map.
-		 */
 		.start = -1,
 		.end = -1,
 		.flags = IORESOURCE_IO,
@@ -360,7 +347,7 @@ static struct platform_device bfin_uart0_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
 	.resource = bfin_uart0_resources,
 	.dev = {
-		.platform_data = &bfin_uart0_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart0_peripherals, 
 	},
 };
 #endif
@@ -398,17 +385,11 @@ static struct resource bfin_uart1_resources[] = {
 	},
 #ifdef CONFIG_BFIN_UART1_CTSRTS
 	{
-		/*
-		 * Refer to arch/blackfin/mach-xxx/include/mach/gpio.h for the GPIO map.
-		 */
 		.start = -1,
 		.end = -1,
 		.flags = IORESOURCE_IO,
 	},
 	{
-		/*
-		 * Refer to arch/blackfin/mach-xxx/include/mach/gpio.h for the GPIO map.
-		 */
 		.start = -1,
 		.end = -1,
 		.flags = IORESOURCE_IO,
@@ -426,7 +407,7 @@ static struct platform_device bfin_uart1_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart1_resources),
 	.resource = bfin_uart1_resources,
 	.dev = {
-		.platform_data = &bfin_uart1_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart1_peripherals, 
 	},
 };
 #endif
@@ -538,7 +519,7 @@ static struct platform_device bfin_sport0_uart_device = {
 	.num_resources = ARRAY_SIZE(bfin_sport0_uart_resources),
 	.resource = bfin_sport0_uart_resources,
 	.dev = {
-		.platform_data = &bfin_sport0_peripherals, /* Passed to driver */
+		.platform_data = &bfin_sport0_peripherals, 
 	},
 };
 #endif
@@ -572,7 +553,7 @@ static struct platform_device bfin_sport1_uart_device = {
 	.num_resources = ARRAY_SIZE(bfin_sport1_uart_resources),
 	.resource = bfin_sport1_uart_resources,
 	.dev = {
-		.platform_data = &bfin_sport1_peripherals, /* Passed to driver */
+		.platform_data = &bfin_sport1_peripherals, 
 	},
 };
 #endif
@@ -665,7 +646,7 @@ static const unsigned int cclk_vlev_datasheet[] =
 static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data = {
 	.tuple_tab = cclk_vlev_datasheet,
 	.tabsize = ARRAY_SIZE(cclk_vlev_datasheet),
-	.vr_settling_time = 25 /* us */,
+	.vr_settling_time = 25 ,
 };
 
 static struct platform_device bfin_dpmc = {
@@ -757,7 +738,7 @@ static int __init net2272_init(void)
 	if (ret)
 		return ret;
 
-	/* Reset USB Chip, PG14 */
+	
 	gpio_direction_output(GPIO_PG14, 0);
 	mdelay(2);
 	gpio_set_value(GPIO_PG14, 1);

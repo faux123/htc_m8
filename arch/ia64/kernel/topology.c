@@ -43,10 +43,6 @@ EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
 int __ref arch_register_cpu(int num)
 {
 #ifdef CONFIG_ACPI
-	/*
-	 * If CPEI can be re-targeted or if this is not
-	 * CPEI target, then it is hotpluggable
-	 */
 	if (can_cpei_retarget() || !is_cpu_cpei_target(num))
 		sysfs_cpus[num].cpu.hotpluggable = 1;
 	map_cpu_to_node(num, node_cpuid[num].nid);
@@ -68,7 +64,7 @@ static int __init arch_register_cpu(int num)
 {
 	return register_cpu(&sysfs_cpus[num].cpu, num);
 }
-#endif /*CONFIG_HOTPLUG_CPU*/
+#endif 
 
 
 static int __init topology_init(void)
@@ -76,9 +72,6 @@ static int __init topology_init(void)
 	int i, err = 0;
 
 #ifdef CONFIG_NUMA
-	/*
-	 * MCD - Do we want to register all ONLINE nodes, or all POSSIBLE nodes?
-	 */
 	for_each_online_node(i) {
 		if ((err = register_one_node(i)))
 			goto out;
@@ -100,25 +93,19 @@ out:
 subsys_initcall(topology_init);
 
 
-/*
- * Export cpu cache information through sysfs
- */
 
-/*
- *  A bunch of string array to get pretty printing
- */
 static const char *cache_types[] = {
-	"",			/* not used */
+	"",			
 	"Instruction",
 	"Data",
-	"Unified"	/* unified */
+	"Unified"	
 };
 
 static const char *cache_mattrib[]={
 	"WriteThrough",
 	"WriteBack",
-	"",		/* reserved */
-	""		/* reserved */
+	"",		
+	""		
 };
 
 struct cache_info {
@@ -350,7 +337,6 @@ static int __cpuinit cpu_cache_sysfs_init(unsigned int cpu)
 	return 0;
 }
 
-/* Add cache interface for CPU device */
 static int __cpuinit cache_add_dev(struct device * sys_dev)
 {
 	unsigned int cpu = sys_dev->id;
@@ -400,7 +386,6 @@ static int __cpuinit cache_add_dev(struct device * sys_dev)
 	return retval;
 }
 
-/* Remove cache interface for CPU device */
 static int __cpuinit cache_remove_dev(struct device * sys_dev)
 {
 	unsigned int cpu = sys_dev->id;
@@ -421,10 +406,6 @@ static int __cpuinit cache_remove_dev(struct device * sys_dev)
 	return 0;
 }
 
-/*
- * When a cpu is hot-plugged, do a check and initiate
- * cache kobject if necessary
- */
 static int __cpuinit cache_cpu_callback(struct notifier_block *nfb,
 		unsigned long action, void *hcpu)
 {

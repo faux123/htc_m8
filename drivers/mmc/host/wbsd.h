@@ -132,54 +132,54 @@
 #define WBSD_RSP_LONG		0x01
 
 #define WBSD_CRC_MASK		0x1F
-#define WBSD_CRC_OK		0x05 /* S010E (00101) */
-#define WBSD_CRC_FAIL		0x0B /* S101E (01011) */
+#define WBSD_CRC_OK		0x05 
+#define WBSD_CRC_FAIL		0x0B 
 
 #define WBSD_DMA_SIZE		65536
 
 struct wbsd_host
 {
-	struct mmc_host*	mmc;		/* MMC structure */
+	struct mmc_host*	mmc;		
 
-	spinlock_t		lock;		/* Mutex */
+	spinlock_t		lock;		
 
-	int			flags;		/* Driver states */
+	int			flags;		
 
-#define WBSD_FCARD_PRESENT	(1<<0)		/* Card is present */
-#define WBSD_FIGNORE_DETECT	(1<<1)		/* Ignore card detection */
+#define WBSD_FCARD_PRESENT	(1<<0)		
+#define WBSD_FIGNORE_DETECT	(1<<1)		
 
-	struct mmc_request*	mrq;		/* Current request */
+	struct mmc_request*	mrq;		
 
-	u8			isr;		/* Accumulated ISR */
+	u8			isr;		
 
-	struct scatterlist*	cur_sg;		/* Current SG entry */
-	unsigned int		num_sg;		/* Number of entries left */
+	struct scatterlist*	cur_sg;		
+	unsigned int		num_sg;		
 
-	unsigned int		offset;		/* Offset into current entry */
-	unsigned int		remain;		/* Data left in curren entry */
+	unsigned int		offset;		
+	unsigned int		remain;		
 
-	char*			dma_buffer;	/* ISA DMA buffer */
-	dma_addr_t		dma_addr;	/* Physical address for same */
+	char*			dma_buffer;	
+	dma_addr_t		dma_addr;	
 
-	int			firsterr;	/* See fifo functions */
+	int			firsterr;	
 
-	u8			clk;		/* Current clock speed */
-	unsigned char		bus_width;	/* Current bus width */
+	u8			clk;		
+	unsigned char		bus_width;	
 
-	int			config;		/* Config port */
-	u8			unlock_code;	/* Code to unlock config */
+	int			config;		
+	u8			unlock_code;	
 
-	int			chip_id;	/* ID of controller */
+	int			chip_id;	
 
-	int			base;		/* I/O port base */
-	int			irq;		/* Interrupt */
-	int			dma;		/* DMA channel */
+	int			base;		
+	int			irq;		
+	int			dma;		
 
-	struct tasklet_struct	card_tasklet;	/* Tasklet structures */
+	struct tasklet_struct	card_tasklet;	
 	struct tasklet_struct	fifo_tasklet;
 	struct tasklet_struct	crc_tasklet;
 	struct tasklet_struct	timeout_tasklet;
 	struct tasklet_struct	finish_tasklet;
 
-	struct timer_list	ignore_timer;	/* Ignore detection timer */
+	struct timer_list	ignore_timer;	
 };

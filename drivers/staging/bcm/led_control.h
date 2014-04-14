@@ -1,7 +1,6 @@
 #ifndef _LED_CONTROL_H
 #define _LED_CONTROL_H
 
-/*************************TYPE DEF**********************/
 #define NUM_OF_LEDS 4
 
 #define DSD_START_OFFSET			0x0200
@@ -42,7 +41,6 @@
 
 #define B_ULONG32 unsigned long
 
-/*******************************************************/
 
 
 typedef enum _LEDColors{
@@ -50,7 +48,7 @@ typedef enum _LEDColors{
 	BLUE_LED = 2,
 	YELLOW_LED = 3,
 	GREEN_LED = 4
-} LEDColors;	/*Enumerated values of different LED types*/
+} LEDColors;	
 
 typedef enum LedEvents {
 	SHUTDOWN_EXIT = 0x00,
@@ -62,27 +60,23 @@ typedef enum LedEvents {
 	LOWPOWER_MODE_ENTER = 0x20,
 	IDLEMODE_CONTINUE = 0x40,
 	IDLEMODE_EXIT = 0x80,
-	LED_THREAD_INACTIVE = 0x100,  /* Makes the LED thread Inactivce. It wil be equivallent to putting the thread on hold. */
-	LED_THREAD_ACTIVE = 0x200,    /* Makes the LED Thread Active back. */
+	LED_THREAD_INACTIVE = 0x100,  
+	LED_THREAD_ACTIVE = 0x200,    
 	DRIVER_HALT = 0xff
-} LedEventInfo_t;	/* Enumerated values of different driver states */
+} LedEventInfo_t;	
 
-/*
- * Structure which stores the information of different LED types
- * and corresponding LED state information of driver states
- */
 typedef struct LedStateInfo_t {
-	UCHAR LED_Type; /* specify GPIO number - use 0xFF if not used */
-	UCHAR LED_On_State; /* Bits set or reset for different states */
-	UCHAR LED_Blink_State; /* Bits set or reset for blinking LEDs for different states */
+	UCHAR LED_Type; 
+	UCHAR LED_On_State; 
+	UCHAR LED_Blink_State; 
 	UCHAR GPIO_Num;
-	UCHAR BitPolarity; /* To represent whether H/W is normal polarity or reverse polarity */
+	UCHAR BitPolarity; 
 } LEDStateInfo, *pLEDStateInfo;
 
 
 typedef struct _LED_INFO_STRUCT {
 	LEDStateInfo	LEDState[NUM_OF_LEDS];
-	BOOLEAN		bIdleMode_tx_from_host; /* Variable to notify whether driver came out from idlemode due to Host or target*/
+	BOOLEAN		bIdleMode_tx_from_host; 
 	BOOLEAN			bIdle_led_off;
 	wait_queue_head_t   notify_led_event;
 	wait_queue_head_t	idleModeSyncEvent;
@@ -91,10 +85,9 @@ typedef struct _LED_INFO_STRUCT {
 	BOOLEAN			bLedInitDone;
 
 } LED_INFO_STRUCT, *PLED_INFO_STRUCT;
-/* LED Thread state. */
-#define BCM_LED_THREAD_DISABLED		0 /* LED Thread is not running. */
-#define BCM_LED_THREAD_RUNNING_ACTIVELY	1 /* LED thread is running. */
-#define BCM_LED_THREAD_RUNNING_INACTIVELY 2 /*LED thread has been put on hold*/
+#define BCM_LED_THREAD_DISABLED		0 
+#define BCM_LED_THREAD_RUNNING_ACTIVELY	1 
+#define BCM_LED_THREAD_RUNNING_INACTIVELY 2 
 
 
 

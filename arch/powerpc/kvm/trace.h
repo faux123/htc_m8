@@ -8,9 +8,6 @@
 #define TRACE_INCLUDE_PATH .
 #define TRACE_INCLUDE_FILE trace
 
-/*
- * Tracepoint for guest mode entry.
- */
 TRACE_EVENT(kvm_ppc_instr,
 	TP_PROTO(unsigned int inst, unsigned long _pc, unsigned int emulate),
 	TP_ARGS(inst, _pc, emulate),
@@ -99,9 +96,6 @@ TRACE_EVENT(kvm_gtlb_write,
 );
 
 
-/*************************************************************************
- *                         Book3S trace points                           *
- *************************************************************************/
 
 #ifdef CONFIG_KVM_BOOK3S_PR
 
@@ -182,7 +176,7 @@ TRACE_EVENT(kvm_book3s_64_mmu_map,
 		  __entry->hpteg, __entry->va, __entry->vpage, __entry->hpaddr)
 );
 
-#endif /* CONFIG_PPC_BOOK3S_64 */
+#endif 
 
 TRACE_EVENT(kvm_book3s_mmu_map,
 	TP_PROTO(struct hpte_cache *pte),
@@ -338,12 +332,9 @@ TRACE_EVENT(kvm_book3s_slbmte,
 	TP_printk("%llx, %llx", __entry->slb_vsid, __entry->slb_esid)
 );
 
-#endif /* CONFIG_PPC_BOOK3S */
+#endif 
 
 
-/*************************************************************************
- *                         Book3E trace points                           *
- *************************************************************************/
 
 #ifdef CONFIG_BOOKE
 
@@ -397,7 +388,6 @@ TRACE_EVENT(kvm_booke206_gtlb_write,
 
 #endif
 
-#endif /* _TRACE_KVM_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

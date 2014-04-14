@@ -9,15 +9,11 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * VESA text modes
- */
 
 #include "boot.h"
 #include "video.h"
 #include "vesa.h"
 
-/* VESA information */
 static struct vesa_general_info vginfo;
 static struct vesa_mode_info vminfo;
 
@@ -25,9 +21,9 @@ static __videocard video_vesa;
 
 #ifndef _WAKEUP
 static void vesa_store_mode_params_graphics(void);
-#else /* _WAKEUP */
+#else 
 static inline void vesa_store_mode_params_graphics(void) {}
-#endif /* _WAKEUP */
+#endif 
 
 static int vesa_probe(void)
 {
@@ -47,7 +43,7 @@ static int vesa_probe(void)
 	if (oreg.ax != 0x004f ||
 	    vginfo.signature != VESA_MAGIC ||
 	    vginfo.version < 0x0102)
-		return 0;	/* Not present */
+		return 0;	
 
 	set_fs(vginfo.video_mode_ptr.seg);
 	mode_ptr = vginfo.video_mode_ptr.off;
@@ -56,12 +52,12 @@ static int vesa_probe(void)
 		mode_ptr += 2;
 
 		if (!heap_free(sizeof(struct mode_info)))
-			break;	/* Heap full, can't save mode info */
+			break;	
 
 		if (mode & ~0x1ff)
 			continue;
 
-		memset(&vminfo, 0, sizeof vminfo); /* Just in case... */
+		memset(&vminfo, 0, sizeof vminfo); 
 
 		ireg.ax = 0x4f01;
 		ireg.cx = mode;
@@ -72,11 +68,9 @@ static int vesa_probe(void)
 			continue;
 
 		if ((vminfo.mode_attr & 0x15) == 0x05) {
-			/* Text Mode, TTY BIOS supported,
-			   supported by hardware */
 			mi = GET_HEAP(struct mode_info, 1);
 			mi->mode  = mode + VIDEO_FIRST_VESA;
-			mi->depth = 0; /* text */
+			mi->depth = 0; 
 			mi->x     = vminfo.h_res;
 			mi->y     = vminfo.v_res;
 			nmodes++;
@@ -85,10 +79,6 @@ static int vesa_probe(void)
 			    vminfo.memory_layout == 6) &&
 			   vminfo.memory_planes == 1) {
 #ifdef CONFIG_FB_BOOT_VESA_SUPPORT
-			/* Graphics mode, color, linear frame buffer
-			   supported.  Only register the mode if
-			   if framebuffer is configured, however,
-			   otherwise the user will be left without a screen. */
 			mi = GET_HEAP(struct mode_info, 1);
 			mi->mode = mode + VIDEO_FIRST_VESA;
 			mi->depth = vminfo.bpp;
@@ -108,7 +98,7 @@ static int vesa_set_mode(struct mode_info *mode)
 	int is_graphic;
 	u16 vesa_mode = mode->mode - VIDEO_FIRST_VESA;
 
-	memset(&vminfo, 0, sizeof vminfo); /* Just in case... */
+	memset(&vminfo, 0, sizeof vminfo); 
 
 	initregs(&ireg);
 	ireg.ax = 0x4f01;
@@ -120,16 +110,16 @@ static int vesa_set_mode(struct mode_info *mode)
 		return -1;
 
 	if ((vminfo.mode_attr & 0x15) == 0x05) {
-		/* It's a supported text mode */
+		
 		is_graphic = 0;
 #ifdef CONFIG_FB_BOOT_VESA_SUPPORT
 	} else if ((vminfo.mode_attr & 0x99) == 0x99) {
-		/* It's a graphics mode with linear frame buffer */
+		
 		is_graphic = 1;
-		vesa_mode |= 0x4000; /* Request linear frame buffer */
+		vesa_mode |= 0x4000; 
 #endif
 	} else {
-		return -1;	/* Invalid mode */
+		return -1;	
 	}
 
 
@@ -143,12 +133,12 @@ static int vesa_set_mode(struct mode_info *mode)
 
 	graphic_mode = is_graphic;
 	if (!is_graphic) {
-		/* Text mode */
+		
 		force_x = mode->x;
 		force_y = mode->y;
 		do_restore = 1;
 	} else {
-		/* Graphics mode */
+		
 		vesa_store_mode_params_graphics();
 	}
 
@@ -158,13 +148,12 @@ static int vesa_set_mode(struct mode_info *mode)
 
 #ifndef _WAKEUP
 
-/* Switch DAC to 8-bit mode */
 static void vesa_dac_set_8bits(void)
 {
 	struct biosregs ireg, oreg;
 	u8 dac_size = 6;
 
-	/* If possible, switch the DAC to 8-bit mode */
+	
 	if (vginfo.capabilities & 1) {
 		initregs(&ireg);
 		ireg.ax = 0x4f08;
@@ -174,7 +163,7 @@ static void vesa_dac_set_8bits(void)
 			dac_size = oreg.bh;
 	}
 
-	/* Set the color sizes to the DAC size, and offsets to 0 */
+	
 	boot_params.screen_info.red_size   = dac_size;
 	boot_params.screen_info.green_size = dac_size;
 	boot_params.screen_info.blue_size  = dac_size;
@@ -186,7 +175,6 @@ static void vesa_dac_set_8bits(void)
 	boot_params.screen_info.rsvd_pos   = 0;
 }
 
-/* Save the VESA protected mode info */
 static void vesa_store_pm_info(void)
 {
 	struct biosregs ireg, oreg;
@@ -202,15 +190,12 @@ static void vesa_store_pm_info(void)
 	boot_params.screen_info.vesapm_off = oreg.di;
 }
 
-/*
- * Save video mode parameters for graphics mode
- */
 static void vesa_store_mode_params_graphics(void)
 {
-	/* Tell the kernel we're in VESA graphics mode */
+	
 	boot_params.screen_info.orig_video_isVGA = VIDEO_TYPE_VLFB;
 
-	/* Mode parameters */
+	
 	boot_params.screen_info.vesa_attributes = vminfo.mode_attr;
 	boot_params.screen_info.lfb_linelength = vminfo.logical_scan;
 	boot_params.screen_info.lfb_width = vminfo.h_res;
@@ -221,7 +206,7 @@ static void vesa_store_mode_params_graphics(void)
 	memcpy(&boot_params.screen_info.red_size,
 	       &vminfo.rmask, 8);
 
-	/* General parameters */
+	
 	boot_params.screen_info.lfb_size = vginfo.total_memory;
 
 	if (vminfo.bpp <= 8)
@@ -230,45 +215,41 @@ static void vesa_store_mode_params_graphics(void)
 	vesa_store_pm_info();
 }
 
-/*
- * Save EDID information for the kernel; this is invoked, separately,
- * after mode-setting.
- */
 void vesa_store_edid(void)
 {
 #ifdef CONFIG_FIRMWARE_EDID
 	struct biosregs ireg, oreg;
 
-	/* Apparently used as a nonsense token... */
+	
 	memset(&boot_params.edid_info, 0x13, sizeof boot_params.edid_info);
 
 	if (vginfo.version < 0x0200)
-		return;		/* EDID requires VBE 2.0+ */
+		return;		
 
 	initregs(&ireg);
-	ireg.ax = 0x4f15;		/* VBE DDC */
-	/* ireg.bx = 0x0000; */		/* Report DDC capabilities */
-	/* ireg.cx = 0;	*/		/* Controller 0 */
-	ireg.es = 0;			/* ES:DI must be 0 by spec */
+	ireg.ax = 0x4f15;		
+			
+			
+	ireg.es = 0;			
 	intcall(0x10, &ireg, &oreg);
 
 	if (oreg.ax != 0x004f)
-		return;		/* No EDID */
+		return;		
 
-	/* BH = time in seconds to transfer EDD information */
-	/* BL = DDC level supported */
+	
+	
 
-	ireg.ax = 0x4f15;		/* VBE DDC */
-	ireg.bx = 0x0001;		/* Read EDID */
-	/* ireg.cx = 0; */		/* Controller 0 */
-	/* ireg.dx = 0;	*/		/* EDID block number */
+	ireg.ax = 0x4f15;		
+	ireg.bx = 0x0001;		
+			
+			
 	ireg.es = ds();
-	ireg.di =(size_t)&boot_params.edid_info; /* (ES:)Pointer to block */
+	ireg.di =(size_t)&boot_params.edid_info; 
 	intcall(0x10, &ireg, &oreg);
-#endif /* CONFIG_FIRMWARE_EDID */
+#endif 
 }
 
-#endif /* not _WAKEUP */
+#endif 
 
 static __videocard video_vesa =
 {

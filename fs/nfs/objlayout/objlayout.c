@@ -44,9 +44,6 @@
 #include "objlayout.h"
 
 #define NFSDBG_FACILITY         NFSDBG_PNFS_LD
-/*
- * Create a objlayout layout structure for the given inode and return it.
- */
 struct pnfs_layout_hdr *
 objlayout_alloc_layout_hdr(struct inode *inode, gfp_t gfp_flags)
 {
@@ -61,9 +58,6 @@ objlayout_alloc_layout_hdr(struct inode *inode, gfp_t gfp_flags)
 	return &objlay->pnfs_layout;
 }
 
-/*
- * Free an objlayout layout structure
- */
 void
 objlayout_free_layout_hdr(struct pnfs_layout_hdr *lo)
 {
@@ -75,9 +69,6 @@ objlayout_free_layout_hdr(struct pnfs_layout_hdr *lo)
 	kfree(objlay);
 }
 
-/*
- * Unmarshall layout and store it in pnfslay.
- */
 struct pnfs_layout_segment *
 objlayout_alloc_lseg(struct pnfs_layout_hdr *pnfslay,
 		     struct nfs4_layoutget_res *lgr,
@@ -122,9 +113,6 @@ err_nofree:
 	return ERR_PTR(status);
 }
 
-/*
- * Free a layout segement
- */
 void
 objlayout_free_lseg(struct pnfs_layout_segment *lseg)
 {
@@ -136,9 +124,6 @@ objlayout_free_lseg(struct pnfs_layout_segment *lseg)
 	objio_free_lseg(lseg);
 }
 
-/*
- * I/O Operations
- */
 static inline u64
 end_offset(u64 start, u64 len)
 {
@@ -148,7 +133,6 @@ end_offset(u64 start, u64 len)
 	return end >= start ? end : NFS4_MAX_UINT64;
 }
 
-/* last octet in a range */
 static inline u64
 last_byte_offset(u64 start, u64 len)
 {
@@ -178,9 +162,6 @@ static void _fix_verify_io_params(struct pnfs_layout_segment *lseg,
 	}
 }
 
-/*
- * I/O done common code
- */
 static void
 objlayout_iodone(struct objlayout_io_res *oir)
 {
@@ -196,12 +177,6 @@ objlayout_iodone(struct objlayout_io_res *oir)
 	}
 }
 
-/*
- * objlayout_io_set_result - Set an osd_error code on a specific osd comp.
- *
- * The @index component IO failed (error returned from target). Register
- * the error for later reporting at layout-return.
- */
 void
 objlayout_io_set_result(struct objlayout_io_res *oir, unsigned index,
 			struct pnfs_osd_objid *pooid, int osd_error,
@@ -228,15 +203,11 @@ objlayout_io_set_result(struct objlayout_io_res *oir, unsigned index,
 			ioerr->oer_comp_offset,
 			ioerr->oer_comp_length);
 	} else {
-		/* User need not call if no error is reported */
+		
 		ioerr->oer_errno = 0;
 	}
 }
 
-/* Function scheduled on rpc workqueue to call ->nfs_readlist_complete().
- * This is because the osd completion is called with ints-off from
- * the block layer
- */
 static void _rpc_read_complete(struct work_struct *work)
 {
 	struct rpc_task *task;
@@ -260,7 +231,7 @@ objlayout_read_done(struct objlayout_io_res *oir, ssize_t status, bool sync)
 	else
 		rdata->pnfs_error = status;
 	objlayout_iodone(oir);
-	/* must not use oir after this point */
+	
 
 	dprintk("%s: Return status=%zd eof=%d sync=%d\n", __func__,
 		status, rdata->res.eof, sync);
@@ -273,9 +244,6 @@ objlayout_read_done(struct objlayout_io_res *oir, ssize_t status, bool sync)
 	}
 }
 
-/*
- * Perform sync or async reads.
- */
 enum pnfs_try_status
 objlayout_read_pagelist(struct nfs_read_data *rdata)
 {
@@ -290,7 +258,7 @@ objlayout_read_pagelist(struct nfs_read_data *rdata)
 			err = 0;
 			rdata->res.count = 0;
 			rdata->res.eof = 1;
-			/*FIXME: do we need to call pnfs_ld_read_done() */
+			
 			goto out;
 		}
 		count = eof - offset;
@@ -314,10 +282,6 @@ objlayout_read_pagelist(struct nfs_read_data *rdata)
 	return PNFS_ATTEMPTED;
 }
 
-/* Function scheduled on rpc workqueue to call ->nfs_writelist_complete().
- * This is because the osd completion is called with ints-off from
- * the block layer
- */
 static void _rpc_write_complete(struct work_struct *work)
 {
 	struct rpc_task *task;
@@ -343,7 +307,7 @@ objlayout_write_done(struct objlayout_io_res *oir, ssize_t status, bool sync)
 		wdata->pnfs_error = status;
 	}
 	objlayout_iodone(oir);
-	/* must not use oir after this point */
+	
 
 	dprintk("%s: Return status %zd committed %d sync=%d\n", __func__,
 		status, wdata->verf.committed, sync);
@@ -356,9 +320,6 @@ objlayout_write_done(struct objlayout_io_res *oir, ssize_t status, bool sync)
 	}
 }
 
-/*
- * Perform sync or async writes.
- */
 enum pnfs_try_status
 objlayout_write_pagelist(struct nfs_write_data *wdata,
 			 int how)
@@ -428,7 +389,7 @@ err_prio(u32 oer_errno)
 		return OSD_ERR_PRI_NO_SPACE;
 	default:
 		WARN_ON(1);
-		/* fallthrough */
+		
 	case PNFS_OSD_ERR_EIO:
 		return OSD_ERR_PRI_EIO;
 	}
@@ -442,7 +403,7 @@ merge_ioerr(struct pnfs_osd_ioerr *dest_err,
 
 	if (!dest_err->oer_errno) {
 		*dest_err = *src_err;
-		/* accumulated device must be blank */
+		
 		memset(&dest_err->oer_component.oid_device_id, 0,
 			sizeof(dest_err->oer_component.oid_device_id));
 
@@ -555,23 +516,18 @@ objlayout_encode_layoutreturn(struct pnfs_layout_hdr *pnfslay,
 			p = pnfs_osd_xdr_ioerr_reserve_space(xdr);
 			if (unlikely(!p)) {
 				res = -E2BIG;
-				break; /* accumulated_error */
+				break; 
 			}
 
 			last_xdr = p;
 			pnfs_osd_xdr_encode_ioerr(p, &oir->ioerrs[i]);
 		}
 
-		/* TODO: use xdr_write_pages */
+		
 		if (unlikely(res)) {
-			/* no space for even one error descriptor */
+			
 			BUG_ON(!last_xdr);
 
-			/* we've encountered a situation with lots and lots of
-			 * errors and no space to encode them all. Use the last
-			 * available slot to report the union of all the
-			 * remaining errors.
-			 */
 			encode_accumulated_error(objlay, last_xdr);
 			goto loop_done;
 		}
@@ -586,18 +542,11 @@ loop_done:
 }
 
 
-/*
- * Get Device Info API for io engines
- */
 struct objlayout_deviceinfo {
 	struct page *page;
-	struct pnfs_osd_deviceaddr da; /* This must be last */
+	struct pnfs_osd_deviceaddr da; 
 };
 
-/* Initialize and call nfs_getdeviceinfo, then decode and return a
- * "struct pnfs_osd_deviceaddr *" Eventually objlayout_put_deviceinfo()
- * should be called.
- */
 int objlayout_get_deviceinfo(struct pnfs_layout_hdr *pnfslay,
 	struct nfs4_deviceid *d_id, struct pnfs_osd_deviceaddr **deviceaddr,
 	gfp_t gfp_flags)
@@ -700,12 +649,6 @@ static int __objlayout_upcall(struct __auto_login *login)
 	argv[7] = NULL;
 
 	ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_PROC);
-	/*
-	 * Disable the upcall mechanism if we're getting an ENOENT or
-	 * EACCES error. The admin can re-enable it on the fly by using
-	 * sysfs to set the objlayoutdriver.osd_login_prog module parameter once
-	 * the problem has been fixed.
-	 */
 	if (ret == -ENOENT || ret == -EACCES) {
 		printk(KERN_ERR "PNFS-OBJ: %s was not found please set "
 			"objlayoutdriver.osd_login_prog kernel parameter!\n",
@@ -717,7 +660,6 @@ static int __objlayout_upcall(struct __auto_login *login)
 	return ret;
 }
 
-/* Assume dest is all zeros */
 static void __copy_nfsS_and_zero_terminate(struct nfs4_string s,
 					   char *dest, int max_len,
 					   const char *var_name)
@@ -729,13 +671,12 @@ static void __copy_nfsS_and_zero_terminate(struct nfs4_string s,
 		pr_warn_ratelimited(
 			"objlayout_autologin: %s: s.len(%d) >= max_len(%d)",
 			var_name, s.len, max_len);
-		s.len = max_len - 1; /* space for null terminator */
+		s.len = max_len - 1; 
 	}
 
 	memcpy(dest, s.data, s.len);
 }
 
-/* Assume sysid is all zeros */
 static void _sysid_2_hex(struct nfs4_string s,
 		  char sysid[OBJLAYOUT_MAX_SYSID_HEX_LEN])
 {
@@ -778,7 +719,7 @@ int objlayout_autologin(struct pnfs_osd_deviceaddr *deviceaddr)
 	_sysid_2_hex(deviceaddr->oda_systemid, login.systemid_hex);
 
 	rc = __objlayout_upcall(&login);
-	if (rc > 0) /* script returns positive values */
+	if (rc > 0) 
 		rc = -ENODEV;
 
 	return rc;

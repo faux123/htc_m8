@@ -30,9 +30,6 @@ typedef u64 pgdval_t;
 
 #ifdef STRICT_MM_TYPECHECKS
 
-/*
- * These are used to make use of C type-checking..
- */
 typedef struct { pteval_t pte; } pte_t;
 typedef struct { pmdval_t pmd; } pmd_t;
 typedef struct { pgdval_t pgd; } pgd_t;
@@ -48,7 +45,7 @@ typedef struct { pteval_t pgprot; } pgprot_t;
 #define __pgd(x)	((pgd_t) { (x) } )
 #define __pgprot(x)     ((pgprot_t) { (x) } )
 
-#else	/* !STRICT_MM_TYPECHECKS */
+#else	
 
 typedef pteval_t pte_t;
 typedef pmdval_t pmd_t;
@@ -65,6 +62,6 @@ typedef pteval_t pgprot_t;
 #define __pgd(x)	(x)
 #define __pgprot(x)	(x)
 
-#endif	/* STRICT_MM_TYPECHECKS */
+#endif	
 
-#endif	/* _ASM_PGTABLE_3LEVEL_TYPES_H */
+#endif	

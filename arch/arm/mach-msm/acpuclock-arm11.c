@@ -17,6 +17,7 @@
  *
  */
 
+#include <linux/version.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/list.h>
@@ -29,8 +30,8 @@
 #include <linux/io.h>
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
+#include <mach/proc_comm.h>
 
-#include "proc_comm.h"
 #include "acpuclock.h"
 
 
@@ -38,9 +39,6 @@
 #define A11S_CLK_SEL_ADDR (MSM_CSR_BASE + 0x104)
 #define A11S_VDD_SVS_PLEVEL_ADDR (MSM_CSR_BASE + 0x124)
 
-/*
- * ARM11 clock configuration for specific ACPU speeds
- */
 
 #define ACPU_PLL_TCXO	-1
 #define ACPU_PLL_0	0
@@ -67,7 +65,6 @@ static struct clock_state drv_state = { 0 };
 
 static void __init acpuclk_init(void);
 
-/* MSM7201A Levels 3-6 all correspond to 1.2V, level 7 corresponds to 1.325V. */
 enum {
 	VDD_0 = 0,
 	VDD_1 = 1,
@@ -89,19 +86,11 @@ struct clkctl_acpu_speed {
 	unsigned int	ahbclk_div;
 	int		vdd;
 	unsigned int 	axiclk_khz;
-	unsigned long	lpj; /* loops_per_jiffy */
-/* Index in acpu_freq_tbl[] for steppings. */
+	unsigned long	lpj; 
 	short		down;
 	short		up;
 };
 
-/*
- * ACPU speed table. Complete table is shown but certain speeds are commented
- * out to optimized speed switching. Initialize loops_per_jiffy to 0.
- *
- * Table stepping up/down is optimized for 256mhz jumps while staying on the
- * same PLL.
- */
 #if (0)
 static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
 	{ 19200, ACPU_PLL_TCXO, 0, 0, 19200, 0, VDD_0, 30720, 0, 0, 8 },
@@ -120,7 +109,7 @@ static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
 	{ 528000, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 128000, 0, 11, -1 },
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
-#else /* Table of freq we currently use. */
+#else 
 static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
 	{ 19200, ACPU_PLL_TCXO, 0, 0, 19200, 0, VDD_0, 30720, 0, 0, 4 },
 	{ 122880, ACPU_PLL_0, 4, 1, 61440, 1, VDD_3, 61440, 0, 0, 4 },
@@ -172,9 +161,6 @@ static int pc_pll_request(unsigned id, unsigned on)
 }
 
 
-/*----------------------------------------------------------------------------
- * ARM11 'owned' clock control
- *---------------------------------------------------------------------------*/
 
 unsigned long acpuclk_power_collapse(void) {
 	int ret = acpuclk_get_rate();
@@ -222,16 +208,11 @@ static int acpuclk_set_vdd_level(int vdd)
 	return 0;
 }
 
-/* Set proper dividers for the given clock speed. */
 static void acpuclk_set_div(const struct clkctl_acpu_speed *hunt_s) {
 	uint32_t reg_clkctl, reg_clksel, clk_div;
 
-	/* AHB_CLK_DIV */
+	
 	clk_div = (readl(A11S_CLK_SEL_ADDR) >> 1) & 0x03;
-	/*
-	 * If the new clock divider is higher than the previous, then
-	 * program the divider before switching the clock
-	 */
 	if (hunt_s->ahbclk_div > clk_div) {
 		reg_clksel = readl(A11S_CLK_SEL_ADDR);
 		reg_clksel &= ~(0x3 << 1);
@@ -239,49 +220,45 @@ static void acpuclk_set_div(const struct clkctl_acpu_speed *hunt_s) {
 		writel(reg_clksel, A11S_CLK_SEL_ADDR);
 	}
 	if ((readl(A11S_CLK_SEL_ADDR) & 0x01) == 0) {
-		/* SRC0 */
+		
 
-		/* Program clock source */
+		
 		reg_clkctl = readl(A11S_CLK_CNTL_ADDR);
 		reg_clkctl &= ~(0x07 << 4);
 		reg_clkctl |= (hunt_s->a11clk_src_sel << 4);
 		writel(reg_clkctl, A11S_CLK_CNTL_ADDR);
 
-		/* Program clock divider */
+		
 		reg_clkctl = readl(A11S_CLK_CNTL_ADDR);
 		reg_clkctl &= ~0xf;
 		reg_clkctl |= hunt_s->a11clk_src_div;
 		writel(reg_clkctl, A11S_CLK_CNTL_ADDR);
 
-		/* Program clock source selection */
+		
 		reg_clksel = readl(A11S_CLK_SEL_ADDR);
-		reg_clksel |= 1; /* CLK_SEL_SRC1NO  == SRC1 */
+		reg_clksel |= 1; 
 		writel(reg_clksel, A11S_CLK_SEL_ADDR);
 	} else {
-		/* SRC1 */
+		
 
-		/* Program clock source */
+		
 		reg_clkctl = readl(A11S_CLK_CNTL_ADDR);
 		reg_clkctl &= ~(0x07 << 12);
 		reg_clkctl |= (hunt_s->a11clk_src_sel << 12);
 		writel(reg_clkctl, A11S_CLK_CNTL_ADDR);
 
-		/* Program clock divider */
+		
 		reg_clkctl = readl(A11S_CLK_CNTL_ADDR);
 		reg_clkctl &= ~(0xf << 8);
 		reg_clkctl |= (hunt_s->a11clk_src_div << 8);
 		writel(reg_clkctl, A11S_CLK_CNTL_ADDR);
 
-		/* Program clock source selection */
+		
 		reg_clksel = readl(A11S_CLK_SEL_ADDR);
-		reg_clksel &= ~1; /* CLK_SEL_SRC1NO  == SRC0 */
+		reg_clksel &= ~1; 
 		writel(reg_clksel, A11S_CLK_SEL_ADDR);
 	}
 
-	/*
-	 * If the new clock divider is lower than the previous, then
-	 * program the divider after switching the clock
-	 */
 	if (hunt_s->ahbclk_div < clk_div) {
 		reg_clksel = readl(A11S_CLK_SEL_ADDR);
 		reg_clksel &= ~(0x3 << 1);
@@ -314,7 +291,7 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 	if (tgt_s->a11clk_khz == 0)
 		return -EINVAL;
 
-	/* Choose the highest speed speed at or below 'rate' with same PLL. */
+	
 	if (for_power_collapse && tgt_s->a11clk_khz < cur_s->a11clk_khz) {
 		while (tgt_s->pll != ACPU_PLL_TCXO && tgt_s->pll != cur_s->pll)
 			tgt_s--;
@@ -334,7 +311,7 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 			}
 			plls_enabled |= 1 << tgt_s->pll;
 		}
-		/* Increase VDD if needed. */
+		
 		if (tgt_s->vdd > cur_s->vdd) {
 			if ((rc = acpuclk_set_vdd_level(tgt_s->vdd)) < 0) {
 				printk(KERN_ERR "Unable to switch ACPU vdd\n");
@@ -343,9 +320,9 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 		}
 	}
 
-	/* Set wait states for CPU between frequency changes */
+	
 	reg_clkctl = readl(A11S_CLK_CNTL_ADDR);
-	reg_clkctl |= (100 << 16); /* set WT_ST_CNT */
+	reg_clkctl |= (100 << 16); 
 	writel(reg_clkctl, A11S_CLK_CNTL_ADDR);
 
 #if PERF_SWITCH_DEBUG
@@ -354,17 +331,12 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 #endif
 
 	while (cur_s != tgt_s) {
-		/*
-		 * Always jump to target freq if within 256mhz, regulardless of
-		 * PLL. If differnece is greater, use the predefinied
-		 * steppings in the table.
-		 */
 		int d = abs((int)(cur_s->a11clk_khz - tgt_s->a11clk_khz));
 		if (d > drv_state.max_speed_delta_khz) {
-			/* Step up or down depending on target vs current. */
+			
 			int clk_index = tgt_s->a11clk_khz > cur_s->a11clk_khz ?
 				cur_s->up : cur_s->down;
-			if (clk_index < 0) { /* This should not happen. */
+			if (clk_index < 0) { 
 				printk(KERN_ERR "cur:%u target: %u\n",
 					cur_s->a11clk_khz, tgt_s->a11clk_khz);
 				rc = -EINVAL;
@@ -391,16 +363,16 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 
 		acpuclk_set_div(cur_s);
 		drv_state.current_speed = cur_s;
-		/* Re-adjust lpj for the new clock speed. */
+		
 		loops_per_jiffy = cur_s->lpj;
 		udelay(drv_state.acpu_switch_time_us);
 	}
 
-	/* Nothing else to do for power collapse. */
+	
 	if (for_power_collapse)
 		return 0;
 
-	/* Disable PLLs we are not using anymore. */
+	
 	plls_enabled &= ~(1 << tgt_s->pll);
 	for (pll = ACPU_PLL_0; pll <= ACPU_PLL_2; pll++)
 		if (plls_enabled & (1 << pll)) {
@@ -411,14 +383,14 @@ int acpuclk_set_rate(unsigned long rate, int for_power_collapse)
 			}
 		}
 
-	/* Change the AXI bus frequency if we can. */
+	
 	if (strt_s->axiclk_khz != tgt_s->axiclk_khz) {
 		rc = clk_set_rate(ebi1_clk, tgt_s->axiclk_khz * 1000);
 		if (rc < 0)
 			pr_err("Setting AXI min rate failed!\n");
 	}
 
-	/* Drop VDD level if we can. */
+	
 	if (tgt_s->vdd < strt_s->vdd) {
 		if (acpuclk_set_vdd_level(tgt_s->vdd) < 0)
 			printk(KERN_ERR "acpuclock: Unable to drop ACPU vdd\n");
@@ -439,19 +411,16 @@ static void __init acpuclk_init(void)
 	uint32_t div, sel;
 	int rc;
 
-	/*
-	 * Determine the rate of ACPU clock
-	 */
 
-	if (!(readl(A11S_CLK_SEL_ADDR) & 0x01)) { /* CLK_SEL_SRC1N0 */
-		/* CLK_SRC0_SEL */
+	if (!(readl(A11S_CLK_SEL_ADDR) & 0x01)) { 
+		
 		sel = (readl(A11S_CLK_CNTL_ADDR) >> 12) & 0x7;
-		/* CLK_SRC0_DIV */
+		
 		div = (readl(A11S_CLK_CNTL_ADDR) >> 8) & 0x0f;
 	} else {
-		/* CLK_SRC1_SEL */
+		
 		sel = (readl(A11S_CLK_CNTL_ADDR) >> 4) & 0x07;
-		/* CLK_SRC1_DIV */
+		
 		div = readl(A11S_CLK_CNTL_ADDR) & 0x0f;
 	}
 
@@ -489,11 +458,7 @@ uint32_t acpuclk_get_switch_time(void)
 	return drv_state.acpu_switch_time_us;
 }
 
-/*----------------------------------------------------------------------------
- * Clock driver initialization
- *---------------------------------------------------------------------------*/
 
-/* Initialize the lpj field in the acpu_freq_tbl. */
 static void __init lpj_init(void)
 {
 	int i;

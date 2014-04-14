@@ -1,4 +1,3 @@
-/*****************************************************************************/
 
 /*
  *      names.h  --  USB name database manipulation routines
@@ -27,14 +26,12 @@
  *	       - names_free() is added.
  */
 
-/*****************************************************************************/
 
 #ifndef _NAMES_H
 #define _NAMES_H
 
 #include <sys/types.h>
 
-/* ---------------------------------------------------------------------- */
 
 extern const char *names_vendor(u_int16_t vendorid);
 extern const char *names_product(u_int16_t vendorid, u_int16_t productid);
@@ -53,5 +50,4 @@ extern const char *names_countrycode(unsigned int countrycode);
 extern int  names_init(char *n);
 extern void names_free(void);
 
-/* ---------------------------------------------------------------------- */
-#endif /* _NAMES_H */
+#endif 

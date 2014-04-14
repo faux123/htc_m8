@@ -1,5 +1,3 @@
-/* $XFree86$ */
-/* $XdotOrg$ */
 /*
  * General type definitions for universal mode switching modules
  *
@@ -56,7 +54,7 @@
 #define SISIOMEMTYPE
 
 typedef unsigned long SISIOADDRESS;
-#include <linux/types.h>  /* Need __iomem */
+#include <linux/types.h>  
 #undef SISIOMEMTYPE
 #define SISIOMEMTYPE __iomem
 
@@ -68,9 +66,9 @@ typedef enum _SIS_CHIP_TYPE {
     SIS_630,
     SIS_730,
     SIS_540,
-    SIS_315H,   /* SiS 310 */
+    SIS_315H,   
     SIS_315,
-    SIS_315PRO, /* SiS 325 */
+    SIS_315PRO, 
     SIS_550,
     SIS_650,
     SIS_740,

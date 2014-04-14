@@ -1,7 +1,7 @@
 /*
  * Register definitions for the Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -25,23 +25,18 @@
 
 #ifndef __ASSEMBLY__
 
-/*  See kernel/entry.S for further documentation.  */
 
-/*
- * Entry code copies the event record out of guest registers into
- * this structure (which is on the stack).
- */
 
 struct hvm_event_record {
-	unsigned long vmel;     /* Event Linkage (return address) */
-	unsigned long vmest;    /* Event context - pre-event SSR values */
-	unsigned long vmpsp;    /* Previous stack pointer */
-	unsigned long vmbadva;  /* Bad virtual address for addressing events */
+	unsigned long vmel;     
+	unsigned long vmest;    
+	unsigned long vmpsp;    
+	unsigned long vmbadva;  
 };
 
 struct pt_regs {
-	long restart_r0;        /* R0 checkpoint for syscall restart */
-	long syscall_nr;        /* Only used in system calls */
+	long restart_r0;        
+	long syscall_nr;        
 	union {
 		struct {
 			unsigned long usr;
@@ -77,12 +72,6 @@ struct pt_regs {
 		};
 		long long int ugpgp;
 	};
-	/*
-	* Be extremely careful with rearranging these, if at all.  Some code
-	* assumes the 32 registers exist exactly like this in memory;
-	* e.g. kernel/ptrace.c
-	* e.g. kernel/signal.c (restore_sigcontext)
-	*/
 	union {
 		struct {
 			unsigned long r00;
@@ -195,19 +184,11 @@ struct pt_regs {
 		};
 		long long int r3130;
 	};
-	/* VM dispatch pushes event record onto stack - we can build on it */
+	
 	struct hvm_event_record hvmer;
 };
 
-/* Defines to conveniently access the values  */
 
-/*
- * As of the VM spec 0.5, these registers are now set/retrieved via a
- * VM call.  On the in-bound side, we just fetch the values
- * at the entry points and stuff them into the old record in pt_regs.
- * However, on the outbound side, probably at VM rte, we set the
- * registers back.
- */
 
 #define pt_elr(regs) ((regs)->hvmer.vmel)
 #define pt_set_elr(regs, val) ((regs)->hvmer.vmel = (val))
@@ -231,6 +212,6 @@ struct pt_regs {
 	(regs)->hvmer.vmest = (HVM_VMEST_UM_MSK << HVM_VMEST_UM_SFT) \
 			    | (HVM_VMEST_IE_MSK << HVM_VMEST_IE_SFT)
 
-#endif  /*  ifndef __ASSEMBLY  */
+#endif  
 
 #endif

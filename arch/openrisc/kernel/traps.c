@@ -65,7 +65,6 @@ void show_trace(struct task_struct *task, unsigned long *stack)
 	printk(" =======================\n");
 }
 
-/* displays a short stack trace */
 void show_stack(struct task_struct *task, unsigned long *esp)
 {
 	unsigned long addr, *stack;
@@ -81,9 +80,6 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 		if (kstack_end(stack))
 			break;
 		if (__get_user(addr, stack)) {
-			/* This message matches "failing address" marked
-			   s390 in ksymoops, so lines containing it will
-			   not be filtered out by ksymoops.  */
 			printk("Failing address 0x%lx\n", (unsigned long)stack);
 			break;
 		}
@@ -100,14 +96,8 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 
 void show_trace_task(struct task_struct *tsk)
 {
-	/*
-	 * TODO: SysRq-T trace dump...
-	 */
 }
 
-/*
- * The architecture-independent backtrace generator
- */
 void dump_stack(void)
 {
 	unsigned long stack;
@@ -150,10 +140,6 @@ void show_registers(struct pt_regs *regs)
 
 	printk("Process %s (pid: %d, stackpage=%08lx)\n",
 	       current->comm, current->pid, (unsigned long)current);
-	/*
-	 * When in-kernel, we also print out the stack and code at the
-	 * time of the fault..
-	 */
 	if (in_kernel) {
 
 		printk("\nStack: ");
@@ -256,7 +242,6 @@ void nommu_dump_state(struct pt_regs *regs,
 	printk("\n");
 }
 
-/* This is normally the 'Oops' routine */
 void die(const char *str, struct pt_regs *regs, long err)
 {
 
@@ -266,7 +251,7 @@ void die(const char *str, struct pt_regs *regs, long err)
 #ifdef CONFIG_JUMP_UPON_UNHANDLED_EXCEPTION
 	printk("\n\nUNHANDLED_EXCEPTION: entering infinite loop\n");
 
-	/* shut down interrupts */
+	
 	local_irq_disable();
 
 	__asm__ __volatile__("l.nop   1");
@@ -275,7 +260,6 @@ void die(const char *str, struct pt_regs *regs, long err)
 	do_exit(SIGSEGV);
 }
 
-/* This is normally the 'Oops' routine */
 void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 {
 	if (user_mode(regs))
@@ -293,7 +277,7 @@ void unhandled_exception(struct pt_regs *regs, int ea, int vector)
 
 void __init trap_init(void)
 {
-	/* Nothing needs to be done */
+	
 }
 
 asmlinkage void do_trap(struct pt_regs *regs, unsigned long address)
@@ -313,10 +297,10 @@ asmlinkage void do_unaligned_access(struct pt_regs *regs, unsigned long address)
 	siginfo_t info;
 
 	if (user_mode(regs)) {
-		/* Send a SIGSEGV */
+		
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
-		/* info.si_code has been set above */
+		
 		info.si_addr = (void *)address;
 		force_sig_info(SIGSEGV, &info, current);
 	} else {
@@ -332,13 +316,13 @@ asmlinkage void do_bus_fault(struct pt_regs *regs, unsigned long address)
 	siginfo_t info;
 
 	if (user_mode(regs)) {
-		/* Send a SIGBUS */
+		
 		info.si_signo = SIGBUS;
 		info.si_errno = 0;
 		info.si_code = BUS_ADRERR;
 		info.si_addr = (void *)address;
 		force_sig_info(SIGBUS, &info, current);
-	} else {		/* Kernel mode */
+	} else {		
 		printk("KERNEL: Bus error (SIGBUS) 0x%.8lx\n", address);
 		show_registers(regs);
 		die("Die:", regs, address);
@@ -351,13 +335,13 @@ asmlinkage void do_illegal_instruction(struct pt_regs *regs,
 	siginfo_t info;
 
 	if (user_mode(regs)) {
-		/* Send a SIGILL */
+		
 		info.si_signo = SIGILL;
 		info.si_errno = 0;
 		info.si_code = ILL_ILLOPC;
 		info.si_addr = (void *)address;
 		force_sig_info(SIGBUS, &info, current);
-	} else {		/* Kernel mode */
+	} else {		
 		printk("KERNEL: Illegal instruction (SIGILL) 0x%.8lx\n",
 		       address);
 		show_registers(regs);

@@ -53,14 +53,11 @@ struct omapfb_mem_region {
 	u32		paddr;
 	void __iomem	*vaddr;
 	unsigned long	size;
-	u8		type;		/* OMAPFB_PLANE_MEM_* */
-	enum omapfb_color_format format;/* OMAPFB_COLOR_* */
-	unsigned	format_used:1;	/* Must be set when format is set.
-					 * Needed b/c of the badly chosen 0
-					 * base for OMAPFB_COLOR_* values
-					 */
-	unsigned	alloc:1;	/* allocated by the driver */
-	unsigned	map:1;		/* kernel mapped by the driver */
+	u8		type;		
+	enum omapfb_color_format format;
+	unsigned	format_used:1;	
+	unsigned	alloc:1;	
+	unsigned	map:1;		
 };
 
 struct omapfb_mem_desc {
@@ -70,23 +67,20 @@ struct omapfb_mem_desc {
 
 struct lcd_panel {
 	const char	*name;
-	int		config;		/* TFT/STN, signal inversion */
-	int		bpp;		/* Pixel format in fb mem */
-	int		data_lines;	/* Lines on LCD HW interface */
+	int		config;		
+	int		bpp;		
+	int		data_lines;	
 
 	int		x_res, y_res;
-	int		pixel_clock;	/* In kHz */
-	int		hsw;		/* Horizontal synchronization
-					   pulse width */
-	int		hfp;		/* Horizontal front porch */
-	int		hbp;		/* Horizontal back porch */
-	int		vsw;		/* Vertical synchronization
-					   pulse width */
-	int		vfp;		/* Vertical front porch */
-	int		vbp;		/* Vertical back porch */
-	int		acb;		/* ac-bias pin frequency */
-	int		pcd;		/* pixel clock divider.
-					   Obsolete use pixel_clock instead */
+	int		pixel_clock;	
+	int		hsw;		
+	int		hfp;		
+	int		hbp;		
+	int		vsw;		
+	int		vfp;		
+	int		vbp;		
+	int		acb;		
+	int		pcd;		
 
 	int		(*init)		(struct lcd_panel *panel,
 					 struct omapfb_device *fbdev);
@@ -115,7 +109,7 @@ struct extif_timings {
 
 	int clk_div;
 
-	u32 tim[5];		/* set by extif->convert_timings */
+	u32 tim[5];		
 
 	int converted;
 };
@@ -207,25 +201,23 @@ struct omapfb_plane_struct {
 
 struct omapfb_device {
 	int			state;
-	int                     ext_lcdc;		/* Using external
-							   LCD controller */
+	int                     ext_lcdc;		
 	struct mutex		rqueue_mutex;
 
 	int			palette_size;
 	u32			pseudo_palette[17];
 
-	struct lcd_panel	*panel;			/* LCD panel */
-	const struct lcd_ctrl	*ctrl;			/* LCD controller */
-	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
-	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
-							   interface */
+	struct lcd_panel	*panel;			
+	const struct lcd_ctrl	*ctrl;			
+	const struct lcd_ctrl	*int_ctrl;		
+	struct lcd_ctrl_extif	*ext_if;		
 	struct device		*dev;
-	struct fb_var_screeninfo	new_var;	/* for mode changes */
+	struct fb_var_screeninfo	new_var;	
 
 	struct omapfb_mem_desc		mem_desc;
 	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
 
-	struct platform_device	*dssdev;	/* dummy dev for clocks */
+	struct platform_device	*dssdev;	
 };
 
 extern struct lcd_ctrl omap1_lcd_ctrl;
@@ -243,4 +235,4 @@ extern int  omapfb_update_window_async(struct fb_info *fbi,
 				       void (*callback)(void *),
 				       void *callback_data);
 
-#endif /* __OMAPFB_H */
+#endif 

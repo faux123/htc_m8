@@ -169,10 +169,10 @@ static int ehci_platform_resume(struct device *dev)
 	return 0;
 }
 
-#else /* !CONFIG_PM */
+#else 
 #define ehci_platform_suspend	NULL
 #define ehci_platform_resume	NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static const struct platform_device_id ehci_platform_table[] = {
 	{ "ehci-platform", 0 },

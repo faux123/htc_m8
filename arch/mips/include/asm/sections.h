@@ -3,4 +3,4 @@
 
 #include <asm-generic/sections.h>
 
-#endif /* _ASM_SECTIONS_H */
+#endif 

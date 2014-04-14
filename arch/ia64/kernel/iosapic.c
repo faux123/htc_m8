@@ -42,43 +42,6 @@
  *				Updated to work with irq migration necessary
  *				for CPU Hotplug
  */
-/*
- * Here is what the interrupt logic between a PCI device and the kernel looks
- * like:
- *
- * (1) A PCI device raises one of the four interrupt pins (INTA, INTB, INTC,
- *     INTD).  The device is uniquely identified by its bus-, and slot-number
- *     (the function number does not matter here because all functions share
- *     the same interrupt lines).
- *
- * (2) The motherboard routes the interrupt line to a pin on a IOSAPIC
- *     controller.  Multiple interrupt lines may have to share the same
- *     IOSAPIC pin (if they're level triggered and use the same polarity).
- *     Each interrupt line has a unique Global System Interrupt (GSI) number
- *     which can be calculated as the sum of the controller's base GSI number
- *     and the IOSAPIC pin number to which the line connects.
- *
- * (3) The IOSAPIC uses an internal routing table entries (RTEs) to map the
- * IOSAPIC pin into the IA-64 interrupt vector.  This interrupt vector is then
- * sent to the CPU.
- *
- * (4) The kernel recognizes an interrupt as an IRQ.  The IRQ interface is
- *     used as architecture-independent interrupt handling mechanism in Linux.
- *     As an IRQ is a number, we have to have
- *     IA-64 interrupt vector number <-> IRQ number mapping.  On smaller
- *     systems, we use one-to-one mapping between IA-64 vector and IRQ.  A
- *     platform can implement platform_irq_to_vector(irq) and
- *     platform_local_vector_to_irq(vector) APIs to differentiate the mapping.
- *     Please see also arch/ia64/include/asm/hw_irq.h for those APIs.
- *
- * To sum up, there are three levels of mappings involved:
- *
- *	PCI pin -> global system interrupt (GSI) -> IA-64 vector <-> IRQ
- *
- * Note: The term "IRQ" is loosely used everywhere in Linux kernel to
- * describeinterrupts.  Now we use "IRQ" only for Linux IRQ's.  ISA IRQ
- * (isa_irq) is the only exception in this source code.
- */
 
 #include <linux/acpi.h>
 #include <linux/init.h>
@@ -109,45 +72,38 @@
 
 static DEFINE_SPINLOCK(iosapic_lock);
 
-/*
- * These tables map IA-64 vectors to the IOSAPIC pin that generates this
- * vector.
- */
 
 #define NO_REF_RTE	0
 
 static struct iosapic {
-	char __iomem	*addr;		/* base address of IOSAPIC */
-	unsigned int	gsi_base;	/* GSI base */
-	unsigned short	num_rte;	/* # of RTEs on this IOSAPIC */
-	int		rtes_inuse;	/* # of RTEs in use on this IOSAPIC */
+	char __iomem	*addr;		
+	unsigned int	gsi_base;	
+	unsigned short	num_rte;	
+	int		rtes_inuse;	
 #ifdef CONFIG_NUMA
-	unsigned short	node;		/* numa node association via pxm */
+	unsigned short	node;		
 #endif
-	spinlock_t	lock;		/* lock for indirect reg access */
+	spinlock_t	lock;		
 } iosapic_lists[NR_IOSAPICS];
 
 struct iosapic_rte_info {
-	struct list_head rte_list;	/* RTEs sharing the same vector */
-	char		rte_index;	/* IOSAPIC RTE index */
-	int		refcnt;		/* reference counter */
+	struct list_head rte_list;	
+	char		rte_index;	
+	int		refcnt;		
 	struct iosapic	*iosapic;
 } ____cacheline_aligned;
 
 static struct iosapic_intr_info {
-	struct list_head rtes;		/* RTEs using this vector (empty =>
-					 * not an IOSAPIC interrupt) */
-	int		count;		/* # of registered RTEs */
-	u32		low32;		/* current value of low word of
-					 * Redirection table entry */
-	unsigned int	dest;		/* destination CPU physical ID */
-	unsigned char	dmode	: 3;	/* delivery mode (see iosapic.h) */
-	unsigned char 	polarity: 1;	/* interrupt polarity
-					 * (see iosapic.h) */
-	unsigned char	trigger	: 1;	/* trigger mode (see iosapic.h) */
+	struct list_head rtes;		
+	int		count;		
+	u32		low32;		
+	unsigned int	dest;		
+	unsigned char	dmode	: 3;	
+	unsigned char 	polarity: 1;	
+	unsigned char	trigger	: 1;	
 } iosapic_intr_info[NR_IRQS];
 
-static unsigned char pcat_compat __devinitdata;	/* 8259 compatibility flag */
+static unsigned char pcat_compat __devinitdata;	
 
 static inline void
 iosapic_write(struct iosapic *iosapic, unsigned int reg, u32 val)
@@ -159,9 +115,6 @@ iosapic_write(struct iosapic *iosapic, unsigned int reg, u32 val)
 	spin_unlock_irqrestore(&iosapic->lock, flags);
 }
 
-/*
- * Find an IOSAPIC associated with a GSI
- */
 static inline int
 find_iosapic (unsigned int gsi)
 {
@@ -227,7 +180,7 @@ set_rte (unsigned int gsi, unsigned int irq, unsigned int dest, int mask)
 
 	rte = find_rte(irq, gsi);
 	if (!rte)
-		return;		/* not an IOSAPIC interrupt */
+		return;		
 
 	rte_index = rte->rte_index;
 	pol     = iosapic_intr_info[irq].polarity;
@@ -246,7 +199,7 @@ set_rte (unsigned int gsi, unsigned int irq, unsigned int dest, int mask)
 		 ((mask ? 1 : 0) << IOSAPIC_MASK_SHIFT) |
 		 vector);
 
-	/* dest contains both id and eid */
+	
 	high32 = (dest << IOSAPIC_DEST_SHIFT);
 
 	iosapic_write(rte->iosapic, IOSAPIC_RTE_HIGH(rte_index), high32);
@@ -258,7 +211,7 @@ set_rte (unsigned int gsi, unsigned int irq, unsigned int dest, int mask)
 static void
 nop (struct irq_data *data)
 {
-	/* do nothing... */
+	
 }
 
 
@@ -294,9 +247,9 @@ mask_irq (struct irq_data *data)
 	struct iosapic_rte_info *rte;
 
 	if (!iosapic_intr_info[irq].count)
-		return;			/* not an IOSAPIC interrupt! */
+		return;			
 
-	/* set only the mask bit */
+	
 	low32 = iosapic_intr_info[irq].low32 |= IOSAPIC_MASK;
 	list_for_each_entry(rte, &iosapic_intr_info[irq].rtes, rte_list) {
 		rte_index = rte->rte_index;
@@ -313,7 +266,7 @@ unmask_irq (struct irq_data *data)
 	struct iosapic_rte_info *rte;
 
 	if (!iosapic_intr_info[irq].count)
-		return;			/* not an IOSAPIC interrupt! */
+		return;			
 
 	low32 = iosapic_intr_info[irq].low32 &= ~IOSAPIC_MASK;
 	list_for_each_entry(rte, &iosapic_intr_info[irq].rtes, rte_list) {
@@ -347,19 +300,19 @@ iosapic_set_affinity(struct irq_data *data, const struct cpumask *mask,
 	dest = cpu_physical_id(cpu);
 
 	if (!iosapic_intr_info[irq].count)
-		return -1;			/* not an IOSAPIC interrupt */
+		return -1;			
 
 	set_irq_affinity_info(irq, dest, redir);
 
-	/* dest contains both id and eid */
+	
 	high32 = dest << IOSAPIC_DEST_SHIFT;
 
 	low32 = iosapic_intr_info[irq].low32 & ~(7 << IOSAPIC_DELIVERY_SHIFT);
 	if (redir)
-		/* change delivery mode to lowest priority */
+		
 		low32 |= (IOSAPIC_LOWEST_PRIORITY << IOSAPIC_DELIVERY_SHIFT);
 	else
-		/* change delivery mode to fixed */
+		
 		low32 |= (IOSAPIC_FIXED << IOSAPIC_DELIVERY_SHIFT);
 	low32 &= IOSAPIC_VECTOR_MASK;
 	low32 |= irq_to_vector(irq);
@@ -377,9 +330,6 @@ iosapic_set_affinity(struct irq_data *data, const struct cpumask *mask,
 	return 0;
 }
 
-/*
- * Handlers for level-triggered interrupts.
- */
 
 static unsigned int
 iosapic_startup_level_irq (struct irq_data *data)
@@ -429,19 +379,11 @@ static struct irq_chip irq_type_iosapic_level = {
 	.irq_set_affinity =	iosapic_set_affinity
 };
 
-/*
- * Handlers for edge-triggered interrupts.
- */
 
 static unsigned int
 iosapic_startup_edge_irq (struct irq_data *data)
 {
 	unmask_irq(data);
-	/*
-	 * IOSAPIC simply drops interrupts pended while the
-	 * corresponding pin was masked, so we can't know if an
-	 * interrupt is pending already.  Let's hope not...
-	 */
 	return 0;
 }
 
@@ -470,15 +412,6 @@ static struct irq_chip irq_type_iosapic_edge = {
 static unsigned int
 iosapic_version (char __iomem *addr)
 {
-	/*
-	 * IOSAPIC Version Register return 32 bit structure like:
-	 * {
-	 *	unsigned int version   : 8;
-	 *	unsigned int reserved1 : 8;
-	 *	unsigned int max_redir : 8;
-	 *	unsigned int reserved2 : 8;
-	 * }
-	 */
 	return __iosapic_read(addr, IOSAPIC_VERSION);
 }
 
@@ -487,10 +420,6 @@ static int iosapic_find_sharable_irq(unsigned long trigger, unsigned long pol)
 	int i, irq = -ENOSPC, min_count = -1;
 	struct iosapic_intr_info *info;
 
-	/*
-	 * shared vectors for edge-triggered interrupts are not
-	 * supported yet
-	 */
 	if (trigger == IOSAPIC_EDGE)
 		return -EINVAL;
 
@@ -509,10 +438,6 @@ static int iosapic_find_sharable_irq(unsigned long trigger, unsigned long pol)
 	return irq;
 }
 
-/*
- * if the given vector is already owned by other,
- *  assign a new vector for the other and make the vector available
- */
 static void __init
 iosapic_reassign_vector (int irq)
 {
@@ -624,24 +549,12 @@ get_target_cpu (unsigned int gsi, int irq)
 	extern int cpe_vector;
 	cpumask_t domain = irq_to_domain(irq);
 
-	/*
-	 * In case of vector shared by multiple RTEs, all RTEs that
-	 * share the vector need to use the same destination CPU.
-	 */
 	if (iosapic_intr_info[irq].count)
 		return iosapic_intr_info[irq].dest;
 
-	/*
-	 * If the platform supports redirection via XTP, let it
-	 * distribute interrupts.
-	 */
 	if (smp_int_redirect & SMP_IRQ_REDIRECTION)
 		return cpu_physical_id(smp_processor_id());
 
-	/*
-	 * Some interrupts (ACPI SCI, for instance) are registered
-	 * before the BSP is marked as online.
-	 */
 	if (!cpu_online(smp_processor_id()))
 		return cpu_physical_id(smp_processor_id());
 
@@ -670,7 +583,7 @@ get_target_cpu (unsigned int gsi, int irq)
 		if (!num_cpus)
 			goto skip_numa_setup;
 
-		/* Use irq assignment to distribute across cpus in node */
+		
 		cpu_index = irq % num_cpus;
 
 		for_each_cpu_and(numa_cpu, cpu_mask, &domain)
@@ -682,18 +595,13 @@ get_target_cpu (unsigned int gsi, int irq)
 	}
 skip_numa_setup:
 #endif
-	/*
-	 * Otherwise, round-robin interrupt vectors across all the
-	 * processors.  (It'd be nice if we could be smarter in the
-	 * case of NUMA.)
-	 */
 	do {
 		if (++cpu >= nr_cpu_ids)
 			cpu = 0;
 	} while (!cpu_online(cpu) || !cpu_isset(cpu, domain));
 
 	return cpu_physical_id(cpu);
-#else  /* CONFIG_SMP */
+#else  
 	return cpu_physical_id(smp_processor_id());
 #endif
 }
@@ -707,11 +615,6 @@ static inline unsigned char choose_dmode(void)
 	return IOSAPIC_FIXED;
 }
 
-/*
- * ACPI can describe IOSAPIC interrupts via static tables and namespace
- * methods.  This provides an interface to register those interrupts and
- * program the IOSAPIC RTE.
- */
 int
 iosapic_register_intr (unsigned int gsi,
 		       unsigned long polarity, unsigned long trigger)
@@ -724,11 +627,6 @@ iosapic_register_intr (unsigned int gsi,
 	unsigned char dmode;
 	struct irq_desc *desc;
 
-	/*
-	 * If this GSI has already been registered (i.e., it's a
-	 * shared interrupt, or we lost a race to register it),
-	 * don't touch the RTE.
-	 */
 	spin_lock_irqsave(&iosapic_lock, flags);
 	irq = __gsi_to_irq(gsi);
 	if (irq > 0) {
@@ -743,7 +641,7 @@ iosapic_register_intr (unsigned int gsi,
 	} else
 		irq = create_irq();
 
-	/* If vector is running out, we try to find a sharable vector */
+	
 	if (irq < 0) {
 		irq = iosapic_find_sharable_irq(trigger, polarity);
 		if (irq < 0)
@@ -761,10 +659,6 @@ iosapic_register_intr (unsigned int gsi,
 		goto unlock_iosapic_lock;
 	}
 
-	/*
-	 * If the vector is shared and already unmasked for other
-	 * interrupt sources, don't mask it.
-	 */
 	low32 = iosapic_intr_info[irq].low32;
 	if (irq_is_shared(irq) && !(low32 & IOSAPIC_MASK))
 		mask = 0;
@@ -791,11 +685,6 @@ iosapic_unregister_intr (unsigned int gsi)
 	unsigned int dest;
 	struct iosapic_rte_info *rte;
 
-	/*
-	 * If the irq associated with the gsi is not found,
-	 * iosapic_unregister_intr() is unbalanced. We need to check
-	 * this again after getting locks.
-	 */
 	irq = gsi_to_irq(gsi);
 	if (irq < 0) {
 		printk(KERN_ERR "iosapic_unregister_intr(%u) unbalanced\n",
@@ -817,7 +706,7 @@ iosapic_unregister_intr (unsigned int gsi)
 
 	rte->refcnt = NO_REF_RTE;
 
-	/* Mask the interrupt */
+	
 	low32 = iosapic_intr_info[irq].low32 | IOSAPIC_MASK;
 	iosapic_write(rte->iosapic, IOSAPIC_RTE_LOW(rte->rte_index), low32);
 
@@ -837,26 +726,23 @@ iosapic_unregister_intr (unsigned int gsi)
 
 	if (iosapic_intr_info[irq].count == 0) {
 #ifdef CONFIG_SMP
-		/* Clear affinity */
+		
 		cpumask_setall(irq_get_irq_data(irq)->affinity);
 #endif
-		/* Clear the interrupt information */
+		
 		iosapic_intr_info[irq].dest = 0;
 		iosapic_intr_info[irq].dmode = 0;
 		iosapic_intr_info[irq].polarity = 0;
 		iosapic_intr_info[irq].trigger = 0;
 		iosapic_intr_info[irq].low32 |= IOSAPIC_MASK;
 
-		/* Destroy and reserve IRQ */
+		
 		destroy_and_reserve_irq(irq);
 	}
  out:
 	spin_unlock_irqrestore(&iosapic_lock, flags);
 }
 
-/*
- * ACPI calls this when it finds an entry for a platform interrupt.
- */
 int __init
 iosapic_register_platform_intr (u32 int_type, unsigned int gsi,
 				int iosapic_vector, u16 eid, u16 id,
@@ -871,10 +757,6 @@ iosapic_register_platform_intr (u32 int_type, unsigned int gsi,
 	      case ACPI_INTERRUPT_PMI:
 		irq = vector = iosapic_vector;
 		bind_irq_vector(irq, vector, CPU_MASK_ALL);
-		/*
-		 * since PMI vector is alloc'd by FW(ACPI) not by kernel,
-		 * we need to make sure the vector is available
-		 */
 		iosapic_reassign_vector(irq);
 		delivery = IOSAPIC_PMI;
 		break;
@@ -911,9 +793,6 @@ iosapic_register_platform_intr (u32 int_type, unsigned int gsi,
 	return vector;
 }
 
-/*
- * ACPI calls this when it finds an entry for a legacy ISA IRQ override.
- */
 void __devinit
 iosapic_override_isa_irq (unsigned int isa_irq, unsigned int gsi,
 			  unsigned long polarity,
@@ -940,10 +819,6 @@ void __init
 ia64_native_iosapic_pcat_compat_init(void)
 {
 	if (pcat_compat) {
-		/*
-		 * Disable the compatibility mode interrupts (8259 style),
-		 * needs IN/OUT support enabled.
-		 */
 		printk(KERN_INFO
 		       "%s: Disabling PC-AT compatible 8259 interrupts\n",
 		       __func__);
@@ -959,7 +834,7 @@ iosapic_system_init (int system_pcat_compat)
 
 	for (irq = 0; irq < NR_IRQS; ++irq) {
 		iosapic_intr_info[irq].low32 = IOSAPIC_MASK;
-		/* mark as unused */
+		
 		INIT_LIST_HEAD(&iosapic_intr_info[irq].rtes);
 
 		iosapic_intr_info[irq].count = 0;
@@ -995,7 +870,7 @@ iosapic_check_gsi_range (unsigned int gsi_base, unsigned int ver)
 	int index;
 	unsigned int gsi_end, base, end;
 
-	/* check gsi range */
+	
 	gsi_end = gsi_base + ((ver >> 16) & 0xff);
 	for (index = 0; index < NR_IOSAPICS; index++) {
 		if (!iosapic_lists[index].addr)
@@ -1005,7 +880,7 @@ iosapic_check_gsi_range (unsigned int gsi_base, unsigned int ver)
 		end  = base + iosapic_lists[index].num_rte - 1;
 
 		if (gsi_end < base || end < gsi_base)
-			continue; /* OK */
+			continue; 
 
 		return -EBUSY;
 	}
@@ -1039,11 +914,6 @@ iosapic_init (unsigned long phys_addr, unsigned int gsi_base)
 		return err;
 	}
 
-	/*
-	 * The MAX_REDIR register holds the highest input pin number
-	 * (starting from 0).  We add 1 so that we can use it for
-	 * number of pins (= RTEs)
-	 */
 	num_rte = ((ver >> 16) & 0xff) + 1;
 
 	index = iosapic_alloc();
@@ -1057,11 +927,6 @@ iosapic_init (unsigned long phys_addr, unsigned int gsi_base)
 	spin_unlock_irqrestore(&iosapic_lock, flags);
 
 	if ((gsi_base == 0) && pcat_compat) {
-		/*
-		 * Map the legacy ISA devices into the IOSAPIC data.  Some of
-		 * these may get reprogrammed later on with data from the ACPI
-		 * Interrupt Source Override table.
-		 */
 		for (isa_irq = 0; isa_irq < 16; ++isa_irq)
 			iosapic_override_isa_irq(isa_irq, isa_irq,
 						 IOSAPIC_POL_HIGH,
@@ -1098,7 +963,7 @@ iosapic_remove (unsigned int gsi_base)
 	spin_unlock_irqrestore(&iosapic_lock, flags);
 	return err;
 }
-#endif /* CONFIG_HOTPLUG */
+#endif 
 
 #ifdef CONFIG_NUMA
 void __devinit

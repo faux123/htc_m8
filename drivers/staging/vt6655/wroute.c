@@ -38,33 +38,13 @@
 #include "card.h"
 #include "baseband.h"
 
-/*---------------------  Static Definitions -------------------------*/
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 static int          msglevel                =MSG_LEVEL_INFO;
-//static int          msglevel                =MSG_LEVEL_DEBUG;
-/*---------------------  Static Functions  --------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
 
-/*
- * Description:
- *      Relay packet.  Return true if packet is copy to DMA1
- *
- * Parameters:
- *  In:
- *      pDevice             -
- *      pbySkbData          - rx packet skb data
- *  Out:
- *      true, false
- *
- * Return Value: true if packet duplicate; otherwise false
- *
- */
+
 bool ROUTEbRelay (PSDevice pDevice, unsigned char *pbySkbData, unsigned int uDataLen, unsigned int uNodeIndex)
 {
     PSMgmtObject    pMgmt = pDevice->pMgmt;
@@ -102,7 +82,7 @@ bool ROUTEbRelay (PSDevice pDevice, unsigned char *pbySkbData, unsigned int uDat
     if (pDevice->bEncryptionEnable == true) {
         bNeedEncryption = true;
 
-        // get group key
+        
         pbyBSSID = pDevice->abyBroadcastAddr;
         if(KeybGetTransmitKey(&(pDevice->sKey), pbyBSSID, GROUP_KEY, &pTransmitKey) == false) {
             pTransmitKey = NULL;
@@ -168,7 +148,7 @@ bool ROUTEbRelay (PSDevice pDevice, unsigned char *pbySkbData, unsigned int uDat
                         );
 
     if (MACbIsRegBitsOn(pDevice->PortOffset, MAC_REG_PSCTL, PSCTL_PS)) {
-        // Disable PS
+        
         MACbPSWakeup(pDevice->PortOffset);
     }
 
@@ -176,7 +156,7 @@ bool ROUTEbRelay (PSDevice pDevice, unsigned char *pbySkbData, unsigned int uDat
 
     pLastTD = pHeadTD;
     for (ii = 0; ii < uMACfragNum; ii++) {
-        // Poll Transmit the adapter
+        
         wmb();
         pHeadTD->m_td0TD0.f1Owner=OWNED_BY_NIC;
         wmb();

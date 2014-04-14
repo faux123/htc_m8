@@ -28,7 +28,6 @@
 
 #include <asm/spu.h>
 
-/* protected by rcu */
 static struct spufs_calls *spufs_calls;
 
 #ifdef CONFIG_SPU_FS_MODULE
@@ -50,11 +49,11 @@ static inline void spufs_calls_put(struct spufs_calls *calls)
 {
 	BUG_ON(calls != spufs_calls);
 
-	/* we don't need to rcu this, as we hold a reference to the module */
+	
 	module_put(spufs_calls->owner);
 }
 
-#else /* !defined CONFIG_SPU_FS_MODULE */
+#else 
 
 static inline struct spufs_calls *spufs_calls_get(void)
 {
@@ -63,7 +62,7 @@ static inline struct spufs_calls *spufs_calls_get(void)
 
 static inline void spufs_calls_put(struct spufs_calls *calls) { }
 
-#endif /* CONFIG_SPU_FS_MODULE */
+#endif 
 
 SYSCALL_DEFINE4(spu_create, const char __user *, name, unsigned int, flags,
 	umode_t, mode, int, neighbor_fd)

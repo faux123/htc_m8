@@ -34,7 +34,7 @@
 #include <linux/serial.h>
 #include <linux/termios.h>
 #include <linux/timer.h>
-#include <linux/tty.h>		/* struct tty_struct */
+#include <linux/tty.h>		
 
 #include <net/irda/irias_object.h>
 #include <net/irda/ircomm_core.h>
@@ -45,39 +45,31 @@
 #define IRCOMM_TTY_MAJOR 161
 #define IRCOMM_TTY_MINOR 0
 
-/* This is used as an initial value to max_header_size before the proper
- * value is filled in (5 for ttp, 4 for lmp). This allow us to detect
- * the state of the underlying connection. - Jean II */
 #define IRCOMM_TTY_HDR_UNINITIALISED	16
-/* Same for payload size. See qos.c for the smallest max data size */
 #define IRCOMM_TTY_DATA_UNINITIALISED	(64 - IRCOMM_TTY_HDR_UNINITIALISED)
 
-/* Those are really defined in include/linux/serial.h - Jean II */
-#define ASYNC_B_INITIALIZED	31	/* Serial port was initialized */
-#define ASYNC_B_NORMAL_ACTIVE	29	/* Normal device is active */
-#define ASYNC_B_CLOSING		27	/* Serial port is closing */
+#define ASYNC_B_INITIALIZED	31	
+#define ASYNC_B_NORMAL_ACTIVE	29	
+#define ASYNC_B_CLOSING		27	
 
-/*
- * IrCOMM TTY driver state
- */
 struct ircomm_tty_cb {
-	irda_queue_t queue;            /* Must be first */
+	irda_queue_t queue;            
 	magic_t magic;
 
-	int state;                /* Connect state */
+	int state;                
 
 	struct tty_struct *tty;
-	struct ircomm_cb *ircomm; /* IrCOMM layer instance */
+	struct ircomm_cb *ircomm; 
 
-	struct sk_buff *tx_skb;   /* Transmit buffer */
-	struct sk_buff *ctrl_skb; /* Control data buffer */
+	struct sk_buff *tx_skb;   
+	struct sk_buff *ctrl_skb; 
 
-	/* Parameters */
+	
 	struct ircomm_params settings;
 
-	__u8 service_type;        /* The service that we support */
-	int client;               /* True if we are a client */
-	LOCAL_FLOW flow;          /* IrTTP flow status */
+	__u8 service_type;        
+	int client;               
+	LOCAL_FLOW flow;          
 
 	int line;
 	unsigned long flags;
@@ -88,11 +80,11 @@ struct ircomm_tty_cb {
 	__u32 saddr;
 	__u32 daddr;
 
-	__u32 max_data_size;   /* Max data we can transmit in one packet */
-	__u32 max_header_size; /* The amount of header space we must reserve */
-	__u32 tx_data_size;	/* Max data size of current tx_skb */
+	__u32 max_data_size;   
+	__u32 max_header_size; 
+	__u32 tx_data_size;	
 
-	struct iriap_cb *iriap; /* Instance used for querying remote IAS */
+	struct iriap_cb *iriap; 
 	struct ias_object* obj;
 	void *skey;
 	void *ckey;
@@ -103,17 +95,11 @@ struct ircomm_tty_cb {
 	struct work_struct  tqueue;
 
         unsigned short    close_delay;
-        unsigned short    closing_wait; /* time to wait before closing */
+        unsigned short    closing_wait; 
 
 	int  open_count;
-	int  blocked_open;	/* # of blocked opens */
+	int  blocked_open;	
 
-	/* Protect concurent access to :
-	 *	o self->open_count
-	 *	o self->ctrl_skb
-	 *	o self->tx_skb
-	 * Maybe other things may gain to be protected as well...
-	 * Jean II */
 	spinlock_t spinlock;
 };
 

@@ -25,5 +25,5 @@
 
 #define IOMD_DMA_BOUNDARY	(PAGE_SIZE - 1)
 
-#endif /* _ASM_ARCH_DMA_H */
+#endif 
 

@@ -120,13 +120,6 @@ static void flush_expired_bios(struct work_struct *work)
 	flush_bios(flush_delayed_bios(dc, 0));
 }
 
-/*
- * Mapping parameters:
- *    <device> <offset> <delay> [<write_device> <write_offset> <write_delay>]
- *
- * With separate write parameters, the first set is only used for reads.
- * Delays are specified in milliseconds.
- */
 static int delay_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 {
 	struct delay_c *dc;
@@ -388,7 +381,6 @@ static void __exit dm_delay_exit(void)
 	destroy_workqueue(kdelayd_wq);
 }
 
-/* Module hooks */
 module_init(dm_delay_init);
 module_exit(dm_delay_exit);
 

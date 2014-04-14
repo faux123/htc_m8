@@ -16,23 +16,14 @@ extern struct pglist_data *node_data[];
 
 extern void resume_map_numa_kva(pgd_t *pgd);
 
-#else /* !CONFIG_NUMA */
+#else 
 
 static inline void resume_map_numa_kva(pgd_t *pgd) {}
 
-#endif /* CONFIG_NUMA */
+#endif 
 
 #ifdef CONFIG_DISCONTIGMEM
 
-/*
- * generic node memory support, the following assumptions apply:
- *
- * 1) memory comes in 64Mb contiguous chunks which are either present or not
- * 2) we will not have more than 64Gb in total
- *
- * for now assume that 64Gb is max amount of RAM for whole system
- *    64Gb / 4096bytes/page = 16777216 pages
- */
 #define MAX_NR_PAGES 16777216
 #define MAX_SECTIONS 1024
 #define PAGES_PER_SECTION (MAX_NR_PAGES/MAX_SECTIONS)
@@ -59,12 +50,11 @@ static inline int pfn_valid(int pfn)
 
 #define early_pfn_valid(pfn)	pfn_valid((pfn))
 
-#endif /* CONFIG_DISCONTIGMEM */
+#endif 
 
 #ifdef CONFIG_NEED_MULTIPLE_NODES
-/* always use node 0 for bootmem on this numa platform */
 #define bootmem_arch_preferred_node(__bdata, size, align, goal, limit)	\
 	(NODE_DATA(0)->bdata)
-#endif /* CONFIG_NEED_MULTIPLE_NODES */
+#endif 
 
-#endif /* _ASM_X86_MMZONE_32_H */
+#endif 

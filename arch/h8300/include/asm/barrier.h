@@ -3,10 +3,6 @@
 
 #define nop()  asm volatile ("nop"::)
 
-/*
- * Force strict CPU ordering.
- * Not really required on H8...
- */
 #define mb()   asm volatile (""   : : :"memory")
 #define rmb()  asm volatile (""   : : :"memory")
 #define wmb()  asm volatile (""   : : :"memory")
@@ -24,4 +20,4 @@
 #define smp_read_barrier_depends()	do { } while(0)
 #endif
 
-#endif /* _H8300_BARRIER_H */
+#endif 

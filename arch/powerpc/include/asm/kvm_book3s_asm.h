@@ -56,17 +56,10 @@ kvmppc_resume_\intno:
 .macro DO_KVM intno
 .endm
 
-#endif /* CONFIG_KVM_BOOK3S_HANDLER */
+#endif 
 
-#else  /*__ASSEMBLY__ */
+#else  
 
-/*
- * This struct goes in the PACA on 64-bit processors.  It is used
- * to store host state that needs to be saved when we enter a guest
- * and restored when we exit, but isn't specific to any particular
- * guest or vcpu.  It also has some scratch fields used by the guest
- * exit code.
- */
 struct kvmppc_host_state {
 	ulong host_r1;
 	ulong host_r2;
@@ -106,20 +99,20 @@ struct kvmppc_book3s_shadow_vcpu {
 	ulong fault_dar;
 
 #ifdef CONFIG_PPC_BOOK3S_32
-	u32     sr[16];			/* Guest SRs */
+	u32     sr[16];			
 
 	struct kvmppc_host_state hstate;
 #endif
 
 #ifdef CONFIG_PPC_BOOK3S_64
-	u8 slb_max;			/* highest used guest slb entry */
+	u8 slb_max;			
 	struct  {
 		u64     esid;
 		u64     vsid;
-	} slb[64];			/* guest SLB */
+	} slb[64];			
 #endif
 };
 
-#endif /*__ASSEMBLY__ */
+#endif 
 
-#endif /* __ASM_KVM_BOOK3S_ASM_H__ */
+#endif 

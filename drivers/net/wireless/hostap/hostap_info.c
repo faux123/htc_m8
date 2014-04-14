@@ -1,4 +1,3 @@
-/* Host AP driver Info Frame processing (part of hostap.o module) */
 
 #include <linux/if_arp.h>
 #include <linux/sched.h>
@@ -8,7 +7,6 @@
 #include "hostap.h"
 #include "hostap_ap.h"
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_commtallies16(local_info_t *local, unsigned char *buf,
 				      int left)
 {
@@ -48,7 +46,6 @@ local->comm_tallies.name += le16_to_cpu(tallies->name)
 }
 
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_commtallies32(local_info_t *local, unsigned char *buf,
 				      int left)
 {
@@ -88,7 +85,6 @@ local->comm_tallies.name += le32_to_cpu(tallies->name)
 }
 
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_commtallies(local_info_t *local, unsigned char *buf,
 				    int left)
 {
@@ -120,18 +116,15 @@ static const char* hfa384x_linkstatus_str(u16 linkstatus)
 		return "Unknown";
 	}
 }
-#endif /* PRISM2_NO_DEBUG */
+#endif 
 
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_linkstatus(local_info_t *local, unsigned char *buf,
 				    int left)
 {
 	u16 val;
 	int non_sta_mode;
 
-	/* Alloc new JoinRequests to occur since LinkStatus for the previous
-	 * has been received */
 	local->last_join_time = 0;
 
 	if (left != 2) {
@@ -156,7 +149,7 @@ static void prism2_info_linkstatus(local_info_t *local, unsigned char *buf,
 		return;
 	}
 
-	/* Get current BSSID later in scheduled task */
+	
 	set_bit(PRISM2_INFO_PENDING_LINKSTATUS, &local->pending_info);
 	local->prev_link_status = val;
 	schedule_work(&local->info_queue);
@@ -179,14 +172,6 @@ static void prism2_host_roaming(local_info_t *local)
 		return;
 	}
 
-	/* ScanResults are sorted: first ESS results in decreasing signal
-	 * quality then IBSS results in similar order.
-	 * Trivial roaming policy: just select the first entry.
-	 * This could probably be improved by adding hysteresis to limit
-	 * number of handoffs, etc.
-	 *
-	 * Could do periodic RID_SCANREQUEST or Inquire F101 to get new
-	 * ScanResults */
 	spin_lock_irqsave(&local->lock, flags);
 	if (local->last_scan_results == NULL ||
 	    local->last_scan_results_count == 0) {
@@ -201,7 +186,7 @@ static void prism2_host_roaming(local_info_t *local)
 	if (local->preferred_ap[0] || local->preferred_ap[1] ||
 	    local->preferred_ap[2] || local->preferred_ap[3] ||
 	    local->preferred_ap[4] || local->preferred_ap[5]) {
-		/* Try to find preferred AP */
+		
 		PDEBUG(DEBUG_EXTRA, "%s: Preferred AP BSSID %pM\n",
 		       dev->name, local->preferred_ap);
 		for (i = 0; i < local->last_scan_results_count; i++) {
@@ -235,19 +220,14 @@ static void hostap_report_scan_complete(local_info_t *local)
 {
 	union iwreq_data wrqu;
 
-	/* Inform user space about new scan results (just empty event,
-	 * SIOCGIWSCAN can be used to fetch data */
 	wrqu.data.length = 0;
 	wrqu.data.flags = 0;
 	wireless_send_event(local->dev, SIOCGIWSCAN, &wrqu, NULL);
 
-	/* Allow SIOCGIWSCAN handling to occur since we have received
-	 * scanning result */
 	local->scan_timestamp = 0;
 }
 
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_scanresults(local_info_t *local, unsigned char *buf,
 				    int left)
 {
@@ -274,7 +254,7 @@ static void prism2_info_scanresults(local_info_t *local, unsigned char *buf,
 	if (results == NULL)
 		return;
 
-	/* Convert to hostscan result format. */
+	
 	res = (struct hfa384x_scan_result *) pos;
 	for (i = 0; i < new_count; i++) {
 		memcpy(&results[i], &res[i],
@@ -292,13 +272,12 @@ static void prism2_info_scanresults(local_info_t *local, unsigned char *buf,
 
 	hostap_report_scan_complete(local);
 
-	/* Perform rest of ScanResults handling later in scheduled task */
+	
 	set_bit(PRISM2_INFO_PENDING_SCANRESULTS, &local->pending_info);
 	schedule_work(&local->info_queue);
 }
 
 
-/* Called only as a tasklet (software IRQ) */
 static void prism2_info_hostscanresults(local_info_t *local,
 					unsigned char *buf, int left)
 {
@@ -358,10 +337,9 @@ static void prism2_info_hostscanresults(local_info_t *local,
 
 	hostap_report_scan_complete(local);
 }
-#endif /* PRISM2_NO_STATION_MODES */
+#endif 
 
 
-/* Called only as a tasklet (software IRQ) */
 void hostap_info_process(local_info_t *local, struct sk_buff *skb)
 {
 	struct hfa384x_info_frame *info;
@@ -369,7 +347,7 @@ void hostap_info_process(local_info_t *local, struct sk_buff *skb)
 	int left;
 #ifndef PRISM2_NO_DEBUG
 	int i;
-#endif /* PRISM2_NO_DEBUG */
+#endif 
 
 	info = (struct hfa384x_info_frame *) skb->data;
 	buf = skb->data + sizeof(*info);
@@ -392,7 +370,7 @@ void hostap_info_process(local_info_t *local, struct sk_buff *skb)
 	case HFA384X_INFO_HOSTSCANRESULTS:
 		prism2_info_hostscanresults(local, buf, left);
 		break;
-#endif /* PRISM2_NO_STATION_MODES */
+#endif 
 
 #ifndef PRISM2_NO_DEBUG
 	default:
@@ -404,7 +382,7 @@ void hostap_info_process(local_info_t *local, struct sk_buff *skb)
 			PDEBUG2(DEBUG_EXTRA, " %02x", buf[i]);
 		PDEBUG2(DEBUG_EXTRA, "\n");
 		break;
-#endif /* PRISM2_NO_DEBUG */
+#endif 
 	}
 }
 
@@ -433,7 +411,7 @@ static void handle_info_queue_linkstatus(local_info_t *local)
 			hostap_add_sta(local->ap, local->bssid);
 	}
 
-	/* Get BSSID if we have a valid AP address */
+	
 	if (connected) {
 		netif_carrier_on(local->dev);
 		netif_carrier_on(local->ddev);
@@ -445,12 +423,6 @@ static void handle_info_queue_linkstatus(local_info_t *local)
 	}
 	wrqu.ap_addr.sa_family = ARPHRD_ETHER;
 
-	/*
-	 * Filter out sequential disconnect events in order not to cause a
-	 * flood of SIOCGIWAP events that have a race condition with EAPOL
-	 * frames and can confuse wpa_supplicant about the current association
-	 * status.
-	 */
 	if (connected || local->prev_linkstatus_connected)
 		wireless_send_event(local->dev, SIOCGIWAP, &wrqu, NULL);
 	local->prev_linkstatus_connected = connected;
@@ -465,20 +437,11 @@ static void handle_info_queue_scanresults(local_info_t *local)
 	if (local->host_roaming == 2 && local->iw_mode == IW_MODE_INFRA &&
 	    memcmp(local->preferred_ap, "\x00\x00\x00\x00\x00\x00",
 		   ETH_ALEN) != 0) {
-		/*
-		 * Firmware seems to be getting into odd state in host_roaming
-		 * mode 2 when hostscan is used without join command, so try
-		 * to fix this by re-joining the current AP. This does not
-		 * actually trigger a new association if the current AP is
-		 * still in the scan results.
-		 */
 		prism2_host_roaming(local);
 	}
 }
 
 
-/* Called only as scheduled task after receiving info frames (used to avoid
- * pending too much time in HW IRQ handler). */
 static void handle_info_queue(struct work_struct *work)
 {
 	local_info_t *local = container_of(work, local_info_t, info_queue);
@@ -491,7 +454,7 @@ static void handle_info_queue(struct work_struct *work)
 			       &local->pending_info))
 		handle_info_queue_scanresults(local);
 }
-#endif /* PRISM2_NO_STATION_MODES */
+#endif 
 
 
 void hostap_info_init(local_info_t *local)
@@ -499,7 +462,7 @@ void hostap_info_init(local_info_t *local)
 	skb_queue_head_init(&local->info_list);
 #ifndef PRISM2_NO_STATION_MODES
 	INIT_WORK(&local->info_queue, handle_info_queue);
-#endif /* PRISM2_NO_STATION_MODES */
+#endif 
 }
 
 

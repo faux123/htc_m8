@@ -25,12 +25,6 @@
  *
  *
  **************************************************************************/
-/*
- * Simple open hash tab implementation.
- *
- * Authors:
- * Thomas Hellström <thomas-at-tungstengraphics-dot-com>
- */
 
 #ifndef DRM_HASHTAB_H
 #define DRM_HASHTAB_H

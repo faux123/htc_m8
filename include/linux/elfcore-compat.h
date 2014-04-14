@@ -5,9 +5,6 @@
 #include <linux/elfcore.h>
 #include <linux/compat.h>
 
-/*
- * Make sure these layouts match the linux/elfcore.h native definitions.
- */
 
 struct compat_elf_siginfo
 {
@@ -52,4 +49,4 @@ struct compat_elf_prpsinfo
 	char				pr_psargs[ELF_PRARGSZ];
 };
 
-#endif /* _LINUX_ELFCORE_COMPAT_H */
+#endif 

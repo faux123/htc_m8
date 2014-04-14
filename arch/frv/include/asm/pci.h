@@ -40,7 +40,6 @@ extern void *pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
 extern void pci_free_consistent(struct pci_dev *hwdev, size_t size,
 				void *vaddr, dma_addr_t dma_handle);
 
-/* Return the index of the PCI controller for device PDEV. */
 #define pci_controller_num(PDEV)	(0)
 
 #ifdef CONFIG_PCI
@@ -53,11 +52,7 @@ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
 }
 #endif
 
-/*
- *	These are pretty much arbitrary with the CoMEM implementation.
- *	We have the whole address space to ourselves.
- */
 #define PCIBIOS_MIN_IO		0x100
 #define PCIBIOS_MIN_MEM		0x00010000
 
-#endif /* _ASM_FRV_PCI_H */
+#endif 

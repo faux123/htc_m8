@@ -22,7 +22,7 @@ int b43_sdio_init(void);
 void b43_sdio_exit(void);
 
 
-#else /* CONFIG_B43_SDIO */
+#else 
 
 
 int b43_sdio_request_irq(struct b43_wldev *dev,
@@ -41,5 +41,5 @@ static inline void b43_sdio_exit(void)
 {
 }
 
-#endif /* CONFIG_B43_SDIO */
-#endif /* B43_SDIO_H_ */
+#endif 
+#endif 

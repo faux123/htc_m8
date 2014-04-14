@@ -42,9 +42,6 @@
 static LIST_HEAD(lapb_list);
 static DEFINE_RWLOCK(lapb_list_lock);
 
-/*
- *	Free an allocated lapb control block.
- */
 static void lapb_free_cb(struct lapb_cb *lapb)
 {
 	kfree(lapb);
@@ -61,9 +58,6 @@ static __inline__ void lapb_put(struct lapb_cb *lapb)
 		lapb_free_cb(lapb);
 }
 
-/*
- *	Socket removal during an interrupt is now safe.
- */
 static void __lapb_remove_cb(struct lapb_cb *lapb)
 {
 	if (lapb->node.next) {
@@ -72,9 +66,6 @@ static void __lapb_remove_cb(struct lapb_cb *lapb)
 	}
 }
 
-/*
- *	Add a socket to the bound sockets list.
- */
 static void __lapb_insert_cb(struct lapb_cb *lapb)
 {
 	list_add(&lapb->node, &lapb_list);
@@ -110,9 +101,6 @@ static struct lapb_cb *lapb_devtostruct(struct net_device *dev)
 
 	return rc;
 }
-/*
- *	Create an empty LAPB control block.
- */
 static struct lapb_cb *lapb_create_cb(void)
 {
 	struct lapb_cb *lapb = kzalloc(sizeof(*lapb), GFP_ATOMIC);
@@ -408,7 +396,7 @@ int lapb_data_indication(struct lapb_cb *lapb, struct sk_buff *skb)
 		return lapb->callbacks->data_indication(lapb->dev, skb);
 
 	kfree_skb(skb);
-	return NET_RX_SUCCESS; /* For now; must be != NET_RX_DROP */
+	return NET_RX_SUCCESS; 
 }
 
 int lapb_data_transmit(struct lapb_cb *lapb, struct sk_buff *skb)

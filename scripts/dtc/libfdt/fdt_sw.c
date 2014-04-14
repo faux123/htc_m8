@@ -59,7 +59,7 @@ static int _fdt_sw_check_header(void *fdt)
 {
 	if (fdt_magic(fdt) != FDT_SW_MAGIC)
 		return -FDT_ERR_BADMAGIC;
-	/* FIXME: should check more details about the header state */
+	
 	return 0;
 }
 
@@ -70,7 +70,7 @@ static int _fdt_sw_check_header(void *fdt)
 			return err; \
 	}
 
-static void *_fdt_grab_space(void *fdt, int len)
+static void *_fdt_grab_space(void *fdt, size_t len)
 {
 	int offset = fdt_size_dt_struct(fdt);
 	int spaceleft;
@@ -82,7 +82,7 @@ static void *_fdt_grab_space(void *fdt, int len)
 		return NULL;
 
 	fdt_set_size_dt_struct(fdt, offset + len);
-	return fdt_offset_ptr_w(fdt, offset, len);
+	return _fdt_offset_ptr_w(fdt, offset);
 }
 
 int fdt_create(void *buf, int bufsize)
@@ -177,11 +177,11 @@ static int _fdt_find_add_string(void *fdt, const char *s)
 	if (p)
 		return p - strtab;
 
-	/* Add it */
+	
 	offset = -strtabsize - len;
 	struct_top = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
 	if (fdt_totalsize(fdt) + offset < struct_top)
-		return 0; /* no more room :( */
+		return 0; 
 
 	memcpy(strtab + offset, s, len);
 	fdt_set_size_dt_strings(fdt, strtabsize + len);
@@ -220,28 +220,25 @@ int fdt_finish(void *fdt)
 
 	FDT_SW_CHECK_HEADER(fdt);
 
-	/* Add terminator */
+	
 	end = _fdt_grab_space(fdt, sizeof(*end));
 	if (! end)
 		return -FDT_ERR_NOSPACE;
 	*end = cpu_to_fdt32(FDT_END);
 
-	/* Relocate the string table */
+	
 	oldstroffset = fdt_totalsize(fdt) - fdt_size_dt_strings(fdt);
 	newstroffset = fdt_off_dt_struct(fdt) + fdt_size_dt_struct(fdt);
 	memmove(p + newstroffset, p + oldstroffset, fdt_size_dt_strings(fdt));
 	fdt_set_off_dt_strings(fdt, newstroffset);
 
-	/* Walk the structure, correcting string offsets */
+	
 	offset = 0;
 	while ((tag = fdt_next_tag(fdt, offset, &nextoffset)) != FDT_END) {
 		if (tag == FDT_PROP) {
 			struct fdt_property *prop =
-				fdt_offset_ptr_w(fdt, offset, sizeof(*prop));
+				_fdt_offset_ptr_w(fdt, offset);
 			int nameoff;
-
-			if (! prop)
-				return -FDT_ERR_BADSTRUCTURE;
 
 			nameoff = fdt32_to_cpu(prop->nameoff);
 			nameoff += fdt_size_dt_strings(fdt);
@@ -249,8 +246,10 @@ int fdt_finish(void *fdt)
 		}
 		offset = nextoffset;
 	}
+	if (nextoffset < 0)
+		return nextoffset;
 
-	/* Finally, adjust the header */
+	
 	fdt_set_totalsize(fdt, newstroffset + fdt_size_dt_strings(fdt));
 	fdt_set_magic(fdt, FDT_MAGIC);
 	return 0;

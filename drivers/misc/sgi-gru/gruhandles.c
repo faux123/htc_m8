@@ -23,7 +23,6 @@
 #include "grulib.h"
 #include "grutables.h"
 
-/* 10 sec */
 #ifdef CONFIG_IA64
 #include <asm/processor.h>
 #define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
@@ -34,7 +33,6 @@
 #define CLKS2NSEC(c)		((c) * 1000000 / tsc_khz)
 #endif
 
-/* Extract the status field from a kernel handle */
 #define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
 
 struct mcs_op_statistic mcs_op_statistics[mcsop_last];
@@ -54,7 +52,7 @@ static void start_instruction(void *h)
 {
 	unsigned long *w0 = h;
 
-	wmb();		/* setting CMD/STATUS bits must be last */
+	wmb();		
 	*w0 = *w0 | 0x20001;
 	gru_flush_cache(h);
 }
@@ -102,10 +100,6 @@ int cch_allocate(struct gru_context_configuration_handle *cch)
 	start_instruction(cch);
 	ret = wait_instruction_complete(cch, cchop_allocate);
 
-	/*
-	 * Stop speculation into the GSEG being mapped by the previous ALLOCATE.
-	 * The GSEG memory does not exist until the ALLOCATE completes.
-	 */
 	sync_core();
 	return ret;
 }
@@ -132,10 +126,6 @@ int cch_deallocate(struct gru_context_configuration_handle *cch)
 	start_instruction(cch);
 	ret = wait_instruction_complete(cch, cchop_deallocate);
 
-	/*
-	 * Stop speculation into the GSEG being unmapped by the previous
-	 * DEALLOCATE.
-	 */
 	sync_core();
 	return ret;
 }

@@ -26,14 +26,5 @@ struct pvr2_hdw;
 
 int pvr2_eeprom_analyze(struct pvr2_hdw *);
 
-#endif /* __PVRUSB2_EEPROM_H */
+#endif 
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 70 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */

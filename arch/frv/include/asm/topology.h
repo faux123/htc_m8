@@ -5,8 +5,8 @@
 
 #error NUMA not supported yet
 
-#endif /* CONFIG_NUMA */
+#endif 
 
 #include <asm-generic/topology.h>
 
-#endif /* _ASM_TOPOLOGY_H */
+#endif 

@@ -45,4 +45,4 @@ extern int debug;
 		       __func__, __LINE__, ##args);	\
 	} while (0)
 
-#endif /* S5P_MFC_DEBUG_H_ */
+#endif 

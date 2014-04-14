@@ -29,11 +29,7 @@ MODULE_AUTHOR("Takashi Iwai, Steve Ratcliffe");
 MODULE_DESCRIPTION("Emu8000 synth plug-in routine");
 MODULE_LICENSE("GPL");
 
-/*----------------------------------------------------------------*/
 
-/*
- * create a new hardware dependent device for Emu8000
- */
 static int snd_emu8000_new_device(struct snd_seq_device *dev)
 {
 	struct snd_emu8000 *hw;
@@ -44,7 +40,7 @@ static int snd_emu8000_new_device(struct snd_seq_device *dev)
 		return -EINVAL;
 
 	if (hw->emu)
-		return -EBUSY; /* already exists..? */
+		return -EBUSY; 
 
 	if (snd_emux_new(&emu) < 0)
 		return -ENOMEM;
@@ -68,10 +64,10 @@ static int snd_emu8000_new_device(struct snd_seq_device *dev)
 	}
 
 	emu->memhdr = hw->memhdr;
-	emu->midi_ports = hw->seq_ports < 2 ? hw->seq_ports : 2; /* number of virmidi ports */
+	emu->midi_ports = hw->seq_ports < 2 ? hw->seq_ports : 2; 
 	emu->midi_devidx = 1;
 	emu->linear_panning = 1;
-	emu->hwdep_idx = 2; /* FIXED */
+	emu->hwdep_idx = 2; 
 
 	if (snd_emux_register(emu, dev->card, hw->index, "Emu8000") < 0) {
 		snd_emux_free(emu);
@@ -90,15 +86,12 @@ static int snd_emu8000_new_device(struct snd_seq_device *dev)
 }
 
 
-/*
- * free all resources
- */
 static int snd_emu8000_delete_device(struct snd_seq_device *dev)
 {
 	struct snd_emu8000 *hw;
 
 	if (dev->driver_data == NULL)
-		return 0; /* no synth was allocated actually */
+		return 0; 
 
 	hw = dev->driver_data;
 	if (hw->pcm)
@@ -112,9 +105,6 @@ static int snd_emu8000_delete_device(struct snd_seq_device *dev)
 	return 0;
 }
 
-/*
- *  INIT part
- */
 
 static int __init alsa_emu8000_init(void)
 {

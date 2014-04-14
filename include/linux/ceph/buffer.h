@@ -7,12 +7,6 @@
 #include <linux/types.h>
 #include <linux/uio.h>
 
-/*
- * a simple reference counted buffer.
- *
- * use kmalloc for small sizes (<= one page), vmalloc for larger
- * sizes.
- */
 struct ceph_buffer {
 	struct kref kref;
 	struct kvec vec;

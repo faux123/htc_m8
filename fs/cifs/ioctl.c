@@ -33,7 +33,7 @@
 long cifs_ioctl(struct file *filep, unsigned int command, unsigned long arg)
 {
 	struct inode *inode = filep->f_dentry->d_inode;
-	int rc = -ENOTTY; /* strange error - but the precedent */
+	int rc = -ENOTTY; 
 	int xid;
 	struct cifs_sb_info *cifs_sb;
 #ifdef CONFIG_CIFS_POSIX
@@ -42,7 +42,7 @@ long cifs_ioctl(struct file *filep, unsigned int command, unsigned long arg)
 	__u64	ExtAttrBits = 0;
 	__u64	ExtAttrMask = 0;
 	__u64   caps;
-#endif /* CONFIG_CIFS_POSIX */
+#endif 
 
 	xid = GetXid();
 
@@ -86,12 +86,10 @@ long cifs_ioctl(struct file *filep, unsigned int command, unsigned long arg)
 					rc = -EFAULT;
 					break;
 				}
-				/* rc= CIFSGetExtAttr(xid,tcon,pSMBFile->netfid,
-					extAttrBits, &ExtAttrMask);*/
 			}
 			cFYI(1, "set flags not implemented yet");
 			break;
-#endif /* CONFIG_CIFS_POSIX */
+#endif 
 		default:
 			cFYI(1, "unsupported ioctl");
 			break;

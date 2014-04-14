@@ -32,9 +32,6 @@ __generic_copy_from_user(void *to, const void __user *from, unsigned long n)
 }
 
 
-/*
- * Copy a null terminated string from userspace.
- */
 
 #ifdef CONFIG_ISA_DUAL_ISSUE
 
@@ -70,7 +67,7 @@ do {									\
 		: "r14", "cbit", "memory");				\
 } while (0)
 
-#else /* not CONFIG_ISA_DUAL_ISSUE */
+#else 
 
 #define __do_strncpy_from_user(dst,src,count,res)			\
 do {									\
@@ -107,7 +104,7 @@ do {									\
 		: "r14", "cbit", "memory");				\
 } while (0)
 
-#endif /* CONFIG_ISA_DUAL_ISSUE */
+#endif 
 
 long
 __strncpy_from_user(char *dst, const char __user *src, long count)
@@ -127,9 +124,6 @@ strncpy_from_user(char *dst, const char __user *src, long count)
 }
 
 
-/*
- * Zero Userspace
- */
 
 #ifdef CONFIG_ISA_DUAL_ISSUE
 
@@ -174,7 +168,7 @@ do {									\
 		: "r14", "cbit", "memory");				\
 } while (0)
 
-#else /* not CONFIG_ISA_DUAL_ISSUE */
+#else 
 
 #define __do_clear_user(addr,size)					\
 do {									\
@@ -218,7 +212,7 @@ do {									\
 		: "r14", "cbit", "memory");				\
 } while (0)
 
-#endif /* not CONFIG_ISA_DUAL_ISSUE */
+#endif 
 
 unsigned long
 clear_user(void __user *to, unsigned long n)
@@ -235,11 +229,6 @@ __clear_user(void __user *to, unsigned long n)
 	return n;
 }
 
-/*
- * Return the size of a string (including the ending 0)
- *
- * Return 0 on exception, a value greater than N if too long
- */
 
 #ifdef CONFIG_ISA_DUAL_ISSUE
 
@@ -293,24 +282,12 @@ long strnlen_user(const char __user *s, long n)
 		: "0" (n), "1" (s), "r" (n & 3), "r" (mask), "r"(0x01010101)
 		: "r0", "r1", "cbit");
 
-	/* NOTE: strnlen_user() algorithm:
-	 * {
-	 *   char *p;
-	 *   for (p = s; n-- && *p != '\0'; ++p)
-	 *     ;
-	 *   return p - s + 1;
-	 * }
-	 */
 
-	/* NOTE: If a null char. exists, return 0.
-	 * if ((x - 0x01010101) & ~x & 0x80808080)\n"
-	 *   return 0;\n"
-	 */
 
 	return res & mask;
 }
 
-#else /* not CONFIG_ISA_DUAL_ISSUE */
+#else 
 
 long strnlen_user(const char __user *s, long n)
 {
@@ -369,22 +346,10 @@ long strnlen_user(const char __user *s, long n)
 		: "0" (n), "1" (s), "r" (n & 3), "r" (mask), "r"(0x01010101)
 		: "r0", "r1", "r2", "r3", "cbit");
 
-	/* NOTE: strnlen_user() algorithm:
-	 * {
-	 *   char *p;
-	 *   for (p = s; n-- && *p != '\0'; ++p)
-	 *     ;
-	 *   return p - s + 1;
-	 * }
-	 */
 
-	/* NOTE: If a null char. exists, return 0.
-	 * if ((x - 0x01010101) & ~x & 0x80808080)\n"
-	 *   return 0;\n"
-	 */
 
 	return res & mask;
 }
 
-#endif /* CONFIG_ISA_DUAL_ISSUE */
+#endif 
 

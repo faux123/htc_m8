@@ -38,9 +38,6 @@ loff_t_to_s32(loff_t offset)
 	return res;
 }
 
-/*
- * XDR functions for basic NLM types
- */
 static __be32 *nlm_decode_cookie(__be32 *p, struct nlm_cookie *c)
 {
 	unsigned int	len;
@@ -50,7 +47,7 @@ static __be32 *nlm_decode_cookie(__be32 *p, struct nlm_cookie *c)
 	if(len==0)
 	{
 		c->len=4;
-		memset(c->data, 0, 4);	/* hockeypux brain damage */
+		memset(c->data, 0, 4);	
 	}
 	else if(len<=NLM_MAXCOOKIELEN)
 	{
@@ -101,9 +98,6 @@ nlm_encode_fh(__be32 *p, struct nfs_fh *f)
 	return p + XDR_QUADLEN(NFS2_FHSIZE);
 }
 
-/*
- * Encode and decode owner handle
- */
 static inline __be32 *
 nlm_decode_oh(__be32 *p, struct xdr_netobj *oh)
 {
@@ -134,7 +128,7 @@ nlm_decode_lock(__be32 *p, struct nlm_lock *lock)
 	fl->fl_owner = current->files;
 	fl->fl_pid   = (pid_t)lock->svid;
 	fl->fl_flags = FL_POSIX;
-	fl->fl_type  = F_RDLCK;		/* as good as anything else */
+	fl->fl_type  = F_RDLCK;		
 	start = ntohl(*p++);
 	len = ntohl(*p++);
 	end = start + len - 1;
@@ -148,9 +142,6 @@ nlm_decode_lock(__be32 *p, struct nlm_lock *lock)
 	return p;
 }
 
-/*
- * Encode result of a TEST/TEST_MSG call
- */
 static __be32 *
 nlm_encode_testres(__be32 *p, struct nlm_res *resp)
 {
@@ -166,7 +157,7 @@ nlm_encode_testres(__be32 *p, struct nlm_res *resp)
 		*p++ = (fl->fl_type == F_RDLCK)? xdr_zero : xdr_one;
 		*p++ = htonl(resp->lock.svid);
 
-		/* Encode owner handle. */
+		
 		if (!(p = xdr_encode_netobj(p, &resp->lock.oh)))
 			return NULL;
 
@@ -184,9 +175,6 @@ nlm_encode_testres(__be32 *p, struct nlm_res *resp)
 }
 
 
-/*
- * First, the server side XDR functions
- */
 int
 nlmsvc_decode_testargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 {
@@ -227,7 +215,7 @@ nlmsvc_decode_lockargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 		argp->lock.fl.fl_type = F_WRLCK;
 	argp->reclaim = ntohl(*p++);
 	argp->state   = ntohl(*p++);
-	argp->monitor = 1;		/* monitor client by default */
+	argp->monitor = 1;		
 
 	return xdr_argsize_check(rqstp, p);
 }
@@ -285,7 +273,7 @@ nlmsvc_encode_shareres(struct svc_rqst *rqstp, __be32 *p, struct nlm_res *resp)
 	if (!(p = nlm_encode_cookie(p, &resp->cookie)))
 		return 0;
 	*p++ = resp->status;
-	*p++ = xdr_zero;		/* sequence argument */
+	*p++ = xdr_zero;		
 	return xdr_ressize_check(rqstp, p);
 }
 

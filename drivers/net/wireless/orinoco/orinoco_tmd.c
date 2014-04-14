@@ -50,13 +50,10 @@
 #include "orinoco.h"
 #include "orinoco_pci.h"
 
-#define COR_VALUE	(COR_LEVEL_REQ | COR_FUNC_ENA) /* Enable PC card with interrupt in level trigger */
-#define COR_RESET     (0x80)	/* reset bit in the COR register */
-#define TMD_RESET_TIME	(500)	/* milliseconds */
+#define COR_VALUE	(COR_LEVEL_REQ | COR_FUNC_ENA) 
+#define COR_RESET     (0x80)	
+#define TMD_RESET_TIME	(500)	
 
-/*
- * Do a soft reset of the card using the Configuration Option Register
- */
 static int orinoco_tmd_cor_reset(struct orinoco_private *priv)
 {
 	struct hermes *hw = &priv->hw;
@@ -70,7 +67,7 @@ static int orinoco_tmd_cor_reset(struct orinoco_private *priv)
 	iowrite8(COR_VALUE, card->bridge_io);
 	mdelay(1);
 
-	/* Just in case, wait more until the card is no longer busy */
+	
 	timeout = jiffies + (TMD_RESET_TIME * HZ / 1000);
 	reg = hermes_read_regn(hw, CMD);
 	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY)) {
@@ -78,7 +75,7 @@ static int orinoco_tmd_cor_reset(struct orinoco_private *priv)
 		reg = hermes_read_regn(hw, CMD);
 	}
 
-	/* Still busy? */
+	
 	if (reg & HERMES_CMD_BUSY) {
 		printk(KERN_ERR PFX "Busy timeout\n");
 		return -ETIMEDOUT;
@@ -122,7 +119,7 @@ static int orinoco_tmd_init_one(struct pci_dev *pdev,
 		goto fail_map_hermes;
 	}
 
-	/* Allocate network device */
+	
 	priv = alloc_orinocodev(sizeof(*card), &pdev->dev,
 				orinoco_tmd_cor_reset, NULL);
 	if (!priv) {
@@ -204,7 +201,7 @@ static void __devexit orinoco_tmd_remove_one(struct pci_dev *pdev)
 }
 
 static DEFINE_PCI_DEVICE_TABLE(orinoco_tmd_id_table) = {
-	{0x15e8, 0x0131, PCI_ANY_ID, PCI_ANY_ID,},      /* NDC and OEMs, e.g. pheecom */
+	{0x15e8, 0x0131, PCI_ANY_ID, PCI_ANY_ID,},      
 	{0,},
 };
 
@@ -239,10 +236,3 @@ static void __exit orinoco_tmd_exit(void)
 module_init(orinoco_tmd_init);
 module_exit(orinoco_tmd_exit);
 
-/*
- * Local variables:
- *  c-indent-level: 8
- *  c-basic-offset: 8
- *  tab-width: 8
- * End:
- */

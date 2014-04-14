@@ -35,12 +35,8 @@ const u8 mei_wd_state_independence_msg[3][4] = {
 	{0x07, 0x02, 0x01, 0x10}
 };
 
-/*
- * AMT Watchdog Device
- */
 #define INTEL_AMT_WATCHDOG_ID "INTCAMT"
 
-/* UUIDs for AMT F/W clients */
 const uuid_le mei_wd_guid = UUID_LE(0x05B79A6F, 0x4628, 0x4D7F, 0x89,
 						0x9D, 0xA9, 0x15, 0x14, 0xCB,
 						0x32, 0xAB);
@@ -53,22 +49,17 @@ void mei_wd_set_start_timeout(struct mei_device *dev, u16 timeout)
 			&timeout, sizeof(u16));
 }
 
-/**
- * host_init_wd - mei initialization wd.
- *
- * @dev: the device structure
- */
 bool mei_wd_host_init(struct mei_device *dev)
 {
 	bool ret = false;
 
 	mei_cl_init(&dev->wd_cl, dev);
 
-	/* look for WD client and connect to it */
+	
 	dev->wd_cl.state = MEI_FILE_DISCONNECTED;
 	dev->wd_timeout = AMT_WD_DEFAULT_TIMEOUT;
 
-	/* find ME WD client */
+	
 	mei_find_me_client_update_filext(dev, &dev->wd_cl,
 				&mei_wd_guid, MEI_WD_HOST_CLIENT_ID);
 
@@ -93,15 +84,6 @@ end:
 	return ret;
 }
 
-/**
- * mei_wd_send - sends watch dog message to fw.
- *
- * @dev: the device structure
- *
- * returns 0 if success,
- *	-EIO when message send fails
- *	-EINVAL when invalid message is to be sent
- */
 int mei_wd_send(struct mei_device *dev)
 {
 	struct mei_msg_hdr *mei_hdr;
@@ -122,16 +104,6 @@ int mei_wd_send(struct mei_device *dev)
 	return mei_write_message(dev, mei_hdr, dev->wd_data, mei_hdr->length);
 }
 
-/**
- * mei_wd_stop - sends watchdog stop message to fw.
- *
- * @dev: the device structure
- * @preserve: indicate if to keep the timeout value
- *
- * returns 0 if success,
- *	-EIO when message send fails
- *	-EINVAL when invalid message is to be sent
- */
 int mei_wd_stop(struct mei_device *dev, bool preserve)
 {
 	int ret;
@@ -189,13 +161,6 @@ out:
 	return ret;
 }
 
-/*
- * mei_wd_ops_start - wd start command from the watchdog core.
- *
- * @wd_dev - watchdog device struct
- *
- * returns 0 if success, negative errno code for failure
- */
 static int mei_wd_ops_start(struct watchdog_device *wd_dev)
 {
 	int err = -ENODEV;
@@ -226,13 +191,6 @@ end_unlock:
 	return err;
 }
 
-/*
- * mei_wd_ops_stop -  wd stop command from the watchdog core.
- *
- * @wd_dev - watchdog device struct
- *
- * returns 0 if success, negative errno code for failure
- */
 static int mei_wd_ops_stop(struct watchdog_device *wd_dev)
 {
 	struct mei_device *dev;
@@ -248,13 +206,6 @@ static int mei_wd_ops_stop(struct watchdog_device *wd_dev)
 	return 0;
 }
 
-/*
- * mei_wd_ops_ping - wd ping command from the watchdog core.
- *
- * @wd_dev - watchdog device struct
- *
- * returns 0 if success, negative errno code for failure
- */
 static int mei_wd_ops_ping(struct watchdog_device *wd_dev)
 {
 	int ret = 0;
@@ -272,7 +223,7 @@ static int mei_wd_ops_ping(struct watchdog_device *wd_dev)
 		goto end;
 	}
 
-	/* Check if we can send the ping to HW*/
+	
 	if (dev->mei_host_buffer_is_empty &&
 		mei_flow_ctrl_creds(dev, &dev->wd_cl) > 0) {
 
@@ -300,14 +251,6 @@ end:
 	return ret;
 }
 
-/*
- * mei_wd_ops_set_timeout - wd set timeout command from the watchdog core.
- *
- * @wd_dev - watchdog device struct
- * @timeout - timeout value to set
- *
- * returns 0 if success, negative errno code for failure
- */
 static int mei_wd_ops_set_timeout(struct watchdog_device *wd_dev, unsigned int timeout)
 {
 	struct mei_device *dev;
@@ -316,7 +259,7 @@ static int mei_wd_ops_set_timeout(struct watchdog_device *wd_dev, unsigned int t
 	if (!dev)
 		return -ENODEV;
 
-	/* Check Timeout value */
+	
 	if (timeout < AMT_WD_MIN_TIMEOUT || timeout > AMT_WD_MAX_TIMEOUT)
 		return -EINVAL;
 
@@ -331,9 +274,6 @@ static int mei_wd_ops_set_timeout(struct watchdog_device *wd_dev, unsigned int t
 	return 0;
 }
 
-/*
- * Watchdog Device structs
- */
 static const struct watchdog_ops wd_ops = {
 		.owner = THIS_MODULE,
 		.start = mei_wd_ops_start,

@@ -9,9 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Very simple screen and serial I/O
- */
 
 #include "boot.h"
 
@@ -19,13 +16,9 @@ int early_serial_base;
 
 #define XMTRDY          0x20
 
-#define TXR             0       /*  Transmit register (WRITE) */
-#define LSR             5       /*  Line Status               */
+#define TXR             0       
+#define LSR             5       
 
-/*
- * These functions are in .inittext so they can be used to signal
- * error during initialization.
- */
 
 static void __attribute__((section(".inittext"))) serial_putchar(int ch)
 {
@@ -52,7 +45,7 @@ static void __attribute__((section(".inittext"))) bios_putchar(int ch)
 void __attribute__((section(".inittext"))) putchar(int ch)
 {
 	if (ch == '\n')
-		putchar('\r');	/* \n -> \r\n */
+		putchar('\r');	
 
 	bios_putchar(ch);
 
@@ -66,10 +59,6 @@ void __attribute__((section(".inittext"))) puts(const char *str)
 		putchar(*str++);
 }
 
-/*
- * Read the CMOS clock through the BIOS, and return the
- * seconds in BCD.
- */
 
 static u8 gettime(void)
 {
@@ -82,15 +71,12 @@ static u8 gettime(void)
 	return oreg.dh;
 }
 
-/*
- * Read from the keyboard
- */
 int getchar(void)
 {
 	struct biosregs ireg, oreg;
 
 	initregs(&ireg);
-	/* ireg.ah = 0x00; */
+	
 	intcall(0x16, &ireg, &oreg);
 
 	return oreg.al;
@@ -134,6 +120,6 @@ int getchar_timeout(void)
 		}
 	}
 
-	return 0;		/* Timeout! */
+	return 0;		
 }
 

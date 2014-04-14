@@ -17,4 +17,4 @@ struct sgiwd93_platform_data {
 	unsigned char *wdregs;
 };
 
-#endif /* __ASM_SGI_WD_H */
+#endif 

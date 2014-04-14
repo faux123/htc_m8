@@ -29,4 +29,4 @@ extern void __struct_cpy_bug(void);
 	memcpy(x, y, sizeof(*(x)));             \
 })
 
-#endif /* _ASM_STRING_H */
+#endif 

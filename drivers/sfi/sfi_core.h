@@ -1,4 +1,3 @@
-/* sfi_core.h Simple Firmware Interface, internal header */
 
 /*
 
@@ -64,7 +63,6 @@ struct sfi_table_key{
 	char	*oem_table_id;
 };
 
-/* sysfs interface */
 struct sfi_table_attr {
 	struct bin_attribute attr;
 	char name[8];

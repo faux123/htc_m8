@@ -1,10 +1,3 @@
-/**
- * \file drm_memory.c
- * Memory management wrappers for DRM
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- */
 
 /*
  * Created: Thu Feb  4 14:00:34 1999 by faith@valinux.com
@@ -62,12 +55,7 @@ static void *agp_remap(unsigned long offset, unsigned long size,
 	if (&agpmem->head == &dev->agp->memory)
 		return NULL;
 
-	/*
-	 * OK, we're mapping AGP space on a chipset/platform on which memory accesses by
-	 * the CPU do not get remapped by the GART.  We fix this by using the kernel's
-	 * page-table instead (that's probably faster anyhow...).
-	 */
-	/* note: use vmalloc() because num_pages could be large... */
+	
 	page_map = vmalloc(num_pages * sizeof(struct page *));
 	if (!page_map)
 		return NULL;
@@ -81,34 +69,31 @@ static void *agp_remap(unsigned long offset, unsigned long size,
 	return addr;
 }
 
-/** Wrapper around agp_free_memory() */
 void drm_free_agp(DRM_AGP_MEM * handle, int pages)
 {
 	agp_free_memory(handle);
 }
 EXPORT_SYMBOL(drm_free_agp);
 
-/** Wrapper around agp_bind_memory() */
 int drm_bind_agp(DRM_AGP_MEM * handle, unsigned int start)
 {
 	return agp_bind_memory(handle, start);
 }
 
-/** Wrapper around agp_unbind_memory() */
 int drm_unbind_agp(DRM_AGP_MEM * handle)
 {
 	return agp_unbind_memory(handle);
 }
 EXPORT_SYMBOL(drm_unbind_agp);
 
-#else  /*  __OS_HAS_AGP  */
+#else  
 static inline void *agp_remap(unsigned long offset, unsigned long size,
 			      struct drm_device * dev)
 {
 	return NULL;
 }
 
-#endif				/* agp */
+#endif				
 
 void drm_core_ioremap(struct drm_local_map *map, struct drm_device *dev)
 {

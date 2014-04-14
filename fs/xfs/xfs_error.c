@@ -148,7 +148,7 @@ xfs_errortag_clearall(xfs_mount_t *mp, int loud)
 
 	return 0;
 }
-#endif /* DEBUG */
+#endif 
 
 void
 xfs_error_report(

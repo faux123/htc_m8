@@ -1,4 +1,3 @@
-/* $Id: diva.h,v 1.1.2.2 2001/02/08 12:25:43 armin Exp $ */
 
 #ifndef __DIVA_XDI_OS_PART_H__
 #define __DIVA_XDI_OS_PART_H__

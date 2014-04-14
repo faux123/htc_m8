@@ -42,11 +42,6 @@
 #include <asm/mmzone.h>
 #include <asm/sparsemem.h>
 
-/*
- * Initialize loops_per_jiffy as 10000000 (1000MIPS).
- * This value will be used at the very early stage of serial setup.
- * The bigger value means no problem.
- */
 struct sh_cpuinfo cpu_data[NR_CPUS] __read_mostly = {
 	[0] = {
 		.type			= CPU_SH_NONE,
@@ -57,10 +52,6 @@ struct sh_cpuinfo cpu_data[NR_CPUS] __read_mostly = {
 };
 EXPORT_SYMBOL(cpu_data);
 
-/*
- * The machine vector. First entry in .machvec.init, or clobbered by
- * sh_mv= on the command line, prior to .machvec.init teardown.
- */
 struct sh_machine_vector sh_mv = { .mv_name = "generic", };
 EXPORT_SYMBOL(sh_mv);
 
@@ -119,10 +110,6 @@ void __init check_for_initrd(void)
 #ifdef CONFIG_BLK_DEV_INITRD
 	unsigned long start, end;
 
-	/*
-	 * Check for the rare cases where boot loaders adhere to the boot
-	 * ABI.
-	 */
 	if (!LOADER_TYPE || !INITRD_START || !INITRD_SIZE)
 		goto disable;
 
@@ -149,16 +136,8 @@ void __init check_for_initrd(void)
 		goto disable;
 	}
 
-	/*
-	 * If we got this far in spite of the boot loader's best efforts
-	 * to the contrary, assume we actually have a valid initrd and
-	 * fix up the root dev.
-	 */
 	ROOT_DEV = Root_RAM0;
 
-	/*
-	 * Address sanitization
-	 */
 	initrd_start = (unsigned long)__va(start);
 	initrd_end = initrd_start + INITRD_SIZE;
 
@@ -194,7 +173,7 @@ void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
 	struct resource *res = &mem_resources[nid];
 	unsigned long start, end;
 
-	WARN_ON(res->name); /* max one active range per node for now */
+	WARN_ON(res->name); 
 
 	start = start_pfn << PAGE_SHIFT;
 	end = end_pfn << PAGE_SHIFT;
@@ -210,11 +189,6 @@ void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
 		return;
 	}
 
-	/*
-	 * We don't know which RAM region contains kernel data or
-	 * the reserved crashkernel region, so try it repeatedly
-	 * and let the resource manager test it.
-	 */
 	request_resource(res, &code_resource);
 	request_resource(res, &data_resource);
 	request_resource(res, &bss_resource);
@@ -222,11 +196,6 @@ void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
 	request_resource(res, &crashk_res);
 #endif
 
-	/*
-	 * Also make sure that there is a PMB mapping that covers this
-	 * range before we attempt to activate it, to avoid reset by MMU.
-	 * We can hit this path with NUMA or memory hot-add.
-	 */
 	pmb_bolt_mapping((unsigned long)__va(start), start, end - start,
 			 PAGE_KERNEL);
 
@@ -285,7 +254,7 @@ void __init setup_arch(char **cmdline_p)
 #endif
 #endif
 
-	/* Save unparsed command line copy for /proc/cmdline */
+	
 	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
 	*cmdline_p = command_line;
 
@@ -295,7 +264,7 @@ void __init setup_arch(char **cmdline_p)
 
 	sh_mv_setup();
 
-	/* Let earlyprintk output early console messages */
+	
 	early_platform_driver_probe("earlyprintk", 1, 1);
 
 	paging_init();
@@ -304,14 +273,13 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 
-	/* Perform the machine specific initialisation */
+	
 	if (likely(sh_mv.mv_setup))
 		sh_mv.mv_setup(cmdline_p);
 
 	plat_smp_setup();
 }
 
-/* processor boot mode configuration */
 int generic_mode_pins(void)
 {
 	pr_warning("generic_mode_pins(): missing mode pin configuration\n");

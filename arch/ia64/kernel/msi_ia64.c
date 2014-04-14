@@ -1,6 +1,3 @@
-/*
- * MSI hooks for standard x86 apic
- */
 
 #include <linux/pci.h>
 #include <linux/irq.h>
@@ -43,7 +40,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
 
 	return 0;
 }
-#endif /* CONFIG_SMP */
+#endif 
 
 int ia64_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 {
@@ -100,9 +97,6 @@ static int ia64_msi_retrigger_irq(struct irq_data *data)
 	return 1;
 }
 
-/*
- * Generic ops used on most IA64 platforms.
- */
 static struct irq_chip ia64_msi_chip = {
 	.name			= "PCI-MSI",
 	.irq_mask		= mask_msi_irq,
@@ -159,7 +153,7 @@ static int dmar_msi_set_affinity(struct irq_data *data,
 
 	return 0;
 }
-#endif /* CONFIG_SMP */
+#endif 
 
 static struct irq_chip dmar_msi_type = {
 	.name = "DMAR_MSI",
@@ -210,5 +204,5 @@ int arch_setup_dmar_msi(unsigned int irq)
 				      "edge");
 	return 0;
 }
-#endif /* CONFIG_INTEL_IOMMU */
+#endif 
 

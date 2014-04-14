@@ -56,10 +56,9 @@
 #define CHKINFO(ret)
 #endif
 
-/* Description of the hardware layout */
 
-static void __iomem *hga_vram;			/* Base of video memory */
-static unsigned long hga_vram_len;		/* Size of video memory */
+static void __iomem *hga_vram;			
+static unsigned long hga_vram_len;		
 
 #define HGA_ROWADDR(row) ((row%4)*8192 + (row>>2)*90)
 #define HGA_TXT			0
@@ -70,18 +69,17 @@ static inline u8 __iomem * rowaddr(struct fb_info *info, u_int row)
 	return info->screen_base + HGA_ROWADDR(row);
 }
 
-static int hga_mode = -1;			/* 0 = txt, 1 = gfx mode */
+static int hga_mode = -1;			
 
 static enum { TYPE_HERC, TYPE_HERCPLUS, TYPE_HERCCOLOR } hga_type;
 static char *hga_type_name;
 
-#define HGA_INDEX_PORT		0x3b4		/* Register select port */
-#define HGA_VALUE_PORT		0x3b5		/* Register value port */
-#define HGA_MODE_PORT		0x3b8		/* Mode control port */
-#define HGA_STATUS_PORT		0x3ba		/* Status and Config port */
-#define HGA_GFX_PORT		0x3bf		/* Graphics control port */
+#define HGA_INDEX_PORT		0x3b4		
+#define HGA_VALUE_PORT		0x3b5		
+#define HGA_MODE_PORT		0x3b8		
+#define HGA_STATUS_PORT		0x3ba		
+#define HGA_GFX_PORT		0x3bf		
 
-/* HGA register values */
 
 #define HGA_CURSOR_BLINKING	0x00
 #define HGA_CURSOR_OFF		0x20
@@ -100,11 +98,9 @@ static char *hga_type_name;
 #define HGA_GFX_MODE_EN		0x01
 #define HGA_GFX_PAGE_EN		0x02
 
-/* Global locks */
 
 static DEFINE_SPINLOCK(hga_reg_lock);
 
-/* Framebuffer driver structures */
 
 static struct fb_var_screeninfo hga_default_var __devinitdata = {
 	.xres		= 720,
@@ -122,7 +118,7 @@ static struct fb_var_screeninfo hga_default_var __devinitdata = {
 
 static struct fb_fix_screeninfo hga_fix __devinitdata = {
 	.id 		= "HGA",
-	.type 		= FB_TYPE_PACKED_PIXELS,	/* (not sure) */
+	.type 		= FB_TYPE_PACKED_PIXELS,	
 	.visual 	= FB_VISUAL_MONO10,
 	.xpanstep 	= 8,
 	.ypanstep 	= 8,
@@ -130,16 +126,10 @@ static struct fb_fix_screeninfo hga_fix __devinitdata = {
 	.accel 		= FB_ACCEL_NONE
 };
 
-/* Don't assume that tty1 will be the initial current console. */
 static int release_io_port = 0;
 static int release_io_ports = 0;
 static bool nologo = 0;
 
-/* -------------------------------------------------------------------------
- *
- * Low level hardware functions
- *
- * ------------------------------------------------------------------------- */
 
 static void write_hga_b(unsigned int val, unsigned char reg)
 {
@@ -163,7 +153,7 @@ static int test_hga_b(unsigned char val, unsigned char reg)
 
 static void hga_clear_screen(void)
 {
-	unsigned char fillchar = 0xbf; /* magic */
+	unsigned char fillchar = 0xbf; 
 	unsigned long flags;
 
 	spin_lock_irqsave(&hga_reg_lock, flags);
@@ -185,23 +175,23 @@ static void hga_txt_mode(void)
 	outb_p(0x00, HGA_GFX_PORT);
 	outb_p(0x00, HGA_STATUS_PORT);
 
-	write_hga_b(0x61, 0x00);	/* horizontal total */
-	write_hga_b(0x50, 0x01);	/* horizontal displayed */
-	write_hga_b(0x52, 0x02);	/* horizontal sync pos */
-	write_hga_b(0x0f, 0x03);	/* horizontal sync width */
+	write_hga_b(0x61, 0x00);	
+	write_hga_b(0x50, 0x01);	
+	write_hga_b(0x52, 0x02);	
+	write_hga_b(0x0f, 0x03);	
 
-	write_hga_b(0x19, 0x04);	/* vertical total */
-	write_hga_b(0x06, 0x05);	/* vertical total adjust */
-	write_hga_b(0x19, 0x06);	/* vertical displayed */
-	write_hga_b(0x19, 0x07);	/* vertical sync pos */
+	write_hga_b(0x19, 0x04);	
+	write_hga_b(0x06, 0x05);	
+	write_hga_b(0x19, 0x06);	
+	write_hga_b(0x19, 0x07);	
 
-	write_hga_b(0x02, 0x08);	/* interlace mode */
-	write_hga_b(0x0d, 0x09);	/* maximum scanline */
-	write_hga_b(0x0c, 0x0a);	/* cursor start */
-	write_hga_b(0x0d, 0x0b);	/* cursor end */
+	write_hga_b(0x02, 0x08);	
+	write_hga_b(0x0d, 0x09);	
+	write_hga_b(0x0c, 0x0a);	
+	write_hga_b(0x0d, 0x0b);	
 
-	write_hga_w(0x0000, 0x0c);	/* start address */
-	write_hga_w(0x0000, 0x0e);	/* cursor location */
+	write_hga_w(0x0000, 0x0c);	
+	write_hga_w(0x0000, 0x0e);	
 
 	hga_mode = HGA_TXT;
 	spin_unlock_irqrestore(&hga_reg_lock, flags);
@@ -216,23 +206,23 @@ static void hga_gfx_mode(void)
 	outb_p(HGA_GFX_MODE_EN, HGA_GFX_PORT);
 	outb_p(HGA_MODE_VIDEO_EN | HGA_MODE_GRAPHICS, HGA_MODE_PORT);
 
-	write_hga_b(0x35, 0x00);	/* horizontal total */
-	write_hga_b(0x2d, 0x01);	/* horizontal displayed */
-	write_hga_b(0x2e, 0x02);	/* horizontal sync pos */
-	write_hga_b(0x07, 0x03);	/* horizontal sync width */
+	write_hga_b(0x35, 0x00);	
+	write_hga_b(0x2d, 0x01);	
+	write_hga_b(0x2e, 0x02);	
+	write_hga_b(0x07, 0x03);	
 
-	write_hga_b(0x5b, 0x04);	/* vertical total */
-	write_hga_b(0x02, 0x05);	/* vertical total adjust */
-	write_hga_b(0x57, 0x06);	/* vertical displayed */
-	write_hga_b(0x57, 0x07);	/* vertical sync pos */
+	write_hga_b(0x5b, 0x04);	
+	write_hga_b(0x02, 0x05);	
+	write_hga_b(0x57, 0x06);	
+	write_hga_b(0x57, 0x07);	
 
-	write_hga_b(0x02, 0x08);	/* interlace mode */
-	write_hga_b(0x03, 0x09);	/* maximum scanline */
-	write_hga_b(0x00, 0x0a);	/* cursor start */
-	write_hga_b(0x00, 0x0b);	/* cursor end */
+	write_hga_b(0x02, 0x08);	
+	write_hga_b(0x03, 0x09);	
+	write_hga_b(0x00, 0x0a);	
+	write_hga_b(0x00, 0x0b);	
 
-	write_hga_w(0x0000, 0x0c);	/* start address */
-	write_hga_w(0x0000, 0x0e);	/* cursor location */
+	write_hga_w(0x0000, 0x0c);	
+	write_hga_w(0x0000, 0x0e);	
 
 	hga_mode = HGA_GFX;
 	spin_unlock_irqrestore(&hga_reg_lock, flags);
@@ -240,15 +230,6 @@ static void hga_gfx_mode(void)
 
 static void hga_show_logo(struct fb_info *info)
 {
-/*
-	void __iomem *dest = hga_vram;
-	char *logo = linux_logo_bw;
-	int x, y;
-	
-	for (y = 134; y < 134 + 80 ; y++) * this needs some cleanup *
-		for (x = 0; x < 10 ; x++)
-			writeb(~*(logo++),(dest + HGA_ROWADDR(y) + x + 40));
-*/
 }
 
 static void hga_pan(unsigned int xoffset, unsigned int yoffset)
@@ -258,7 +239,7 @@ static void hga_pan(unsigned int xoffset, unsigned int yoffset)
 	
 	base = (yoffset / 8) * 90 + xoffset;
 	spin_lock_irqsave(&hga_reg_lock, flags);
-	write_hga_w(base, 0x0c);	/* start address */
+	write_hga_w(base, 0x0c);	
 	spin_unlock_irqrestore(&hga_reg_lock, flags);
 	DPRINTK("hga_pan: base:%d\n", base);
 }
@@ -269,7 +250,7 @@ static void hga_blank(int blank_mode)
 
 	spin_lock_irqsave(&hga_reg_lock, flags);
 	if (blank_mode) {
-		outb_p(0x00, HGA_MODE_PORT);	/* disable video */
+		outb_p(0x00, HGA_MODE_PORT);	
 	} else {
 		outb_p(HGA_MODE_VIDEO_EN | HGA_MODE_GRAPHICS, HGA_MODE_PORT);
 	}
@@ -291,7 +272,7 @@ static int __devinit hga_card_detect(void)
 	if (request_region(0x3bf, 1, "hgafb"))
 		release_io_port = 1;
 
-	/* do a memory check */
+	
 
 	p = hga_vram;
 	q = hga_vram + 0x01000;
@@ -305,20 +286,13 @@ static int __devinit hga_card_detect(void)
 	if (count != 2)
 		goto error;
 
-	/* Ok, there is definitely a card registering at the correct
-	 * memory location, so now we do an I/O port test.
-	 */
 	
-	if (!test_hga_b(0x66, 0x0f))	    /* cursor low register */
+	if (!test_hga_b(0x66, 0x0f))	    
 		goto error;
 
-	if (!test_hga_b(0x99, 0x0f))     /* cursor low register */
+	if (!test_hga_b(0x99, 0x0f))     
 		goto error;
 
-	/* See if the card is a Hercules, by checking whether the vsync
-	 * bit of the status register is changing.  This test lasts for
-	 * approximately 1/10th of a second.
-	 */
 	
 	p_save = q_save = inb_p(HGA_STATUS_PORT) & HGA_STATUS_VSYNC;
 
@@ -353,11 +327,6 @@ error:
 	return 0;
 }
 
-/**
- *	hgafb_open - open the framebuffer device
- *	@info:pointer to fb_info object containing info for current hga board
- *	@int:open by console system or userland.
- */
 
 static int hgafb_open(struct fb_info *info, int init)
 {
@@ -367,11 +336,6 @@ static int hgafb_open(struct fb_info *info, int init)
 	return 0;
 }
 
-/**
- *	hgafb_open - open the framebuffer device
- *	@info:pointer to fb_info object containing info for current hga board
- *	@int:open by console system or userland.
- */
 
 static int hgafb_release(struct fb_info *info, int init)
 {
@@ -380,19 +344,6 @@ static int hgafb_release(struct fb_info *info, int init)
 	return 0;
 }
 
-/**
- *	hgafb_setcolreg - set color registers
- *	@regno:register index to set
- *	@red:red value, unused
- *	@green:green value, unused
- *	@blue:blue value, unused
- *	@transp:transparency value, unused
- *	@info:unused
- *
- *	This callback function is used to set the color registers of a HGA
- *	board. Since we have only two fixed colors only @regno is checked.
- *	A zero is returned on success and 1 for failure.
- */
 
 static int hgafb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 			   u_int transp, struct fb_info *info)
@@ -402,16 +353,6 @@ static int hgafb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 	return 0;
 }
 
-/**
- *	hga_pan_display - pan or wrap the display
- *	@var:contains new xoffset, yoffset and vmode values
- *	@info:pointer to fb_info object containing info for current hga board
- *
- *	This function looks only at xoffset, yoffset and the %FB_VMODE_YWRAP
- *	flag in @var. If input parameters are correct it calls hga_pan() to 
- *	program the hardware. @info->var is updated to the new values.
- *	A zero is returned on success and %-EINVAL for failure.
- */
 
 static int hgafb_pan_display(struct fb_var_screeninfo *var,
 			     struct fb_info *info)
@@ -432,18 +373,6 @@ static int hgafb_pan_display(struct fb_var_screeninfo *var,
 	return 0;
 }
 
-/**
- *	hgafb_blank - (un)blank the screen
- *	@blank_mode:blanking method to use
- *	@info:unused
- *	
- *	Blank the screen if blank_mode != 0, else unblank. 
- *	Implements VESA suspend and powerdown modes on hardware that supports 
- *	disabling hsync/vsync:
- *		@blank_mode == 2 means suspend vsync,
- *		@blank_mode == 3 means suspend hsync,
- *		@blank_mode == 4 means powerdown.
- */
 
 static int hgafb_blank(int blank_mode, struct fb_info *info)
 {
@@ -451,9 +380,6 @@ static int hgafb_blank(int blank_mode, struct fb_info *info)
 	return 0;
 }
 
-/*
- * Accel functions
- */
 static void hgafb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 {
 	u_int rows, y;
@@ -534,17 +460,8 @@ static struct fb_ops hgafb_ops = {
 	.fb_imageblit	= hgafb_imageblit,
 };
 		
-/* ------------------------------------------------------------------------- *
- *
- * Functions in fb_info
- * 
- * ------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------------------------- */
     
-	/*
-	 *  Initialization
-	 */
 
 static int __devinit hgafb_probe(struct platform_device *pdev)
 {
@@ -652,11 +569,6 @@ static void __exit hgafb_exit(void)
 	platform_driver_unregister(&hgafb_driver);
 }
 
-/* -------------------------------------------------------------------------
- *
- *  Modularization
- *
- * ------------------------------------------------------------------------- */
 
 MODULE_AUTHOR("Ferenc Bakonyi (fero@drama.obuda.kando.hu)");
 MODULE_DESCRIPTION("FBDev driver for Hercules Graphics Adaptor");

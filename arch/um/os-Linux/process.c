@@ -101,9 +101,6 @@ void os_kill_process(int pid, int reap_child)
 		CATCH_EINTR(waitpid(pid, NULL, __WALL));
 }
 
-/* This is here uniquely to have access to the userspace errno, i.e. the one
- * used by ptrace in case of error.
- */
 
 long os_ptrace_ldt(long pid, long addr, long data)
 {
@@ -116,10 +113,6 @@ long os_ptrace_ldt(long pid, long addr, long data)
 	return ret;
 }
 
-/* Kill off a ptraced child by all means available.  kill it normally first,
- * then PTRACE_KILL it, then PTRACE_CONT it in case it's in a run state from
- * which it can't exit directly.
- */
 
 void os_kill_ptraced_process(int pid, int reap_child)
 {
@@ -130,9 +123,6 @@ void os_kill_ptraced_process(int pid, int reap_child)
 		CATCH_EINTR(waitpid(pid, NULL, __WALL));
 }
 
-/* Don't use the glibc version, which caches the result in TLS. It misses some
- * syscalls, and also breaks with clone(), which does not unshare the TLS.
- */
 
 int os_getpid(void)
 {

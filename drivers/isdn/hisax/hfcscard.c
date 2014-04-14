@@ -44,10 +44,7 @@ static void
 hfcs_Timer(struct IsdnCardState *cs)
 {
 	cs->hw.hfcD.timer.expires = jiffies + 75;
-	/* WD RESET */
-/*	WriteReg(cs, HFCD_DATA, HFCD_CTMT, cs->hw.hfcD.ctmt | 0x80);
-	add_timer(&cs->hw.hfcD.timer);
-*/
+	
 }
 
 static void
@@ -66,12 +63,12 @@ reset_hfcs(struct IsdnCardState *cs)
 	cs->hw.hfcD.cirm = HFCD_RESET;
 	if (cs->typ == ISDN_CTYPE_TELES3C)
 		cs->hw.hfcD.cirm |= HFCD_MEM8K;
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CIRM, cs->hw.hfcD.cirm);	/* Reset On */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CIRM, cs->hw.hfcD.cirm);	
 	mdelay(10);
 	cs->hw.hfcD.cirm = 0;
 	if (cs->typ == ISDN_CTYPE_TELES3C)
 		cs->hw.hfcD.cirm |= HFCD_MEM8K;
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CIRM, cs->hw.hfcD.cirm);	/* Reset Off */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CIRM, cs->hw.hfcD.cirm);	
 	mdelay(10);
 	if (cs->typ == ISDN_CTYPE_TELES3C)
 		cs->hw.hfcD.cirm |= HFCD_INTB;
@@ -79,7 +76,7 @@ reset_hfcs(struct IsdnCardState *cs)
 		cs->hw.hfcD.cirm |= HFCD_INTA;
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CIRM, cs->hw.hfcD.cirm);
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CLKDEL, 0x0e);
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_TEST, HFCD_AUTO_AWAKE); /* S/T Auto awake */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_TEST, HFCD_AUTO_AWAKE); 
 	cs->hw.hfcD.ctmt = HFCD_TIM25 | HFCD_AUTO_TIMER;
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_CTMT, cs->hw.hfcD.ctmt);
 	cs->hw.hfcD.int_m2 = HFCD_IRQ_ENABLE;
@@ -88,11 +85,11 @@ reset_hfcs(struct IsdnCardState *cs)
 		HFCD_INTS_DREC | HFCD_INTS_L1STATE;
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_INT_M1, cs->hw.hfcD.int_m1);
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_INT_M2, cs->hw.hfcD.int_m2);
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_STATES, HFCD_LOAD_STATE | 2); /* HFC ST 2 */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_STATES, HFCD_LOAD_STATE | 2); 
 	udelay(10);
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_STATES, 2); /* HFC ST 2 */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_STATES, 2); 
 	cs->hw.hfcD.mst_m = HFCD_MASTER;
-	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_MST_MODE, cs->hw.hfcD.mst_m); /* HFC Master */
+	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_MST_MODE, cs->hw.hfcD.mst_m); 
 	cs->hw.hfcD.sctrl = 0;
 	cs->BC_Write_Reg(cs, HFCD_DATA, HFCD_SCTRL, cs->hw.hfcD.sctrl);
 }
@@ -245,11 +242,11 @@ setup_hfcs(struct IsdnCard *card)
 	       cs->hw.hfcD.addr,
 	       cs->irq, HZ);
 	if (cs->typ == ISDN_CTYPE_TELES3C) {
-		/* Teles 16.3c IO ADR is 0x200 | YY0U (YY Bit 15/14 address) */
+		
 		outb(0x00, cs->hw.hfcD.addr);
 		outb(0x56, cs->hw.hfcD.addr | 1);
 	} else if (cs->typ == ISDN_CTYPE_ACERP10) {
-		/* Acer P10 IO ADR is 0x300 */
+		
 		outb(0x00, cs->hw.hfcD.addr);
 		outb(0x57, cs->hw.hfcD.addr | 1);
 	}

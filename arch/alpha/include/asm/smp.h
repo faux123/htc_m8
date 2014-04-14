@@ -6,7 +6,6 @@
 #include <linux/bitops.h>
 #include <asm/pal.h>
 
-/* HACK: Cabrio WHAMI return value is bogus if more than 8 bits used.. :-( */
 
 static __inline__ unsigned char
 __hard_smp_processor_id(void)
@@ -47,12 +46,12 @@ extern int smp_num_cpus;
 extern void arch_send_call_function_single_ipi(int cpu);
 extern void arch_send_call_function_ipi_mask(const struct cpumask *mask);
 
-#else /* CONFIG_SMP */
+#else 
 
 #define hard_smp_processor_id()		0
 #define smp_call_function_on_cpu(func,info,wait,cpu)    ({ 0; })
 
-#endif /* CONFIG_SMP */
+#endif 
 
 #define NO_PROC_ID	(-1)
 

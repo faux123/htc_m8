@@ -10,22 +10,6 @@
  * enable SSI output pins!
  */
 
-/*
- * LIMITATIONS:
- *	The SSI unit has only one physical data line, so full duplex is
- *	impossible.  This can be remedied  on the  SH7760 by  using the
- *	other SSI unit for recording; however the SH7780 has only 1 SSI
- *	unit, and its pins are shared with the AC97 unit,  among others.
- *
- * FEATURES:
- *	The SSI features "compressed mode": in this mode it continuously
- *	streams PCM data over the I2S lines and uses LRCK as a handshake
- *	signal.  Can be used to send compressed data (AC3/DTS) to a DSP.
- *	The number of bits sent over the wire in a frame can be adjusted
- *	and can be independent from the actual sample bit depth. This is
- *	useful to support TDM mode codecs like the AD1939 which have a
- *	fixed TDM slot size, regardless of sample resolution.
- */
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -46,21 +30,21 @@
 #define CR_DWL_MASK	(7 << CR_DWL_SHIFT)
 #define CR_SWL_SHIFT	16
 #define CR_SWL_MASK	(7 << CR_SWL_SHIFT)
-#define CR_SCK_MASTER	(1 << 15)	/* bitclock master bit */
-#define CR_SWS_MASTER	(1 << 14)	/* wordselect master bit */
-#define CR_SCKP		(1 << 13)	/* I2Sclock polarity */
-#define CR_SWSP		(1 << 12)	/* LRCK polarity */
+#define CR_SCK_MASTER	(1 << 15)	
+#define CR_SWS_MASTER	(1 << 14)	
+#define CR_SCKP		(1 << 13)	
+#define CR_SWSP		(1 << 12)	
 #define CR_SPDP		(1 << 11)
-#define CR_SDTA		(1 << 10)	/* i2s alignment (msb/lsb) */
-#define CR_PDTA		(1 << 9)	/* fifo data alignment */
-#define CR_DEL		(1 << 8)	/* delay data by 1 i2sclk */
-#define CR_BREN		(1 << 7)	/* clock gating in burst mode */
+#define CR_SDTA		(1 << 10)	
+#define CR_PDTA		(1 << 9)	
+#define CR_DEL		(1 << 8)	
+#define CR_BREN		(1 << 7)	
 #define CR_CKDIV_SHIFT	4
-#define CR_CKDIV_MASK	(7 << CR_CKDIV_SHIFT)	/* bitclock divider */
-#define CR_MUTE		(1 << 3)	/* SSI mute */
-#define CR_CPEN		(1 << 2)	/* compressed mode */
-#define CR_TRMD		(1 << 1)	/* transmit/receive select */
-#define CR_EN		(1 << 0)	/* enable SSI */
+#define CR_CKDIV_MASK	(7 << CR_CKDIV_SHIFT)	
+#define CR_MUTE		(1 << 3)	
+#define CR_CPEN		(1 << 2)	
+#define CR_TRMD		(1 << 1)	
+#define CR_EN		(1 << 0)	
 
 #define SSIREG(reg)	(*(unsigned long *)(ssi->mmio + (reg)))
 
@@ -85,10 +69,6 @@ struct ssi_priv {
 #endif
 };
 
-/*
- * track usage of the SSI; it is simplex-only so prevent attempts of
- * concurrent playback + capture. FIXME: any locking required?
- */
 static int ssi_startup(struct snd_pcm_substream *substream,
 		       struct snd_soc_dai *dai)
 {
@@ -146,18 +126,18 @@ static int ssi_hw_params(struct snd_pcm_substream *substream,
 	ssicr &= ~(CR_TRMD | CR_CHNL_MASK | CR_DWL_MASK | CR_PDTA |
 		   CR_SWL_MASK);
 
-	/* direction (send/receive) */
+	
 	if (!recv)
-		ssicr |= CR_TRMD;	/* transmit */
+		ssicr |= CR_TRMD;	
 
-	/* channels */
+	
 	if ((channels < 2) || (channels > 8) || (channels & 1)) {
 		pr_debug("ssi: invalid number of channels\n");
 		return -EINVAL;
 	}
 	ssicr |= ((channels >> 1) - 1) << CR_CHNL_SHIFT;
 
-	/* DATA WORD LENGTH (DWL): databits in audio sample */
+	
 	i = 0;
 	switch (bits) {
 	case 32: ++i;
@@ -173,18 +153,9 @@ static int ssi_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	/*
-	 * SYSTEM WORD LENGTH: size in bits of half a frame over the I2S
-	 * wires. This is usually bits_per_sample x channels/2;  i.e. in
-	 * Stereo mode  the SWL equals DWL.  SWL can  be bigger than the
-	 * product of (channels_per_slot x samplebits), e.g.  for codecs
-	 * like the AD1939 which  only accept 32bit wide TDM slots.  For
-	 * "standard" I2S operation we set SWL = chans / 2 * DWL here.
-	 * Waiting for ASoC to get TDM support ;-)
-	 */
 	if ((bits > 16) && (bits <= 24)) {
-		bits = 24;	/* these are padded by the SSI */
-		/*ssicr |= CR_PDTA;*/ /* cpu/data endianness ? */
+		bits = 24;	
+		 
 	}
 	i = 0;
 	swl = (bits * channels) / 2;
@@ -218,10 +189,6 @@ static int ssi_set_sysclk(struct snd_soc_dai *cpu_dai, int clk_id,
 	return 0;
 }
 
-/*
- * This divider is used to generate the SSI_SCK (I2S bitclock) from the
- * clock at the HAC_BIT_CLK ("oversampling clock") pin.
- */
 static int ssi_set_clkdiv(struct snd_soc_dai *dai, int did, int div)
 {
 	struct ssi_priv *ssi = &ssi_cpu_data[dai->id];
@@ -279,7 +246,7 @@ static int ssi_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_NB_NF:
-		ssicr |= CR_SCKP;	/* sample data at low clkedge */
+		ssicr |= CR_SCKP;	
 		break;
 	case SND_SOC_DAIFMT_NB_IF:
 		ssicr |= CR_SCKP | CR_SWSP;
@@ -287,7 +254,7 @@ static int ssi_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	case SND_SOC_DAIFMT_IB_NF:
 		break;
 	case SND_SOC_DAIFMT_IB_IF:
-		ssicr |= CR_SWSP;	/* word select starts low */
+		ssicr |= CR_SWSP;	
 		break;
 	default:
 		pr_debug("ssi: invalid inversion\n");
@@ -317,14 +284,9 @@ static int ssi_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	return 0;
 }
 
-/* the SSI depends on an external clocksource (at HAC_BIT_CLK) even in
- * Master mode,  so really this is board specific;  the SSI can do any
- * rate with the right bitclk and divider settings.
- */
 #define SSI_RATES	\
 	SNDRV_PCM_RATE_8000_192000
 
-/* the SSI can do 8-32 bit samples, with 8 possible channels */
 #define SSI_FMTS	\
 	(SNDRV_PCM_FMTBIT_S8      | SNDRV_PCM_FMTBIT_U8      |	\
 	 SNDRV_PCM_FMTBIT_S16_LE  | SNDRV_PCM_FMTBIT_U16_LE  |	\

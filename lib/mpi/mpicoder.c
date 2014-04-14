@@ -73,9 +73,6 @@ leave:
 }
 EXPORT_SYMBOL_GPL(mpi_read_from_buffer);
 
-/****************
- * Make an mpi from a character string.
- */
 int mpi_fromstr(MPI val, const char *str)
 {
 	int hexmode = 0, sign = 0, prepend_zero = 0, i, j, c, c1, c2;
@@ -89,7 +86,7 @@ int mpi_fromstr(MPI val, const char *str)
 	if (*str == '0' && str[1] == 'x')
 		hexmode = 1;
 	else
-		return -EINVAL;	/* other bases are not yet supported */
+		return -EINVAL;	
 	str += 2;
 
 	nbits = strlen(str) * 4;
@@ -148,13 +145,6 @@ int mpi_fromstr(MPI val, const char *str)
 }
 EXPORT_SYMBOL_GPL(mpi_fromstr);
 
-/****************
- * Return an allocated buffer with the MPI (msb first).
- * NBYTES receives the length of this buffer. Caller must free the
- * return string (This function does return a 0 byte buffer with NBYTES
- * set to zero if the value of A is zero. If sign is not NULL, it will
- * be set to the sign of the A.
- */
 void *mpi_get_buffer(MPI a, unsigned *nbytes, int *sign)
 {
 	uint8_t *p, *buffer;
@@ -166,7 +156,7 @@ void *mpi_get_buffer(MPI a, unsigned *nbytes, int *sign)
 		*sign = a->sign;
 	*nbytes = n = a->nlimbs * BYTES_PER_MPI_LIMB;
 	if (!n)
-		n++;		/* avoid zero length allocation */
+		n++;		
 	p = buffer = kmalloc(n, GFP_KERNEL);
 	if (!p)
 		return NULL;
@@ -192,8 +182,6 @@ void *mpi_get_buffer(MPI a, unsigned *nbytes, int *sign)
 #endif
 	}
 
-	/* this is sub-optimal but we need to do the shift operation
-	 * because the caller has to free the returned buffer */
 	for (p = buffer; !*p && *nbytes; p++, --*nbytes)
 		;
 	if (p != buffer)
@@ -203,9 +191,6 @@ void *mpi_get_buffer(MPI a, unsigned *nbytes, int *sign)
 }
 EXPORT_SYMBOL_GPL(mpi_get_buffer);
 
-/****************
- * Use BUFFER to update MPI.
- */
 int mpi_set_buffer(MPI a, const void *xbuffer, unsigned nbytes, int sign)
 {
 	const uint8_t *buffer = xbuffer, *p;

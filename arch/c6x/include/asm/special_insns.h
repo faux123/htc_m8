@@ -41,13 +41,9 @@
 
 #define get_coreid() (get_creg(DNUM) & 0xff)
 
-/* Set/get IST */
 #define set_ist(x)	set_creg(ISTP, x)
 #define get_ist()       get_creg(ISTP)
 
-/*
- * Exception management
- */
 #define disable_exception()
 #define get_except_type()        get_creg(EFR)
 #define ack_exception(type)      set_creg(ECR, 1 << (type))
@@ -60,4 +56,4 @@
 			      "=b"(__x) : "n"(s), "n"(e), "b"(x));	\
 	       __x; })
 
-#endif /* _ASM_C6X_SPECIAL_INSNS_H */
+#endif 

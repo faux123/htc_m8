@@ -20,9 +20,6 @@
 #include <asm/portmux.h>
 #include <asm/dpmc.h>
 
-/*
- * Name the Board for the /proc/cpuinfo
- */
 const char bfin_board_name[] = "ADI BF561-EZKIT";
 
 #if defined(CONFIG_USB_ISP1760_HCD) || defined(CONFIG_USB_ISP1760_HCD_MODULE)
@@ -125,10 +122,6 @@ static struct platform_device net2272_bfin_device = {
 };
 #endif
 
-/*
- *  USB-LAN EzExtender board
- *  Driver needs to know address, irq and flag pin.
- */
 #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
 #include <linux/smc91x.h>
 
@@ -208,7 +201,7 @@ static struct platform_device bfin_uart0_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
 	.resource = bfin_uart0_resources,
 	.dev = {
-		.platform_data = &bfin_uart0_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart0_peripherals, 
 	},
 };
 #endif
@@ -292,7 +285,6 @@ static struct platform_device ezkit_flash_device = {
 #endif
 
 #if defined(CONFIG_SPI_BFIN5XX) || defined(CONFIG_SPI_BFIN5XX_MODULE)
-/* SPI (0) */
 static struct resource bfin_spi0_resource[] = {
 	[0] = {
 		.start = SPI0_REGBASE,
@@ -311,20 +303,19 @@ static struct resource bfin_spi0_resource[] = {
 	}
 };
 
-/* SPI controller data */
 static struct bfin5xx_spi_master bfin_spi0_info = {
 	.num_chipselect = 8,
-	.enable_dma = 1,  /* master has the ability to do dma transfer */
+	.enable_dma = 1,  
 	.pin_req = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
 static struct platform_device bfin_spi0_device = {
 	.name = "bfin-spi",
-	.id = 0, /* Bus number */
+	.id = 0, 
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
 	.resource = bfin_spi0_resource,
 	.dev = {
-		.platform_data = &bfin_spi0_info, /* Passed to driver */
+		.platform_data = &bfin_spi0_info, 
 	},
 };
 #endif
@@ -334,17 +325,17 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 	|| defined(CONFIG_SND_BF5XX_SOC_AD183X_MODULE)
 	{
 		.modalias = "ad183x",
-		.max_speed_hz = 3125000,     /* max spi clock (SCK) speed in HZ */
+		.max_speed_hz = 3125000,     
 		.bus_num = 0,
 		.chip_select = 4,
-		.platform_data = "ad1836", /* only includes chip name for the moment */
+		.platform_data = "ad1836", 
 		.mode = SPI_MODE_3,
 	},
 #endif
 #if defined(CONFIG_SPI_SPIDEV) || defined(CONFIG_SPI_SPIDEV_MODULE)
 	{
 		.modalias = "spidev",
-		.max_speed_hz = 3125000,     /* max spi clock (SCK) speed in HZ */
+		.max_speed_hz = 3125000,     
 		.bus_num = 0,
 		.chip_select = 1,
 	},
@@ -412,7 +403,7 @@ static const unsigned int cclk_vlev_datasheet[] =
 static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data = {
 	.tuple_tab = cclk_vlev_datasheet,
 	.tabsize = ARRAY_SIZE(cclk_vlev_datasheet),
-	.vr_settling_time = 25 /* us */,
+	.vr_settling_time = 25 ,
 };
 
 static struct platform_device bfin_dpmc = {
@@ -484,8 +475,8 @@ static struct bcap_route adv7183_routes[] = {
 
 
 static const unsigned adv7183_gpio[] = {
-	GPIO_PF13, /* reset pin */
-	GPIO_PF2,  /* output enable pin */
+	GPIO_PF13, 
+	GPIO_PF2,  
 };
 
 static struct bfin_capture_config bfin_capture_data = {
@@ -516,7 +507,7 @@ static struct platform_device bfin_capture_device = {
 static struct platform_device bfin_i2s = {
 	.name = "bfin-i2s",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
-	/* TODO: add platform data here */
+	
 };
 #endif
 
@@ -524,7 +515,7 @@ static struct platform_device bfin_i2s = {
 static struct platform_device bfin_tdm = {
 	.name = "bfin-tdm",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
-	/* TODO: add platform data here */
+	
 };
 #endif
 
@@ -532,7 +523,7 @@ static struct platform_device bfin_tdm = {
 static struct platform_device bfin_ac97 = {
 	.name = "bfin-ac97",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
-	/* TODO: add platform data here */
+	
 };
 #endif
 
@@ -611,7 +602,7 @@ static int __init net2272_init(void)
 	if (ret)
 		return ret;
 
-	/* Reset the USB chip */
+	
 	gpio_direction_output(GPIO_PF11, 0);
 	mdelay(2);
 	gpio_set_value(GPIO_PF11, 1);
@@ -639,10 +630,6 @@ static int __init ezkit_init(void)
 	bfin_write_FIO0_DIR(bfin_read_FIO0_DIR() | (1 << 15));
 	bfin_write_FIO0_FLAG_S(1 << 15);
 	SSYNC();
-	/*
-	 * This initialization lasts for approximately 4500 MCLKs.
-	 * MCLK = 12.288MHz
-	 */
 	udelay(400);
 #endif
 

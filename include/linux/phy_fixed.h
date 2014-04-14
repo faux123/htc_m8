@@ -18,14 +18,10 @@ static inline int fixed_phy_add(unsigned int irq, int phy_id,
 {
 	return -ENODEV;
 }
-#endif /* CONFIG_FIXED_PHY */
+#endif 
 
-/*
- * This function issued only by fixed_phy-aware drivers, no need
- * protect it with #ifdef
- */
 extern int fixed_phy_set_link_update(struct phy_device *phydev,
 			int (*link_update)(struct net_device *,
 					   struct fixed_phy_status *));
 
-#endif /* __PHY_FIXED_H */
+#endif 

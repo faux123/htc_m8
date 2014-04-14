@@ -19,13 +19,7 @@
 
 #include <asm/smtc_proc.h>
 
-/*
- * /proc diagnostic and statistics hooks
- */
 
-/*
- * Statistics gathered
- */
 unsigned long selfipis[NR_CPUS];
 
 struct smtc_cpu_proc smtc_cpu_stats[NR_CPUS];

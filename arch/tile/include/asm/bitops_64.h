@@ -18,7 +18,6 @@
 #include <linux/compiler.h>
 #include <linux/atomic.h>
 
-/* See <asm/bitops.h> for API comments. */
 
 static inline void set_bit(unsigned nr, volatile unsigned long *addr)
 {
@@ -50,18 +49,12 @@ static inline void change_bit(unsigned nr, volatile unsigned long *addr)
 }
 
 
-/*
- * The test_and_xxx_bit() routines require a memory fence before we
- * start the operation, and after the operation completes.  We use
- * smp_mb() before, and rely on the "!= 0" comparison, plus a compiler
- * barrier(), to block until the atomic op is complete.
- */
 
 static inline int test_and_set_bit(unsigned nr, volatile unsigned long *addr)
 {
 	int val;
 	unsigned long mask = (1UL << (nr % BITS_PER_LONG));
-	smp_mb();  /* barrier for proper semantics */
+	smp_mb();  
 	val = (__insn_fetchor((void *)(addr + nr / BITS_PER_LONG), mask)
 	       & mask) != 0;
 	barrier();
@@ -73,7 +66,7 @@ static inline int test_and_clear_bit(unsigned nr, volatile unsigned long *addr)
 {
 	int val;
 	unsigned long mask = (1UL << (nr % BITS_PER_LONG));
-	smp_mb();  /* barrier for proper semantics */
+	smp_mb();  
 	val = (__insn_fetchand((void *)(addr + nr / BITS_PER_LONG), ~mask)
 	       & mask) != 0;
 	barrier();
@@ -98,4 +91,4 @@ static inline int test_and_change_bit(unsigned nr,
 
 #include <asm-generic/bitops/ext2-atomic-setbit.h>
 
-#endif /* _ASM_TILE_BITOPS_64_H */
+#endif 

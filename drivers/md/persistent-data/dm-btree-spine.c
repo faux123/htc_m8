@@ -11,7 +11,6 @@
 
 #define DM_MSG_PREFIX "btree spine"
 
-/*----------------------------------------------------------------*/
 
 #define BTREE_CSUM_XOR 121107
 
@@ -72,9 +71,6 @@ static int node_check(struct dm_block_validator *v,
 		return -EILSEQ;
 	}
 
-	/*
-	 * The node must be either INTERNAL or LEAF.
-	 */
 	flags = le32_to_cpu(h->flags);
 	if (!(flags & INTERNAL_NODE) && !(flags & LEAF_NODE)) {
 		DMERR("node_check failed, node is neither INTERNAL or LEAF");
@@ -90,7 +86,6 @@ struct dm_block_validator btree_node_validator = {
 	.check = node_check
 };
 
-/*----------------------------------------------------------------*/
 
 static int bn_read_lock(struct dm_btree_info *info, dm_block_t b,
 		 struct dm_block **result)
@@ -122,7 +117,6 @@ int unlock_block(struct dm_btree_info *info, struct dm_block *b)
 	return dm_tm_unlock(info->tm, b);
 }
 
-/*----------------------------------------------------------------*/
 
 void init_ro_spine(struct ro_spine *s, struct dm_btree_info *info)
 {
@@ -174,7 +168,6 @@ struct node *ro_node(struct ro_spine *s)
 	return dm_block_data(block);
 }
 
-/*----------------------------------------------------------------*/
 
 void init_shadow_spine(struct shadow_spine *s, struct dm_btree_info *info)
 {

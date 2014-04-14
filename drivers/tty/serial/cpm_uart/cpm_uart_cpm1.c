@@ -48,7 +48,6 @@
 
 #include "cpm_uart.h"
 
-/**************************************************************/
 
 void cpm_line_cr_cmd(struct uart_cpm_port *port, int cmd)
 {
@@ -66,12 +65,6 @@ void cpm_uart_unmap_pram(struct uart_cpm_port *port, void __iomem *pram)
 	iounmap(pram);
 }
 
-/*
- * Allocate DP-Ram and memory buffers. We need to allocate a transmit and
- * receive buffer descriptors from dual port ram, and a character
- * buffer area from host mem. If we are allocating for the console we need
- * to do it from bootmem
- */
 int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 {
 	int dpmemsz, memsz;
@@ -94,8 +87,8 @@ int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 	memsz = L1_CACHE_ALIGN(pinfo->rx_nrfifos * pinfo->rx_fifosize) +
 	    L1_CACHE_ALIGN(pinfo->tx_nrfifos * pinfo->tx_fifosize);
 	if (is_con) {
-		/* was hostalloc but changed cause it blows away the */
-		/* large tlb mapping when pinning the kernel area    */
+		
+		
 		mem_addr = (u8 *) cpm_dpram_addr(cpm_dpalloc(memsz, 8));
 		dma_addr = (u32)cpm_dpram_phys(mem_addr);
 	} else
@@ -110,8 +103,8 @@ int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 	}
 
 	pinfo->dp_addr = dp_offset;
-	pinfo->mem_addr = mem_addr;             /*  virtual address*/
-	pinfo->dma_addr = dma_addr;             /*  physical address*/
+	pinfo->mem_addr = mem_addr;             
+	pinfo->dma_addr = dma_addr;             
 	pinfo->mem_size = memsz;
 
 	pinfo->rx_buf = mem_addr;

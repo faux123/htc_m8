@@ -21,12 +21,13 @@
 #include <linux/platform_device.h>
 #include <linux/libata.h>
 #include <linux/ahci_platform.h>
+#include <linux/pm_runtime.h>
 #include "ahci.h"
 
 enum ahci_type {
-	AHCI,		/* standard platform ahci */
-	IMX53_AHCI,	/* ahci on i.mx53 */
-	STRICT_AHCI,	/* delayed DMA engine start */
+	AHCI,		
+	IMX53_AHCI,	
+	STRICT_AHCI,	
 };
 
 static struct platform_device_id ahci_devtype[] = {
@@ -40,14 +41,14 @@ static struct platform_device_id ahci_devtype[] = {
 		.name = "strict-ahci",
 		.driver_data = STRICT_AHCI,
 	}, {
-		/* sentinel */
+		
 	}
 };
 MODULE_DEVICE_TABLE(platform, ahci_devtype);
 
 
 static const struct ata_port_info ahci_port_info[] = {
-	/* by features */
+	
 	[AHCI] = {
 		.flags		= AHCI_FLAG_COMMON,
 		.pio_mask	= ATA_PIO4,
@@ -73,7 +74,7 @@ static struct scsi_host_template ahci_platform_sht = {
 	AHCI_SHT("ahci_platform"),
 };
 
-static int __init ahci_probe(struct platform_device *pdev)
+static int __devinit ahci_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct ahci_platform_data *pdata = dev_get_platdata(dev);
@@ -117,12 +118,6 @@ static int __init ahci_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/*
-	 * Some platforms might need to prepare for mmio region access,
-	 * which could be done in the following init call. So, the mmio
-	 * region shouldn't be accessed before init (if provided) has
-	 * returned successfully.
-	 */
 	if (pdata && pdata->init) {
 		rc = pdata->init(dev, hpriv->mmio);
 		if (rc)
@@ -133,7 +128,7 @@ static int __init ahci_probe(struct platform_device *pdev)
 		pdata ? pdata->force_port_map : 0,
 		pdata ? pdata->mask_port_map  : 0);
 
-	/* prepare host */
+	
 	if (hpriv->cap & HOST_CAP_NCQ)
 		pi.flags |= ATA_FLAG_NCQ;
 
@@ -142,11 +137,6 @@ static int __init ahci_probe(struct platform_device *pdev)
 
 	ahci_set_em_messages(hpriv, &pi);
 
-	/* CAP.NP sometimes indicate the index of the last enabled
-	 * port, at other times, that of the last possible port, so
-	 * determining the maximum port number requires looking at
-	 * both CAP.NP and port_map.
-	 */
 	n_ports = max(ahci_nr_ports(hpriv->cap), fls(hpriv->port_map));
 
 	host = ata_host_alloc_pinfo(dev, ppi, n_ports);
@@ -171,11 +161,11 @@ static int __init ahci_probe(struct platform_device *pdev)
 		ata_port_desc(ap, "mmio %pR", mem);
 		ata_port_desc(ap, "port 0x%x", 0x100 + ap->port_no * 0x80);
 
-		/* set enclosure management message type */
+		
 		if (ap->flags & ATA_FLAG_EM)
 			ap->em_message_type = hpriv->em_msg_type;
 
-		/* disabled/not-implemented port */
+		
 		if (!(hpriv->port_map & (1 << i)))
 			ap->ops = &ata_dummy_port_ops;
 	}
@@ -191,6 +181,14 @@ static int __init ahci_probe(struct platform_device *pdev)
 			       &ahci_platform_sht);
 	if (rc)
 		goto err0;
+
+	rc = pm_runtime_set_active(dev);
+	if (rc) {
+		dev_warn(dev, "Unable to set runtime pm active err=%d\n", rc);
+	} else {
+		pm_runtime_enable(dev);
+		pm_runtime_forbid(dev);
+	}
 
 	return 0;
 err0:
@@ -223,20 +221,18 @@ static int ahci_suspend(struct device *dev)
 	u32 ctl;
 	int rc;
 
+	if (pm_runtime_suspended(dev))
+		return 0;
+
 	if (hpriv->flags & AHCI_HFLAG_NO_SUSPEND) {
 		dev_err(dev, "firmware update required for suspend/resume\n");
 		return -EIO;
 	}
 
-	/*
-	 * AHCI spec rev1.1 section 8.3.3:
-	 * Software must disable interrupts prior to requesting a
-	 * transition of the HBA to D3 state.
-	 */
 	ctl = readl(mmio + HOST_CTL);
 	ctl &= ~HOST_IRQ_EN;
 	writel(ctl, mmio + HOST_CTL);
-	readl(mmio + HOST_CTL); /* flush */
+	readl(mmio + HOST_CTL); 
 
 	rc = ata_host_suspend(host, PMSG_SUSPEND);
 	if (rc)
@@ -247,7 +243,7 @@ static int ahci_suspend(struct device *dev)
 	return 0;
 }
 
-static int ahci_resume(struct device *dev)
+static int ahci_resume_common(struct device *dev)
 {
 	struct ahci_platform_data *pdata = dev_get_platdata(dev);
 	struct ata_host *host = dev_get_drvdata(dev);
@@ -272,20 +268,38 @@ static int ahci_resume(struct device *dev)
 	return 0;
 }
 
+static int ahci_resume(struct device *dev)
+{
+	int rc;
+
+	rc = ahci_resume_common(dev);
+	if (!rc) {
+		pm_runtime_disable(dev);
+		pm_runtime_set_active(dev);
+		pm_runtime_enable(dev);
+	}
+
+	return rc;
+}
+
 static struct dev_pm_ops ahci_pm_ops = {
 	.suspend		= &ahci_suspend,
 	.resume			= &ahci_resume,
+	.runtime_suspend	= &ahci_suspend,
+	.runtime_resume		= &ahci_resume_common,
 };
 #endif
 
 static const struct of_device_id ahci_of_match[] = {
 	{ .compatible = "calxeda,hb-ahci", },
 	{ .compatible = "snps,spear-ahci", },
+	{ .compatible = "qcom,msm-ahci", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ahci_of_match);
 
 static struct platform_driver ahci_driver = {
+	.probe	= ahci_probe,
 	.remove = __devexit_p(ahci_remove),
 	.driver = {
 		.name = "ahci",
@@ -300,7 +314,7 @@ static struct platform_driver ahci_driver = {
 
 static int __init ahci_init(void)
 {
-	return platform_driver_probe(&ahci_driver, ahci_probe);
+	return platform_driver_register(&ahci_driver);
 }
 module_init(ahci_init);
 

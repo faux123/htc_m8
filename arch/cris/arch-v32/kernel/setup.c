@@ -31,7 +31,6 @@ struct cpu_info {
 	unsigned short flags;
 };
 
-/* Some of these model are here for historical reasons only. */
 static struct cpu_info cpinfo[] = {
 	{"ETRAX 1", 0, 0, 0},
 	{"ETRAX 2", 1, 0, 0},
@@ -109,7 +108,7 @@ int show_cpuinfo(struct seq_file *m, void *v)
 		((loops_per_jiffy * HZ + 500) / 5000) % 100);
 }
 
-#endif /* CONFIG_PROC_FS */
+#endif 
 
 void show_etrax_copyright(void)
 {

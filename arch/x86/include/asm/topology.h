@@ -35,11 +35,6 @@
 # endif
 #endif
 
-/*
- * to preserve the visibility of NUMA_NO_NODE definition,
- * moved to there from here.  May be used independent of
- * CONFIG_NUMA.
- */
 #include <linux/numa.h>
 
 #ifdef CONFIG_NUMA
@@ -47,35 +42,28 @@
 
 #include <asm/mpspec.h>
 
-/* Mappings between logical cpu number and node number */
 DECLARE_EARLY_PER_CPU(int, x86_cpu_to_node_map);
 
 #ifdef CONFIG_DEBUG_PER_CPU_MAPS
-/*
- * override generic percpu implementation of cpu_to_node
- */
 extern int __cpu_to_node(int cpu);
 #define cpu_to_node __cpu_to_node
 
 extern int early_cpu_to_node(int cpu);
 
-#else	/* !CONFIG_DEBUG_PER_CPU_MAPS */
+#else	
 
-/* Same function but used if called before per_cpu areas are setup */
 static inline int early_cpu_to_node(int cpu)
 {
 	return early_per_cpu(x86_cpu_to_node_map, cpu);
 }
 
-#endif /* !CONFIG_DEBUG_PER_CPU_MAPS */
+#endif 
 
-/* Mappings between node number and cpus on that node. */
 extern cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
 
 #ifdef CONFIG_DEBUG_PER_CPU_MAPS
 extern const struct cpumask *cpumask_of_node(int node);
 #else
-/* Returns a pointer to the cpumask of CPUs on Node 'node'. */
 static inline const struct cpumask *cpumask_of_node(int node)
 {
 	return node_to_cpumask_map[node];
@@ -84,10 +72,6 @@ static inline const struct cpumask *cpumask_of_node(int node)
 
 extern void setup_node_to_cpumask_map(void);
 
-/*
- * Returns the number of the node containing Node 'node'. This
- * architecture is flat, so it is a pretty simple function!
- */
 #define parent_node(node) (node)
 
 #define pcibus_to_node(bus) __pcibus_to_node(bus)
@@ -100,7 +84,6 @@ extern void setup_node_to_cpumask_map(void);
 # define SD_IDLE_IDX		2
 #endif
 
-/* sched_domains SD_NODE_INIT for NUMA machines */
 #define SD_NODE_INIT (struct sched_domain) {				\
 	.min_interval		= 8,					\
 	.max_interval		= 32,					\
@@ -133,15 +116,12 @@ extern void setup_node_to_cpumask_map(void);
 extern int __node_distance(int, int);
 #define node_distance(a, b) __node_distance(a, b)
 
-#else /* !CONFIG_NUMA */
+#else 
 
 static inline int numa_node_id(void)
 {
 	return 0;
 }
-/*
- * indicate override:
- */
 #define numa_node_id numa_node_id
 
 static inline int early_cpu_to_node(int cpu)
@@ -163,7 +143,6 @@ extern const struct cpumask *cpu_coregroup_mask(int cpu);
 #define topology_core_cpumask(cpu)		(per_cpu(cpu_core_map, cpu))
 #define topology_thread_cpumask(cpu)		(per_cpu(cpu_sibling_map, cpu))
 
-/* indicates that pointers to the topology cpumask_t maps are valid */
 #define arch_provides_topology_pointers		yes
 #endif
 
@@ -193,4 +172,4 @@ static inline void set_mp_bus_to_node(int busnum, int node)
 }
 #endif
 
-#endif /* _ASM_X86_TOPOLOGY_H */
+#endif 

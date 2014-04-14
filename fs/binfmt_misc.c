@@ -33,7 +33,7 @@
 #include <asm/uaccess.h>
 
 enum {
-	VERBOSE_STATUS = 1 /* make it zero to save 400 bytes kernel memory */
+	VERBOSE_STATUS = 1 
 };
 
 static LIST_HEAD(entries);
@@ -46,12 +46,12 @@ enum {Enabled, Magic};
 
 typedef struct {
 	struct list_head list;
-	unsigned long flags;		/* type, status, etc. */
-	int offset;			/* offset of magic */
-	int size;			/* size of magic/mask */
-	char *magic;			/* magic or filename extension */
-	char *mask;			/* mask, NULL for exact match */
-	char *interpreter;		/* filename of interpreter */
+	unsigned long flags;		
+	int offset;			
+	int size;			
+	char *magic;			
+	char *mask;			
+	char *interpreter;		
 	char *name;
 	struct dentry *dentry;
 } Node;
@@ -61,11 +61,6 @@ static struct file_system_type bm_fs_type;
 static struct vfsmount *bm_mnt;
 static int entry_count;
 
-/* 
- * Check if we support the binfmt
- * if we do, return the node, else NULL
- * locking is done in load_misc_binary
- */
 static Node *check_file(struct linux_binprm *bprm)
 {
 	char *p = strrchr(bprm->interp, '.');
@@ -101,9 +96,6 @@ static Node *check_file(struct linux_binprm *bprm)
 	return NULL;
 }
 
-/*
- * the loader itself
- */
 static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 {
 	Node *fmt;
@@ -121,7 +113,7 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 	if (bprm->recursion_depth > BINPRM_MAX_RECURSION)
 		goto _ret;
 
-	/* to keep locking time low, we copy the interpreter string */
+	
 	read_lock(&entries_lock);
 	fmt = check_file(bprm);
 	if (fmt)
@@ -138,9 +130,6 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 
 	if (fmt->flags & MISC_FMT_OPEN_BINARY) {
 
-		/* if the binary should be opened on behalf of the
-		 * interpreter than keep it open and assign descriptor
-		 * to it */
  		fd_binary = get_unused_fd();
  		if (fd_binary < 0) {
  			retval = fd_binary;
@@ -148,14 +137,12 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
  		}
  		fd_install(fd_binary, bprm->file);
 
-		/* if the binary is not readable than enforce mm->dumpable=0
-		   regardless of the interpreter's permissions */
 		would_dump(bprm, bprm->file);
 
 		allow_write_access(bprm->file);
 		bprm->file = NULL;
 
-		/* mark the bprm that fd should be passed to interp */
+		
 		bprm->interp_flags |= BINPRM_FLAGS_EXECFD;
 		bprm->interp_data = fd_binary;
 
@@ -164,19 +151,19 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
  		fput(bprm->file);
  		bprm->file = NULL;
  	}
-	/* make argv[1] be the path to the binary */
+	
 	retval = copy_strings_kernel (1, &bprm->interp, bprm);
 	if (retval < 0)
 		goto _error;
 	bprm->argc++;
 
-	/* add the interp as argv[0] */
+	
 	retval = copy_strings_kernel (1, &iname_addr, bprm);
 	if (retval < 0)
 		goto _error;
 	bprm->argc ++;
 
-	bprm->interp = iname;	/* for binfmt_script */
+	bprm->interp = iname;	
 
 	interp_file = open_exec (iname);
 	retval = PTR_ERR (interp_file);
@@ -185,10 +172,6 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 
 	bprm->file = interp_file;
 	if (fmt->flags & MISC_FMT_CREDENTIALS) {
-		/*
-		 * No need to call prepare_binprm(), it's already been
-		 * done.  bprm->buf is stale, update from interp_file.
-		 */
 		memset(bprm->buf, 0, BINPRM_BUF_SIZE);
 		retval = kernel_read(bprm->file, 0, bprm->buf, BINPRM_BUF_SIZE);
 	} else
@@ -213,14 +196,7 @@ _error:
 	goto _ret;
 }
 
-/* Command parsers */
 
-/*
- * parses and copies one argument enclosed in del from *sp to *dp,
- * recognising the \x special.
- * returns pointer to the copied argument or NULL in case of an
- * error (and sets err) or null argument length.
- */
 static char *scanarg(char *s, char del)
 {
 	char c;
@@ -260,7 +236,7 @@ static char * check_special_flags (char * sfs, Node * e)
 	char * p = sfs;
 	int cont = 1;
 
-	/* special flags */
+	
 	while (cont) {
 		switch (*p) {
 			case 'P':
@@ -273,8 +249,6 @@ static char * check_special_flags (char * sfs, Node * e)
 				break;
 			case 'C':
 				p++;
-				/* this flags also implies the
-				   open-binary flag */
 				e->flags |= (MISC_FMT_CREDENTIALS |
 						MISC_FMT_OPEN_BINARY);
 				break;
@@ -285,11 +259,6 @@ static char * check_special_flags (char * sfs, Node * e)
 
 	return p;
 }
-/*
- * This registers a new binary format, it recognises the syntax
- * ':name:type:offset:magic:mask:interpreter:flags'
- * where the ':' is the IFS, that can be chosen with the first char
- */
 static Node *create_entry(const char __user *buffer, size_t count)
 {
 	Node *e;
@@ -297,7 +266,7 @@ static Node *create_entry(const char __user *buffer, size_t count)
 	char *buf, *p;
 	char del;
 
-	/* some sanity checks */
+	
 	err = -EINVAL;
 	if ((count < 11) || (count > 256))
 		goto out;
@@ -314,7 +283,7 @@ static Node *create_entry(const char __user *buffer, size_t count)
 	if (copy_from_user(buf, buffer, count))
 		goto Efault;
 
-	del = *p++;	/* delimeter */
+	del = *p++;	
 
 	memset(buf+count, del, 8);
 
@@ -407,10 +376,6 @@ Einval:
 	return ERR_PTR(-EINVAL);
 }
 
-/*
- * Set status of entry/binfmt_misc:
- * '1' enables, '0' disables and '-1' clears entry/binfmt_misc
- */
 static int parse_command(const char __user *buffer, size_t count)
 {
 	char s[4];
@@ -432,7 +397,6 @@ static int parse_command(const char __user *buffer, size_t count)
 	return -EINVAL;
 }
 
-/* generic stuff */
 
 static void entry_status(Node *e, char *page)
 {
@@ -451,7 +415,7 @@ static void entry_status(Node *e, char *page)
 	sprintf(page, "%s\ninterpreter %s\n", status, e->interpreter);
 	dp = page + strlen(page);
 
-	/* print the special flags */
+	
 	sprintf (dp, "%s", flags);
 	dp += strlen (flags);
 	if (e->flags & MISC_FMT_PRESERVE_ARGV0) {
@@ -529,7 +493,6 @@ static void kill_node(Node *e)
 	}
 }
 
-/* /<entry> */
 
 static ssize_t
 bm_entry_read(struct file * file, char __user * buf, size_t nbytes, loff_t *ppos)
@@ -580,7 +543,6 @@ static const struct file_operations bm_entry_operations = {
 	.llseek		= default_llseek,
 };
 
-/* /register */
 
 static ssize_t bm_register_write(struct file *file, const char __user *buffer,
 			       size_t count, loff_t *ppos)
@@ -648,7 +610,6 @@ static const struct file_operations bm_register_operations = {
 	.llseek		= noop_llseek,
 };
 
-/* /status */
 
 static ssize_t
 bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
@@ -686,7 +647,6 @@ static const struct file_operations bm_status_operations = {
 	.llseek		= default_llseek,
 };
 
-/* Superblock handling */
 
 static const struct super_operations s_ops = {
 	.statfs		= simple_statfs,
@@ -698,7 +658,7 @@ static int bm_fill_super(struct super_block * sb, void * data, int silent)
 	static struct tree_descr bm_files[] = {
 		[2] = {"status", &bm_status_operations, S_IWUSR|S_IRUGO},
 		[3] = {"register", &bm_register_operations, S_IWUSR},
-		/* last one */ {""}
+		 {""}
 	};
 	int err = simple_fill_super(sb, BINFMTFS_MAGIC, bm_files);
 	if (!err)

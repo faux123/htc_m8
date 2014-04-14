@@ -26,11 +26,6 @@
  * XXX encode hardware fixed wakeup dependencies -- esp. for 3430 CORE
  */
 
-/*
- * To-Do List
- * -> Port the Sleep/Wakeup dependencies for the domains
- *    from the Power domain framework
- */
 
 #include <linux/kernel.h>
 #include <linux/io.h>
@@ -41,18 +36,9 @@
 #include "cm-regbits-24xx.h"
 #include "prm-regbits-24xx.h"
 
-/*
- * Clockdomain dependencies for wkdeps
- *
- * XXX Hardware dependencies (e.g., dependencies that cannot be
- * changed in software) are not included here yet, but should be.
- */
 
-/* Wakeup dependency source arrays */
 
-/* 2420-specific possible wakeup dependencies */
 
-/* 2420 PM_WKDEP_MPU: CORE, DSP, WKUP */
 static struct clkdm_dep mpu_2420_wkdeps[] = {
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
@@ -61,7 +47,6 @@ static struct clkdm_dep mpu_2420_wkdeps[] = {
 	{ NULL },
 };
 
-/* 2420 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP */
 static struct clkdm_dep core_2420_wkdeps[] = {
 	{ .clkdm_name = "dsp_clkdm" },
 	{ .clkdm_name = "gfx_clkdm" },
@@ -70,9 +55,6 @@ static struct clkdm_dep core_2420_wkdeps[] = {
 	{ NULL },
 };
 
-/*
- * 2420-only clockdomains
- */
 
 static struct clockdomain mpu_2420_clkdm = {
 	.name		= "mpu_clkdm",

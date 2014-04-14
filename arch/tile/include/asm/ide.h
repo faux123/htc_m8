@@ -15,11 +15,10 @@
 #ifndef _ASM_TILE_IDE_H
 #define _ASM_TILE_IDE_H
 
-/* For IDE on PCI */
 #define MAX_HWIFS       10
 
 #define ide_default_io_ctl(base)	(0)
 
 #include <asm-generic/ide_iops.h>
 
-#endif /* _ASM_TILE_IDE_H */
+#endif 

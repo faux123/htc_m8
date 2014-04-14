@@ -28,39 +28,21 @@
 #define DEFAULT_BAUD_RATE 9600
 #define DEFAULT_TIMEOUT   1000
 
-/* flags for IO-Bits */
 #define CH341_BIT_RTS (1 << 6)
 #define CH341_BIT_DTR (1 << 5)
 
-/******************************/
-/* interrupt pipe definitions */
-/******************************/
-/* always 4 interrupt bytes */
-/* first irq byte normally 0x08 */
-/* second irq byte base 0x7d + below */
-/* third irq byte base 0x94 + below */
-/* fourth irq byte normally 0xee */
 
-/* second interrupt byte */
-#define CH341_MULT_STAT 0x04 /* multiple status since last interrupt event */
+#define CH341_MULT_STAT 0x04 
 
-/* status returned in third interrupt answer byte, inverted in data
-   from irq */
 #define CH341_BIT_CTS 0x01
 #define CH341_BIT_DSR 0x02
 #define CH341_BIT_RI  0x04
 #define CH341_BIT_DCD 0x08
-#define CH341_BITS_MODEM_STAT 0x0f /* all bits */
+#define CH341_BITS_MODEM_STAT 0x0f 
 
-/*******************************/
-/* baudrate calculation factor */
-/*******************************/
 #define CH341_BAUDBASE_FACTOR 1532620800
 #define CH341_BAUDBASE_DIVMAX 3
 
-/* Break support - the information used to implement this was gleaned from
- * the Net/FreeBSD uchcom.c driver by Takanori Watanabe.  Domo arigato.
- */
 
 #define CH341_REQ_WRITE_REG    0x9A
 #define CH341_REQ_READ_REG     0x95
@@ -81,12 +63,12 @@ static const struct usb_device_id id_table[] = {
 MODULE_DEVICE_TABLE(usb, id_table);
 
 struct ch341_private {
-	spinlock_t lock; /* access lock */
-	wait_queue_head_t delta_msr_wait; /* wait queue for modem status */
-	unsigned baud_rate; /* set baud rate */
-	u8 line_control; /* set line control value RTS/DTR */
-	u8 line_status; /* active status of modem control inputs */
-	u8 multi_status_change; /* status changed multiple since last call */
+	spinlock_t lock; 
+	wait_queue_head_t delta_msr_wait; 
+	unsigned baud_rate; 
+	u8 line_control; 
+	u8 line_status; 
+	u8 multi_status_change; 
 };
 
 static int ch341_control_out(struct usb_device *dev, u8 request,
@@ -174,7 +156,7 @@ static int ch341_get_status(struct usb_device *dev, struct ch341_private *priv)
 	if (r < 0)
 		goto out;
 
-	/* setup the private status if available */
+	
 	if (r == 2) {
 		r = 0;
 		spin_lock_irqsave(&priv->lock, flags);
@@ -188,7 +170,6 @@ out:	kfree(buffer);
 	return r;
 }
 
-/* -------------------------------------------------------------------------- */
 
 static int ch341_configure(struct usb_device *dev, struct ch341_private *priv)
 {
@@ -202,7 +183,7 @@ static int ch341_configure(struct usb_device *dev, struct ch341_private *priv)
 	if (!buffer)
 		return -ENOMEM;
 
-	/* expect two bytes 0x27 0x00 */
+	
 	r = ch341_control_in(dev, 0x5f, 0, 0, buffer, size);
 	if (r < 0)
 		goto out;
@@ -215,7 +196,7 @@ static int ch341_configure(struct usb_device *dev, struct ch341_private *priv)
 	if (r < 0)
 		goto out;
 
-	/* expect two bytes 0x56 0x00 */
+	
 	r = ch341_control_in(dev, 0x95, 0x2518, 0, buffer, size);
 	if (r < 0)
 		goto out;
@@ -224,7 +205,7 @@ static int ch341_configure(struct usb_device *dev, struct ch341_private *priv)
 	if (r < 0)
 		goto out;
 
-	/* expect 0xff 0xee */
+	
 	r = ch341_get_status(dev, priv);
 	if (r < 0)
 		goto out;
@@ -241,14 +222,13 @@ static int ch341_configure(struct usb_device *dev, struct ch341_private *priv)
 	if (r < 0)
 		goto out;
 
-	/* expect 0x9f 0xee */
+	
 	r = ch341_get_status(dev, priv);
 
 out:	kfree(buffer);
 	return r;
 }
 
-/* allocate private data */
 static int ch341_attach(struct usb_serial *serial)
 {
 	struct ch341_private *priv;
@@ -256,7 +236,7 @@ static int ch341_attach(struct usb_serial *serial)
 
 	dbg("ch341_attach()");
 
-	/* private data */
+	
 	priv = kzalloc(sizeof(struct ch341_private), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
@@ -291,7 +271,7 @@ static void ch341_dtr_rts(struct usb_serial_port *port, int on)
 	unsigned long flags;
 
 	dbg("%s - port %d", __func__, port->number);
-	/* drop DTR and RTS */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	if (on)
 		priv->line_control |= CH341_BIT_RTS | CH341_BIT_DTR;
@@ -311,7 +291,6 @@ static void ch341_close(struct usb_serial_port *port)
 }
 
 
-/* open this device, set default parameters */
 static int ch341_open(struct tty_struct *tty, struct usb_serial_port *port)
 {
 	struct usb_serial *serial = port->serial;
@@ -348,9 +327,6 @@ static int ch341_open(struct tty_struct *tty, struct usb_serial_port *port)
 out:	return r;
 }
 
-/* Old_termios contains the original termios settings and
- * tty->termios contains the new setting to be used.
- */
 static void ch341_set_termios(struct tty_struct *tty,
 		struct usb_serial_port *port, struct ktermios *old_termios)
 {
@@ -377,11 +353,6 @@ static void ch341_set_termios(struct tty_struct *tty,
 
 	ch341_set_handshake(port->serial->dev, priv->line_control);
 
-	/* Unimplemented:
-	 * (cflag & CSIZE) : data bits [5, 8]
-	 * (cflag & PARENB) : parity {NONE, EVEN, ODD}
-	 * (cflag & CSTOPB) : stop bits [1, 2]
-	 */
 }
 
 static void ch341_break_ctl(struct tty_struct *tty, int break_state)
@@ -465,12 +436,12 @@ static void ch341_read_int_callback(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__,
 		    urb->status);
 		return;
@@ -529,7 +500,7 @@ static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
 
 	while (!multi_change) {
 		interruptible_sleep_on(&priv->delta_msr_wait);
-		/* see if a signal did it */
+		
 		if (signal_pending(current))
 			return -ERESTARTSYS;
 
@@ -609,7 +580,7 @@ static int ch341_reset_resume(struct usb_interface *intf)
 	serial = usb_get_intfdata(intf);
 	priv = usb_get_serial_port_data(serial->port[0]);
 
-	/*reconfigure ch341 serial port after bus-reset*/
+	
 	ch341_configure(dev, priv);
 
 	usb_serial_resume(intf);

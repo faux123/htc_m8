@@ -35,13 +35,13 @@
 #include "pcxhr_mixer.h"
 #include "pcxhr_mix22.h"
 
-#define PCXHR_LINE_CAPTURE_LEVEL_MIN   0	/* -112.0 dB */
-#define PCXHR_LINE_CAPTURE_LEVEL_MAX   255	/* +15.5 dB */
-#define PCXHR_LINE_CAPTURE_ZERO_LEVEL  224	/* 0.0 dB ( 0 dBu -> 0 dBFS ) */
+#define PCXHR_LINE_CAPTURE_LEVEL_MIN   0	
+#define PCXHR_LINE_CAPTURE_LEVEL_MAX   255	
+#define PCXHR_LINE_CAPTURE_ZERO_LEVEL  224	
 
-#define PCXHR_LINE_PLAYBACK_LEVEL_MIN  0	/* -104.0 dB */
-#define PCXHR_LINE_PLAYBACK_LEVEL_MAX  128	/* +24.0 dB */
-#define PCXHR_LINE_PLAYBACK_ZERO_LEVEL 104	/* 0.0 dB ( 0 dBFS -> 0 dBu ) */
+#define PCXHR_LINE_PLAYBACK_LEVEL_MIN  0	
+#define PCXHR_LINE_PLAYBACK_LEVEL_MAX  128	
+#define PCXHR_LINE_PLAYBACK_ZERO_LEVEL 104	
 
 static const DECLARE_TLV_DB_SCALE(db_scale_analog_capture, -11200, 50, 1550);
 static const DECLARE_TLV_DB_SCALE(db_scale_analog_playback, -10400, 100, 2400);
@@ -65,10 +65,10 @@ static int pcxhr_update_analog_audio_level(struct snd_pcxhr *chip,
 			vol = chip->analog_playback_volume[channel];
 		else
 			vol = PCXHR_LINE_PLAYBACK_LEVEL_MIN;
-		/* playback analog levels are inversed */
+		
 		rmh.cmd[2] = PCXHR_LINE_PLAYBACK_LEVEL_MAX - vol;
 	}
-	rmh.cmd[1]  = 1 << ((2 * chip->chip_idx) + channel);	/* audio mask */
+	rmh.cmd[1]  = 1 << ((2 * chip->chip_idx) + channel);	
 	rmh.cmd_len = 3;
 	err = pcxhr_send_msg(chip->mgr, &rmh);
 	if (err < 0) {
@@ -80,9 +80,6 @@ static int pcxhr_update_analog_audio_level(struct snd_pcxhr *chip,
 	return 0;
 }
 
-/*
- * analog level control
- */
 static int pcxhr_analog_vol_info(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_info *uinfo)
 {
@@ -90,29 +87,29 @@ static int pcxhr_analog_vol_info(struct snd_kcontrol *kcontrol,
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
-	if (kcontrol->private_value == 0) {	/* playback */
+	if (kcontrol->private_value == 0) {	
 	    if (chip->mgr->is_hr_stereo) {
 		uinfo->value.integer.min =
-			HR222_LINE_PLAYBACK_LEVEL_MIN;	/* -25 dB */
+			HR222_LINE_PLAYBACK_LEVEL_MIN;	
 		uinfo->value.integer.max =
-			HR222_LINE_PLAYBACK_LEVEL_MAX;	/* +24 dB */
+			HR222_LINE_PLAYBACK_LEVEL_MAX;	
 	    } else {
 		uinfo->value.integer.min =
-			PCXHR_LINE_PLAYBACK_LEVEL_MIN;	/*-104 dB */
+			PCXHR_LINE_PLAYBACK_LEVEL_MIN;	
 		uinfo->value.integer.max =
-			PCXHR_LINE_PLAYBACK_LEVEL_MAX;	/* +24 dB */
+			PCXHR_LINE_PLAYBACK_LEVEL_MAX;	
 	    }
-	} else {				/* capture */
+	} else {				
 	    if (chip->mgr->is_hr_stereo) {
 		uinfo->value.integer.min =
-			HR222_LINE_CAPTURE_LEVEL_MIN;	/*-112 dB */
+			HR222_LINE_CAPTURE_LEVEL_MIN;	
 		uinfo->value.integer.max =
-			HR222_LINE_CAPTURE_LEVEL_MAX;	/* +15.5 dB */
+			HR222_LINE_CAPTURE_LEVEL_MAX;	
 	    } else {
 		uinfo->value.integer.min =
-			PCXHR_LINE_CAPTURE_LEVEL_MIN;	/*-112 dB */
+			PCXHR_LINE_CAPTURE_LEVEL_MIN;	
 		uinfo->value.integer.max =
-			PCXHR_LINE_CAPTURE_LEVEL_MAX;	/* +15.5 dB */
+			PCXHR_LINE_CAPTURE_LEVEL_MAX;	
 	    }
 	}
 	return 0;
@@ -123,10 +120,10 @@ static int pcxhr_analog_vol_get(struct snd_kcontrol *kcontrol,
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
 	mutex_lock(&chip->mgr->mixer_mutex);
-	if (kcontrol->private_value == 0) {	/* playback */
+	if (kcontrol->private_value == 0) {	
 	  ucontrol->value.integer.value[0] = chip->analog_playback_volume[0];
 	  ucontrol->value.integer.value[1] = chip->analog_playback_volume[1];
-	} else {				/* capture */
+	} else {				
 	  ucontrol->value.integer.value[0] = chip->analog_capture_volume[0];
 	  ucontrol->value.integer.value[1] = chip->analog_capture_volume[1];
 	}
@@ -188,14 +185,13 @@ static struct snd_kcontrol_new pcxhr_control_analog_level = {
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
 			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
-	/* name will be filled later */
+	
 	.info =		pcxhr_analog_vol_info,
 	.get =		pcxhr_analog_vol_get,
 	.put =		pcxhr_analog_vol_put,
-	/* tlv will be filled later */
+	
 };
 
-/* shared */
 
 #define pcxhr_sw_info		snd_ctl_boolean_stereo_info
 
@@ -223,7 +219,7 @@ static int pcxhr_audio_sw_put(struct snd_kcontrol *kcontrol,
 			chip->analog_playback_active[i] =
 				!!ucontrol->value.integer.value[i];
 			changed = 1;
-			/* update playback levels */
+			
 			if (chip->mgr->is_hr_stereo)
 				hr222_update_analog_audio_level(chip, 0, i);
 			else
@@ -237,15 +233,15 @@ static int pcxhr_audio_sw_put(struct snd_kcontrol *kcontrol,
 static struct snd_kcontrol_new pcxhr_control_output_switch = {
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"Master Playback Switch",
-	.info =		pcxhr_sw_info,		/* shared */
+	.info =		pcxhr_sw_info,		
 	.get =		pcxhr_audio_sw_get,
 	.put =		pcxhr_audio_sw_put
 };
 
 
-#define PCXHR_DIGITAL_LEVEL_MIN		0x000	/* -110 dB */
-#define PCXHR_DIGITAL_LEVEL_MAX		0x1ff	/* +18 dB */
-#define PCXHR_DIGITAL_ZERO_LEVEL	0x1b7	/*  0 dB */
+#define PCXHR_DIGITAL_LEVEL_MIN		0x000	
+#define PCXHR_DIGITAL_LEVEL_MAX		0x1ff	
+#define PCXHR_DIGITAL_ZERO_LEVEL	0x1b7	
 
 static const DECLARE_TLV_DB_SCALE(db_scale_digital, -10975, 25, 1800);
 
@@ -272,9 +268,9 @@ static int pcxhr_update_playback_stream_level(struct snd_pcxhr* chip, int idx)
 		right = PCXHR_DIGITAL_LEVEL_MIN;
 
 	pcxhr_init_rmh(&rmh, CMD_STREAM_OUT_LEVEL_ADJUST);
-	/* add pipe and stream mask */
+	
 	pcxhr_set_pipe_cmd_params(&rmh, 0, pipe->first_audio, 0, 1<<idx);
-	/* volume left->left / right->right panoramic level */
+	
 	rmh.cmd[0] |= MORE_THAN_ONE_STREAM_LEVEL;
 	rmh.cmd[2]  = VALID_STREAM_PAN_LEVEL_MASK | VALID_STREAM_LEVEL_1_MASK;
 	rmh.cmd[2] |= (left << 10);
@@ -311,22 +307,15 @@ static int pcxhr_update_audio_pipe_level(struct snd_pcxhr *chip,
 		pipe = &chip->playback_pipe;
 
 	pcxhr_init_rmh(&rmh, CMD_AUDIO_LEVEL_ADJUST);
-	/* add channel mask */
+	
 	pcxhr_set_pipe_cmd_params(&rmh, capture, 0, 0,
 				  1 << (channel + pipe->first_audio));
-	/* TODO : if mask (3 << pipe->first_audio) is used, left and right
-	 * channel will be programmed to the same params */
 	if (capture) {
 		rmh.cmd[0] |= VALID_AUDIO_IO_DIGITAL_LEVEL;
-		/* VALID_AUDIO_IO_MUTE_LEVEL not yet handled
-		 * (capture pipe level) */
 		rmh.cmd[2] = chip->digital_capture_volume[channel];
 	} else {
 		rmh.cmd[0] |=	VALID_AUDIO_IO_MONITOR_LEVEL |
 				VALID_AUDIO_IO_MUTE_MONITOR_1;
-		/* VALID_AUDIO_IO_DIGITAL_LEVEL and VALID_AUDIO_IO_MUTE_LEVEL
-		 * not yet handled (playback pipe level)
-		 */
 		rmh.cmd[2] = chip->monitoring_volume[channel] << 10;
 		if (chip->monitoring_active[channel] == 0)
 			rmh.cmd[2] |= AUDIO_IO_HAS_MUTE_MONITOR_1;
@@ -343,14 +332,13 @@ static int pcxhr_update_audio_pipe_level(struct snd_pcxhr *chip,
 }
 
 
-/* shared */
 static int pcxhr_digital_vol_info(struct snd_kcontrol *kcontrol,
 				  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
-	uinfo->value.integer.min = PCXHR_DIGITAL_LEVEL_MIN;   /* -109.5 dB */
-	uinfo->value.integer.max = PCXHR_DIGITAL_LEVEL_MAX;   /*   18.0 dB */
+	uinfo->value.integer.min = PCXHR_DIGITAL_LEVEL_MIN;   
+	uinfo->value.integer.max = PCXHR_DIGITAL_LEVEL_MAX;   
 	return 0;
 }
 
@@ -359,14 +347,14 @@ static int pcxhr_pcm_vol_get(struct snd_kcontrol *kcontrol,
 			     struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
-	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);	/* index */
+	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);	
 	int *stored_volume;
 	int is_capture = kcontrol->private_value;
 
 	mutex_lock(&chip->mgr->mixer_mutex);
-	if (is_capture)		/* digital capture */
+	if (is_capture)		
 		stored_volume = chip->digital_capture_volume;
-	else			/* digital playback */
+	else			
 		stored_volume = chip->digital_playback_volume[idx];
 	ucontrol->value.integer.value[0] = stored_volume[0];
 	ucontrol->value.integer.value[1] = stored_volume[1];
@@ -378,16 +366,16 @@ static int pcxhr_pcm_vol_put(struct snd_kcontrol *kcontrol,
 			     struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
-	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);	/* index */
+	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);	
 	int changed = 0;
 	int is_capture = kcontrol->private_value;
 	int *stored_volume;
 	int i;
 
 	mutex_lock(&chip->mgr->mixer_mutex);
-	if (is_capture)		/* digital capture */
+	if (is_capture)		
 		stored_volume = chip->digital_capture_volume;
-	else			/* digital playback */
+	else			
 		stored_volume = chip->digital_playback_volume[idx];
 	for (i = 0; i < 2; i++) {
 		int vol = ucontrol->value.integer.value[i];
@@ -397,11 +385,11 @@ static int pcxhr_pcm_vol_put(struct snd_kcontrol *kcontrol,
 		if (stored_volume[i] != vol) {
 			stored_volume[i] = vol;
 			changed = 1;
-			if (is_capture)	/* update capture volume */
+			if (is_capture)	
 				pcxhr_update_audio_pipe_level(chip, 1, i);
 		}
 	}
-	if (!is_capture && changed)	/* update playback volume */
+	if (!is_capture && changed)	
 		pcxhr_update_playback_stream_level(chip, idx);
 	mutex_unlock(&chip->mgr->mixer_mutex);
 	return changed;
@@ -412,9 +400,9 @@ static struct snd_kcontrol_new snd_pcxhr_pcm_vol =
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
 			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
-	/* name will be filled later */
-	/* count will be filled later */
-	.info =		pcxhr_digital_vol_info,		/* shared */
+	
+	
+	.info =		pcxhr_digital_vol_info,		
 	.get =		pcxhr_pcm_vol_get,
 	.put =		pcxhr_pcm_vol_put,
 	.tlv = { .p = db_scale_digital },
@@ -425,7 +413,7 @@ static int pcxhr_pcm_sw_get(struct snd_kcontrol *kcontrol,
 			    struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
-	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id); /* index */
+	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id); 
 
 	mutex_lock(&chip->mgr->mixer_mutex);
 	ucontrol->value.integer.value[0] = chip->digital_playback_active[idx][0];
@@ -439,7 +427,7 @@ static int pcxhr_pcm_sw_put(struct snd_kcontrol *kcontrol,
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
 	int changed = 0;
-	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id); /* index */
+	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id); 
 	int i, j;
 
 	mutex_lock(&chip->mgr->mixer_mutex);
@@ -462,15 +450,12 @@ static struct snd_kcontrol_new pcxhr_control_pcm_switch = {
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"PCM Playback Switch",
 	.count =	PCXHR_PLAYBACK_STREAMS,
-	.info =		pcxhr_sw_info,		/* shared */
+	.info =		pcxhr_sw_info,		
 	.get =		pcxhr_pcm_sw_get,
 	.put =		pcxhr_pcm_sw_put
 };
 
 
-/*
- * monitoring level control
- */
 
 static int pcxhr_monitor_vol_get(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_value *ucontrol)
@@ -497,8 +482,8 @@ static int pcxhr_monitor_vol_put(struct snd_kcontrol *kcontrol,
 			chip->monitoring_volume[i] =
 				ucontrol->value.integer.value[i];
 			if (chip->monitoring_active[i])
-				/* update monitoring volume and mute */
-				/* do only when monitoring is unmuted */
+				
+				
 				pcxhr_update_audio_pipe_level(chip, 0, i);
 			changed = 1;
 		}
@@ -512,15 +497,12 @@ static struct snd_kcontrol_new pcxhr_control_monitor_vol = {
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
 			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.name =         "Monitoring Playback Volume",
-	.info =		pcxhr_digital_vol_info,		/* shared */
+	.info =		pcxhr_digital_vol_info,		
 	.get =		pcxhr_monitor_vol_get,
 	.put =		pcxhr_monitor_vol_put,
 	.tlv = { .p = db_scale_digital },
 };
 
-/*
- * monitoring switch control
- */
 
 static int pcxhr_monitor_sw_get(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
@@ -546,14 +528,14 @@ static int pcxhr_monitor_sw_put(struct snd_kcontrol *kcontrol,
 		    ucontrol->value.integer.value[i]) {
 			chip->monitoring_active[i] =
 				!!ucontrol->value.integer.value[i];
-			changed |= (1<<i); /* mask 0x01 and 0x02 */
+			changed |= (1<<i); 
 		}
 	}
 	if (changed & 0x01)
-		/* update left monitoring volume and mute */
+		
 		pcxhr_update_audio_pipe_level(chip, 0, 0);
 	if (changed & 0x02)
-		/* update right monitoring volume and mute */
+		
 		pcxhr_update_audio_pipe_level(chip, 0, 1);
 
 	mutex_unlock(&chip->mgr->mixer_mutex);
@@ -563,16 +545,13 @@ static int pcxhr_monitor_sw_put(struct snd_kcontrol *kcontrol,
 static struct snd_kcontrol_new pcxhr_control_monitor_sw = {
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =         "Monitoring Playback Switch",
-	.info =         pcxhr_sw_info,		/* shared */
+	.info =         pcxhr_sw_info,		
 	.get =          pcxhr_monitor_sw_get,
 	.put =          pcxhr_monitor_sw_put
 };
 
 
 
-/*
- * audio source select
- */
 #define PCXHR_SOURCE_AUDIO01_UER	0x000100
 #define PCXHR_SOURCE_AUDIO01_SYNC	0x000200
 #define PCXHR_SOURCE_AUDIO23_UER	0x000400
@@ -594,13 +573,13 @@ static int pcxhr_set_audio_source(struct snd_pcxhr* chip)
 	default: return -EINVAL;
 	}
 	if (chip->audio_capture_source != 0) {
-		reg = mask;	/* audio source from digital plug */
+		reg = mask;	
 	} else {
-		reg = 0;	/* audio source from analog plug */
+		reg = 0;	
 	}
-	/* set the input source */
+	
 	pcxhr_write_io_num_reg_cont(chip->mgr, mask, reg, &changed);
-	/* resync them (otherwise channel inversion possible) */
+	
 	if (changed) {
 		pcxhr_init_rmh(&rmh, CMD_RESYNC_AUDIO_INPUTS);
 		rmh.cmd[0] |= (1 << chip->chip_idx);
@@ -611,12 +590,12 @@ static int pcxhr_set_audio_source(struct snd_pcxhr* chip)
 	if (chip->mgr->board_aes_in_192k) {
 		int i;
 		unsigned int src_config = 0xC0;
-		/* update all src configs with one call */
+		
 		for (i = 0; (i < 4) && (i < chip->mgr->capture_chips); i++) {
 			if (chip->mgr->chip[i]->audio_capture_source == 2)
 				src_config |= (1 << (3 - i));
 		}
-		/* set codec SRC on off */
+		
 		pcxhr_init_rmh(&rmh, CMD_ACCESS_IO_WRITE);
 		rmh.cmd_len = 2;
 		rmh.cmd[0] |= IO_NUM_REG_CONFIG_SRC;
@@ -626,7 +605,7 @@ static int pcxhr_set_audio_source(struct snd_pcxhr* chip)
 		int use_src = 0;
 		if (chip->audio_capture_source == 2)
 			use_src = 1;
-		/* set codec SRC on off */
+		
 		pcxhr_init_rmh(&rmh, CMD_ACCESS_IO_WRITE);
 		rmh.cmd_len = 3;
 		rmh.cmd[0] |= IO_NUM_UER_CHIP_REG;
@@ -652,11 +631,11 @@ static int pcxhr_audio_src_info(struct snd_kcontrol *kcontrol,
 	int i;
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
 
-	i = 2;			/* no SRC, no Mic available */
+	i = 2;			
 	if (chip->mgr->board_has_aes1) {
-		i = 3;		/* SRC available */
+		i = 3;		
 		if (chip->mgr->board_has_mic)
-			i = 5;	/* Mic and MicroMix available */
+			i = 5;	
 	}
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_ENUMERATED;
 	uinfo->count = 1;
@@ -681,11 +660,11 @@ static int pcxhr_audio_src_put(struct snd_kcontrol *kcontrol,
 {
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
 	int ret = 0;
-	int i = 2;		/* no SRC, no Mic available */
+	int i = 2;		
 	if (chip->mgr->board_has_aes1) {
-		i = 3;		/* SRC available */
+		i = 3;		
 		if (chip->mgr->board_has_mic)
-			i = 5;	/* Mic and MicroMix available */
+			i = 5;	
 	}
 	if (ucontrol->value.enumerated.item[0] >= i)
 		return -EINVAL;
@@ -711,23 +690,6 @@ static struct snd_kcontrol_new pcxhr_control_audio_src = {
 };
 
 
-/*
- * clock type selection
- * enum pcxhr_clock_type {
- *	PCXHR_CLOCK_TYPE_INTERNAL = 0,
- *	PCXHR_CLOCK_TYPE_WORD_CLOCK,
- *	PCXHR_CLOCK_TYPE_AES_SYNC,
- *	PCXHR_CLOCK_TYPE_AES_1,
- *	PCXHR_CLOCK_TYPE_AES_2,
- *	PCXHR_CLOCK_TYPE_AES_3,
- *	PCXHR_CLOCK_TYPE_AES_4,
- *	PCXHR_CLOCK_TYPE_MAX = PCXHR_CLOCK_TYPE_AES_4,
- *	HR22_CLOCK_TYPE_INTERNAL = PCXHR_CLOCK_TYPE_INTERNAL,
- *	HR22_CLOCK_TYPE_AES_SYNC,
- *	HR22_CLOCK_TYPE_AES_1,
- *	HR22_CLOCK_TYPE_MAX = HR22_CLOCK_TYPE_AES_1,
- * };
- */
 
 static int pcxhr_clock_type_info(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_info *uinfo)
@@ -741,11 +703,11 @@ static int pcxhr_clock_type_info(struct snd_kcontrol *kcontrol,
 	};
 	const char **texts;
 	struct pcxhr_mgr *mgr = snd_kcontrol_chip(kcontrol);
-	int clock_items = 2;	/* at least Internal and AES Sync clock */
+	int clock_items = 2;	
 	if (mgr->board_has_aes1) {
-		clock_items += mgr->capture_chips;	/* add AES x */
+		clock_items += mgr->capture_chips;	
 		if (!mgr->is_hr_stereo)
-			clock_items += 1;		/* add word clock */
+			clock_items += 1;		
 	}
 	if (mgr->is_hr_stereo) {
 		texts = textsHR22;
@@ -777,11 +739,11 @@ static int pcxhr_clock_type_put(struct snd_kcontrol *kcontrol,
 {
 	struct pcxhr_mgr *mgr = snd_kcontrol_chip(kcontrol);
 	int rate, ret = 0;
-	unsigned int clock_items = 2; /* at least Internal and AES Sync clock */
+	unsigned int clock_items = 2; 
 	if (mgr->board_has_aes1) {
-		clock_items += mgr->capture_chips;	/* add AES x */
+		clock_items += mgr->capture_chips;	
 		if (!mgr->is_hr_stereo)
-			clock_items += 1;		/* add word clock */
+			clock_items += 1;		
 	}
 	if (ucontrol->value.enumerated.item[0] >= clock_items)
 		return -EINVAL;
@@ -804,7 +766,7 @@ static int pcxhr_clock_type_put(struct snd_kcontrol *kcontrol,
 				mgr->sample_rate = rate;
 		}
 		mutex_unlock(&mgr->setup_mutex);
-		ret = 1; /* return 1 even if the set was not done. ok ? */
+		ret = 1; 
 	}
 	mutex_unlock(&mgr->mixer_mutex);
 	return ret;
@@ -818,18 +780,14 @@ static struct snd_kcontrol_new pcxhr_control_clock_type = {
 	.put =		pcxhr_clock_type_put,
 };
 
-/*
- * clock rate control
- * specific control that scans the sample rates on the external plugs
- */
 static int pcxhr_clock_rate_info(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_info *uinfo)
 {
 	struct pcxhr_mgr *mgr = snd_kcontrol_chip(kcontrol);
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 3 + mgr->capture_chips;
-	uinfo->value.integer.min = 0;		/* clock not present */
-	uinfo->value.integer.max = 192000;	/* max sample rate 192 kHz */
+	uinfo->value.integer.min = 0;		
+	uinfo->value.integer.max = 192000;	
 	return 0;
 }
 
@@ -862,9 +820,6 @@ static struct snd_kcontrol_new pcxhr_control_clock_rate = {
 	.get =		pcxhr_clock_rate_get,
 };
 
-/*
- * IEC958 status bits
- */
 static int pcxhr_iec958_info(struct snd_kcontrol *kcontrol,
 			     struct snd_ctl_elem_info *uinfo)
 {
@@ -883,7 +838,7 @@ static int pcxhr_iec958_capture_byte(struct snd_pcxhr *chip,
 	pcxhr_init_rmh(&rmh, CMD_ACCESS_IO_READ);
 	rmh.cmd[0] |= IO_NUM_UER_CHIP_REG;
 	switch (chip->chip_idx) {
-	  /* instead of CS8420_01_CS use CS8416_01_CS for AES SYNC plug */
+	  
 	case 0:	rmh.cmd[1] = CS8420_01_CS; break;
 	case 1:	rmh.cmd[1] = CS8420_23_CS; break;
 	case 2:	rmh.cmd[1] = CS8420_45_CS; break;
@@ -901,7 +856,7 @@ static int pcxhr_iec958_capture_byte(struct snd_pcxhr *chip,
 		}
 	} else {
 		switch (aes_idx) {
-		  /* instead of CS8420_CSB0 use CS8416_CSBx for AES SYNC plug */
+		  
 		case 0:	rmh.cmd[2] = CS8420_CSB0; break;
 		case 1:	rmh.cmd[2] = CS8420_CSB1; break;
 		case 2:	rmh.cmd[2] = CS8420_CSB2; break;
@@ -910,9 +865,9 @@ static int pcxhr_iec958_capture_byte(struct snd_pcxhr *chip,
 		default: return -EINVAL;
 		}
 	}
-	/* size and code the chip id for the fpga */
+	
 	rmh.cmd[1] &= 0x0fffff;
-	/* chip signature + map for spi read */
+	
 	rmh.cmd[2] &= CHIP_SIG_AND_MAP_SPI;
 	rmh.cmd_len = 3;
 	err = pcxhr_send_msg(chip->mgr, &rmh);
@@ -923,7 +878,7 @@ static int pcxhr_iec958_capture_byte(struct snd_pcxhr *chip,
 		temp = (unsigned char)rmh.stat[1];
 	} else {
 		temp = 0;
-		/* reversed bit order (not with CS8416_01_CS) */
+		
 		for (i = 0; i < 8; i++) {
 			temp <<= 1;
 			if (rmh.stat[1] & (1 << i))
@@ -945,9 +900,9 @@ static int pcxhr_iec958_get(struct snd_kcontrol *kcontrol,
 
 	mutex_lock(&chip->mgr->mixer_mutex);
 	for(i = 0; i < 5; i++) {
-		if (kcontrol->private_value == 0)	/* playback */
+		if (kcontrol->private_value == 0)	
 			aes_bits = chip->aes_bits[i];
-		else {				/* capture */
+		else {				
 			if (chip->mgr->is_hr_stereo)
 				err = hr222_iec958_capture_byte(chip, i,
 								&aes_bits);
@@ -982,12 +937,12 @@ static int pcxhr_iec958_update_byte(struct snd_pcxhr *chip,
 
 	for (i = 0; i < 8; i++) {
 		if ((old_bits & 0x01) != (new_bits & 0x01)) {
-			cmd = chip->chip_idx & 0x03;      /* chip index 0..3 */
+			cmd = chip->chip_idx & 0x03;      
 			if (chip->chip_idx > 3)
-				/* new bit used if chip_idx>3 (PCX1222HR) */
+				
 				cmd |= 1 << 22;
-			cmd |= ((aes_idx << 3) + i) << 2; /* add bit offset */
-			cmd |= (new_bits & 0x01) << 23;   /* add bit value */
+			cmd |= ((aes_idx << 3) + i) << 2; 
+			cmd |= (new_bits & 0x01) << 23;   
 			pcxhr_init_rmh(&rmh, CMD_ACCESS_IO_WRITE);
 			rmh.cmd[0] |= IO_NUM_REG_CUER;
 			rmh.cmd[1] = cmd;
@@ -1011,7 +966,7 @@ static int pcxhr_iec958_put(struct snd_kcontrol *kcontrol,
 	struct snd_pcxhr *chip = snd_kcontrol_chip(kcontrol);
 	int i, changed = 0;
 
-	/* playback */
+	
 	mutex_lock(&chip->mgr->mixer_mutex);
 	for (i = 0; i < 5; i++) {
 		if (ucontrol->value.iec958.status[i] != chip->aes_bits[i]) {
@@ -1041,7 +996,7 @@ static struct snd_kcontrol_new pcxhr_control_playback_iec958 = {
 	.info =         pcxhr_iec958_info,
 	.get =          pcxhr_iec958_get,
 	.put =          pcxhr_iec958_put,
-	.private_value = 0 /* playback */
+	.private_value = 0 
 };
 
 static struct snd_kcontrol_new pcxhr_control_capture_iec958_mask = {
@@ -1057,7 +1012,7 @@ static struct snd_kcontrol_new pcxhr_control_capture_iec958 = {
 	.name =         SNDRV_CTL_NAME_IEC958("",CAPTURE,DEFAULT),
 	.info =         pcxhr_iec958_info,
 	.get =          pcxhr_iec958_get,
-	.private_value = 1 /* capture */
+	.private_value = 1 
 };
 
 static void pcxhr_init_audio_levels(struct snd_pcxhr *chip)
@@ -1067,21 +1022,15 @@ static void pcxhr_init_audio_levels(struct snd_pcxhr *chip)
 	for (i = 0; i < 2; i++) {
 		if (chip->nb_streams_play) {
 			int j;
-			/* at boot time the digital volumes are unmuted 0dB */
+			
 			for (j = 0; j < PCXHR_PLAYBACK_STREAMS; j++) {
 				chip->digital_playback_active[j][i] = 1;
 				chip->digital_playback_volume[j][i] =
 					PCXHR_DIGITAL_ZERO_LEVEL;
 			}
-			/* after boot, only two bits are set on the uer
-			 * interface
-			 */
 			chip->aes_bits[0] = (IEC958_AES0_PROFESSIONAL |
 					     IEC958_AES0_PRO_FS_48000);
 #ifdef CONFIG_SND_DEBUG
-			/* analog volumes for playback
-			 * (is LEVEL_MIN after boot)
-			 */
 			chip->analog_playback_active[i] = 1;
 			if (chip->mgr->is_hr_stereo)
 				chip->analog_playback_volume[i] =
@@ -1092,19 +1041,16 @@ static void pcxhr_init_audio_levels(struct snd_pcxhr *chip)
 				pcxhr_update_analog_audio_level(chip, 0, i);
 			}
 #endif
-			/* stereo cards need to be initialised after boot */
+			
 			if (chip->mgr->is_hr_stereo)
 				hr222_update_analog_audio_level(chip, 0, i);
 		}
 		if (chip->nb_streams_capt) {
-			/* at boot time the digital volumes are unmuted 0dB */
+			
 			chip->digital_capture_volume[i] =
 				PCXHR_DIGITAL_ZERO_LEVEL;
 			chip->analog_capture_active = 1;
 #ifdef CONFIG_SND_DEBUG
-			/* analog volumes for playback
-			 * (is LEVEL_MIN after boot)
-			 */
 			if (chip->mgr->is_hr_stereo)
 				chip->analog_capture_volume[i] =
 					HR222_LINE_CAPTURE_ZERO_LEVEL;
@@ -1114,7 +1060,7 @@ static void pcxhr_init_audio_levels(struct snd_pcxhr *chip)
 				pcxhr_update_analog_audio_level(chip, 1, i);
 			}
 #endif
-			/* stereo cards need to be initialised after boot */
+			
 			if (chip->mgr->is_hr_stereo)
 				hr222_update_analog_audio_level(chip, 1, i);
 		}
@@ -1129,17 +1075,17 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 	struct snd_pcxhr *chip;
 	int err, i;
 
-	mutex_init(&mgr->mixer_mutex); /* can be in another place */
+	mutex_init(&mgr->mixer_mutex); 
 
 	for (i = 0; i < mgr->num_cards; i++) {
 		struct snd_kcontrol_new temp;
 		chip = mgr->chip[i];
 
 		if (chip->nb_streams_play) {
-			/* analog output level control */
+			
 			temp = pcxhr_control_analog_level;
 			temp.name = "Master Playback Volume";
-			temp.private_value = 0; /* playback */
+			temp.private_value = 0; 
 			if (mgr->is_hr_stereo)
 				temp.tlv.p = db_scale_a_hr222_playback;
 			else
@@ -1149,7 +1095,7 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 			if (err < 0)
 				return err;
 
-			/* output mute controls */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_output_switch,
 					     chip));
@@ -1159,7 +1105,7 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 			temp = snd_pcxhr_pcm_vol;
 			temp.name = "PCM Playback Volume";
 			temp.count = PCXHR_PLAYBACK_STREAMS;
-			temp.private_value = 0; /* playback */
+			temp.private_value = 0; 
 			err = snd_ctl_add(chip->card,
 					  snd_ctl_new1(&temp, chip));
 			if (err < 0)
@@ -1170,7 +1116,7 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 			if (err < 0)
 				return err;
 
-			/* IEC958 controls */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_playback_iec958_mask,
 					     chip));
@@ -1184,10 +1130,10 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 				return err;
 		}
 		if (chip->nb_streams_capt) {
-			/* analog input level control */
+			
 			temp = pcxhr_control_analog_level;
 			temp.name = "Line Capture Volume";
-			temp.private_value = 1; /* capture */
+			temp.private_value = 1; 
 			if (mgr->is_hr_stereo)
 				temp.tlv.p = db_scale_a_hr222_capture;
 			else
@@ -1201,20 +1147,20 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 			temp = snd_pcxhr_pcm_vol;
 			temp.name = "PCM Capture Volume";
 			temp.count = 1;
-			temp.private_value = 1; /* capture */
+			temp.private_value = 1; 
 
 			err = snd_ctl_add(chip->card,
 					  snd_ctl_new1(&temp, chip));
 			if (err < 0)
 				return err;
 
-			/* Audio source */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_audio_src, chip));
 			if (err < 0)
 				return err;
 
-			/* IEC958 controls */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_capture_iec958_mask,
 					     chip));
@@ -1233,9 +1179,9 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 					return err;
 			}
 		}
-		/* monitoring only if playback and capture device available */
+		
 		if (chip->nb_streams_capt > 0 && chip->nb_streams_play > 0) {
-			/* monitoring */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_monitor_vol, chip));
 			if (err < 0)
@@ -1248,21 +1194,18 @@ int pcxhr_create_mixer(struct pcxhr_mgr *mgr)
 		}
 
 		if (i == 0) {
-			/* clock mode only one control per pcxhr */
+			
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_clock_type, mgr));
 			if (err < 0)
 				return err;
-			/* non standard control used to scan
-			 * the external clock presence/frequencies
-			 */
 			err = snd_ctl_add(chip->card,
 				snd_ctl_new1(&pcxhr_control_clock_rate, mgr));
 			if (err < 0)
 				return err;
 		}
 
-		/* init values for the mixer data */
+		
 		pcxhr_init_audio_levels(chip);
 	}
 

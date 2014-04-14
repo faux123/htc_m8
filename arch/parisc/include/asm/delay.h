@@ -1,8 +1,8 @@
 #ifndef _PARISC_DELAY_H
 #define _PARISC_DELAY_H
 
-#include <asm/special_insns.h>    /* for mfctl() */
-#include <asm/processor.h> /* for boot_cpu_data */
+#include <asm/special_insns.h>    
+#include <asm/processor.h> 
 
 
 /*
@@ -22,12 +22,6 @@ static __inline__ void __delay(unsigned long loops) {
 static __inline__ void __cr16_delay(unsigned long clocks) {
 	unsigned long start;
 
-	/*
-	 * Note: Due to unsigned math, cr16 rollovers shouldn't be
-	 * a problem here. However, on 32 bit, we need to make sure
-	 * we don't pass in too big a value. The current default
-	 * value of MAX_UDELAY_MS should help prevent this.
-	 */
 
 	start = mfctl(16);
 	while ((mfctl(16) - start) < clocks)
@@ -40,4 +34,4 @@ static __inline__ void __udelay(unsigned long usecs) {
 
 #define udelay(n) __udelay(n)
 
-#endif /* defined(_PARISC_DELAY_H) */
+#endif 

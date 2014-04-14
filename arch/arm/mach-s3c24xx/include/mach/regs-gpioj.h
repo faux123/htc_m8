@@ -14,13 +14,6 @@
 #ifndef __ASM_ARCH_REGS_GPIOJ_H
 #define __ASM_ARCH_REGS_GPIOJ_H "gpioj"
 
-/* Port J consists of 13 GPIO/Camera pins
- *
- * GPJCON has 2 bits for each of the input pins on port F
- *   00 = 0 input, 1 output, 2 Camera
- *
- * pull up works like all other ports.
-*/
 
 #define S3C2413_GPJCON		S3C2410_GPIOREG(0x80)
 #define S3C2413_GPJDAT		S3C2410_GPIOREG(0x84)
@@ -66,5 +59,5 @@
 #define S3C2440_GPJ12_OUTP      (0x01 << 24)
 #define S3C2440_GPJ12_CAMRESET  (0x02 << 24)
 
-#endif	/* __ASM_ARCH_REGS_GPIOJ_H */
+#endif	
 

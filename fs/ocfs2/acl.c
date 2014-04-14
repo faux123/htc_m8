@@ -37,9 +37,6 @@
 #include "xattr.h"
 #include "acl.h"
 
-/*
- * Convert from xattr value to acl struct.
- */
 static struct posix_acl *ocfs2_acl_from_xattr(const void *value, size_t size)
 {
 	int n, count;
@@ -72,9 +69,6 @@ static struct posix_acl *ocfs2_acl_from_xattr(const void *value, size_t size)
 	return acl;
 }
 
-/*
- * Convert acl struct to xattr value.
- */
 static void *ocfs2_acl_to_xattr(const struct posix_acl *acl, size_t *size)
 {
 	struct ocfs2_acl_entry *entry = NULL;
@@ -138,9 +132,6 @@ static struct posix_acl *ocfs2_get_acl_nolock(struct inode *inode,
 }
 
 
-/*
- * Get posix acl.
- */
 static struct posix_acl *ocfs2_get_acl(struct inode *inode, int type)
 {
 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
@@ -167,11 +158,6 @@ static struct posix_acl *ocfs2_get_acl(struct inode *inode, int type)
 	return acl;
 }
 
-/*
- * Helper function to set i_mode in memory and disk. Some call paths
- * will not have di_bh or a journal handle to pass, in which case it
- * will create it's own.
- */
 static int ocfs2_acl_set_mode(struct inode *inode, struct buffer_head *di_bh,
 			      handle_t *handle, umode_t new_mode)
 {
@@ -224,9 +210,6 @@ out:
 	return ret;
 }
 
-/*
- * Set the access or default ACL of an inode.
- */
 static int ocfs2_set_acl(handle_t *handle,
 			 struct inode *inode,
 			 struct buffer_head *di_bh,
@@ -336,10 +319,6 @@ int ocfs2_acl_chmod(struct inode *inode)
 	return ret;
 }
 
-/*
- * Initialize the ACLs of a new inode. If parent directory has default ACL,
- * then clone to new inode. Called from ocfs2_mknod.
- */
 int ocfs2_init_acl(handle_t *handle,
 		   struct inode *inode,
 		   struct inode *dir,

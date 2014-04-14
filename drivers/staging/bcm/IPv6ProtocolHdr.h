@@ -17,15 +17,8 @@
 #define IPV6_FLOWLABEL_BITOFFSET 9
 
 #define IPV6_MAX_CHAINEDHDR_BUFFBYTES 0x64
-/*
-// Size of Dest Options field of Destinations Options Header
-// in bytes.
-*/
 #define IPV6_DESTOPTS_HDR_OPTIONSIZE 0x8
 
-//typedef  unsigned char UCHAR;
-//typedef  unsigned short USHORT;
-//typedef  unsigned long int ULONG;
 
 typedef struct IPV6HeaderFormatTag
 {
@@ -45,7 +38,7 @@ typedef struct IPV6RoutingHeaderFormatTag
 	UCHAR ucNumAddresses;
 	UCHAR ucNextAddress;
 	ULONG ulReserved;
-	//UCHAR aucAddressList[0];
+	
 
 }IPV6RoutingHeader;
 
@@ -62,7 +55,7 @@ typedef struct IPV6DestOptionsHeaderFormatTag
 	UCHAR ucNextHeader;
 	UCHAR ucHdrExtLen;
 	UCHAR ucDestOptions[6];
-	//UCHAR udExtDestOptions[0];
+	
 }IPV6DestOptionsHeader;
 
 typedef struct IPV6HopByHopOptionsHeaderFormatTag
@@ -78,7 +71,7 @@ typedef struct IPV6AuthenticationHeaderFormatTag
 	UCHAR ucLength;
 	USHORT usReserved;
 	ULONG  ulSecurityParametersIndex;
-	//UCHAR  ucAuthenticationData[0];
+	
 
 }IPV6AuthenticationHeader;
 
@@ -87,7 +80,7 @@ typedef struct IPV6IcmpHeaderFormatTag
 	UCHAR ucType;
 	UCHAR ucCode;
 	USHORT usChecksum;
-	//UCHAR  ucIcmpMsg[0];
+	
 
 }IPV6IcmpHeader;
 
@@ -100,10 +93,9 @@ typedef enum _E_IPADDR_CONTEXT
 
 
 
-//Function Prototypes
 
-USHORT	IpVersion6(PMINI_ADAPTER Adapter, /**< Pointer to the driver control structure */
-					PVOID pcIpHeader, /**<Pointer to the IP Hdr of the packet*/
+USHORT	IpVersion6(PMINI_ADAPTER Adapter, 
+					PVOID pcIpHeader, 
 					S_CLASSIFIER_RULE *pstClassifierRule );
 
 VOID DumpIpv6Address(ULONG *puIpv6Address);

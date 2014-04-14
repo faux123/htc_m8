@@ -1,9 +1,3 @@
-/*
- *	linux/arch/alpha/kernel/console.c
- *
- * Architecture-specific specific support for VGA device on 
- * non-0 I/O hose
- */
 
 #include <linux/pci.h>
 #include <linux/init.h>
@@ -39,10 +33,10 @@ locate_and_init_vga(void *(*sel_func)(void *, void *))
 	struct pci_controller *hose = NULL;
 	struct pci_dev *dev = NULL;
 
-	/* Default the select function */
+	
 	if (!sel_func) sel_func = (void *)default_vga_hose_select;
 
-	/* Find the console VGA device */
+	
 	for(dev=NULL; (dev=pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, dev));) {
 		if (!hose)
 			hose = dev->sysdata;
@@ -50,16 +44,16 @@ locate_and_init_vga(void *(*sel_func)(void *, void *))
 			hose = sel_func(hose, dev->sysdata);
 	}
 
-	/* Did we already initialize the correct one? Is there one? */
+	
 	if (!hose || (conswitchp == &vga_con && pci_vga_hose == hose))
 		return;
 
-	/* Create a new VGA ioport resource WRT the hose it is on. */
+	
 	alpha_vga.start += hose->io_space->start;
 	alpha_vga.end += hose->io_space->start;
 	request_resource(hose->io_space, &alpha_vga);
 
-	/* Set the VGA hose and init the new console. */
+	
 	pci_vga_hose = hose;
 	take_over_console(&vga_con, 0, MAX_NR_CONSOLES-1, 1);
 }
@@ -69,14 +63,10 @@ find_console_vga_hose(void)
 {
 	u64 *pu64 = (u64 *)((u64)hwrpb + hwrpb->ctbt_offset);
 
-	if (pu64[7] == 3) {	/* TERM_TYPE == graphics */
+	if (pu64[7] == 3) {	
 		struct pci_controller *hose;
-		int h = (pu64[30] >> 24) & 0xff;	/* console hose # */
+		int h = (pu64[30] >> 24) & 0xff;	
 
-		/*
-		 * Our hose numbering DOES match the console's, so find
-		 * the right one...
-		 */
 		for (hose = hose_head; hose; hose = hose->next) {
 			if (hose->index == h) break;
 		}

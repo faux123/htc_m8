@@ -19,7 +19,7 @@ extern unsigned long __phys_addr(unsigned long);
 
 #ifdef CONFIG_FLATMEM
 #define pfn_valid(pfn)		((pfn) < max_mapnr)
-#endif /* CONFIG_FLATMEM */
+#endif 
 
 #ifdef CONFIG_X86_USE_3DNOW
 #include <asm/mmx.h>
@@ -33,7 +33,7 @@ static inline void copy_page(void *to, void *from)
 {
 	mmx_copy_page(to, from);
 }
-#else  /* !CONFIG_X86_USE_3DNOW */
+#else  
 #include <linux/string.h>
 
 static inline void clear_page(void *page)
@@ -45,7 +45,7 @@ static inline void copy_page(void *to, void *from)
 {
 	memcpy(to, from, PAGE_SIZE);
 }
-#endif	/* CONFIG_X86_3DNOW */
-#endif	/* !__ASSEMBLY__ */
+#endif	
+#endif	
 
-#endif /* _ASM_X86_PAGE_32_H */
+#endif 

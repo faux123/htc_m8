@@ -2,9 +2,6 @@
  *  Copyright (c) 1999-2001 Vojtech Pavlik
  */
 
-/*
- * Sun keyboard driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -69,9 +66,6 @@ static unsigned char sunkbd_keycode[128] = {
 #define SUNKBD_RELEASE		0x80
 #define SUNKBD_KEY		0x7f
 
-/*
- * Per-keyboard data.
- */
 
 struct sunkbd {
 	unsigned char keycode[ARRAY_SIZE(sunkbd_keycode)];
@@ -87,10 +81,6 @@ struct sunkbd {
 	volatile s8 layout;
 };
 
-/*
- * sunkbd_interrupt() is called by the low level driver when a character
- * is received.
- */
 
 static irqreturn_t sunkbd_interrupt(struct serio *serio,
 		unsigned char data, unsigned int flags)
@@ -98,10 +88,6 @@ static irqreturn_t sunkbd_interrupt(struct serio *serio,
 	struct sunkbd *sunkbd = serio_get_drvdata(serio);
 
 	if (sunkbd->reset <= -1) {
-		/*
-		 * If cp[i] is 0xff, sunkbd->reset will stay -1.
-		 * The keyboard sends 0xff 0xff 0xID on powerup.
-		 */
 		sunkbd->reset = data;
 		wake_up_interruptible(&sunkbd->wait);
 		goto out;
@@ -124,7 +110,7 @@ static irqreturn_t sunkbd_interrupt(struct serio *serio,
 		sunkbd->layout = -1;
 		break;
 
-	case SUNKBD_RET_ALLUP: /* All keys released */
+	case SUNKBD_RET_ALLUP: 
 		break;
 
 	default:
@@ -147,9 +133,6 @@ out:
 	return IRQ_HANDLED;
 }
 
-/*
- * sunkbd_event() handles events from the input module.
- */
 
 static int sunkbd_event(struct input_dev *dev,
 			unsigned int type, unsigned int code, int value)
@@ -187,10 +170,6 @@ static int sunkbd_event(struct input_dev *dev,
 	return -1;
 }
 
-/*
- * sunkbd_initialize() checks for a Sun keyboard attached, and determines
- * its type.
- */
 
 static int sunkbd_initialize(struct sunkbd *sunkbd)
 {
@@ -202,7 +181,7 @@ static int sunkbd_initialize(struct sunkbd *sunkbd)
 
 	sunkbd->type = sunkbd->reset;
 
-	if (sunkbd->type == 4) {	/* Type 4 keyboard */
+	if (sunkbd->type == 4) {	
 		sunkbd->layout = -2;
 		serio_write(sunkbd->serio, SUNKBD_CMD_LAYOUT);
 		wait_event_interruptible_timeout(sunkbd->wait,
@@ -216,10 +195,6 @@ static int sunkbd_initialize(struct sunkbd *sunkbd)
 	return 0;
 }
 
-/*
- * sunkbd_reinit() sets leds and beeps to a state the computer remembers they
- * were in.
- */
 
 static void sunkbd_reinit(struct work_struct *work)
 {
@@ -246,10 +221,6 @@ static void sunkbd_enable(struct sunkbd *sunkbd, bool enable)
 	serio_continue_rx(sunkbd->serio);
 }
 
-/*
- * sunkbd_connect() probes for a Sun keyboard and fills the necessary
- * structures.
- */
 
 static int sunkbd_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -325,9 +296,6 @@ static int sunkbd_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * sunkbd_disconnect() unregisters and closes behind us.
- */
 
 static void sunkbd_disconnect(struct serio *serio)
 {
@@ -349,7 +317,7 @@ static struct serio_device_id sunkbd_serio_ids[] = {
 	},
 	{
 		.type	= SERIO_RS232,
-		.proto	= SERIO_UNKNOWN, /* sunkbd does probe */
+		.proto	= SERIO_UNKNOWN, 
 		.id	= SERIO_ANY,
 		.extra	= SERIO_ANY,
 	},
@@ -369,9 +337,6 @@ static struct serio_driver sunkbd_drv = {
 	.disconnect	= sunkbd_disconnect,
 };
 
-/*
- * The functions for insering/removing us as a module.
- */
 
 static int __init sunkbd_init(void)
 {

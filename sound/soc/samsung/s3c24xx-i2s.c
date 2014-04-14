@@ -86,12 +86,6 @@ static void s3c24xx_snd_txctrl(int on)
 		writel(iisfcon, s3c24xx_i2s.regs + S3C2410_IISFCON);
 		writel(iiscon,  s3c24xx_i2s.regs + S3C2410_IISCON);
 	} else {
-		/* note, we have to disable the FIFOs otherwise bad things
-		 * seem to happen when the DMA stops. According to the
-		 * Samsung supplied kernel, this should allow the DMA
-		 * engine and FIFOs to reset. If this isn't allowed, the
-		 * DMA engine will simply freeze randomly.
-		 */
 
 		iisfcon &= ~S3C2410_IISFCON_TXENABLE;
 		iisfcon &= ~S3C2410_IISFCON_TXDMA;
@@ -131,12 +125,6 @@ static void s3c24xx_snd_rxctrl(int on)
 		writel(iisfcon, s3c24xx_i2s.regs + S3C2410_IISFCON);
 		writel(iiscon,  s3c24xx_i2s.regs + S3C2410_IISCON);
 	} else {
-		/* note, we have to disable the FIFOs otherwise bad things
-		 * seem to happen when the DMA stops. According to the
-		 * Samsung supplied kernel, this should allow the DMA
-		 * engine and FIFOs to reset. If this isn't allowed, the
-		 * DMA engine will simply freeze randomly.
-		 */
 
 		iisfcon &= ~S3C2410_IISFCON_RXENABLE;
 		iisfcon &= ~S3C2410_IISFCON_RXDMA;
@@ -152,14 +140,10 @@ static void s3c24xx_snd_rxctrl(int on)
 	pr_debug("w: IISCON: %x IISMOD: %x IISFCON: %x\n", iiscon, iismod, iisfcon);
 }
 
-/*
- * Wait for the LR signal to allow synchronisation to the L/R clock
- * from the codec. May only be needed for slave mode.
- */
 static int s3c24xx_snd_lrsync(void)
 {
 	u32 iiscon;
-	int timeout = 50; /* 5ms */
+	int timeout = 50; 
 
 	pr_debug("Entered %s\n", __func__);
 
@@ -176,9 +160,6 @@ static int s3c24xx_snd_lrsync(void)
 	return 0;
 }
 
-/*
- * Check whether CPU is the master or slave
- */
 static inline int s3c24xx_snd_is_clkmaster(void)
 {
 	pr_debug("Entered %s\n", __func__);
@@ -186,9 +167,6 @@ static inline int s3c24xx_snd_is_clkmaster(void)
 	return (readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & S3C2410_IISMOD_SLAVE) ? 0:1;
 }
 
-/*
- * Set S3C24xx I2S DAI format
- */
 static int s3c24xx_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 		unsigned int fmt)
 {
@@ -243,7 +221,7 @@ static int s3c24xx_i2s_hw_params(struct snd_pcm_substream *substream,
 
 	snd_soc_dai_set_dma_data(rtd->cpu_dai, substream, dma_data);
 
-	/* Working copies of register */
+	
 	iismod = readl(s3c24xx_i2s.regs + S3C2410_IISMOD);
 	pr_debug("hw_params r: IISMOD: %x\n", iismod);
 
@@ -308,9 +286,6 @@ exit_err:
 	return ret;
 }
 
-/*
- * Set S3C24xx Clock source
- */
 static int s3c24xx_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
 	int clk_id, unsigned int freq, int dir)
 {
@@ -334,9 +309,6 @@ static int s3c24xx_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * Set S3C24xx Clock dividers
- */
 static int s3c24xx_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
 	int div_id, int div)
 {
@@ -365,10 +337,6 @@ static int s3c24xx_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * To avoid duplicating clock code, allow machine driver to
- * get the clockrate from here.
- */
 u32 s3c24xx_i2s_get_clockrate(void)
 {
 	return clk_get_rate(s3c24xx_i2s.iis_clk);
@@ -391,7 +359,7 @@ static int s3c24xx_i2s_probe(struct snd_soc_dai *dai)
 	}
 	clk_enable(s3c24xx_i2s.iis_clk);
 
-	/* Configure the I2S pins in correct mode */
+	
 	s3c2410_gpio_cfgpin(S3C2410_GPE0, S3C2410_GPE0_I2SLRCK);
 	s3c2410_gpio_cfgpin(S3C2410_GPE1, S3C2410_GPE1_I2SSCLK);
 	s3c2410_gpio_cfgpin(S3C2410_GPE2, S3C2410_GPE2_CDCLK);
@@ -491,7 +459,6 @@ static struct platform_driver s3c24xx_iis_driver = {
 
 module_platform_driver(s3c24xx_iis_driver);
 
-/* Module information */
 MODULE_AUTHOR("Ben Dooks, <ben@simtec.co.uk>");
 MODULE_DESCRIPTION("s3c24xx I2S SoC Interface");
 MODULE_LICENSE("GPL");

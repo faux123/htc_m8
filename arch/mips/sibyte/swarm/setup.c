@@ -17,9 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * Setup code for the SWARM board
- */
 
 #include <linux/spinlock.h>
 #include <linux/mm.h>
@@ -72,7 +69,7 @@ const char *get_system_type(void)
 int swarm_be_handler(struct pt_regs *regs, int is_fixup)
 {
 	if (!is_fixup && (regs->cp0_cause & 4)) {
-		/* Data bus error - print PA */
+		
 		printk("DBE physical address: %010Lx\n",
 		       __read_64bit_c0_register($26, 1));
 	}
@@ -134,7 +131,7 @@ void __init plat_mem_setup(void)
 #error invalid SiByte board configuration
 #endif
 
-	panic_timeout = 5;  /* For debug.  */
+	panic_timeout = 5;  
 
 	board_be_handler = swarm_be_handler;
 
@@ -154,14 +151,13 @@ void __init plat_mem_setup(void)
 		.orig_video_isVGA	= 0x22,
 		.orig_video_points	= 16,
        };
-       /* XXXKW for CFE, get lines/cols from environment */
+       
 #endif
 }
 
 #ifdef LEDS_PHYS
 
 #ifdef CONFIG_SIBYTE_CARMEL
-/* XXXKW need to detect Monterey/LittleSur/etc */
 #undef LEDS_PHYS
 #define LEDS_PHYS MLEDS_PHYS
 #endif
@@ -181,4 +177,4 @@ void setleds(char *str)
 	}
 }
 
-#endif /* LEDS_PHYS */
+#endif 

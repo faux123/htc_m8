@@ -21,10 +21,6 @@
  * xattr_id.c
  */
 
-/*
- * This file implements code to map the 32-bit xattr id stored in the inode
- * into the on disk location of the xattr data.
- */
 
 #include <linux/fs.h>
 #include <linux/vfs.h>
@@ -35,9 +31,6 @@
 #include "squashfs.h"
 #include "xattr.h"
 
-/*
- * Map xattr id using the xattr id look up table
- */
 int squashfs_xattr_lookup(struct super_block *sb, unsigned int index,
 		int *count, unsigned int *size, unsigned long long *xattr)
 {
@@ -60,9 +53,6 @@ int squashfs_xattr_lookup(struct super_block *sb, unsigned int index,
 }
 
 
-/*
- * Read uncompressed xattr id lookup table indexes from disk into memory
- */
 __le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 start,
 		u64 *xattr_table_start, int *xattr_ids)
 {
@@ -77,13 +67,13 @@ __le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 start,
 	*xattr_ids = le32_to_cpu(id_table->xattr_ids);
 	kfree(id_table);
 
-	/* Sanity check values */
+	
 
-	/* there is always at least one xattr id */
+	
 	if (*xattr_ids == 0)
 		return ERR_PTR(-EINVAL);
 
-	/* xattr_table should be less than start */
+	
 	if (*xattr_table_start >= start)
 		return ERR_PTR(-EINVAL);
 

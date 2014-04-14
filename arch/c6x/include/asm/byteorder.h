@@ -5,8 +5,8 @@
 
 #ifdef _BIG_ENDIAN
 #include <linux/byteorder/big_endian.h>
-#else /* _BIG_ENDIAN */
+#else 
 #include <linux/byteorder/little_endian.h>
-#endif /* _BIG_ENDIAN */
+#endif 
 
-#endif /* _ASM_BYTEORDER_H */
+#endif 

@@ -31,9 +31,6 @@ struct pasic3_data {
 
 #define READ_MODE 0x80
 
-/*
- * write to a secondary register on the PASIC3
- */
 void pasic3_write_register(struct device *dev, u32 reg, u8 val)
 {
 	struct pasic3_data *asic = dev_get_drvdata(dev);
@@ -44,11 +41,8 @@ void pasic3_write_register(struct device *dev, u32 reg, u8 val)
 	__raw_writeb(~READ_MODE & reg, addr);
 	__raw_writeb(val, data);
 }
-EXPORT_SYMBOL(pasic3_write_register); /* for leds-pasic3 */
+EXPORT_SYMBOL(pasic3_write_register); 
 
-/*
- * read from a secondary register on the PASIC3
- */
 u8 pasic3_read_register(struct device *dev, u32 reg)
 {
 	struct pasic3_data *asic = dev_get_drvdata(dev);
@@ -59,19 +53,13 @@ u8 pasic3_read_register(struct device *dev, u32 reg)
 	__raw_writeb(READ_MODE | reg, addr);
 	return __raw_readb(data);
 }
-EXPORT_SYMBOL(pasic3_read_register); /* for leds-pasic3 */
+EXPORT_SYMBOL(pasic3_read_register); 
 
-/*
- * LEDs
- */
 
 static struct mfd_cell led_cell __initdata = {
 	.name = "leds-pasic3",
 };
 
-/*
- * DS1WM
- */
 
 static int ds1wm_enable(struct platform_device *pdev)
 {
@@ -160,12 +148,12 @@ static int __init pasic3_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* calculate bus shift from mem resource */
+	
 	asic->bus_shift = (resource_size(r) - 5) >> 3;
 
 	if (pdata && pdata->clock_rate) {
 		ds1wm_pdata.clock_rate = pdata->clock_rate;
-		/* the first 5 PASIC3 registers control the DS1WM */
+		
 		ds1wm_resources[0].end = (5 << asic->bus_shift) - 1;
 		ret = mfd_add_devices(&pdev->dev, pdev->id,
 				&ds1wm_cell, 1, r, irq);

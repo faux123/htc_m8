@@ -32,12 +32,6 @@
 #include "debug-levels.h"
 
 
-/*
- * Set the idle timeout (msecs)
- *
- * FIXME: eventually this should be a common WiMAX stack method, but
- * would like to wait to see how other devices manage it.
- */
 static
 ssize_t i2400m_idle_timeout_store(struct device *dev,
 				  struct device_attribute *attr,
@@ -75,6 +69,6 @@ struct attribute *i2400m_dev_attrs[] = {
 };
 
 struct attribute_group i2400m_dev_attr_group = {
-	.name = NULL,		/* we want them in the same directory */
+	.name = NULL,		
 	.attrs = i2400m_dev_attrs,
 };

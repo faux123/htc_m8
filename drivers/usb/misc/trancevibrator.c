@@ -18,7 +18,6 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* Standard include files */
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -26,13 +25,12 @@
 #include <linux/module.h>
 #include <linux/usb.h>
 
-/* Version Information */
 #define DRIVER_VERSION "v1.1"
 #define DRIVER_AUTHOR "Sam Hocevar, sam@zoy.org"
 #define DRIVER_DESC "PlayStation 2 Trance Vibrator driver"
 
-#define TRANCEVIBRATOR_VENDOR_ID	0x0b49	/* ASCII Corporation */
-#define TRANCEVIBRATOR_PRODUCT_ID	0x064f	/* Trance Vibrator */
+#define TRANCEVIBRATOR_VENDOR_ID	0x0b49	
+#define TRANCEVIBRATOR_PRODUCT_ID	0x064f	
 
 static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(TRANCEVIBRATOR_VENDOR_ID, TRANCEVIBRATOR_PRODUCT_ID) },
@@ -40,7 +38,6 @@ static const struct usb_device_id id_table[] = {
 };
 MODULE_DEVICE_TABLE (usb, id_table);
 
-/* Driver-local specific stuff */
 struct trancevibrator {
 	struct usb_device *udev;
 	unsigned int speed;
@@ -72,11 +69,11 @@ static ssize_t set_speed(struct device *dev, struct device_attribute *attr,
 
 	dev_dbg(&tv->udev->dev, "speed = %d\n", tv->speed);
 
-	/* Set speed */
+	
 	retval = usb_control_msg(tv->udev, usb_sndctrlpipe(tv->udev, 0),
-				 0x01, /* vendor request: set speed */
+				 0x01, 
 				 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_OTHER,
-				 tv->speed, /* speed value */
+				 tv->speed, 
 				 0, NULL, 0, USB_CTRL_GET_TIMEOUT);
 	if (retval) {
 		tv->speed = old;
@@ -129,7 +126,6 @@ static void tv_disconnect(struct usb_interface *interface)
 	kfree(dev);
 }
 
-/* USB subsystem object */
 static struct usb_driver tv_driver = {
 	.name =		"trancevibrator",
 	.probe =	tv_probe,

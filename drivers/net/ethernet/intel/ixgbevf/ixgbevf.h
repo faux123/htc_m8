@@ -38,8 +38,6 @@
 
 #include "vf.h"
 
-/* wrapper around a pointer to a socket buffer,
- * so a DMA handle can be stored along with the buffer */
 struct ixgbevf_tx_buffer {
 	struct sk_buff *skb;
 	dma_addr_t dma;
@@ -58,15 +56,15 @@ struct ixgbevf_rx_buffer {
 };
 
 struct ixgbevf_ring {
-	struct ixgbevf_adapter *adapter;  /* backlink */
-	void *desc;			/* descriptor ring memory */
-	dma_addr_t dma;			/* phys. address of descriptor ring */
-	unsigned int size;		/* length in bytes */
-	unsigned int count;		/* amount of descriptors */
+	struct ixgbevf_adapter *adapter;  
+	void *desc;			
+	dma_addr_t dma;			
+	unsigned int size;		
+	unsigned int count;		
 	unsigned int next_to_use;
 	unsigned int next_to_clean;
 
-	int queue_index; /* needed for multiqueue queue management */
+	int queue_index; 
 	union {
 		struct ixgbevf_tx_buffer *tx_buffer_info;
 		struct ixgbevf_rx_buffer *rx_buffer_info;
@@ -79,26 +77,22 @@ struct ixgbevf_ring {
 	u16 head;
 	u16 tail;
 
-	u16 reg_idx; /* holds the special value that gets the hardware register
-		      * offset associated with this ring, which is different
-		      * for DCB and RSS modes */
+	u16 reg_idx; 
 
 #if defined(CONFIG_DCA) || defined(CONFIG_DCA_MODULE)
-	/* cpu for tx queue */
+	
 	int cpu;
 #endif
 
-	u64 v_idx; /* maps directly to the index for this ring in the hardware
-		    * vector array, can also be used for finding the bit in EICR
-		    * and friends that represents the vector for this ring */
+	u64 v_idx; 
 
-	u16 work_limit;                /* max work per interrupt */
+	u16 work_limit;                
 	u16 rx_buf_len;
 };
 
 enum ixgbevf_ring_f_enum {
 	RING_F_NONE = 0,
-	RING_F_ARRAY_SIZE      /* must be last in enum set */
+	RING_F_ARRAY_SIZE      
 };
 
 struct ixgbevf_ring_feature {
@@ -106,8 +100,7 @@ struct ixgbevf_ring_feature {
 	int mask;
 };
 
-/* How many Rx Buffers do we bundle into one write to the hardware ? */
-#define IXGBEVF_RX_BUFFER_WRITE	16	/* Must be power of 2 */
+#define IXGBEVF_RX_BUFFER_WRITE	16	
 
 #define MAX_RX_QUEUES 1
 #define MAX_TX_QUEUES 1
@@ -119,12 +112,11 @@ struct ixgbevf_ring_feature {
 #define IXGBEVF_MAX_RXD       4096
 #define IXGBEVF_MIN_RXD       64
 
-/* Supported Rx Buffer Sizes */
-#define IXGBEVF_RXBUFFER_64    64     /* Used for packet split */
-#define IXGBEVF_RXBUFFER_128   128    /* Used for packet split */
-#define IXGBEVF_RXBUFFER_256   256    /* Used for packet split */
+#define IXGBEVF_RXBUFFER_64    64     
+#define IXGBEVF_RXBUFFER_128   128    
+#define IXGBEVF_RXBUFFER_256   256    
 #define IXGBEVF_RXBUFFER_2048  2048
-#define IXGBEVF_MAX_RXBUFFER   16384  /* largest size for single descriptor */
+#define IXGBEVF_MAX_RXBUFFER   16384  
 
 #define IXGBEVF_RX_HDR_SIZE IXGBEVF_RXBUFFER_256
 
@@ -140,26 +132,19 @@ struct ixgbevf_ring_feature {
 #define IXGBE_TX_FLAGS_VLAN_PRIO_MASK	0x0000e000
 #define IXGBE_TX_FLAGS_VLAN_SHIFT	16
 
-/* MAX_MSIX_Q_VECTORS of these are allocated,
- * but we only use one per queue-specific vector.
- */
 struct ixgbevf_q_vector {
 	struct ixgbevf_adapter *adapter;
 	struct napi_struct napi;
-	DECLARE_BITMAP(rxr_idx, MAX_RX_QUEUES); /* Rx ring indices */
-	DECLARE_BITMAP(txr_idx, MAX_TX_QUEUES); /* Tx ring indices */
-	u8 rxr_count;     /* Rx ring count assigned to this vector */
-	u8 txr_count;     /* Tx ring count assigned to this vector */
+	DECLARE_BITMAP(rxr_idx, MAX_RX_QUEUES); 
+	DECLARE_BITMAP(txr_idx, MAX_TX_QUEUES); 
+	u8 rxr_count;     
+	u8 txr_count;     
 	u8 tx_itr;
 	u8 rx_itr;
 	u32 eitr;
-	int v_idx;	  /* vector index in list */
+	int v_idx;	  
 };
 
-/* Helper macros to switch between ints/sec and what the register uses.
- * And yes, it's the same math going both ways.  The lowest value
- * supported by all of the ixgbe hardware is 8.
- */
 #define EITR_INTS_PER_SEC_TO_REG(_eitr) \
 	((_eitr) ? (1000000000 / ((_eitr) * 256)) : 8)
 #define EITR_REG_TO_INTS_PER_SEC EITR_INTS_PER_SEC_TO_REG
@@ -186,7 +171,6 @@ struct ixgbevf_q_vector {
 #define MIN_MSIX_Q_VECTORS 2
 #define MIN_MSIX_COUNT (MIN_MSIX_Q_VECTORS + NON_Q_VECTORS)
 
-/* board specific private data structure */
 struct ixgbevf_adapter {
 	struct timer_list watchdog_timer;
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
@@ -195,13 +179,13 @@ struct ixgbevf_adapter {
 	struct ixgbevf_q_vector *q_vector[MAX_MSIX_Q_VECTORS];
 	char name[MAX_MSIX_COUNT][IFNAMSIZ + 9];
 
-	/* Interrupt Throttle Rate */
+	
 	u32 itr_setting;
 	u16 eitr_low;
 	u16 eitr_high;
 
-	/* TX */
-	struct ixgbevf_ring *tx_ring;	/* One per active queue */
+	
+	struct ixgbevf_ring *tx_ring;	
 	int num_tx_queues;
 	u64 restart_queue;
 	u64 hw_csum_tx_good;
@@ -210,17 +194,17 @@ struct ixgbevf_adapter {
 	u64 hw_tso6_ctxt;
 	u32 tx_timeout_count;
 
-	/* RX */
-	struct ixgbevf_ring *rx_ring;	/* One per active queue */
+	
+	struct ixgbevf_ring *rx_ring;	
 	int num_rx_queues;
-	int num_rx_pools;               /* == num_rx_queues in 82598 */
-	int num_rx_queues_per_pool;	/* 1 if 82598, can be many if 82599 */
+	int num_rx_pools;               
+	int num_rx_queues_per_pool;	
 	u64 hw_csum_rx_error;
 	u64 hw_rx_no_dma_resources;
 	u64 hw_csum_rx_good;
 	u64 non_eop_descs;
 	int num_msix_vectors;
-	int max_msix_q_vectors;         /* true count of q_vectors for device */
+	int max_msix_q_vectors;         
 	struct ixgbevf_ring_feature ring_feature[RING_F_ARRAY_SIZE];
 	struct msix_entry *msix_entries;
 
@@ -228,9 +212,6 @@ struct ixgbevf_adapter {
 	u32 alloc_rx_page_failed;
 	u32 alloc_rx_buff_failed;
 
-	/* Some features need tri-state capability,
-	 * thus the additional *_CAPABLE flags.
-	 */
 	u32 flags;
 #define IXGBE_FLAG_RX_CSUM_ENABLED              (u32)(1)
 #define IXGBE_FLAG_RX_1BUF_CAPABLE              (u32)(1 << 1)
@@ -241,16 +222,16 @@ struct ixgbevf_adapter {
 #define IXGBE_FLAG_MQ_CAPABLE                   (u32)(1 << 6)
 #define IXGBE_FLAG_NEED_LINK_UPDATE             (u32)(1 << 7)
 #define IXGBE_FLAG_IN_WATCHDOG_TASK             (u32)(1 << 8)
-	/* OS defined structs */
+	
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 
-	/* structs defined in ixgbe_vf.h */
+	
 	struct ixgbe_hw hw;
 	u16 msg_enable;
 	struct ixgbevf_hw_stats stats;
 	u64 zero_base;
-	/* Interrupt Throttle Rate */
+	
 	u32 eitr_param;
 
 	unsigned long state;
@@ -283,7 +264,6 @@ extern const struct ixgbevf_info ixgbevf_82599_vf_info;
 extern const struct ixgbevf_info ixgbevf_X540_vf_info;
 extern const struct ixgbe_mbx_operations ixgbevf_mbx_ops;
 
-/* needed by ethtool.c */
 extern const char ixgbevf_driver_name[];
 extern const char ixgbevf_driver_version[];
 
@@ -317,4 +297,4 @@ extern char *ixgbevf_get_hw_dev_name(struct ixgbe_hw *hw);
 #define hw_dbg(hw, format, arg...) do {} while (0)
 #endif
 
-#endif /* _IXGBEVF_H_ */
+#endif 

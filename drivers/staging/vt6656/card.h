@@ -31,11 +31,8 @@
 
 #include "ttype.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/* init card type */
 
 typedef enum _CARD_PHY_TYPE {
     PHY_TYPE_AUTO = 0,
@@ -52,13 +49,10 @@ typedef enum _CARD_OP_MODE {
 } CARD_OP_MODE, *PCARD_OP_MODE;
 
 #define CB_MAX_CHANNEL_24G  14
-/* #define CB_MAX_CHANNEL_5G   24 */
-#define CB_MAX_CHANNEL_5G       42 /* add channel9(5045MHz), 41==>42 */
+#define CB_MAX_CHANNEL_5G       42 
 #define CB_MAX_CHANNEL      (CB_MAX_CHANNEL_24G+CB_MAX_CHANNEL_5G)
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
 
 void CARDbSetMediaChannel(void *pDeviceHandler,
 			  unsigned int uConnectionChannel);
@@ -86,4 +80,4 @@ BOOL CARDbChannelSwitch(void *pDeviceHandler,
 			BYTE byNewChannel,
 			BYTE byCount);
 
-#endif /* __CARD_H__ */
+#endif 

@@ -38,25 +38,25 @@ extern void register_smp_ops(struct plat_smp_ops *ops);
 
 static inline void plat_smp_setup(void)
 {
-	extern struct plat_smp_ops *mp_ops;	/* private */
+	extern struct plat_smp_ops *mp_ops;	
 
 	mp_ops->smp_setup();
 }
 
-#else /* !CONFIG_SMP */
+#else 
 
 struct plat_smp_ops;
 
 static inline void plat_smp_setup(void)
 {
-	/* UP, nothing to do ...  */
+	
 }
 
 static inline void register_smp_ops(struct plat_smp_ops *ops)
 {
 }
 
-#endif /* !CONFIG_SMP */
+#endif 
 
 static inline int register_up_smp_ops(void)
 {
@@ -97,4 +97,4 @@ static inline int register_vsmp_smp_ops(void)
 #endif
 }
 
-#endif /* __ASM_SMP_OPS_H */
+#endif 

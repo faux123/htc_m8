@@ -2,10 +2,6 @@
  *  Copyright (c) 1996-2001 Vojtech Pavlik
  */
 
-/*
- * This is just a very simple driver that can dump the data
- * out of the joystick port into the syslog ...
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -49,8 +45,8 @@ struct joydump {
 
 static int joydump_connect(struct gameport *gameport, struct gameport_driver *drv)
 {
-	struct joydump *buf;	/* all entries */
-	struct joydump *dump, *prev;	/* one entry each */
+	struct joydump *buf;	
+	struct joydump *dump, *prev;	
 	int axes[4], buttons;
 	int i, j, t, timeout;
 	unsigned long flags;
@@ -79,7 +75,7 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 		printk(KERN_INFO "joydump: `------------------- END -----------------'\n");
 	}
 
-	timeout = gameport_time(gameport, 10000); /* 10 ms */
+	timeout = gameport_time(gameport, 10000); 
 
 	buf = kmalloc(BUF_SIZE * sizeof(struct joydump), GFP_KERNEL);
 	if (!buf) {
@@ -115,9 +111,6 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 
 	local_irq_restore(flags);
 
-/*
- * Dump data.
- */
 
 	t = i;
 	dump = buf;

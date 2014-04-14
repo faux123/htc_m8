@@ -1,6 +1,3 @@
-/*
- * apple_bl exported symbols
- */
 
 #ifndef _LINUX_APPLE_BL_H
 #define _LINUX_APPLE_BL_H
@@ -10,7 +7,7 @@
 extern int apple_bl_register(void);
 extern void apple_bl_unregister(void);
 
-#else /* !CONFIG_BACKLIGHT_APPLE */
+#else 
 
 static inline int apple_bl_register(void)
 {
@@ -21,6 +18,6 @@ static inline void apple_bl_unregister(void)
 {
 }
 
-#endif /* !CONFIG_BACKLIGHT_APPLE */
+#endif 
 
-#endif /* _LINUX_APPLE_BL_H */
+#endif 

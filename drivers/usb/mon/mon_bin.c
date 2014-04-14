@@ -23,23 +23,17 @@
 
 #include "usb_mon.h"
 
-/*
- * Defined by USB 2.0 clause 9.3, table 9.2.
- */
 #define SETUP_LEN  8
 
-/* ioctl macros */
 #define MON_IOC_MAGIC 0x92
 
 #define MON_IOCQ_URB_LEN _IO(MON_IOC_MAGIC, 1)
-/* #2 used to be MON_IOCX_URB, removed before it got into Linus tree */
 #define MON_IOCG_STATS _IOR(MON_IOC_MAGIC, 3, struct mon_bin_stats)
 #define MON_IOCT_RING_SIZE _IO(MON_IOC_MAGIC, 4)
 #define MON_IOCQ_RING_SIZE _IO(MON_IOC_MAGIC, 5)
 #define MON_IOCX_GET   _IOW(MON_IOC_MAGIC, 6, struct mon_bin_get)
 #define MON_IOCX_MFETCH _IOWR(MON_IOC_MAGIC, 7, struct mon_bin_mfetch)
 #define MON_IOCH_MFLUSH _IO(MON_IOC_MAGIC, 8)
-/* #9 was MON_IOCT_SETAPI */
 #define MON_IOCX_GETX   _IOW(MON_IOC_MAGIC, 10, struct mon_bin_get)
 
 #ifdef CONFIG_COMPAT
@@ -48,57 +42,29 @@
 #define MON_IOCX_GETX32   _IOW(MON_IOC_MAGIC, 10, struct mon_bin_get32)
 #endif
 
-/*
- * Some architectures have enormous basic pages (16KB for ia64, 64KB for ppc).
- * But it's all right. Just use a simple way to make sure the chunk is never
- * smaller than a page.
- *
- * N.B. An application does not know our chunk size.
- *
- * Woops, get_zeroed_page() returns a single page. I guess we're stuck with
- * page-sized chunks for the time being.
- */
 #define CHUNK_SIZE   PAGE_SIZE
 #define CHUNK_ALIGN(x)   (((x)+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1))
 
-/*
- * The magic limit was calculated so that it allows the monitoring
- * application to pick data once in two ticks. This way, another application,
- * which presumably drives the bus, gets to hog CPU, yet we collect our data.
- * If HZ is 100, a 480 mbit/s bus drives 614 KB every jiffy. USB has an
- * enormous overhead built into the bus protocol, so we need about 1000 KB.
- *
- * This is still too much for most cases, where we just snoop a few
- * descriptor fetches for enumeration. So, the default is a "reasonable"
- * amount for systems with HZ=250 and incomplete bus saturation.
- *
- * XXX What about multi-megabyte URBs which take minutes to transfer?
- */
 #define BUFF_MAX  CHUNK_ALIGN(1200*1024)
 #define BUFF_DFL   CHUNK_ALIGN(300*1024)
 #define BUFF_MIN     CHUNK_ALIGN(8*1024)
 
-/*
- * The per-event API header (2 per URB).
- *
- * This structure is seen in userland as defined by the documentation.
- */
 struct mon_bin_hdr {
-	u64 id;			/* URB ID - from submission to callback */
-	unsigned char type;	/* Same as in text API; extensible. */
-	unsigned char xfer_type;	/* ISO, Intr, Control, Bulk */
-	unsigned char epnum;	/* Endpoint number and transfer direction */
-	unsigned char devnum;	/* Device address */
-	unsigned short busnum;	/* Bus number */
+	u64 id;			
+	unsigned char type;	
+	unsigned char xfer_type;	
+	unsigned char epnum;	
+	unsigned char devnum;	
+	unsigned short busnum;	
 	char flag_setup;
 	char flag_data;
-	s64 ts_sec;		/* gettimeofday */
-	s32 ts_usec;		/* gettimeofday */
+	s64 ts_sec;		
+	s32 ts_usec;		
 	int status;
-	unsigned int len_urb;	/* Length of data (submitted or actual) */
-	unsigned int len_cap;	/* Delivered length */
+	unsigned int len_urb;	
+	unsigned int len_cap;	
 	union {
-		unsigned char setup[SETUP_LEN];	/* Only for Control S-type */
+		unsigned char setup[SETUP_LEN];	
 		struct iso_rec {
 			int error_count;
 			int numdesc;
@@ -107,14 +73,9 @@ struct mon_bin_hdr {
 	int interval;
 	int start_frame;
 	unsigned int xfer_flags;
-	unsigned int ndesc;	/* Actual number of ISO descriptors */
+	unsigned int ndesc;	
 };
 
-/*
- * ISO vector, packed into the head of data stream.
- * This has to take 16 bytes to make sure that the end of buffer
- * wrap is not happening in the middle of a descriptor.
- */
 struct mon_bin_isodesc {
 	int          iso_status;
 	unsigned int iso_off;
@@ -122,22 +83,21 @@ struct mon_bin_isodesc {
 	u32 _pad;
 };
 
-/* per file statistic */
 struct mon_bin_stats {
 	u32 queued;
 	u32 dropped;
 };
 
 struct mon_bin_get {
-	struct mon_bin_hdr __user *hdr;	/* Can be 48 bytes or 64. */
+	struct mon_bin_hdr __user *hdr;	
 	void __user *data;
-	size_t alloc;		/* Length of data (can be zero) */
+	size_t alloc;		
 };
 
 struct mon_bin_mfetch {
-	u32 __user *offvec;	/* Vector of events fetched */
-	u32 nfetch;		/* Number of events to fetch (out: fetched) */
-	u32 nflush;		/* Number of events to flush */
+	u32 __user *offvec;	
+	u32 nfetch;		
+	u32 nflush;		
 };
 
 #ifdef CONFIG_COMPAT
@@ -154,46 +114,38 @@ struct mon_bin_mfetch32 {
 };
 #endif
 
-/* Having these two values same prevents wrapping of the mon_bin_hdr */
 #define PKT_ALIGN   64
 #define PKT_SIZE    64
 
-#define PKT_SZ_API0 48	/* API 0 (2.6.20) size */
-#define PKT_SZ_API1 64	/* API 1 size: extra fields */
+#define PKT_SZ_API0 48	
+#define PKT_SZ_API1 64	
 
-#define ISODESC_MAX   128	/* Same number as usbfs allows, 2048 bytes. */
+#define ISODESC_MAX   128	
 
-/* max number of USB bus supported */
 #define MON_BIN_MAX_MINOR 128
 
-/*
- * The buffer: map of used pages.
- */
 struct mon_pgmap {
 	struct page *pg;
-	unsigned char *ptr;	/* XXX just use page_to_virt everywhere? */
+	unsigned char *ptr;	
 };
 
-/*
- * This gets associated with an open file struct.
- */
 struct mon_reader_bin {
-	/* The buffer: one per open. */
-	spinlock_t b_lock;		/* Protect b_cnt, b_in */
-	unsigned int b_size;		/* Current size of the buffer - bytes */
-	unsigned int b_cnt;		/* Bytes used */
-	unsigned int b_in, b_out;	/* Offsets into buffer - bytes */
-	unsigned int b_read;		/* Amount of read data in curr. pkt. */
-	struct mon_pgmap *b_vec;	/* The map array */
-	wait_queue_head_t b_wait;	/* Wait for data here */
+	
+	spinlock_t b_lock;		
+	unsigned int b_size;		
+	unsigned int b_cnt;		
+	unsigned int b_in, b_out;	
+	unsigned int b_read;		
+	struct mon_pgmap *b_vec;	
+	wait_queue_head_t b_wait;	
 
-	struct mutex fetch_lock;	/* Protect b_read, b_out */
+	struct mutex fetch_lock;	
 	int mmap_active;
 
-	/* A list of these is needed for "bus 0". Some time later. */
+	
 	struct mon_reader r;
 
-	/* Stats */
+	
 	unsigned int cnt_lost;
 };
 
@@ -220,9 +172,6 @@ static int mon_bin_wait_event(struct file *file, struct mon_reader_bin *rp);
 static int mon_alloc_buff(struct mon_pgmap *map, int npages);
 static void mon_free_buff(struct mon_pgmap *map, int npages);
 
-/*
- * This is a "chunked memcpy". It does not manipulate any counters.
- */
 static unsigned int mon_copy_to_buff(const struct mon_reader_bin *this,
     unsigned int off, const unsigned char *from, unsigned int length)
 {
@@ -231,17 +180,11 @@ static unsigned int mon_copy_to_buff(const struct mon_reader_bin *this,
 	unsigned int in_page;
 
 	while (length) {
-		/*
-		 * Determine step_len.
-		 */
 		step_len = length;
 		in_page = CHUNK_SIZE - (off & (CHUNK_SIZE-1));
 		if (in_page < step_len)
 			step_len = in_page;
 
-		/*
-		 * Copy data and advance pointers.
-		 */
 		buf = this->b_vec[off / CHUNK_SIZE].ptr + off % CHUNK_SIZE;
 		memcpy(buf, from, step_len);
 		if ((off += step_len) >= this->b_size) off = 0;
@@ -251,10 +194,6 @@ static unsigned int mon_copy_to_buff(const struct mon_reader_bin *this,
 	return off;
 }
 
-/*
- * This is a little worse than the above because it's "chunked copy_to_user".
- * The return value is an error code, not an offset.
- */
 static int copy_from_buf(const struct mon_reader_bin *this, unsigned int off,
     char __user *to, int length)
 {
@@ -263,17 +202,11 @@ static int copy_from_buf(const struct mon_reader_bin *this, unsigned int off,
 	unsigned int in_page;
 
 	while (length) {
-		/*
-		 * Determine step_len.
-		 */
 		step_len = length;
 		in_page = CHUNK_SIZE - (off & (CHUNK_SIZE-1));
 		if (in_page < step_len)
 			step_len = in_page;
 
-		/*
-		 * Copy data and advance pointers.
-		 */
 		buf = this->b_vec[off / CHUNK_SIZE].ptr + off % CHUNK_SIZE;
 		if (copy_to_user(to, buf, step_len))
 			return -EINVAL;
@@ -284,11 +217,6 @@ static int copy_from_buf(const struct mon_reader_bin *this, unsigned int off,
 	return 0;
 }
 
-/*
- * Allocate an (aligned) area in the buffer.
- * This is called under b_lock.
- * Returns ~0 on failure.
- */
 static unsigned int mon_buff_area_alloc(struct mon_reader_bin *rp,
     unsigned int size)
 {
@@ -304,16 +232,6 @@ static unsigned int mon_buff_area_alloc(struct mon_reader_bin *rp,
 	return offset;
 }
 
-/*
- * This is the same thing as mon_buff_area_alloc, only it does not allow
- * buffers to wrap. This is needed by applications which pass references
- * into mmap-ed buffers up their stacks (libpcap can do that).
- *
- * Currently, we always have the header stuck with the data, although
- * it is not strictly speaking necessary.
- *
- * When a buffer would wrap, we place a filler packet to mark the space.
- */
 static unsigned int mon_buff_area_alloc_contiguous(struct mon_reader_bin *rp,
     unsigned int size)
 {
@@ -324,11 +242,6 @@ static unsigned int mon_buff_area_alloc_contiguous(struct mon_reader_bin *rp,
 	if (rp->b_cnt + size > rp->b_size)
 		return ~0;
 	if (rp->b_in + size > rp->b_size) {
-		/*
-		 * This would wrap. Find if we still have space after
-		 * skipping to the end of the buffer. If we do, place
-		 * a filler packet and allocate a new packet.
-		 */
 		fill_size = rp->b_size - rp->b_in;
 		if (rp->b_cnt + size + fill_size > rp->b_size)
 			return ~0;
@@ -349,24 +262,16 @@ static unsigned int mon_buff_area_alloc_contiguous(struct mon_reader_bin *rp,
 	return offset;
 }
 
-/*
- * Return a few (kilo-)bytes to the head of the buffer.
- * This is used if a data fetch fails.
- */
 static void mon_buff_area_shrink(struct mon_reader_bin *rp, unsigned int size)
 {
 
-	/* size &= ~(PKT_ALIGN-1);  -- we're called with aligned size */
+	
 	rp->b_cnt -= size;
 	if (rp->b_in < size)
 		rp->b_in += rp->b_size;
 	rp->b_in -= size;
 }
 
-/*
- * This has to be called under both b_lock and fetch_lock, because
- * it accesses both b_cnt and b_out.
- */
 static void mon_buff_area_free(struct mon_reader_bin *rp, unsigned int size)
 {
 
@@ -415,13 +320,13 @@ static unsigned int mon_bin_get_data(const struct mon_reader_bin *rp,
 		length = 0;
 
 	} else {
-		/* If IOMMU coalescing occurred, we cannot trust sg_page */
+		
 		if (urb->transfer_flags & URB_DMA_SG_COMBINED) {
 			*flag = 'D';
 			return length;
 		}
 
-		/* Copy up to the first non-addressable segment */
+		
 		for_each_sg(urb->sg, sg, urb->num_sgs, i) {
 			if (length == 0 || PageHighMem(sg_page(sg)))
 				break;
@@ -437,10 +342,6 @@ static unsigned int mon_bin_get_data(const struct mon_reader_bin *rp,
 	return length;
 }
 
-/*
- * This is the look-ahead pass in case of 'C Zi', when actual_length cannot
- * be used to determine the length of the whole contiguous buffer.
- */
 static unsigned int mon_bin_collate_isodesc(const struct mon_reader_bin *rp,
     struct urb *urb, unsigned int ndesc)
 {
@@ -498,9 +399,6 @@ static void mon_bin_event(struct mon_reader_bin *rp, struct urb *urb,
 
 	spin_lock_irqsave(&rp->b_lock, flags);
 
-	/*
-	 * Find the maximum allowable length, then allocate space.
-	 */
 	urb_length = (ev_type == 'S') ?
 	    urb->transfer_buffer_length : urb->actual_length;
 	length = urb_length;
@@ -520,7 +418,7 @@ static void mon_bin_event(struct mon_reader_bin *rp, struct urb *urb,
 	}
 	lendesc = ndesc*sizeof(struct mon_bin_isodesc);
 
-	/* not an issue unless there's a subtle bug in a HCD somewhere */
+	
 	if (length >= urb->transfer_buffer_length)
 		length = urb->transfer_buffer_length;
 
@@ -532,7 +430,7 @@ static void mon_bin_event(struct mon_reader_bin *rp, struct urb *urb,
 			length = 0;
 			data_tag = '<';
 		}
-		/* Cannot rely on endpoint number in case of control ep.0 */
+		
 		dir = USB_DIR_IN;
 	} else {
 		if (ev_type == 'C') {
@@ -557,9 +455,6 @@ static void mon_bin_event(struct mon_reader_bin *rp, struct urb *urb,
 	ep = MON_OFF2HDR(rp, offset);
 	if ((offset += PKT_SIZE) >= rp->b_size) offset = 0;
 
-	/*
-	 * Fill the allocated area.
-	 */
 	memset(ep, 0, PKT_SIZE);
 	ep->type = ev_type;
 	ep->xfer_type = xfer_to_pipe[usb_endpoint_type(epd)];
@@ -640,7 +535,7 @@ static void mon_bin_error(void *data, struct urb *urb, int error)
 
 	offset = mon_buff_area_alloc(rp, PKT_SIZE);
 	if (offset == ~0) {
-		/* Not incrementing cnt_lost. Just because. */
+		
 		spin_unlock_irqrestore(&rp->b_lock, flags);
 		return;
 	}
@@ -725,11 +620,6 @@ err_alloc:
 	return rc;
 }
 
-/*
- * Extract an event from buffer and copy it to user space.
- * Wait if there is no event ready.
- * Returns zero or error.
- */
 static int mon_bin_get_event(struct file *file, struct mon_reader_bin *rp,
     struct mon_bin_hdr __user *hdr, unsigned int hdrbytes,
     void __user *data, unsigned int nbytes)
@@ -847,9 +737,6 @@ static ssize_t mon_bin_read(struct file *file, char __user *buf,
 		done += step_len;
 	}
 
-	/*
-	 * Check if whole packet was read, and if so, jump to the next one.
-	 */
 	if (rp->b_read >= hdrbytes + ep->len_cap) {
 		spin_lock_irqsave(&rp->b_lock, flags);
 		mon_buff_area_free(rp, PKT_SIZE + ep->len_cap);
@@ -861,10 +748,6 @@ static ssize_t mon_bin_read(struct file *file, char __user *buf,
 	return done;
 }
 
-/*
- * Remove at most nevents from chunked buffer.
- * Returns the number of removed events.
- */
 static int mon_bin_flush(struct mon_reader_bin *rp, unsigned nevents)
 {
 	unsigned long flags;
@@ -886,11 +769,6 @@ static int mon_bin_flush(struct mon_reader_bin *rp, unsigned nevents)
 	return i;
 }
 
-/*
- * Fetch at most max event offsets into the buffer and put them into vec.
- * The events are usually freed later with mon_bin_flush.
- * Return the effective number of events fetched.
- */
 static int mon_bin_fetch(struct file *file, struct mon_reader_bin *rp,
     u32 __user *vec, unsigned int max)
 {
@@ -938,10 +816,6 @@ static int mon_bin_fetch(struct file *file, struct mon_reader_bin *rp,
 	return nevents;
 }
 
-/*
- * Count events. This is almost the same as the above mon_bin_fetch,
- * only we do not store offsets into user vector, and we have no limit.
- */
 static int mon_bin_queued(struct mon_reader_bin *rp)
 {
 	unsigned int cur_out;
@@ -975,12 +849,10 @@ static int mon_bin_queued(struct mon_reader_bin *rp)
 	return nevents;
 }
 
-/*
- */
 static long mon_bin_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct mon_reader_bin *rp = file->private_data;
-	// struct mon_bus* mbus = rp->r.m_bus;
+	
 	int ret = 0;
 	struct mon_bin_hdr *ep;
 	unsigned long flags;
@@ -988,9 +860,6 @@ static long mon_bin_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 	switch (cmd) {
 
 	case MON_IOCQ_URB_LEN:
-		/*
-		 * N.B. This only returns the size of data, without the header.
-		 */
 		spin_lock_irqsave(&rp->b_lock, flags);
 		if (!MON_RING_EMPTY(rp)) {
 			ep = MON_OFF2HDR(rp, rp->b_out);
@@ -1004,12 +873,6 @@ static long mon_bin_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 		break;
 
 	case MON_IOCT_RING_SIZE:
-		/*
-		 * Changing the buffer size will flush it's contents; the new
-		 * buffer is allocated before releasing the old one to be sure
-		 * the device will stay functional also in case of memory
-		 * pressure.
-		 */
 		{
 		int size;
 		struct mon_pgmap *vec;
@@ -1056,7 +919,7 @@ static long mon_bin_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 					    sizeof(struct mon_bin_get)))
 			return -EFAULT;
 
-		if (getb.alloc > 0x10000000)	/* Want to cast to u32 */
+		if (getb.alloc > 0x10000000)	
 			return -EINVAL;
 		ret = mon_bin_get_event(file, rp, getb.hdr,
 		    (cmd == MON_IOCX_GET)? PKT_SZ_API0: PKT_SZ_API1,
@@ -1183,7 +1046,7 @@ static long mon_bin_compat_ioctl(struct file *file,
 	}
 	return -ENOTTY;
 }
-#endif /* CONFIG_COMPAT */
+#endif 
 
 static unsigned int
 mon_bin_poll(struct file *file, struct poll_table_struct *wait)
@@ -1197,15 +1060,11 @@ mon_bin_poll(struct file *file, struct poll_table_struct *wait)
 
 	spin_lock_irqsave(&rp->b_lock, flags);
 	if (!MON_RING_EMPTY(rp))
-		mask |= POLLIN | POLLRDNORM;    /* readable */
+		mask |= POLLIN | POLLRDNORM;    
 	spin_unlock_irqrestore(&rp->b_lock, flags);
 	return mask;
 }
 
-/*
- * open and close: just keep track of how many times the device is
- * mapped, to use the proper memory allocation function.
- */
 static void mon_bin_vma_open(struct vm_area_struct *vma)
 {
 	struct mon_reader_bin *rp = vma->vm_private_data;
@@ -1218,9 +1077,6 @@ static void mon_bin_vma_close(struct vm_area_struct *vma)
 	rp->mmap_active--;
 }
 
-/*
- * Map ring pages to user space.
- */
 static int mon_bin_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
 	struct mon_reader_bin *rp = vma->vm_private_data;
@@ -1245,7 +1101,7 @@ static const struct vm_operations_struct mon_bin_vm_ops = {
 
 static int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
 {
-	/* don't do anything here: "fault" will set up page table entries */
+	
 	vma->vm_ops = &mon_bin_vm_ops;
 	vma->vm_flags |= VM_RESERVED;
 	vma->vm_private_data = filp->private_data;
@@ -1258,7 +1114,7 @@ static const struct file_operations mon_fops_binary = {
 	.open =		mon_bin_open,
 	.llseek =	no_llseek,
 	.read =		mon_bin_read,
-	/* .write =	mon_text_write, */
+	
 	.poll =		mon_bin_poll,
 	.unlocked_ioctl = mon_bin_ioctl,
 #ifdef CONFIG_COMPAT
@@ -1283,7 +1139,7 @@ static int mon_bin_wait_event(struct file *file, struct mon_reader_bin *rp)
 		if (file->f_flags & O_NONBLOCK) {
 			set_current_state(TASK_RUNNING);
 			remove_wait_queue(&rp->b_wait, &waita);
-			return -EWOULDBLOCK; /* Same as EAGAIN in Linux */
+			return -EWOULDBLOCK; 
 		}
 		schedule();
 		if (signal_pending(current)) {

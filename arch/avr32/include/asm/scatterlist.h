@@ -3,4 +3,4 @@
 
 #include <asm-generic/scatterlist.h>
 
-#endif /* __ASM_AVR32_SCATTERLIST_H */
+#endif 

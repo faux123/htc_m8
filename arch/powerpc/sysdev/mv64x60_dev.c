@@ -21,16 +21,12 @@
 
 #include <asm/prom.h>
 
-/* These functions provide the necessary setup for the mv64x60 drivers. */
 
 static struct of_device_id __initdata of_mv64x60_devices[] = {
 	{ .compatible = "marvell,mv64306-devctrl", },
 	{}
 };
 
-/*
- * Create MPSC platform devices
- */
 static int __init mv64x60_mpsc_register_shared_pdev(struct device_node *np)
 {
 	struct platform_device *pdev;
@@ -97,7 +93,7 @@ static int __init mv64x60_mpsc_device_setup(struct device_node *np, int id)
 	int err;
 	int port_number;
 
-	/* only register the shared platform device the first time through */
+	
 	if (id == 0 && (err = mv64x60_mpsc_register_shared_pdev(np)))
 		return err;
 
@@ -137,9 +133,9 @@ static int __init mv64x60_mpsc_device_setup(struct device_node *np, int id)
 
 	memset(&pdata, 0, sizeof(pdata));
 
-	pdata.cache_mgmt = 1; /* All current revs need this set */
+	pdata.cache_mgmt = 1; 
 
-	pdata.max_idle = 40; /* default */
+	pdata.max_idle = 40; 
 	prop = of_get_property(np, "max_idle", NULL);
 	if (prop)
 		pdata.max_idle = *prop;
@@ -148,7 +144,7 @@ static int __init mv64x60_mpsc_device_setup(struct device_node *np, int id)
 	if (prop)
 		pdata.default_baud = *prop;
 
-	/* Default is 8 bits, no parity, no flow control */
+	
 	pdata.default_bits = 8;
 	pdata.default_parity = 'n';
 	pdata.default_flow = 'n';
@@ -173,7 +169,7 @@ static int __init mv64x60_mpsc_device_setup(struct device_node *np, int id)
 	if (prop)
 		pdata.bcr_val = *prop;
 
-	pdata.brg_can_tune = 1; /* All current revs need this set */
+	pdata.brg_can_tune = 1; 
 
 	prop = of_get_property(brg, "clock-src", NULL);
 	if (prop)
@@ -207,9 +203,6 @@ error:
 	return err;
 }
 
-/*
- * Create mv64x60_eth platform devices
- */
 static struct platform_device * __init mv64x60_eth_register_shared_pdev(
 						struct device_node *np, int id)
 {
@@ -320,9 +313,6 @@ error:
 	return err;
 }
 
-/*
- * Create mv64x60_i2c platform devices
- */
 static int __init mv64x60_i2c_device_setup(struct device_node *np, int id)
 {
 	struct resource r[2];
@@ -341,17 +331,17 @@ static int __init mv64x60_i2c_device_setup(struct device_node *np, int id)
 
 	memset(&pdata, 0, sizeof(pdata));
 
-	pdata.freq_m = 8;	/* default */
+	pdata.freq_m = 8;	
 	prop = of_get_property(np, "freq_m", NULL);
 	if (prop)
 		pdata.freq_m = *prop;
 
-	pdata.freq_n = 3;	/* default */
+	pdata.freq_n = 3;	
 	prop = of_get_property(np, "freq_n", NULL);
 	if (prop)
 		pdata.freq_n = *prop;
 
-	pdata.timeout = 1000;				/* default: 1 second */
+	pdata.timeout = 1000;				
 
 	pdev = platform_device_alloc(MV64XXX_I2C_CTLR_NAME, id);
 	if (!pdev)
@@ -376,9 +366,6 @@ error:
 	return err;
 }
 
-/*
- * Create mv64x60_wdt platform devices
- */
 static int __init mv64x60_wdt_device_setup(struct device_node *np, int id)
 {
 	struct resource r;
@@ -393,7 +380,7 @@ static int __init mv64x60_wdt_device_setup(struct device_node *np, int id)
 
 	memset(&pdata, 0, sizeof(pdata));
 
-	pdata.timeout = 10;			/* Default: 10 seconds */
+	pdata.timeout = 10;			
 
 	np = of_get_parent(np);
 	if (!np)
@@ -403,7 +390,7 @@ static int __init mv64x60_wdt_device_setup(struct device_node *np, int id)
 	of_node_put(np);
 	if (!prop)
 		return -ENODEV;
-	pdata.bus_clk = *prop / 1000000; /* wdt driver wants freq in MHz */
+	pdata.bus_clk = *prop / 1000000; 
 
 	pdev = platform_device_alloc(MV64x60_WDT_NAME, id);
 	if (!pdev)
@@ -477,7 +464,7 @@ static int __init mv64x60_device_setup(void)
 					np->full_name, err);
 	}
 
-	/* support up to one watchdog timer */
+	
 	np = of_find_compatible_node(np, NULL, "marvell,mv64360-wdt");
 	if (np) {
 		if ((err = mv64x60_wdt_device_setup(np, id)))
@@ -487,7 +474,7 @@ static int __init mv64x60_device_setup(void)
 		of_node_put(np);
 	}
 
-	/* Now add every node that is on the device bus */
+	
 	for_each_compatible_node(np, NULL, "marvell,mv64360")
 		of_platform_bus_probe(np, of_mv64x60_devices, NULL);
 

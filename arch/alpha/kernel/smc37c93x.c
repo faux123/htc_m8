@@ -1,6 +1,3 @@
-/*
- * SMC 37C93X initialization code
- */
 
 #include <linux/kernel.h>
 
@@ -24,15 +21,12 @@
 #define MB              (1024*KB)
 #define GB              (1024*MB)
 
-/* device "activate" register contents */
 #define DEVICE_ON		1
 #define DEVICE_OFF		0
 
-/* configuration on/off keys */
 #define CONFIG_ON_KEY		0x55
 #define CONFIG_OFF_KEY		0xaa
 
-/* configuration space device definitions */
 #define FDC			0
 #define IDE1			1
 #define IDE2			2
@@ -43,7 +37,6 @@
 #define KYBD			7
 #define AUXIO			8
 
-/* Chip register offsets from base */
 #define CONFIG_CONTROL		0x02
 #define INDEX_ADDRESS		0x03
 #define LOGICAL_DEVICE_NUMBER	0x07
@@ -57,16 +50,14 @@
 #define ADDR_HI			0x60
 #define ADDR_LO			0x61
 #define INTERRUPT_SEL		0x70
-#define INTERRUPT_SEL_2		0x72 /* KYBD/MOUS only */
-#define DMA_CHANNEL_SEL		0x74 /* FDC/PARP only */
+#define INTERRUPT_SEL_2		0x72 
+#define DMA_CHANNEL_SEL		0x74 
 
 #define FDD_MODE_REGISTER	0x90
 #define FDD_OPTION_REGISTER	0x91
 
-/* values that we read back that are expected ... */
 #define VALID_DEVICE_ID		2
 
-/* default device addresses */
 #define KYBD_INTERRUPT		1
 #define MOUS_INTERRUPT		12
 #define COM2_BASE		0x2f8
@@ -99,7 +90,7 @@ static unsigned long __init SMCConfigState(unsigned long baseAddr)
 		devId = inb(dataPort);
 		if (devId == VALID_DEVICE_ID) {
 			outb(DEVICE_REV, indexPort);
-			/* unsigned char devRev = */ inb(dataPort);
+			 inb(dataPort);
 			break;
 		}
 		else
@@ -166,10 +157,10 @@ static void __init SMCEnableKYBD(unsigned long baseAddr)
 	outb(LOGICAL_DEVICE_NUMBER, indexPort);
 	outb(KYBD, dataPort);
 
-	outb(INTERRUPT_SEL, indexPort); /* Primary interrupt select */
+	outb(INTERRUPT_SEL, indexPort); 
 	outb(KYBD_INTERRUPT, dataPort);
 
-	outb(INTERRUPT_SEL_2, indexPort); /* Secondary interrupt select */
+	outb(INTERRUPT_SEL_2, indexPort); 
 	outb(MOUS_INTERRUPT, dataPort);
 
 	outb(ACTIVATE, indexPort);
@@ -192,13 +183,13 @@ static void __init SMCEnableFDC(unsigned long baseAddr)
 	outb(FDD_MODE_REGISTER, indexPort);
 	oldValue = inb(dataPort);
 
-	oldValue |= 0x0E;                   /* Enable burst mode */
+	oldValue |= 0x0E;                   
 	outb(oldValue, dataPort);
 
-	outb(INTERRUPT_SEL, indexPort);	    /* Primary interrupt select */
+	outb(INTERRUPT_SEL, indexPort);	    
 	outb(0x06, dataPort );
 
-	outb(DMA_CHANNEL_SEL, indexPort);   /* DMA channel select */
+	outb(DMA_CHANNEL_SEL, indexPort);   
 	outb(0x02, dataPort);
 
 	outb(ACTIVATE, indexPort);
@@ -251,8 +242,6 @@ int __init SMC93x_Init(void)
 		DBG_DEVS(("SMC FDC37C93X: SER2 done\n"));
 		SMCEnableDevice(SMCUltraBase, PARP, PARP_BASE, PARP_INTERRUPT);
 		DBG_DEVS(("SMC FDC37C93X: PARP done\n"));
-		/* On PC164, IDE on the SMC is not enabled;
-		   CMD646 (PCI) on MB */
 		SMCEnableKYBD(SMCUltraBase);
 		DBG_DEVS(("SMC FDC37C93X: KYB done\n"));
 		SMCEnableFDC(SMCUltraBase);

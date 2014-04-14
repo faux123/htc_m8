@@ -1,8 +1,6 @@
 #ifndef _M68K_SEGMENT_H
 #define _M68K_SEGMENT_H
 
-/* define constants */
-/* Address spaces (FC0-FC2) */
 #define USER_DATA     (1)
 #ifndef __USER_DS
 #define __USER_DS     (USER_DATA)
@@ -24,9 +22,6 @@ typedef struct {
 #define MAKE_MM_SEG(s)	((mm_segment_t) { (s) })
 
 #ifdef CONFIG_CPU_HAS_ADDRESS_SPACES
-/*
- * Get/set the SFC/DFC registers for MOVES instructions
- */
 #define USER_DS		MAKE_MM_SEG(__USER_DS)
 #define KERNEL_DS	MAKE_MM_SEG(__KERNEL_DS)
 
@@ -41,12 +36,12 @@ static inline void set_fs(mm_segment_t val)
 {
 	__asm__ __volatile__ ("movec %0,%/sfc\n\t"
 			      "movec %0,%/dfc\n\t"
-			      : /* no outputs */ : "r" (val.seg) : "memory");
+			      :  : "r" (val.seg) : "memory");
 }
 
 static inline mm_segment_t get_ds(void)
 {
-    /* return the supervisor data space code */
+    
     return KERNEL_DS;
 }
 
@@ -60,6 +55,6 @@ static inline mm_segment_t get_ds(void)
 
 #define segment_eq(a,b)	((a).seg == (b).seg)
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-#endif /* _M68K_SEGMENT_H */
+#endif 

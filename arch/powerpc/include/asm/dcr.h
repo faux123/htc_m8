@@ -32,7 +32,6 @@
 #endif
 
 
-/* Indirection layer for providing both NATIVE and MMIO support. */
 
 #if defined(CONFIG_PPC_DCR_NATIVE) && defined(CONFIG_PPC_DCR_MMIO)
 
@@ -62,17 +61,14 @@ typedef dcr_host_mmio_t dcr_host_t;
 #define dcr_write(host, dcr_n, value) dcr_write_mmio(host, dcr_n, value)
 #endif
 
-#endif /* defined(CONFIG_PPC_DCR_NATIVE) && defined(CONFIG_PPC_DCR_MMIO) */
+#endif 
 
-/*
- * additional helpers to read the DCR * base from the device-tree
- */
 struct device_node;
 extern unsigned int dcr_resource_start(const struct device_node *np,
 				       unsigned int index);
 extern unsigned int dcr_resource_len(const struct device_node *np,
 				     unsigned int index);
-#endif /* CONFIG_PPC_DCR */
-#endif /* __ASSEMBLY__ */
-#endif /* __KERNEL__ */
-#endif /* _ASM_POWERPC_DCR_H */
+#endif 
+#endif 
+#endif 
+#endif 

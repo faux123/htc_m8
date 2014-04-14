@@ -97,9 +97,6 @@ int crypto4xx_decrypt(struct ablkcipher_request *req)
 				  get_dynamic_sa_iv_size(ctx));
 }
 
-/**
- * AES Functions
- */
 static int crypto4xx_setkey_aes(struct crypto_ablkcipher *cipher,
 				const u8 *key,
 				unsigned int keylen,
@@ -118,7 +115,7 @@ static int crypto4xx_setkey_aes(struct crypto_ablkcipher *cipher,
 		return -EINVAL;
 	}
 
-	/* Create SA */
+	
 	if (ctx->sa_in_dma_addr || ctx->sa_out_dma_addr)
 		crypto4xx_free_sa(ctx);
 
@@ -133,7 +130,7 @@ static int crypto4xx_setkey_aes(struct crypto_ablkcipher *cipher,
 			return rc;
 		}
 	}
-	/* Setup SA */
+	
 	sa = (struct dynamic_sa_ctl *) ctx->sa_in;
 	ctx->hash_final = 0;
 
@@ -173,9 +170,6 @@ int crypto4xx_setkey_aes_cbc(struct crypto_ablkcipher *cipher,
 				    CRYPTO_FEEDBACK_MODE_NO_FB);
 }
 
-/**
- * HASH SHA1 Functions
- */
 static int crypto4xx_hash_alg_init(struct crypto_tfm *tfm,
 				   unsigned int sa_len,
 				   unsigned char ha,
@@ -192,7 +186,7 @@ static int crypto4xx_hash_alg_init(struct crypto_tfm *tfm,
 	ctx->is_hash = 1;
 	ctx->hash_final = 0;
 
-	/* Create SA */
+	
 	if (ctx->sa_in_dma_addr || ctx->sa_out_dma_addr)
 		crypto4xx_free_sa(ctx);
 
@@ -224,7 +218,7 @@ static int crypto4xx_hash_alg_init(struct crypto_tfm *tfm,
 	ctx->direction = DIR_INBOUND;
 	sa->sa_contents = SA_HASH160_CONTENTS;
 	sa_in = (struct dynamic_sa_hash160 *) ctx->sa_in;
-	/* Need to zero hash digest in SA */
+	
 	memset(sa_in->inner_digest, 0, sizeof(sa_in->inner_digest));
 	memset(sa_in->outer_digest, 0, sizeof(sa_in->outer_digest));
 	sa_in->state_ptr = ctx->state_record_dma_addr;
@@ -282,9 +276,6 @@ int crypto4xx_hash_digest(struct ahash_request *req)
 				  req->nbytes, NULL, 0);
 }
 
-/**
- * SHA1 Algorithm
- */
 int crypto4xx_sha1_alg_init(struct crypto_tfm *tfm)
 {
 	return crypto4xx_hash_alg_init(tfm, SA_HASH160_LEN, SA_HASH_ALG_SHA1,

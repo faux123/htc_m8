@@ -28,9 +28,6 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 
-/*
- * UCB1400 AC-link registers
- */
 
 #define UCB_IO_DATA		0x5a
 #define UCB_IO_DIR		0x5c

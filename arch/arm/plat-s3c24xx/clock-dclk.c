@@ -22,7 +22,6 @@
 #include <plat/clock.h>
 #include <plat/cpu.h>
 
-/* clocks that could be registered by external code */
 
 static int s3c24xx_dclk_enable(struct clk *clk, int enable)
 {
@@ -127,7 +126,7 @@ static int s3c24xx_clkout_setparent(struct clk *clk, struct clk *parent)
 	unsigned long mask;
 	unsigned long source;
 
-	/* calculate the MISCCR setting for the clock */
+	
 
 	if (parent == &clk_mpll)
 		source = S3C2410_MISCCR_CLK0_MPLL;
@@ -159,7 +158,6 @@ static int s3c24xx_clkout_setparent(struct clk *clk, struct clk *parent)
 	return 0;
 }
 
-/* external clock definitions */
 
 static struct clk_ops dclk_ops = {
 	.set_parent	= s3c24xx_dclk_setparent,

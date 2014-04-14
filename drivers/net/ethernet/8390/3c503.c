@@ -1,4 +1,3 @@
-/* 3c503.c: A shared-memory NS8390 ethernet driver for linux. */
 /*
     Written 1992-94 by Donald Becker.
 
@@ -63,7 +62,6 @@ static const char version[] =
 static int el2_pio_probe(struct net_device *dev);
 static int el2_probe1(struct net_device *dev, int ioaddr);
 
-/* A zero-terminated list of I/O addresses to be probed in PIO mode. */
 static unsigned int netcard_portlist[] __initdata =
 	{ 0x300,0x310,0x330,0x350,0x250,0x280,0x2a0,0x2e0,0};
 
@@ -82,22 +80,15 @@ static void el2_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr,
 static const struct ethtool_ops netdev_ethtool_ops;
 
 
-/* This routine probes for a memory-mapped 3c503 board by looking for
-   the "location register" at the end of the jumpered boot PROM space.
-   This works even if a PROM isn't there.
-
-   If the ethercard isn't found there is an optional probe for
-   ethercard jumpered to programmed-I/O mode.
-   */
 static int __init do_el2_probe(struct net_device *dev)
 {
     int *addr, addrs[] = { 0xddffe, 0xd9ffe, 0xcdffe, 0xc9ffe, 0};
     int base_addr = dev->base_addr;
     int irq = dev->irq;
 
-    if (base_addr > 0x1ff)	/* Check a single specified location. */
+    if (base_addr > 0x1ff)	
 	return el2_probe1(dev, base_addr);
-    else if (base_addr != 0)		/* Don't probe at all. */
+    else if (base_addr != 0)		
 	return -ENXIO;
 
     for (addr = addrs; *addr; addr++) {
@@ -123,8 +114,6 @@ static int __init do_el2_probe(struct net_device *dev)
 #endif
 }
 
-/*  Try all of the locations that aren't obviously empty.  This touches
-    a lot of locations, and is much riskier than the code above. */
 static int __init
 el2_pio_probe(struct net_device *dev)
 {
@@ -132,9 +121,9 @@ el2_pio_probe(struct net_device *dev)
     int base_addr = dev->base_addr;
     int irq = dev->irq;
 
-    if (base_addr > 0x1ff)	/* Check a single specified location. */
+    if (base_addr > 0x1ff)	
 	return el2_probe1(dev, base_addr);
-    else if (base_addr != 0)	/* Don't probe at all. */
+    else if (base_addr != 0)	
 	return -ENXIO;
 
     for (i = 0; netcard_portlist[i]; i++) {
@@ -184,9 +173,6 @@ static const struct net_device_ops el2_netdev_ops = {
 #endif
 };
 
-/* Probe for the Etherlink II card at I/O port base IOADDR,
-   returning non-zero on success.  If found, set the station
-   address and memory parameters in DEVICE. */
 static int __init
 el2_probe1(struct net_device *dev, int ioaddr)
 {
@@ -202,32 +188,28 @@ el2_probe1(struct net_device *dev, int ioaddr)
 	goto out;
     }
 
-    /* Reset and/or avoid any lurking NE2000 */
+    
     if (inb(ioaddr + 0x408) == 0xff) {
     	mdelay(1);
 	retval = -ENODEV;
 	goto out1;
     }
 
-    /* We verify that it's a 3C503 board by checking the first three octets
-       of its ethernet address. */
     iobase_reg = inb(ioaddr+0x403);
     membase_reg = inb(ioaddr+0x404);
-    /* ASIC location registers should be 0 or have only a single bit set. */
+    
     if ((iobase_reg  & (iobase_reg - 1)) ||
 	(membase_reg & (membase_reg - 1))) {
 	retval = -ENODEV;
 	goto out1;
     }
     saved_406 = inb_p(ioaddr + 0x406);
-    outb_p(ECNTRL_RESET|ECNTRL_THIN, ioaddr + 0x406); /* Reset it... */
+    outb_p(ECNTRL_RESET|ECNTRL_THIN, ioaddr + 0x406); 
     outb_p(ECNTRL_THIN, ioaddr + 0x406);
-    /* Map the station addr PROM into the lower I/O ports. We now check
-       for both the old and new 3Com prefix */
     outb(ECNTRL_SAPROM|ECNTRL_THIN, ioaddr + 0x406);
     vendor_id = inb(ioaddr)*0x10000 + inb(ioaddr + 1)*0x100 + inb(ioaddr + 2);
     if ((vendor_id != OLD_3COM_ID) && (vendor_id != NEW_3COM_ID)) {
-	/* Restore the register we frobbed. */
+	
 	outb(saved_406, ioaddr + 0x406);
 	retval = -ENODEV;
 	goto out1;
@@ -240,30 +222,26 @@ el2_probe1(struct net_device *dev, int ioaddr)
 
     pr_info("%s: 3c503 at i/o base %#3x, node ", dev->name, ioaddr);
 
-    /* Retrieve and print the ethernet address. */
+    
     for (i = 0; i < 6; i++)
 	dev->dev_addr[i] = inb(ioaddr + i);
     pr_cont("%pM", dev->dev_addr);
 
-    /* Map the 8390 back into the window. */
+    
     outb(ECNTRL_THIN, ioaddr + 0x406);
 
-    /* Check for EL2/16 as described in tech. man. */
+    
     outb_p(E8390_PAGE0, ioaddr + E8390_CMD);
     outb_p(0, ioaddr + EN0_DCFG);
     outb_p(E8390_PAGE2, ioaddr + E8390_CMD);
     wordlength = inb_p(ioaddr + EN0_DCFG) & ENDCFG_WTS;
     outb_p(E8390_PAGE0, ioaddr + E8390_CMD);
 
-    /* Probe for, turn on and clear the board's shared memory. */
+    
     if (ei_debug > 2)
 	pr_cont(" memory jumpers %2.2x ", membase_reg);
-    outb(EGACFR_NORM, ioaddr + 0x405);	/* Enable RAM */
+    outb(EGACFR_NORM, ioaddr + 0x405);	
 
-    /* This should be probed for (or set via an ioctl()) at run-time.
-       Right now we use a sleazy hack to pass in the interface number
-       at boot-time via the low bits of the mem_end field.  That value is
-       unused, and the low bits would be discarded even if it was used. */
 #if defined(EI8390_THICK) || defined(EL2_AUI)
     ei_status.interface_num = 1;
 #else
@@ -282,10 +260,7 @@ el2_probe1(struct net_device *dev, int ioaddr)
 	ei_status.mem = ioremap(dev->mem_start, EL2_MEMSIZE);
 
 #ifdef EL2MEMTEST
-	/* This has never found an error, but someone might care.
-	   Note that it only tests the 2nd 8kB on 16kB 3c503/16
-	   cards between card addr. 0x2000 and 0x3fff. */
-	{			/* Check the card's memory. */
+	{			
 	    void __iomem *mem_base = ei_status.mem;
 	    unsigned int test_val = 0xbbadf00d;
 	    writel(0xba5eba5e, mem_base);
@@ -304,12 +279,12 @@ el2_probe1(struct net_device *dev, int ioaddr)
 		writel(0, mem_base + i);
 	    }
 	}
-#endif  /* EL2MEMTEST */
+#endif  
 
 	if (dev->mem_start)
 		dev->mem_end = dev->mem_start + EL2_MEMSIZE;
 
-	if (wordlength) {	/* No Tx pages to skip over to get to Rx */
+	if (wordlength) {	
 		ei_status.priv = 0;
 		ei_status.name = "3c503/16";
 	} else {
@@ -318,13 +293,6 @@ el2_probe1(struct net_device *dev, int ioaddr)
 	}
     }
 
-    /*
-	Divide up the memory on the card. This is the same regardless of
-	whether shared-mem or PIO is used. For 16 bit cards (16kB RAM),
-	we use the entire 8k of bank1 for an Rx ring. We only use 3k
-	of the bank0 for 2 full size Tx packet slots. For 8 bit cards,
-	(8kB RAM) we use 3kB of bank1 for two Tx slots, and the remaining
-	5kB for an Rx ring.  */
 
     if (wordlength) {
 	ei_status.tx_start_page = EL2_MB0_START_PG;
@@ -334,7 +302,7 @@ el2_probe1(struct net_device *dev, int ioaddr)
 	ei_status.rx_start_page = EL2_MB1_START_PG + TX_PAGES;
     }
 
-    /* Finish setting the board's parameters. */
+    
     ei_status.stop_page = EL2_MB1_STOP_PG;
     ei_status.word16 = wordlength;
     ei_status.reset_8390 = el2_reset_8390;
@@ -395,7 +363,7 @@ el2_open(struct net_device *dev)
 	static const int irqlist[] = {5, 9, 3, 4, 0};
 	const int *irqp = irqlist;
 
-	outb(EGACFR_NORM, E33G_GACFR);	/* Enable RAM and interrupts. */
+	outb(EGACFR_NORM, E33G_GACFR);	
 	do {
 		bool seen;
 
@@ -406,7 +374,7 @@ el2_open(struct net_device *dev)
 		if (retval < 0)
 			goto err_disable;
 
-		/* Twinkle the interrupt, and check if it's seen. */
+		
 		seen = false;
 		smp_wmb();
 		outb_p(0x04 << ((*irqp == 9) ? 2 : *irqp), E33G_IDCFR);
@@ -427,7 +395,7 @@ el2_open(struct net_device *dev)
 
 	if (*irqp == 0) {
 	err_disable:
-	    outb(EGACFR_IRQOFF, E33G_GACFR);	/* disable interrupts. */
+	    outb(EGACFR_IRQOFF, E33G_GACFR);	
 	    return -EAGAIN;
 	}
     } else {
@@ -446,16 +414,12 @@ el2_close(struct net_device *dev)
 {
     free_irq(dev->irq, dev);
     dev->irq = ei_status.saved_irq;
-    outb(EGACFR_IRQOFF, E33G_GACFR);	/* disable interrupts. */
+    outb(EGACFR_IRQOFF, E33G_GACFR);	
 
     eip_close(dev);
     return 0;
 }
 
-/* This is called whenever we have a unrecoverable failure:
-       transmit timeout
-       Bad ring buffer packet header
- */
 static void
 el2_reset_8390(struct net_device *dev)
 {
@@ -472,64 +436,55 @@ el2_reset_8390(struct net_device *dev)
 	pr_cont("done\n");
 }
 
-/* Initialize the 3c503 GA registers after a reset. */
 static void
 el2_init_card(struct net_device *dev)
 {
-    /* Unmap the station PROM and select the DIX or BNC connector. */
+    
     outb_p(ei_status.interface_num==0 ? ECNTRL_THIN : ECNTRL_AUI, E33G_CNTRL);
 
-    /* Set ASIC copy of rx's first and last+1 buffer pages */
-    /* These must be the same as in the 8390. */
+    
+    
     outb(ei_status.rx_start_page, E33G_STARTPG);
     outb(ei_status.stop_page,  E33G_STOPPG);
 
-    /* Point the vector pointer registers somewhere ?harmless?. */
-    outb(0xff, E33G_VP2);	/* Point at the ROM restart location 0xffff0 */
+    
+    outb(0xff, E33G_VP2);	
     outb(0xff, E33G_VP1);
     outb(0x00, E33G_VP0);
-    /* Turn off all interrupts until we're opened. */
+    
     outb_p(0x00,  dev->base_addr + EN0_IMR);
-    /* Enable IRQs iff started. */
+    
     outb(EGACFR_NORM, E33G_GACFR);
 
-    /* Set the interrupt line. */
+    
     outb_p((0x04 << (dev->irq == 9 ? 2 : dev->irq)), E33G_IDCFR);
-    outb_p((WRD_COUNT << 1), E33G_DRQCNT);	/* Set burst size to 8 */
-    outb_p(0x20, E33G_DMAAH);	/* Put a valid addr in the GA DMA */
+    outb_p((WRD_COUNT << 1), E33G_DRQCNT);	
+    outb_p(0x20, E33G_DMAAH);	
     outb_p(0x00, E33G_DMAAL);
-    return;			/* We always succeed */
+    return;			
 }
 
-/*
- * Either use the shared memory (if enabled on the board) or put the packet
- * out through the ASIC FIFO.
- */
 static void
 el2_block_output(struct net_device *dev, int count,
 		 const unsigned char *buf, int start_page)
 {
     unsigned short int *wrd;
-    int boguscount;		/* timeout counter */
-    unsigned short word;	/* temporary for better machine code */
+    int boguscount;		
+    unsigned short word;	
     void __iomem *base = ei_status.mem;
 
-    if (ei_status.word16)      /* Tx packets go into bank 0 on EL2/16 card */
+    if (ei_status.word16)      
 	outb(EGACFR_RSEL|EGACFR_TCM, E33G_GACFR);
     else
 	outb(EGACFR_NORM, E33G_GACFR);
 
-    if (base) {	/* Shared memory transfer */
+    if (base) {	
 	memcpy_toio(base + ((start_page - ei_status.tx_start_page) << 8),
 			buf, count);
-	outb(EGACFR_NORM, E33G_GACFR);	/* Back to bank1 in case on bank0 */
+	outb(EGACFR_NORM, E33G_GACFR);	
 	return;
     }
 
-/*
- *  No shared memory, put the packet out the other way.
- *  Set up then start the internal memory transfer to Tx Start Page
- */
 
     word = (unsigned short)start_page;
     outb(word&0xFF, E33G_DMAAH);
@@ -538,14 +493,6 @@ el2_block_output(struct net_device *dev, int count,
     outb_p((ei_status.interface_num ? ECNTRL_AUI : ECNTRL_THIN ) | ECNTRL_OUTPUT
 	   | ECNTRL_START, E33G_CNTRL);
 
-/*
- *  Here I am going to write data to the FIFO as quickly as possible.
- *  Note that E33G_FIFOH is defined incorrectly. It is really
- *  E33G_FIFOL, the lowest port address for both the byte and
- *  word write. Variable 'count' is NOT checked. Caller must supply a
- *  valid count. Note that I may write a harmless extra byte to the
- *  8390 if the byte-count was not even.
- */
     wrd = (unsigned short int *) buf;
     count  = (count + 1) >> 1;
     for(;;)
@@ -576,7 +523,6 @@ el2_block_output(struct net_device *dev, int count,
     outb_p(ei_status.interface_num==0 ? ECNTRL_THIN : ECNTRL_AUI, E33G_CNTRL);
 }
 
-/* Read the 4 byte, page aligned 8390 specific header. */
 static void
 el2_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr, int ring_page)
 {
@@ -584,16 +530,13 @@ el2_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr, int ring_pag
     void __iomem *base = ei_status.mem;
     unsigned short word;
 
-    if (base) {       /* Use the shared memory. */
+    if (base) {       
 	void __iomem *hdr_start = base + ((ring_page - EL2_MB1_START_PG)<<8);
 	memcpy_fromio(hdr, hdr_start, sizeof(struct e8390_pkt_hdr));
 	hdr->count = le16_to_cpu(hdr->count);
 	return;
     }
 
-/*
- *  No shared memory, use programmed I/O.
- */
 
     word = (unsigned short)ring_page;
     outb(word&0xFF, E33G_DMAAH);
@@ -626,11 +569,11 @@ el2_block_input(struct net_device *dev, int count, struct sk_buff *skb, int ring
     unsigned short int *buf;
     unsigned short word;
 
-    /* Maybe enable shared memory just be to be safe... nahh.*/
-    if (base) {	/* Use the shared memory. */
+    
+    if (base) {	
 	ring_offset -= (EL2_MB1_START_PG<<8);
 	if (ring_offset + count > EL2_MEMSIZE) {
-	    /* We must wrap the input move. */
+	    
 	    int semi_count = EL2_MEMSIZE - ring_offset;
 	    memcpy_fromio(skb->data, base + ring_offset, semi_count);
 	    count -= semi_count;
@@ -641,9 +584,6 @@ el2_block_input(struct net_device *dev, int count, struct sk_buff *skb, int ring
 	return;
     }
 
-/*
- *  No shared memory, use programmed I/O.
- */
     word = (unsigned short) ring_offset;
     outb(word>>8, E33G_DMAAH);
     outb(word&0xFF, E33G_DMAAL);
@@ -651,15 +591,6 @@ el2_block_input(struct net_device *dev, int count, struct sk_buff *skb, int ring
     outb_p((ei_status.interface_num == 0 ? ECNTRL_THIN : ECNTRL_AUI) | ECNTRL_INPUT
 	   | ECNTRL_START, E33G_CNTRL);
 
-/*
- *  Here I also try to get data as fast as possible. I am betting that I
- *  can read one extra byte without clobbering anything in the kernel because
- *  this would only occur on an odd byte-count and allocation of skb->data
- *  is word-aligned. Variable 'count' is NOT checked. Caller must check
- *  for a valid count.
- *  [This is currently quite safe.... but if one day the 3c503 explodes
- *   you know where to come looking ;)]
- */
 
     buf =  (unsigned short int *) skb->data;
     count =  (count + 1) >> 1;
@@ -705,12 +636,12 @@ static const struct ethtool_ops netdev_ethtool_ops = {
 };
 
 #ifdef MODULE
-#define MAX_EL2_CARDS	4	/* Max number of EL2 cards per module */
+#define MAX_EL2_CARDS	4	
 
 static struct net_device *dev_el2[MAX_EL2_CARDS];
 static int io[MAX_EL2_CARDS];
 static int irq[MAX_EL2_CARDS];
-static int xcvr[MAX_EL2_CARDS];	/* choose int. or ext. xcvr */
+static int xcvr[MAX_EL2_CARDS];	
 module_param_array(io, int, NULL, 0);
 module_param_array(irq, int, NULL, 0);
 module_param_array(xcvr, int, NULL, 0);
@@ -720,8 +651,6 @@ MODULE_PARM_DESC(xcvr, "transceiver(s) (0=internal, 1=external)");
 MODULE_DESCRIPTION("3Com ISA EtherLink II, II/16 (3c503, 3c503/16) driver");
 MODULE_LICENSE("GPL");
 
-/* This is set up so that only a single autoprobe takes place per call.
-ISA device autoprobes on a running machine are not recommended. */
 int __init
 init_module(void)
 {
@@ -730,7 +659,7 @@ init_module(void)
 
 	for (this_dev = 0; this_dev < MAX_EL2_CARDS; this_dev++) {
 		if (io[this_dev] == 0)  {
-			if (this_dev != 0) break; /* only autoprobe 1st one */
+			if (this_dev != 0) break; 
 			pr_notice("3c503.c: Presently autoprobing (not recommended) for a single card.\n");
 		}
 		dev = alloc_eip_netdev();
@@ -738,7 +667,7 @@ init_module(void)
 			break;
 		dev->irq = irq[this_dev];
 		dev->base_addr = io[this_dev];
-		dev->mem_end = xcvr[this_dev];	/* low 4bits = xcvr sel. */
+		dev->mem_end = xcvr[this_dev];	
 		if (do_el2_probe(dev) == 0) {
 			dev_el2[found++] = dev;
 			continue;
@@ -754,7 +683,7 @@ init_module(void)
 
 static void cleanup_card(struct net_device *dev)
 {
-	/* NB: el2_close() handles free_irq */
+	
 	release_region(dev->base_addr, EL2_IO_EXTENT);
 	if (ei_status.mem)
 		iounmap(ei_status.mem);
@@ -774,4 +703,4 @@ cleanup_module(void)
 		}
 	}
 }
-#endif /* MODULE */
+#endif 

@@ -61,7 +61,7 @@ do {							\
 		: "m" (__m(addr))			\
 	);						\
 } while (0)
-#endif /* CONFIG_MMU */
+#endif 
 
 extern void __get_user_unknown(void);
 
@@ -115,12 +115,12 @@ do {								\
 do {							\
 	__asm__ __volatile__ (				\
 		"mov." insn "	%0, %1\n\t"		\
-		: /* no outputs */			\
+		: 			\
 		: "r" (x), "m" (__m(addr))		\
 		: "memory"				\
 	);						\
 } while (0)
-#endif /* CONFIG_MMU */
+#endif 
 
 #if defined(CONFIG_CPU_LITTLE_ENDIAN)
 #define __put_user_u64(val,addr,retval) \
@@ -209,10 +209,6 @@ __strncpy_from_user(unsigned long __dest, unsigned long __user __src, int __coun
 	return res;
 }
 
-/*
- * Return the size of a string (including the ending 0 even when we have
- * exceeded the maximum string length).
- */
 static inline long __strnlen_user(const char __user *__s, long __n)
 {
 	unsigned long res;
@@ -245,4 +241,4 @@ static inline long __strnlen_user(const char __user *__s, long __n)
 	return res;
 }
 
-#endif /* __ASM_SH_UACCESS_32_H */
+#endif 

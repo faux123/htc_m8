@@ -13,7 +13,7 @@
 
 #ifdef CONFIG_MMU
 
-#include <linux/kernel.h>	/* For min/max macros */
+#include <linux/kernel.h>	
 #include <linux/highmem.h>
 #include <asm/setup.h>
 #include <asm/io.h>
@@ -23,12 +23,6 @@
 
 #define PGDIR_ORDER	0
 
-/*
- * This is handled very differently on MicroBlaze since out page tables
- * are all 0's and I want to be able to use these zero'd pages elsewhere
- * as well - it gives us quite a speedup.
- * -- Cort
- */
 extern struct pgtable_cache_struct {
 	unsigned long *pgd_cache;
 	unsigned long *pte_cache;
@@ -40,11 +34,11 @@ extern struct pgtable_cache_struct {
 #define pte_quicklist		(quicklists.pte_cache)
 #define pgtable_cache_size	(quicklists.pgtable_cache_sz)
 
-extern unsigned long *zero_cache; /* head linked list of pre-zero'd pages */
-extern atomic_t zero_sz; /* # currently pre-zero'd pages */
-extern atomic_t zeropage_hits; /* # zero'd pages request that we've done */
-extern atomic_t zeropage_calls; /* # zero'd pages request that've been made */
-extern atomic_t zerototal; /* # pages zero'd over time */
+extern unsigned long *zero_cache; 
+extern atomic_t zero_sz; 
+extern atomic_t zeropage_hits; 
+extern atomic_t zeropage_calls; 
+extern atomic_t zerototal; 
 
 #define zero_quicklist		(zero_cache)
 #define zero_cache_sz	 	(zero_sz)
@@ -52,10 +46,6 @@ extern atomic_t zerototal; /* # pages zero'd over time */
 #define zero_cache_hits		(zeropage_hits)
 #define zero_cache_total	(zerototal)
 
-/*
- * return a pre-zero'd page from the list,
- * return NULL if none available -- Cort
- */
 extern unsigned long get_zero_page_fast(void);
 
 extern void __bad_pte(pmd_t *pmd);
@@ -101,10 +91,6 @@ extern inline void free_pgd_slow(pgd_t *pgd)
 
 #define pmd_pgtable(pmd)	pmd_page(pmd)
 
-/*
- * We don't have any real pmd's, and this code never triggers because
- * the pgd will always be present..
- */
 #define pmd_alloc_one_fast(mm, address)	({ BUG(); ((pmd_t *)1); })
 #define pmd_alloc_one(mm, address)	({ BUG(); ((pmd_t *)2); })
 
@@ -171,10 +157,6 @@ extern inline void pte_free(struct mm_struct *mm, struct page *ptepage)
 #define pmd_populate_kernel(mm, pmd, pte) \
 		(pmd_val(*(pmd)) = (unsigned long) (pte))
 
-/*
- * We don't have any real pmd's, and this code never triggers because
- * the pgd will always be present..
- */
 #define pmd_alloc_one(mm, address)	({ BUG(); ((pmd_t *)2); })
 #define pmd_free(mm, x)			do { } while (0)
 #define __pmd_free_tlb(tlb, x, addr)	pmd_free((tlb)->mm, x)
@@ -182,8 +164,8 @@ extern inline void pte_free(struct mm_struct *mm, struct page *ptepage)
 
 extern int do_check_pgt_cache(int, int);
 
-#endif /* CONFIG_MMU */
+#endif 
 
 #define check_pgt_cache()		do { } while (0)
 
-#endif /* _ASM_MICROBLAZE_PGALLOC_H */
+#endif 

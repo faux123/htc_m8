@@ -19,7 +19,6 @@
 #ifndef PROCPRIV_
 #define PROCPRIV_
 
-/* RM PROC Object */
 struct proc_object;
 
-#endif /* PROCPRIV_ */
+#endif 

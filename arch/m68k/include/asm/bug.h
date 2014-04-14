@@ -23,7 +23,7 @@
 
 #define HAVE_ARCH_BUG
 #endif
-#endif /* CONFIG_MMU */
+#endif 
 
 #include <asm-generic/bug.h>
 

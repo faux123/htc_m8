@@ -10,4 +10,4 @@
 
 #include <asm-generic/ioctl.h>
 
-#endif	/* _ASM_POWERPC_IOCTL_H */
+#endif	

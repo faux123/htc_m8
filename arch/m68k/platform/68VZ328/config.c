@@ -1,4 +1,3 @@
-/***************************************************************************/
 
 /*
  *  linux/arch/m68knommu/platform/68VZ328/config.c
@@ -12,7 +11,6 @@
  * for more details.
  */
 
-/***************************************************************************/
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -31,13 +29,9 @@
 #include "bootlogo.h"
 #endif
 
-/***************************************************************************/
 
 int m68328_hwclk(int set, struct rtc_time *t);
 
-/***************************************************************************/
-/*                        Init Drangon Engine hardware                     */
-/***************************************************************************/
 #if defined(CONFIG_DRAGEN2)
 
 static void m68vz328_reset(void)
@@ -45,8 +39,8 @@ static void m68vz328_reset(void)
 	local_irq_disable();
 
 #ifdef CONFIG_INIT_LCD
-	PBDATA |= 0x20;				/* disable CCFL light */
-	PKDATA |= 0x4;				/* disable LCD controller */
+	PBDATA |= 0x20;				
+	PKDATA |= 0x4;				
 	LCKCON = 0;
 #endif
 
@@ -62,36 +56,36 @@ static void m68vz328_reset(void)
 static void init_hardware(char *command, int size)
 {
 #ifdef CONFIG_DIRECT_IO_ACCESS
-	SCR = 0x10;					/* allow user access to internal registers */
+	SCR = 0x10;					
 #endif
 
-	/* CSGB Init */
+	
 	CSGBB = 0x4000;
 	CSB = 0x1a1;
 
-	/* CS8900 init */
-	/* PK3: hardware sleep function pin, active low */
-	PKSEL |= PK(3);				/* select pin as I/O */
-	PKDIR |= PK(3);				/* select pin as output */
-	PKDATA |= PK(3);			/* set pin high */
+	
+	
+	PKSEL |= PK(3);				
+	PKDIR |= PK(3);				
+	PKDATA |= PK(3);			
 
-	/* PF5: hardware reset function pin, active high */
-	PFSEL |= PF(5);				/* select pin as I/O */
-	PFDIR |= PF(5);				/* select pin as output */
-	PFDATA &= ~PF(5);			/* set pin low */
+	
+	PFSEL |= PF(5);				
+	PFDIR |= PF(5);				
+	PFDATA &= ~PF(5);			
 
-	/* cs8900 hardware reset */
+	
 	PFDATA |= PF(5);
 	{ int i; for (i = 0; i < 32000; ++i); }
 	PFDATA &= ~PF(5);
 
-	/* INT1 enable (cs8900 IRQ) */
-	PDPOL &= ~PD(1);			/* active high signal */
+	
+	PDPOL &= ~PD(1);			
 	PDIQEG &= ~PD(1);
-	PDIRQEN |= PD(1);			/* IRQ enabled */
+	PDIRQEN |= PD(1);			
 
 #ifdef CONFIG_INIT_LCD
-	/* initialize LCD controller */
+	
 	LSSA = (long) screen_bits;
 	LVPW = 0x14;
 	LXMAX = 0x140;
@@ -104,26 +98,23 @@ static void init_hardware(char *command, int size)
 	PCPDEN = 0xff;
 	PCSEL = 0;
 
-	/* Enable LCD controller */
+	
 	PKDIR |= 0x4;
 	PKSEL |= 0x4;
 	PKDATA &= ~0x4;
 
-	/* Enable CCFL backlighting circuit */
+	
 	PBDIR |= 0x20;
 	PBSEL |= 0x20;
 	PBDATA &= ~0x20;
 
-	/* contrast control register */
+	
 	PFDIR |= 0x1;
 	PFSEL &= ~0x1;
 	PWMR = 0x037F;
 #endif
 }
 
-/***************************************************************************/
-/*                      Init RT-Control uCdimm hardware                    */
-/***************************************************************************/
 #elif defined(CONFIG_UCDIMM)
 
 static void m68vz328_reset(void)
@@ -160,7 +151,6 @@ static void init_hardware(char *command, int size)
 		command[0] = 0;
 }
 
-/***************************************************************************/
 #else
 
 static void m68vz328_reset(void)
@@ -171,9 +161,7 @@ static void init_hardware(char *command, int size)
 {
 }
 
-/***************************************************************************/
 #endif
-/***************************************************************************/
 
 void config_BSP(char *command, int size)
 {
@@ -185,4 +173,3 @@ void config_BSP(char *command, int size)
 	mach_reset = m68vz328_reset;
 }
 
-/***************************************************************************/

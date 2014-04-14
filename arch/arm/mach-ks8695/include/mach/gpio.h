@@ -11,9 +11,6 @@
 #ifndef __ASM_ARCH_GPIO_H_
 #define __ASM_ARCH_GPIO_H_
 
-/*
- * Map IRQ number to GPIO line.
- */
 extern int irq_to_gpio(unsigned int irq);
 
 #endif

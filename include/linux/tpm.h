@@ -22,9 +22,6 @@
 #ifndef __LINUX_TPM_H__
 #define __LINUX_TPM_H__
 
-/*
- * Chip num is this value or a valid tpm idx
- */
 #define	TPM_ANY_NUM 0xFFFF
 
 #if defined(CONFIG_TCG_TPM) || defined(CONFIG_TCG_TPM_MODULE)

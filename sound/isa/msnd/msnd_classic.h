@@ -79,7 +79,6 @@
 #define MIP_SYNTH				0x00
 #define MIP_INMASK				0x32
 
-/* Classic SMA Common Data */
 #define SMA_wCurrPlayBytes			0x0000
 #define SMA_wCurrRecordBytes			0x0002
 #define SMA_wCurrPlayVolLeft			0x0004
@@ -126,4 +125,4 @@
 #define PERMCODEFILE		"turtlebeach/msndperm.bin"
 #define LONGNAME		"MultiSound (Classic/Monterey/Tahiti)"
 
-#endif /* __MSND_CLASSIC_H */
+#endif 

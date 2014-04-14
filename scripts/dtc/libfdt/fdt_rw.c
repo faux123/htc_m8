@@ -157,7 +157,7 @@ static int _fdt_find_add_string(void *fdt, const char *s)
 
 	p = _fdt_find_string(strtab, fdt_size_dt_strings(fdt), s);
 	if (p)
-		/* found it */
+		
 		return (p - strtab);
 
 	new = strtab + fdt_size_dt_strings(fdt);
@@ -289,6 +289,33 @@ int fdt_setprop(void *fdt, int nodeoffset, const char *name,
 	return 0;
 }
 
+int fdt_appendprop(void *fdt, int nodeoffset, const char *name,
+		   const void *val, int len)
+{
+	struct fdt_property *prop;
+	int err, oldlen, newlen;
+
+	FDT_RW_CHECK_HEADER(fdt);
+
+	prop = fdt_get_property_w(fdt, nodeoffset, name, &oldlen);
+	if (prop) {
+		newlen = len + oldlen;
+		err = _fdt_splice_struct(fdt, prop->data,
+					 FDT_TAGALIGN(oldlen),
+					 FDT_TAGALIGN(newlen));
+		if (err)
+			return err;
+		prop->len = cpu_to_fdt32(newlen);
+		memcpy(prop->data + oldlen, val, len);
+	} else {
+		err = _fdt_add_property(fdt, nodeoffset, name, len, &prop);
+		if (err)
+			return err;
+		memcpy(prop->data, val, len);
+	}
+	return 0;
+}
+
 int fdt_delprop(void *fdt, int nodeoffset, const char *name)
 {
 	struct fdt_property *prop;
@@ -322,8 +349,8 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
 	else if (offset != -FDT_ERR_NOTFOUND)
 		return offset;
 
-	/* Try to place the new node after the parent's properties */
-	fdt_next_tag(fdt, parentoffset, &nextoffset); /* skip the BEGIN_NODE */
+	
+	fdt_next_tag(fdt, parentoffset, &nextoffset); 
 	do {
 		offset = nextoffset;
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
@@ -406,10 +433,12 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 		struct_size = 0;
 		while (fdt_next_tag(fdt, struct_size, &struct_size) != FDT_END)
 			;
+		if (struct_size < 0)
+			return struct_size;
 	}
 
 	if (!_fdt_blocks_misordered(fdt, mem_rsv_size, struct_size)) {
-		/* no further work necessary */
+		
 		err = fdt_move(fdt, buf, bufsize);
 		if (err)
 			return err;
@@ -419,18 +448,18 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 		return 0;
 	}
 
-	/* Need to reorder */
+	
 	newsize = FDT_ALIGN(sizeof(struct fdt_header), 8) + mem_rsv_size
 		+ struct_size + fdt_size_dt_strings(fdt);
 
 	if (bufsize < newsize)
 		return -FDT_ERR_NOSPACE;
 
-	/* First attempt to build converted tree at beginning of buffer */
+	
 	tmp = buf;
-	/* But if that overlaps with the old tree... */
+	
 	if (((tmp + newsize) > fdtstart) && (tmp < fdtend)) {
-		/* Try right after the old tree instead */
+		
 		tmp = (char *)(uintptr_t)fdtend;
 		if ((tmp + newsize) > ((char *)buf + bufsize))
 			return -FDT_ERR_NOSPACE;

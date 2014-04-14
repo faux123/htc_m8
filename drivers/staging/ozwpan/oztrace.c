@@ -11,26 +11,26 @@ unsigned long trace_flags =
 	0
 #ifdef WANT_TRACE_STREAM
 	| OZ_TRACE_STREAM
-#endif /* WANT_TRACE_STREAM */
+#endif 
 #ifdef WANT_TRACE_URB
 	| OZ_TRACE_URB
-#endif /* WANT_TRACE_URB */
+#endif 
 
 #ifdef WANT_TRACE_CTRL_DETAIL
 	| OZ_TRACE_CTRL_DETAIL
-#endif /* WANT_TRACE_CTRL_DETAIL */
+#endif 
 
 #ifdef WANT_TRACE_HUB
 	| OZ_TRACE_HUB
-#endif /* WANT_TRACE_HUB */
+#endif 
 
 #ifdef WANT_TRACE_RX_FRAMES
 	| OZ_TRACE_RX_FRAMES
-#endif /* WANT_TRACE_RX_FRAMES */
+#endif 
 
 #ifdef WANT_TRACE_TX_FRAMES
 	| OZ_TRACE_TX_FRAMES
-#endif /* WANT_TRACE_TX_FRAMES */
+#endif 
 	;
-#endif /* WANT_VERBOSE_TRACE */
+#endif 
 

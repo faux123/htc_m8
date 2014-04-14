@@ -14,7 +14,7 @@ static inline void __delay(int loops)
 			      : : "g" (loops) : "r9");
 }
 
-#endif /* defined(_CRIS_ARCH_DELAY_H) */
+#endif 
 
 
 

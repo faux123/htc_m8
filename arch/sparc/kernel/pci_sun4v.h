@@ -89,4 +89,4 @@ extern unsigned long pci_sun4v_msg_setvalid(unsigned long devhandle,
 					    unsigned long msinum,
 					    unsigned long valid);
 
-#endif /* !(_PCI_SUN4V_H) */
+#endif 

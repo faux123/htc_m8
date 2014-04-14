@@ -16,24 +16,19 @@
 
 #include <linux/types.h>
 
-/*-------------------------------------------------------------------------*/
 
-/* pxa25x has this (move to include/asm-arm/arch-pxa/pxa-regs.h) */
-#define UFNRH_SIR	(1 << 7)	/* SOF interrupt request */
-#define UFNRH_SIM	(1 << 6)	/* SOF interrupt mask */
-#define UFNRH_IPE14	(1 << 5)	/* ISO packet error, ep14 */
-#define UFNRH_IPE9	(1 << 4)	/* ISO packet error, ep9 */
-#define UFNRH_IPE4	(1 << 3)	/* ISO packet error, ep4 */
+#define UFNRH_SIR	(1 << 7)	
+#define UFNRH_SIM	(1 << 6)	
+#define UFNRH_IPE14	(1 << 5)	
+#define UFNRH_IPE9	(1 << 4)	
+#define UFNRH_IPE4	(1 << 3)	
 
-/* pxa255 has this (move to include/asm-arm/arch-pxa/pxa-regs.h) */
-#define	UDCCFR		UDC_RES2	/* UDC Control Function Register */
-#define UDCCFR_AREN	(1 << 7)	/* ACK response enable (now) */
-#define UDCCFR_ACM	(1 << 2)	/* ACK control mode (wait for AREN) */
+#define	UDCCFR		UDC_RES2	
+#define UDCCFR_AREN	(1 << 7)	
+#define UDCCFR_ACM	(1 << 2)	
 
-/* latest pxa255 errata define new "must be one" bits in UDCCFR */
 #define	UDCCFR_MB1	(0xff & ~(UDCCFR_AREN|UDCCFR_ACM))
 
-/*-------------------------------------------------------------------------*/
 
 struct pxa25x_udc;
 
@@ -52,11 +47,6 @@ struct pxa25x_ep {
 	unsigned				stopped : 1;
 	unsigned				dma_fixup : 1;
 
-	/* UDCCS = UDC Control/Status for this EP
-	 * UBCR = UDC Byte Count Remaining (contents of OUT fifo)
-	 * UDDR = UDC Endpoint Data Register (the fifo)
-	 * DRCM = DMA Request Channel Map
-	 */
 	volatile u32				*reg_udccs;
 	volatile u32				*reg_ubcr;
 	volatile u32				*reg_uddr;
@@ -89,7 +79,6 @@ struct udc_stats {
 };
 
 #ifdef CONFIG_USB_PXA25X_SMALL
-/* when memory's tight, SMALL config saves code+data.  */
 #define	PXA_UDC_NUM_ENDPOINTS	3
 #endif
 
@@ -128,25 +117,18 @@ struct pxa25x_udc {
 #endif
 };
 
-/*-------------------------------------------------------------------------*/
 
 #ifdef CONFIG_ARCH_LUBBOCK
 #include <mach/lubbock.h>
-/* lubbock can also report usb connect/disconnect irqs */
 #endif
 
 static struct pxa25x_udc *the_controller;
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * Debugging support vanishes in non-debug builds.  DBG_NORMAL should be
- * mostly silent during normal use/testing, with no timing side-effects.
- */
-#define DBG_NORMAL	1	/* error paths, device state transitions */
-#define DBG_VERBOSE	2	/* add some success path trace info */
-#define DBG_NOISY	3	/* ... even more: request level */
-#define DBG_VERY_NOISY	4	/* ... even more: packet level */
+#define DBG_NORMAL	1	
+#define DBG_VERBOSE	2	
+#define DBG_NOISY	3	
+#define DBG_VERY_NOISY	4	
 
 #define DMSG(stuff...)	pr_debug("udc: " stuff)
 
@@ -249,4 +231,4 @@ dump_state(struct pxa25x_udc *dev)
 #define INFO(stuff...)		pr_info("udc: " stuff)
 
 
-#endif /* __LINUX_USB_GADGET_PXA25X_H */
+#endif 

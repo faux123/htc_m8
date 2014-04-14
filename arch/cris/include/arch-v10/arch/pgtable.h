@@ -1,9 +1,6 @@
 #ifndef _CRIS_ARCH_PGTABLE_H
 #define _CRIS_ARCH_PGTABLE_H
 
-/*
- * Kernels own virtual memory area. 
- */
 
 #ifdef CONFIG_CRIS_LOW_MAP
 #define VMALLOC_START     KSEG_7

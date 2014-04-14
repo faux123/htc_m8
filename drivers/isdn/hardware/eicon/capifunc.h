@@ -31,10 +31,7 @@ typedef struct _diva_card {
 	char name[32];
 } diva_card;
 
-/*
- * prototypes
- */
 int init_capifunc(void);
 void finit_capifunc(void);
 
-#endif /* __CAPIFUNC_H__ */
+#endif 

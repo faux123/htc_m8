@@ -1,7 +1,7 @@
 /*
  * Process execution related definitions for the Hexagon architecture
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,8 +21,7 @@
 #ifndef _ASM_EXEC_H
 #define _ASM_EXEC_H
 
-/*  Should probably shoot for an 8-byte aligned stack pointer  */
 #define STACK_MASK (~7)
 #define arch_align_stack(x) (x & STACK_MASK)
 
-#endif /* _ASM_EXEC_H */
+#endif 

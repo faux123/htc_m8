@@ -24,19 +24,13 @@
 #include "isdn_divert.h"
 
 
-/*********************************/
-/* Variables for interface queue */
-/*********************************/
-ulong if_used = 0;		/* number of interface users */
+ulong if_used = 0;		
 static DEFINE_MUTEX(isdn_divert_mutex);
-static struct divert_info *divert_info_head = NULL;	/* head of queue */
-static struct divert_info *divert_info_tail = NULL;	/* pointer to last entry */
-static DEFINE_SPINLOCK(divert_info_lock);/* lock for queue */
+static struct divert_info *divert_info_head = NULL;	
+static struct divert_info *divert_info_tail = NULL;	
+static DEFINE_SPINLOCK(divert_info_lock);
 static wait_queue_head_t rd_queue;
 
-/*********************************/
-/* put an info buffer into queue */
-/*********************************/
 void
 put_info_buffer(char *cp)
 {
@@ -50,18 +44,18 @@ put_info_buffer(char *cp)
 	if (!*cp)
 		return;
 	if (!(ib = kmalloc(sizeof(struct divert_info) + strlen(cp), GFP_ATOMIC)))
-		return;	/* no memory */
-	strcpy(ib->info_start, cp);	/* set output string */
+		return;	
+	strcpy(ib->info_start, cp);	
 	ib->next = NULL;
 	spin_lock_irqsave(&divert_info_lock, flags);
 	ib->usage_cnt = if_used;
 	if (!divert_info_head)
-		divert_info_head = ib;	/* new head */
+		divert_info_head = ib;	
 	else
-		divert_info_tail->next = ib;	/* follows existing messages */
-	divert_info_tail = ib;	/* new tail */
+		divert_info_tail->next = ib;	
+	divert_info_tail = ib;	
 
-	/* delete old entrys */
+	
 	while (divert_info_head->next) {
 		if ((divert_info_head->usage_cnt <= 0) &&
 		    (divert_info_head->next->usage_cnt <= 0)) {
@@ -70,16 +64,13 @@ put_info_buffer(char *cp)
 			kfree(ib);
 		} else
 			break;
-	}			/* divert_info_head->next */
+	}			
 	spin_unlock_irqrestore(&divert_info_lock, flags);
 	wake_up_interruptible(&(rd_queue));
-}				/* put_info_buffer */
+}				
 
 #ifdef CONFIG_PROC_FS
 
-/**********************************/
-/* deflection device read routine */
-/**********************************/
 static ssize_t
 isdn_divert_read(struct file *file, char __user *buf, size_t count, loff_t *off)
 {
@@ -94,8 +85,8 @@ isdn_divert_read(struct file *file, char __user *buf, size_t count, loff_t *off)
 	if (!(inf = *((struct divert_info **) file->private_data)))
 		return (0);
 
-	inf->usage_cnt--;	/* new usage count */
-	file->private_data = &inf->next;	/* next structure */
+	inf->usage_cnt--;	
+	file->private_data = &inf->next;	
 	if ((len = strlen(inf->info_start)) <= count) {
 		if (copy_to_user(buf, inf->info_start, len))
 			return -EFAULT;
@@ -103,37 +94,28 @@ isdn_divert_read(struct file *file, char __user *buf, size_t count, loff_t *off)
 		return (len);
 	}
 	return (0);
-}				/* isdn_divert_read */
+}				
 
-/**********************************/
-/* deflection device write routine */
-/**********************************/
 static ssize_t
 isdn_divert_write(struct file *file, const char __user *buf, size_t count, loff_t *off)
 {
 	return (-ENODEV);
-}				/* isdn_divert_write */
+}				
 
 
-/***************************************/
-/* select routines for various kernels */
-/***************************************/
 static unsigned int
 isdn_divert_poll(struct file *file, poll_table *wait)
 {
 	unsigned int mask = 0;
 
 	poll_wait(file, &(rd_queue), wait);
-	/* mask = POLLOUT | POLLWRNORM; */
+	
 	if (*((struct divert_info **) file->private_data)) {
 		mask |= POLLIN | POLLRDNORM;
 	}
 	return mask;
-}				/* isdn_divert_poll */
+}				
 
-/****************/
-/* Open routine */
-/****************/
 static int
 isdn_divert_open(struct inode *ino, struct file *filep)
 {
@@ -146,13 +128,10 @@ isdn_divert_open(struct inode *ino, struct file *filep)
 	else
 		filep->private_data = &divert_info_head;
 	spin_unlock_irqrestore(&divert_info_lock, flags);
-	/*  start_divert(); */
+	
 	return nonseekable_open(ino, filep);
-}				/* isdn_divert_open */
+}				
 
-/*******************/
-/* close routine   */
-/*******************/
 static int
 isdn_divert_close(struct inode *ino, struct file *filep)
 {
@@ -174,11 +153,8 @@ isdn_divert_close(struct inode *ino, struct file *filep)
 		}
 	spin_unlock_irqrestore(&divert_info_lock, flags);
 	return (0);
-}				/* isdn_divert_close */
+}				
 
-/*********/
-/* IOCTL */
-/*********/
 static int isdn_divert_ioctl_unlocked(struct file *file, uint cmd, ulong arg)
 {
 	divert_ioctl dioctl;
@@ -192,7 +168,7 @@ static int isdn_divert_ioctl_unlocked(struct file *file, uint cmd, ulong arg)
 
 	switch (cmd) {
 	case IIOCGETVER:
-		dioctl.drv_version = DIVERT_IIOC_VERSION;	/* set version */
+		dioctl.drv_version = DIVERT_IIOC_VERSION;	
 		break;
 
 	case IIOCGETDRV:
@@ -212,16 +188,16 @@ static int isdn_divert_ioctl_unlocked(struct file *file, uint cmd, ulong arg)
 	case IIOCGETRULE:
 		if (!(rulep = getruleptr(dioctl.getsetrule.ruleidx)))
 			return (-EINVAL);
-		dioctl.getsetrule.rule = *rulep;	/* copy data */
+		dioctl.getsetrule.rule = *rulep;	
 		break;
 
 	case IIOCMODRULE:
 		if (!(rulep = getruleptr(dioctl.getsetrule.ruleidx)))
 			return (-EINVAL);
 		spin_lock_irqsave(&divert_lock, flags);
-		*rulep = dioctl.getsetrule.rule;	/* copy data */
+		*rulep = dioctl.getsetrule.rule;	
 		spin_unlock_irqrestore(&divert_lock, flags);
-		return (0);	/* no copy required */
+		return (0);	
 		break;
 
 	case IIOCINSRULE:
@@ -241,7 +217,7 @@ static int isdn_divert_ioctl_unlocked(struct file *file, uint cmd, ulong arg)
 	case IIOCDOCFDIS:
 	case IIOCDOCFINT:
 		if (!divert_if.drv_to_name(dioctl.cf_ctrl.drvid))
-			return (-EINVAL);	/* invalid driver */
+			return (-EINVAL);	
 		if (strnlen(dioctl.cf_ctrl.msn, sizeof(dioctl.cf_ctrl.msn)) ==
 		    sizeof(dioctl.cf_ctrl.msn))
 			return -EINVAL;
@@ -260,9 +236,9 @@ static int isdn_divert_ioctl_unlocked(struct file *file, uint cmd, ulong arg)
 
 	default:
 		return (-EINVAL);
-	}			/* switch cmd */
+	}			
 	return copy_to_user((void __user *)arg, &dioctl, sizeof(dioctl)) ? -EFAULT : 0;
-}				/* isdn_divert_ioctl */
+}				
 
 static long isdn_divert_ioctl(struct file *file, uint cmd, ulong arg)
 {
@@ -287,16 +263,10 @@ static const struct file_operations isdn_fops =
 	.release        = isdn_divert_close,
 };
 
-/****************************/
-/* isdn subdir in /proc/net */
-/****************************/
 static struct proc_dir_entry *isdn_proc_entry = NULL;
 static struct proc_dir_entry *isdn_divert_entry = NULL;
-#endif	/* CONFIG_PROC_FS */
+#endif	
 
-/***************************************************************************/
-/* divert_dev_init must be called before the proc filesystem may be used   */
-/***************************************************************************/
 int
 divert_dev_init(void)
 {
@@ -313,15 +283,11 @@ divert_dev_init(void)
 		remove_proc_entry("isdn", init_net.proc_net);
 		return (-1);
 	}
-#endif	/* CONFIG_PROC_FS */
+#endif	
 
 	return (0);
-}				/* divert_dev_init */
+}				
 
-/***************************************************************************/
-/* divert_dev_deinit must be called before leaving isdn when included as   */
-/* a module.                                                               */
-/***************************************************************************/
 int
 divert_dev_deinit(void)
 {
@@ -329,7 +295,7 @@ divert_dev_deinit(void)
 #ifdef CONFIG_PROC_FS
 	remove_proc_entry("divert", isdn_proc_entry);
 	remove_proc_entry("isdn", init_net.proc_net);
-#endif	/* CONFIG_PROC_FS */
+#endif	
 
 	return (0);
-}				/* divert_dev_deinit */
+}				

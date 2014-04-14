@@ -28,7 +28,7 @@ l_yes:
 	return true;
 }
 
-#endif /* __KERNEL__ */
+#endif 
 
 typedef u32 jump_label_t;
 

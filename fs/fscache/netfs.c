@@ -16,9 +16,6 @@
 
 static LIST_HEAD(fscache_netfs_list);
 
-/*
- * register a network filesystem for caching
- */
 int __fscache_register_netfs(struct fscache_netfs *netfs)
 {
 	struct fscache_netfs *ptr;
@@ -28,7 +25,7 @@ int __fscache_register_netfs(struct fscache_netfs *netfs)
 
 	INIT_LIST_HEAD(&netfs->link);
 
-	/* allocate a cookie for the primary index */
+	
 	netfs->primary_index =
 		kmem_cache_zalloc(fscache_cookie_jar, GFP_KERNEL);
 
@@ -37,7 +34,7 @@ int __fscache_register_netfs(struct fscache_netfs *netfs)
 		return -ENOMEM;
 	}
 
-	/* initialise the primary index cookie */
+	
 	atomic_set(&netfs->primary_index->usage, 1);
 	atomic_set(&netfs->primary_index->n_children, 0);
 
@@ -51,7 +48,7 @@ int __fscache_register_netfs(struct fscache_netfs *netfs)
 	spin_lock_init(&netfs->primary_index->lock);
 	INIT_HLIST_HEAD(&netfs->primary_index->backing_objects);
 
-	/* check the netfs type is not already present */
+	
 	down_write(&fscache_addremove_sem);
 
 	ret = -EEXIST;
@@ -80,10 +77,6 @@ already_registered:
 }
 EXPORT_SYMBOL(__fscache_register_netfs);
 
-/*
- * unregister a network filesystem from the cache
- * - all cookies must have been released first
- */
 void __fscache_unregister_netfs(struct fscache_netfs *netfs)
 {
 	_enter("{%s.%u}", netfs->name, netfs->version);

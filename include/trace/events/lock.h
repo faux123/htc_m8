@@ -80,7 +80,6 @@ DEFINE_EVENT(lock, lock_acquired,
 #endif
 #endif
 
-#endif /* _TRACE_LOCK_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

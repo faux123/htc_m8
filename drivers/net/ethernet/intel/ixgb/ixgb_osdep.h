@@ -26,9 +26,6 @@
 
 *******************************************************************************/
 
-/* glue for the OS independent part of ixgb
- * includes register access macros
- */
 
 #ifndef _IXGB_OSDEP_H_
 #define _IXGB_OSDEP_H_
@@ -61,4 +58,4 @@
 
 #define IXGB_MEMCPY memcpy
 
-#endif /* _IXGB_OSDEP_H_ */
+#endif 

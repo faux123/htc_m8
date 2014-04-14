@@ -45,16 +45,14 @@ struct pm860x_rtc_info {
 #define REG2_DATA		0xB5
 #define REG3_DATA		0xB7
 
-/* bit definitions of Measurement Enable Register 2 (0x51) */
 #define MEAS2_VRTC		(1 << 0)
 
-/* bit definitions of RTC Register 1 (0xA0) */
 #define ALARM_EN		(1 << 3)
 #define ALARM_WAKEUP		(1 << 4)
 #define ALARM			(1 << 5)
 #define RTC1_USE_XO		(1 << 7)
 
-#define VRTC_CALIB_INTERVAL	(HZ * 60 * 10)		/* 10 minutes */
+#define VRTC_CALIB_INTERVAL	(HZ * 60 * 10)		
 
 static irqreturn_t rtc_update_handler(int irq, void *data)
 {
@@ -78,10 +76,6 @@ static int pm860x_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	return 0;
 }
 
-/*
- * Calculate the next alarm time given the requested alarm time mask
- * and the current time.
- */
 static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now,
 				struct rtc_time *alrm)
 {
@@ -99,7 +93,7 @@ static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now,
 	rtc_tm_to_time(next, &next_time);
 
 	if (next_time < now_time) {
-		/* Advance one day */
+		
 		next_time += 60 * 60 * 24;
 		rtc_time_to_tm(next_time, next);
 	}
@@ -116,7 +110,7 @@ static int pm860x_rtc_read_time(struct device *dev, struct rtc_time *tm)
 		buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
 	base = (buf[1] << 24) | (buf[3] << 16) | (buf[5] << 8) | buf[7];
 
-	/* load 32-bit read-only counter */
+	
 	pm860x_bulk_read(info->i2c, PM8607_RTC_COUNTER1, 4, buf);
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	ticks = base + data;
@@ -142,7 +136,7 @@ static int pm860x_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	}
 	rtc_tm_to_time(tm, &ticks);
 
-	/* load 32-bit read-only counter */
+	
 	pm860x_bulk_read(info->i2c, PM8607_RTC_COUNTER1, 4, buf);
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	base = ticks - data;
@@ -199,7 +193,7 @@ static int pm860x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 		buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
 	base = (buf[1] << 24) | (buf[3] << 16) | (buf[5] << 8) | buf[7];
 
-	/* load 32-bit read-only counter */
+	
 	pm860x_bulk_read(info->i2c, PM8607_RTC_COUNTER1, 4, buf);
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	ticks = base + data;
@@ -208,7 +202,7 @@ static int pm860x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 
 	rtc_time_to_tm(ticks, &now_tm);
 	rtc_next_alarm_time(&alarm_tm, &now_tm, &alrm->time);
-	/* get new ticks for alarm in 24 hours */
+	
 	rtc_tm_to_time(&alarm_tm, &ticks);
 	data = ticks - base;
 
@@ -249,7 +243,7 @@ static void calibrate_vrtc_work(struct work_struct *work)
 		msleep(100);
 		pm860x_bulk_read(info->i2c, REG_VRTC_MEAS1, 2, buf);
 		data = (buf[0] << 4) | buf[1];
-		data = (data * 5400) >> 12;	/* convert to mv */
+		data = (data * 5400) >> 12;	
 		sum += data;
 	}
 	mean = sum >> 4;
@@ -259,13 +253,13 @@ static void calibrate_vrtc_work(struct work_struct *work)
 	sum = pm860x_reg_read(info->i2c, PM8607_RTC_MISC1);
 	data = sum & 0x3;
 	if ((mean + 200) < vrtc_set) {
-		/* try higher voltage */
+		
 		if (++data == 4)
 			goto out;
 		data = (sum & 0xf8) | (data & 0x3);
 		pm860x_reg_write(info->i2c, PM8607_RTC_MISC1, data);
 	} else if ((mean - 200) > vrtc_set) {
-		/* try lower voltage */
+		
 		if (data-- == 0)
 			goto out;
 		data = (sum & 0xf8) | (data & 0x3);
@@ -273,11 +267,11 @@ static void calibrate_vrtc_work(struct work_struct *work)
 	} else
 		goto out;
 	dev_dbg(info->dev, "set 0x%x to RTC_MISC1\n", data);
-	/* trigger next calibration since VRTC is updated */
+	
 	schedule_delayed_work(&info->calib_work, VRTC_CALIB_INTERVAL);
 	return;
 out:
-	/* disable measurement */
+	
 	pm860x_set_bits(info->i2c, PM8607_MEAS_EN2, MEAS2_VRTC, 0);
 	dev_dbg(info->dev, "finish VRTC calibration\n");
 	return;
@@ -320,7 +314,7 @@ static int __devinit pm860x_rtc_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-	/* set addresses of 32-bit base value for RTC time */
+	
 	pm860x_page_reg_write(info->i2c, REG0_ADDR, REG0_DATA);
 	pm860x_page_reg_write(info->i2c, REG1_ADDR, REG1_DATA);
 	pm860x_page_reg_write(info->i2c, REG2_ADDR, REG2_DATA);
@@ -358,24 +352,20 @@ static int __devinit pm860x_rtc_probe(struct platform_device *pdev)
 		goto out_rtc;
 	}
 
-	/*
-	 * enable internal XO instead of internal 3.25MHz clock since it can
-	 * free running in PMIC power-down state.
-	 */
 	pm860x_set_bits(info->i2c, PM8607_RTC1, RTC1_USE_XO, RTC1_USE_XO);
 
 #ifdef VRTC_CALIBRATION
-	/* <00> -- 2.7V, <01> -- 2.9V, <10> -- 3.1V, <11> -- 3.3V */
+	
 	if (pdata && pdata->vrtc)
 		info->vrtc = pdata->vrtc & 0x3;
 	else
 		info->vrtc = 1;
 	pm860x_set_bits(info->i2c, PM8607_MEAS_EN2, MEAS2_VRTC, MEAS2_VRTC);
 
-	/* calibrate VRTC */
+	
 	INIT_DELAYED_WORK(&info->calib_work, calibrate_vrtc_work);
 	schedule_delayed_work(&info->calib_work, VRTC_CALIB_INTERVAL);
-#endif	/* VRTC_CALIBRATION */
+#endif	
 
 	device_init_wakeup(&pdev->dev, 1);
 
@@ -393,9 +383,9 @@ static int __devexit pm860x_rtc_remove(struct platform_device *pdev)
 
 #ifdef VRTC_CALIBRATION
 	flush_scheduled_work();
-	/* disable measurement */
+	
 	pm860x_set_bits(info->i2c, PM8607_MEAS_EN2, MEAS2_VRTC, 0);
-#endif	/* VRTC_CALIBRATION */
+#endif	
 
 	platform_set_drvdata(pdev, NULL);
 	rtc_device_unregister(info->rtc_dev);

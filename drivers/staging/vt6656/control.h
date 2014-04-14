@@ -34,7 +34,6 @@
 #include "device.h"
 #include "usbpipe.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
 #define CONTROLnsRequestOut(Device, Request, Value, Index, Length, Buffer) \
 	PIPEnsControlOut(Device, Request, Value, Index, Length, Buffer)
@@ -45,11 +44,8 @@
 #define CONTROLnsRequestIn(Device, Request, Value, Index, Length, Buffer) \
 	PIPEnsControlIn(Device, Request, Value, Index, Length, Buffer)
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
 
 void ControlvWriteByte(
      PSDevice pDevice,
@@ -75,4 +71,4 @@ void ControlvMaskByte(
      BYTE byData
     );
 
-#endif /* __CONTROL_H__ */
+#endif 

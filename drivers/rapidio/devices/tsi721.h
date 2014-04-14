@@ -26,7 +26,6 @@
 #define DEFAULT_HOPCOUNT	0xff
 #define DEFAULT_DESTID		0xff
 
-/* PCI device ID */
 #define PCI_DEVICE_ID_TSI721		0x80ab
 
 #define BAR_0	0
@@ -37,13 +36,12 @@
 #define TSI721_PC2SR_BARS	2
 #define TSI721_PC2SR_WINS	8
 #define TSI721_PC2SR_ZONES	8
-#define TSI721_MAINT_WIN	0 /* Window for outbound maintenance requests */
-#define IDB_QUEUE		0 /* Inbound Doorbell Queue to use */
-#define IDB_QSIZE		512 /* Inbound Doorbell Queue size */
+#define TSI721_MAINT_WIN	0 
+#define IDB_QUEUE		0 
+#define IDB_QSIZE		512 
 
-/* Memory space sizes */
-#define TSI721_REG_SPACE_SIZE		(512 * 1024) /* 512K */
-#define TSI721_DB_WIN_SIZE		(16 * 1024 * 1024) /* 16MB */
+#define TSI721_REG_SPACE_SIZE		(512 * 1024) 
+#define TSI721_DB_WIN_SIZE		(16 * 1024 * 1024) 
 
 #define  RIO_TT_CODE_8		0x00000000
 #define  RIO_TT_CODE_16		0x00000001
@@ -58,13 +56,9 @@
 #define DBELL_TID(buf)		(((u8)buf[4] << 8) | (u8)buf[5])
 #define DBELL_INF(buf)		(((u8)buf[0] << 8) | (u8)buf[1])
 
-#define TSI721_RIO_PW_MSG_SIZE	16  /* Tsi721 saves only 16 bytes of PW msg */
+#define TSI721_RIO_PW_MSG_SIZE	16  
 
-/* Register definitions */
 
-/*
- * Registers in PCIe configuration space
- */
 
 #define TSI721_PCIECFG_MSIXTBL	0x0a4
 #define TSI721_MSIXTBL_OFFSET	0x2c000
@@ -74,9 +68,6 @@
 
 #define MAX_READ_REQUEST_SZ_SHIFT	12
 
-/*
- * Event Management Registers
- */
 
 #define TSI721_RIO_EM_INT_STAT		0x10910
 #define TSI721_RIO_EM_INT_STAT_PW_RX	0x00010000
@@ -87,9 +78,6 @@
 #define TSI721_RIO_EM_DEV_INT_EN	0x10930
 #define TSI721_RIO_EM_DEV_INT_EN_INT	0x00000001
 
-/*
- * Port-Write Block Registers
- */
 
 #define TSI721_RIO_PW_CTL		0x10a04
 #define TSI721_RIO_PW_CTL_PW_TIMER	0xf0000000
@@ -112,9 +100,6 @@
 
 #define TSI721_RIO_PW_RX_CAPT(x)	(0x10a20 + (x)*4)
 
-/*
- * Inbound Doorbells
- */
 
 #define TSI721_IDB_ENTRY_SIZE	64
 
@@ -182,9 +167,6 @@
 #define TSI721_INT_OMSG_CHAN_M	0x0000ff00
 #define TSI721_INT_OMSG_CHAN(x)	(1 << (8 + (x)))
 
-/*
- * PC2SR block registers
- */
 #define TSI721_OBWIN_NUM	TSI721_PC2SR_WINS
 
 #define TSI721_OBWINLB(x)	(0x40000 + (x) * 0x20)
@@ -230,10 +212,6 @@
 
 #define TSI721_I2C_INT_ENABLE	0x49120
 
-/*
- * Block DMA Engine Registers
- *   x = 0..7
- */
 
 #define TSI721_DMAC_DWRCNT(x)	(0x51000 + (x) * 0x1000)
 #define TSI721_DMAC_DRDCNT(x)	(0x51004 + (x) * 0x1000)
@@ -282,9 +260,6 @@
 
 #define TSI721_BDMA_INTE	0x5f000
 
-/*
- * Messaging definitions
- */
 #define TSI721_MSG_BUFFER_SIZE		RIO_MAX_MSG_SIZE
 #define TSI721_MSG_MAX_SIZE		RIO_MAX_MSG_SIZE
 #define TSI721_IMSG_MAXCH		8
@@ -292,14 +267,10 @@
 #define TSI721_IMSGD_MIN_RING_SIZE	32
 #define TSI721_IMSGD_RING_SIZE		512
 
-#define TSI721_OMSG_CHNUM		4 /* One channel per MBOX */
+#define TSI721_OMSG_CHNUM		4 
 #define TSI721_OMSGD_MIN_RING_SIZE	32
 #define TSI721_OMSGD_RING_SIZE		512
 
-/*
- * Outbound Messaging Engine Registers
- *   x = 0..7
- */
 
 #define TSI721_OBDMAC_DWRCNT(x)		(0x61000 + (x) * 0x1000)
 
@@ -355,12 +326,8 @@
 
 #define TSI721_RQRPTO			0x60010
 #define TSI721_RQRPTO_MASK		0x00ffffff
-#define TSI721_RQRPTO_VAL		400	/* Response TO value */
+#define TSI721_RQRPTO_VAL		400	
 
-/*
- * Inbound Messaging Engine Registers
- *   x = 0..7
- */
 
 #define TSI721_IB_DEVID_GLOBAL		0xffff
 #define TSI721_IBDMAC_FQBL(x)		(0x61200 + (x) * 0x1000)
@@ -430,9 +397,6 @@
 #define TSI721_IBDMAC_DQSZ(x)		(0x61314 + (x) * 0x1000)
 #define TSI721_IBDMAC_DQSZ_MASK		0x0000000f
 
-/*
- * Messaging Engine Interrupts
- */
 
 #define TSI721_SMSG_PWE			0x6a004
 
@@ -463,9 +427,6 @@
 #define TSI721_SMSG_ECC_NCOR(x)		(0x6a340 + (x) * 4)
 #define TSI721_SMSG_ECC_NCOR_MASK	0x000000ff
 
-/*
- * Block DMA Descriptors
- */
 
 struct tsi721_dma_desc {
 	__le32 type_id;
@@ -479,39 +440,36 @@ struct tsi721_dma_desc {
 
 	__le32 bcount;
 
-#define TSI721_DMAD_BCOUNT1	0x03ffffff /* if DTYPE == 1 */
-#define TSI721_DMAD_BCOUNT2	0x0000000f /* if DTYPE == 2 */
+#define TSI721_DMAD_BCOUNT1	0x03ffffff 
+#define TSI721_DMAD_BCOUNT2	0x0000000f 
 #define TSI721_DMAD_TT		0x0c000000
 #define TSI721_DMAD_RADDR0	0xc0000000
 
 	union {
-		__le32 raddr_lo;	   /* if DTYPE == (1 || 2) */
-		__le32 next_lo;		   /* if DTYPE == 3 */
+		__le32 raddr_lo;	   
+		__le32 next_lo;		   
 	};
 
 #define TSI721_DMAD_CFGOFF	0x00ffffff
 #define TSI721_DMAD_HOPCNT	0xff000000
 
 	union {
-		__le32 raddr_hi;	   /* if DTYPE == (1 || 2) */
-		__le32 next_hi;		   /* if DTYPE == 3 */
+		__le32 raddr_hi;	   
+		__le32 next_hi;		   
 	};
 
 	union {
-		struct {		   /* if DTYPE == 1 */
+		struct {		   
 			__le32 bufptr_lo;
 			__le32 bufptr_hi;
 			__le32 s_dist;
 			__le32 s_size;
 		} t1;
-		__le32 data[4];		   /* if DTYPE == 2 */
-		u32    reserved[4];	   /* if DTYPE == 3 */
+		__le32 data[4];		   
+		u32    reserved[4];	   
 	};
 } __aligned(32);
 
-/*
- * Inbound Messaging Descriptor
- */
 struct tsi721_imsg_desc {
 	__le32 type_id;
 
@@ -537,9 +495,6 @@ struct tsi721_imsg_desc {
 
 } __aligned(64);
 
-/*
- * Outbound Messaging Descriptor
- */
 struct tsi721_omsg_desc {
 	__le32 type_id;
 
@@ -560,13 +515,13 @@ struct tsi721_omsg_desc {
 #define TSI721_OMD_TT		0x0c000000
 
 	union {
-		__le32 bufptr_lo;	/* if DTYPE == 4 */
-		__le32 next_lo;		/* if DTYPE == 5 */
+		__le32 bufptr_lo;	
+		__le32 next_lo;		
 	};
 
 	union {
-		__le32 bufptr_hi;	/* if DTYPE == 4 */
-		__le32 next_hi;		/* if DTYPE == 5 */
+		__le32 bufptr_hi;	
+		__le32 next_hi;		
 	};
 
 } __aligned(16);
@@ -585,14 +540,13 @@ struct tsi721_desc_sts_fifo {
 	} stat[8];
 } __aligned(64);
 
-/* Descriptor types for BDMA and Messaging blocks */
 enum dma_dtype {
-	DTYPE1 = 1, /* Data Transfer DMA Descriptor */
-	DTYPE2 = 2, /* Immediate Data Transfer DMA Descriptor */
-	DTYPE3 = 3, /* Block Pointer DMA Descriptor */
-	DTYPE4 = 4, /* Outbound Msg DMA Descriptor */
-	DTYPE5 = 5, /* OB Messaging Block Pointer Descriptor */
-	DTYPE6 = 6  /* Inbound Messaging Descriptor */
+	DTYPE1 = 1, 
+	DTYPE2 = 2, 
+	DTYPE3 = 3, 
+	DTYPE4 = 4, 
+	DTYPE5 = 5, 
+	DTYPE6 = 6  
 };
 
 enum dma_rtype {
@@ -604,13 +558,10 @@ enum dma_rtype {
 	MAINT_WR = 5
 };
 
-/*
- * mport Driver Definitions
- */
 #define TSI721_DMA_CHNUM	TSI721_DMA_MAXCH
 
-#define TSI721_DMACH_MAINT	0	/* DMA channel for maint requests */
-#define TSI721_DMACH_MAINT_NBD	32	/* Number of BDs for maint requests */
+#define TSI721_DMACH_MAINT	0	
+#define TSI721_DMACH_MAINT_NBD	32	
 
 #define MSG_DMA_ENTRY_INX_TO_SIZE(x)	((0x10 << (x)) & 0xFFFF0)
 
@@ -624,29 +575,28 @@ enum tsi721_smsg_int_flag {
 	SMSG_INT_ALL		= 0x0006ffff
 };
 
-/* Structures */
 
 struct tsi721_bdma_chan {
-	int		bd_num;		/* number of buffer descriptors */
-	void		*bd_base;	/* start of DMA descriptors */
+	int		bd_num;		
+	void		*bd_base;	
 	dma_addr_t	bd_phys;
-	void		*sts_base;	/* start of DMA BD status FIFO */
+	void		*sts_base;	
 	dma_addr_t	sts_phys;
 	int		sts_size;
 };
 
 struct tsi721_imsg_ring {
 	u32		size;
-	/* VA/PA of data buffers for incoming messages */
+	
 	void		*buf_base;
 	dma_addr_t	buf_phys;
-	/* VA/PA of circular free buffer list */
+	
 	void		*imfq_base;
 	dma_addr_t	imfq_phys;
-	/* VA/PA of Inbound message descriptors */
+	
 	void		*imd_base;
 	dma_addr_t	imd_phys;
-	 /* Inbound Queue buffer pointers */
+	 
 	void		*imq_base[TSI721_IMSGD_RING_SIZE];
 
 	u32		rx_slot;
@@ -658,16 +608,16 @@ struct tsi721_imsg_ring {
 
 struct tsi721_omsg_ring {
 	u32		size;
-	/* VA/PA of OB Msg descriptors */
+	
 	void		*omd_base;
 	dma_addr_t	omd_phys;
-	/* VA/PA of OB Msg data buffers */
+	
 	void		*omq_base[TSI721_OMSGD_RING_SIZE];
 	dma_addr_t	omq_phys[TSI721_OMSGD_RING_SIZE];
-	/* VA/PA of OB Msg descriptor status FIFO */
+	
 	void		*sts_base;
 	dma_addr_t	sts_phys;
-	u32		sts_size; /* # of allocated status entries */
+	u32		sts_size; 
 	u32		sts_rdptr;
 
 	u32		tx_slot;
@@ -683,9 +633,6 @@ enum tsi721_flags {
 };
 
 #ifdef CONFIG_PCI_MSI
-/*
- * MSI-X Table Entries (0 ... 69)
- */
 #define TSI721_MSIX_DMACH_DONE(x)	(0 + (x))
 #define TSI721_MSIX_DMACH_INT(x)	(8 + (x))
 #define TSI721_MSIX_BDMA_INT		16
@@ -701,10 +648,9 @@ enum tsi721_flags {
 #define TSI721_MSIX_SRIO_MAC_INT	68
 #define TSI721_MSIX_I2C_INT		69
 
-/* MSI-X vector and init table entry indexes */
 enum tsi721_msix_vect {
 	TSI721_VECT_IDB,
-	TSI721_VECT_PWRX, /* PW_RX is part of SRIO MAC Interrupt reporting */
+	TSI721_VECT_PWRX, 
 	TSI721_VECT_OMB0_DONE,
 	TSI721_VECT_OMB1_DONE,
 	TSI721_VECT_OMB2_DONE,
@@ -730,7 +676,7 @@ struct msix_irq {
 	u16	vector;
 	char	irq_name[IRQ_DEVICE_NAME_MAX];
 };
-#endif /* CONFIG_PCI_MSI */
+#endif 
 
 struct tsi721_device {
 	struct pci_dev	*pdev;
@@ -740,27 +686,27 @@ struct tsi721_device {
 #ifdef CONFIG_PCI_MSI
 	struct msix_irq	msix[TSI721_VECT_MAX];
 #endif
-	/* Doorbells */
+	
 	void __iomem	*odb_base;
 	void		*idb_base;
 	dma_addr_t	idb_dma;
 	struct work_struct idb_work;
 	u32		db_discard_count;
 
-	/* Inbound Port-Write */
+	
 	struct work_struct pw_work;
 	struct kfifo	pw_fifo;
 	spinlock_t	pw_fifo_lock;
 	u32		pw_discard_count;
 
-	/* BDMA Engine */
+	
 	struct tsi721_bdma_chan bdma[TSI721_DMA_CHNUM];
 
-	/* Inbound Messaging */
+	
 	int		imsg_init[TSI721_IMSG_CHNUM];
 	struct tsi721_imsg_ring imsg_ring[TSI721_IMSG_CHNUM];
 
-	/* Outbound Messaging */
+	
 	int		omsg_init[TSI721_OMSG_CHNUM];
 	struct tsi721_omsg_ring	omsg_ring[TSI721_OMSG_CHNUM];
 };

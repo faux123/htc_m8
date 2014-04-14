@@ -44,10 +44,10 @@ void doorbell_exception(struct pt_regs *regs)
 	irq_exit();
 	set_irq_regs(old_regs);
 }
-#else /* CONFIG_SMP */
+#else 
 void doorbell_exception(struct pt_regs *regs)
 {
 	printk(KERN_WARNING "Received doorbell on non-smp system\n");
 }
-#endif /* CONFIG_SMP */
+#endif 
 

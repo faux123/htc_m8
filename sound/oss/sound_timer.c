@@ -1,15 +1,9 @@
 /*
- * sound/oss/sound_timer.c
- */
-/*
  * Copyright (C) by Hannu Savolainen 1993-1997
  *
  * OSS/Free for Linux is distributed under the GNU GENERAL PUBLIC LICENSE (GPL)
  * Version 2 (June 1991). See the "COPYING" file distributed with this software
  * for more info.
- */
-/*
- * Thomas Sailer   : ioctl code reworked (vmalloc/vfree removed)
  */
 #include <linux/string.h>
 #include <linux/spinlock.h>
@@ -23,22 +17,19 @@ static volatile int curr_tempo, curr_timebase;
 static volatile unsigned long curr_ticks;
 static volatile unsigned long next_event_time;
 static unsigned long prev_event_time;
-static volatile unsigned long usecs_per_tmr;	/* Length of the current interval */
+static volatile unsigned long usecs_per_tmr;	
 
 static struct sound_lowlev_timer *tmr;
 static DEFINE_SPINLOCK(lock);
 
 static unsigned long tmr2ticks(int tmr_value)
 {
-	/*
-	 *    Convert timer ticks to MIDI ticks
-	 */
 
 	unsigned long tmp;
 	unsigned long scale;
 
-	tmp = tmr_value * usecs_per_tmr;	/* Convert to usecs */
-	scale = (60 * 1000000) / (curr_tempo * curr_timebase);	/* usecs per MIDI tick */
+	tmp = tmr_value * usecs_per_tmr;	
+	scale = (60 * 1000000) / (curr_tempo * curr_timebase);	
 	return (tmp + (scale / 2)) / scale;
 }
 
@@ -46,19 +37,12 @@ void reprogram_timer(void)
 {
 	unsigned long   usecs_per_tick;
 
-	/*
-	 *	The user is changing the timer rate before setting a timer
-	 *	slap, bad bad not allowed.
-	 */
 	 
 	if(!tmr)
 		return;
 		
 	usecs_per_tick = (60 * 1000000) / (curr_tempo * curr_timebase);
 
-	/*
-	 * Don't kill the system by setting too high timer rate
-	 */
 	if (usecs_per_tick < 2000)
 		usecs_per_tick = 2000;
 
@@ -67,10 +51,6 @@ void reprogram_timer(void)
 
 void sound_timer_syncinterval(unsigned int new_usecs)
 {
-	/*
-	 *    This routine is called by the hardware level if
-	 *      the clock frequency has changed for some reason.
-	 */
 	tmr_offs = tmr_ctr;
 	ticks_offs += tmr2ticks(tmr_ctr);
 	tmr_ctr = 0;
@@ -124,7 +104,7 @@ static int timer_event(int dev, unsigned char *event)
 			{
 				long time;
 
-				if (parm <= curr_ticks)	/* It's the time */
+				if (parm <= curr_ticks)	
 					return TIMER_NOT_ARMED;
 				time = parm;
 				next_event_time = prev_event_time = time;
@@ -237,7 +217,7 @@ static int timer_ioctl(int dev, unsigned int cmd, void __user *arg)
 		case SNDCTL_SEQ_CTRLRATE:
 			if (get_user(val, p))
 				return -EFAULT;
-			if (val != 0)	/* Can't change */
+			if (val != 0)	
 				return -EINVAL;
 			val = ((curr_tempo * curr_timebase) + 30) / 60;
 			break;
@@ -257,7 +237,7 @@ static void timer_arm(int dev, long time)
 {
 	if (time < 0)
 		time = curr_ticks + 1;
-	else if (time <= curr_ticks)	/* It's the time */
+	else if (time <= curr_ticks)	
 		return;
 
 	next_event_time = prev_event_time = time;
@@ -268,8 +248,8 @@ static struct sound_timer_operations sound_timer =
 {
 	.owner		= THIS_MODULE,
 	.info		= {"Sound Timer", 0},
-	.priority	= 1,	/* Priority */
-	.devlink	= 0,	/* Local device link */
+	.priority	= 1,	
+	.devlink	= 0,	
 	.open		= timer_open,
 	.close		= timer_close,
 	.event		= timer_event,
@@ -310,7 +290,7 @@ void  sound_timer_init(struct sound_lowlev_timer *t, char *name)
 	if (initialized)
 	{
 		if (t->priority <= tmr->priority)
-			return;	/* There is already a similar or better timer */
+			return;	
 		tmr = t;
 		return;
 	}
@@ -319,7 +299,7 @@ void  sound_timer_init(struct sound_lowlev_timer *t, char *name)
 
 	n = sound_alloc_timerdev();
 	if (n == -1)
-		n = 0;		/* Overwrite the system timer */
+		n = 0;		
 	strlcpy(sound_timer.info.name, name, sizeof(sound_timer.info.name));
 	sound_timer_devs[n] = &sound_timer;
 }

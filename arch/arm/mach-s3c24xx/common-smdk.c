@@ -46,7 +46,6 @@
 #include <plat/devs.h>
 #include <plat/pm.h>
 
-/* LED devices */
 
 static struct s3c24xx_led_platdata smdk_pdata_led4 = {
 	.gpio		= S3C2410_GPF(4),
@@ -106,7 +105,6 @@ static struct platform_device smdk_led7 = {
 	},
 };
 
-/* NAND parititon from 2.4.18-swl5 */
 
 static struct mtd_partition smdk_default_nand_part[] = {
 	[0] = {
@@ -160,9 +158,6 @@ static struct s3c2410_nand_set smdk_nand_sets[] = {
 	},
 };
 
-/* choose a set of timings which should suit most 512Mbit
- * chips and beyond.
-*/
 
 static struct s3c2410_platform_nand smdk_nand_info = {
 	.tacls		= 20,
@@ -172,7 +167,6 @@ static struct s3c2410_platform_nand smdk_nand_info = {
 	.sets		= smdk_nand_sets,
 };
 
-/* devices we initialise */
 
 static struct platform_device __initdata *smdk_devs[] = {
 	&s3c_device_nand,
@@ -184,7 +178,7 @@ static struct platform_device __initdata *smdk_devs[] = {
 
 void __init smdk_machine_init(void)
 {
-	/* Configure the LEDs (even if we have no LED support)*/
+	
 
 	s3c_gpio_cfgpin(S3C2410_GPF(4), S3C2410_GPIO_OUTPUT);
 	s3c_gpio_cfgpin(S3C2410_GPF(5), S3C2410_GPIO_OUTPUT);

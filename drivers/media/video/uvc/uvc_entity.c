@@ -19,9 +19,6 @@
 
 #include "uvcvideo.h"
 
-/* ------------------------------------------------------------------------
- * Video subdevices registration and unregistration
- */
 
 static int uvc_mc_register_entity(struct uvc_video_chain *chain,
 	struct uvc_entity *entity)

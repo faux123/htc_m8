@@ -74,10 +74,6 @@ extern inline void pte_free(struct mm_struct *mm, struct page *page)
 	__free_page(page);
 }
 
-/*
- * In our implementation, each pgd entry contains 1 pmd that is never allocated
- * or freed.  pgd_present is always 1, so this should never be called. -NL
- */
 #define pmd_free(mm, pmd) BUG()
 
 static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
@@ -99,4 +95,4 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 
 #define pgd_populate(mm, pmd, pte) BUG()
 
-#endif /* M68K_MCF_PGALLOC_H */
+#endif 

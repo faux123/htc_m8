@@ -1,8 +1,3 @@
-/*
- * Generate definitions needed by assembly language modules.
- * This code generates raw asm output which is post-processed
- * to extract and format the required data.
- */
 
 #include <linux/sched.h>
 #include <linux/signal.h>
@@ -32,7 +27,7 @@
 
 void foo(void)
 {
-	/* offsets into the thread_info structure */
+	
 	OFFSET(TI_TASK,			thread_info, task);
 	OFFSET(TI_EXEC_DOMAIN,		thread_info, exec_domain);
 	OFFSET(TI_FLAGS,		thread_info, flags);
@@ -43,7 +38,7 @@ void foo(void)
 	OFFSET(TI_RESTART_BLOCK,	thread_info, restart_block);
 	BLANK();
 
-	/* offsets into register file storage */
+	
 	DEF_PTREG(REG_PSR,		psr);
 	DEF_PTREG(REG_ISR,		isr);
 	DEF_PTREG(REG_CCR,		ccr);
@@ -86,7 +81,7 @@ void foo(void)
 	DEFINE(FRV_FRAME0_SIZE,		sizeof(struct frv_frame0));
 	BLANK();
 
-	/* offsets into thread_struct */
+	
 	OFFSET(__THREAD_FRAME,		thread_struct, frame);
 	OFFSET(__THREAD_CURR,		thread_struct, curr);
 	OFFSET(__THREAD_SP,		thread_struct, sp);
@@ -99,7 +94,7 @@ void foo(void)
 	OFFSET(__THREAD_USER,		thread_struct, user);
 	BLANK();
 
-	/* offsets into frv_debug_status */
+	
 	OFFSET(DEBUG_BPSR,		frv_debug_status, bpsr);
 	OFFSET(DEBUG_DCR,		frv_debug_status, dcr);
 	OFFSET(DEBUG_BRR,		frv_debug_status, brr);

@@ -8,9 +8,6 @@
  *	Bob Harris
  */
 
-/*
- * Inport (ATI XL and Microsoft) busmouse driver for Linux
- */
 
 /*
  * This program is free software; you can redistribute it and/or modify

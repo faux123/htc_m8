@@ -20,10 +20,6 @@
 
 */
 
-/* Changes:
-
-	1.01	GRG 1998.12.20	 Added support for soft power switch
-*/
 
 #define	FRIQ_VERSION	"1.01" 
 
@@ -42,9 +38,6 @@
 
 #define j44(l,h)	(((l>>4)&0x0f)|(h&0xf0))
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
 
 static int  cont_map[2] = { 0x08, 0x10 };
 
@@ -186,7 +179,7 @@ static int friq_test_proto( PIA *pi, char * scratch, int verbose )
 	int	e[2] = {0,0};
 
 	pi->saved_r0 = r0();	
-	w0(0xff); udelay(20); CMD(0x3d); /* turn the power on */
+	w0(0xff); udelay(20); CMD(0x3d); 
 	udelay(500);
 	w0(pi->saved_r0);
 
@@ -228,14 +221,14 @@ static void friq_log_adapter( PIA *pi, char * scratch, int verbose )
 
 	pi->private = 1;
 	friq_connect(pi);
-	CMD(0x9e);  		/* disable sleep timer */
+	CMD(0x9e);  		
 	friq_disconnect(pi);
 
 }
 
 static void friq_release_proto( PIA *pi)
 {
-	if (pi->private) {		/* turn off the power */
+	if (pi->private) {		
 		friq_connect(pi);
 		CMD(0x1d); CMD(0x1e);
 		friq_disconnect(pi);

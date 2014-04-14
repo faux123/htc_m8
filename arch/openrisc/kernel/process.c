@@ -44,11 +44,6 @@
 
 #include <linux/smp.h>
 
-/*
- * Pointer to Current thread info structure.
- *
- * Used at user space -> kernel transitions.
- */
 struct thread_info *current_thread_info_set[NR_CPUS] = { &init_thread_info, };
 
 void machine_restart(void)
@@ -57,18 +52,12 @@ void machine_restart(void)
 	__asm__("l.nop 1");
 }
 
-/*
- * Similar to machine_power_off, but don't shut off power.  Add code
- * here to freeze the system for e.g. post-mortem debug purpose when
- * possible.  This halt has nothing to do with the idle halt.
- */
 void machine_halt(void)
 {
 	printk(KERN_INFO "*** MACHINE HALT ***\n");
 	__asm__("l.nop 1");
 }
 
-/* If or when software power-off is implemented, add code here.  */
 void machine_power_off(void)
 {
 	printk(KERN_INFO "*** MACHINE POWER OFF ***\n");
@@ -77,11 +66,6 @@ void machine_power_off(void)
 
 void (*pm_power_off) (void) = machine_power_off;
 
-/*
- * When a process does an "exec", machine state like FPU and debug
- * registers need to be reset.  This is a hook function for that.
- * Currently we don't have any such state to reset, so this is empty.
- */
 void flush_thread(void)
 {
 }
@@ -90,7 +74,7 @@ void show_regs(struct pt_regs *regs)
 {
 	extern void show_registers(struct pt_regs *regs);
 
-	/* __PHX__ cleanup this mess */
+	
 	show_registers(regs);
 }
 
@@ -103,10 +87,6 @@ void release_thread(struct task_struct *dead_task)
 {
 }
 
-/*
- * Copy the thread-specific (arch specific) info from the current
- * process to the new one p
- */
 extern asmlinkage void ret_from_fork(void);
 
 int
@@ -123,36 +103,25 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 
 	p->set_child_tid = p->clear_child_tid = NULL;
 
-	/* Copy registers */
-	/* redzone */
+	
+	
 	sp -= STACK_FRAME_OVERHEAD;
 	sp -= sizeof(struct pt_regs);
 	childregs = (struct pt_regs *)sp;
 
-	/* Copy parent registers */
+	
 	*childregs = *regs;
 
 	if ((childregs->sr & SPR_SR_SM) == 1) {
-		/* for kernel thread, set `current_thread_info'
-		 * and stackptr in new task
-		 */
 		childregs->sp = (unsigned long)task_stack_page(p) + THREAD_SIZE;
 		childregs->gpr[10] = (unsigned long)task_thread_info(p);
 	} else {
 		childregs->sp = usp;
 	}
 
-	childregs->gpr[11] = 0;	/* Result from fork() */
+	childregs->gpr[11] = 0;	
 
-	/*
-	 * The way this works is that at some point in the future
-	 * some task will call _switch to switch to the new task.
-	 * That will pop off the stack frame created below and start
-	 * the new task running at ret_from_fork.  The new task will
-	 * do some house keeping and then return from the fork or clone
-	 * system call, using the stack frame created above.
-	 */
-	/* redzone */
+	
 	sp -= STACK_FRAME_OVERHEAD;
 	sp -= sizeof(struct pt_regs);
 	kregs = (struct pt_regs *)sp;
@@ -160,21 +129,14 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 	ti = task_thread_info(p);
 	ti->ksp = sp;
 
-	/* kregs->sp must store the location of the 'pre-switch' kernel stack
-	 * pointer... for a newly forked process, this is simply the top of
-	 * the kernel stack.
-	 */
 	kregs->sp = top_of_kernel_stack;
-	kregs->gpr[3] = (unsigned long)current;	/* arg to schedule_tail */
+	kregs->gpr[3] = (unsigned long)current;	
 	kregs->gpr[10] = (unsigned long)task_thread_info(p);
 	kregs->gpr[9] = (unsigned long)ret_from_fork;
 
 	return 0;
 }
 
-/*
- * Set up a thread for executing a new program
- */
 void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 {
 	unsigned long sr = regs->sr & ~SPR_SR_SM;
@@ -186,13 +148,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 	regs->sr = sr;
 	regs->sp = sp;
 
-/*	printk("start thread, ksp = %lx\n", current_thread_info()->ksp);*/
 }
 
-/* Fill in the fpu structure for a core dump.  */
 int dump_fpu(struct pt_regs *regs, elf_fpregset_t * fpu)
 {
-	/* TODO */
+	
 	return 0;
 }
 
@@ -208,10 +168,6 @@ struct task_struct *__switch_to(struct task_struct *old,
 
 	local_irq_save(flags);
 
-	/* current_set is an array of saved current pointers
-	 * (one for each cpu). we need them at user->kernel transition,
-	 * while we save them at kernel->user transition
-	 */
 	new_ti = new->stack;
 	old_ti = old->stack;
 
@@ -223,13 +179,9 @@ struct task_struct *__switch_to(struct task_struct *old,
 	return last;
 }
 
-/*
- * Write out registers in core dump format, as defined by the
- * struct user_regs_struct
- */
 void dump_elf_thread(elf_greg_t *dest, struct pt_regs* regs)
 {
-	dest[0] = 0; /* r0 */
+	dest[0] = 0; 
 	memcpy(dest+1, regs->gpr+1, 31*sizeof(unsigned long));
 	dest[32] = regs->pc;
 	dest[33] = regs->sr;
@@ -244,9 +196,6 @@ void __noreturn kernel_thread_helper(int (*fn) (void *), void *arg)
 	do_exit(fn(arg));
 }
 
-/*
- * Create a kernel thread.
- */
 int kernel_thread(int (*fn) (void *), void *arg, unsigned long flags)
 {
 	struct pt_regs regs;
@@ -262,9 +211,6 @@ int kernel_thread(int (*fn) (void *), void *arg, unsigned long flags)
 		       0, &regs, 0, NULL, NULL);
 }
 
-/*
- * sys_execve() executes a new program.
- */
 asmlinkage long _sys_execve(const char __user *name,
 			    const char __user * const __user *argv,
 			    const char __user * const __user *envp,
@@ -288,7 +234,7 @@ out:
 
 unsigned long get_wchan(struct task_struct *p)
 {
-	/* TODO */
+	
 
 	return 0;
 }

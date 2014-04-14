@@ -24,22 +24,10 @@
 
 #define HLWD_NR_IRQS	32
 
-/*
- * Each interrupt has a corresponding bit in both
- * the Interrupt Cause (ICR) and Interrupt Mask (IMR) registers.
- *
- * Enabling/disabling an interrupt line involves asserting/clearing
- * the corresponding bit in IMR. ACK'ing a request simply involves
- * asserting the corresponding bit in ICR.
- */
 #define HW_BROADWAY_ICR		0x00
 #define HW_BROADWAY_IMR		0x04
 
 
-/*
- * IRQ chip hooks.
- *
- */
 
 static void hlwd_pic_mask_and_ack(struct irq_data *d)
 {
@@ -84,10 +72,6 @@ static struct irq_chip hlwd_pic = {
 	.irq_unmask	= hlwd_pic_unmask,
 };
 
-/*
- * IRQ host hooks.
- *
- */
 
 static struct irq_domain *hlwd_irq_host;
 
@@ -113,7 +97,7 @@ static unsigned int __hlwd_pic_get_irq(struct irq_domain *h)
 	irq_status = in_be32(io_base + HW_BROADWAY_ICR) &
 		     in_be32(io_base + HW_BROADWAY_IMR);
 	if (irq_status == 0)
-		return NO_IRQ;	/* no more IRQs pending */
+		return NO_IRQ;	
 
 	irq = __ffs(irq_status);
 	return irq_linear_revmap(h, irq);
@@ -127,7 +111,7 @@ static void hlwd_pic_irq_cascade(unsigned int cascade_virq,
 	unsigned int virq;
 
 	raw_spin_lock(&desc->lock);
-	chip->irq_mask(&desc->irq_data); /* IRQ_LEVEL */
+	chip->irq_mask(&desc->irq_data); 
 	raw_spin_unlock(&desc->lock);
 
 	virq = __hlwd_pic_get_irq(irq_domain);
@@ -137,20 +121,16 @@ static void hlwd_pic_irq_cascade(unsigned int cascade_virq,
 		pr_err("spurious interrupt!\n");
 
 	raw_spin_lock(&desc->lock);
-	chip->irq_ack(&desc->irq_data); /* IRQ_LEVEL */
+	chip->irq_ack(&desc->irq_data); 
 	if (!irqd_irq_disabled(&desc->irq_data) && chip->irq_unmask)
 		chip->irq_unmask(&desc->irq_data);
 	raw_spin_unlock(&desc->lock);
 }
 
-/*
- * Platform hooks.
- *
- */
 
 static void __hlwd_quiesce(void __iomem *io_base)
 {
-	/* mask and ack all IRQs */
+	
 	out_be32(io_base + HW_BROADWAY_IMR, 0);
 	out_be32(io_base + HW_BROADWAY_ICR, 0xffffffff);
 }
@@ -192,10 +172,6 @@ unsigned int hlwd_pic_get_irq(void)
 	return __hlwd_pic_get_irq(hlwd_irq_host);
 }
 
-/*
- * Probe function.
- *
- */
 
 void hlwd_pic_probe(void)
 {
@@ -219,12 +195,6 @@ void hlwd_pic_probe(void)
 	}
 }
 
-/**
- * hlwd_quiesce() - quiesce hollywood irq controller
- *
- * Mask and ack all interrupt sources.
- *
- */
 void hlwd_quiesce(void)
 {
 	void __iomem *io_base = hlwd_irq_host->host_data;

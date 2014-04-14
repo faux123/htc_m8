@@ -29,10 +29,6 @@
 
 #include "mpi-internal.h"
 
-/****************
- * Add the unsigned integer V to the mpi-integer U and store the
- * result in W. U and V may be the same.
- */
 int mpi_add_ui(MPI w, const MPI u, unsigned long v)
 {
 	mpi_ptr_t wp, up;
@@ -43,32 +39,31 @@ int mpi_add_ui(MPI w, const MPI u, unsigned long v)
 	usign = u->sign;
 	wsign = 0;
 
-	/* If not space for W (and possible carry), increase space.  */
+	
 	wsize = usize + 1;
 	if (w->alloced < wsize)
 		if (mpi_resize(w, wsize) < 0)
 			return -ENOMEM;
 
-	/* These must be after realloc (U may be the same as W).  */
+	
 	up = u->d;
 	wp = w->d;
 
-	if (!usize) {		/* simple */
+	if (!usize) {		
 		wp[0] = v;
 		wsize = v ? 1 : 0;
-	} else if (!usign) {	/* mpi is not negative */
+	} else if (!usign) {	
 		mpi_limb_t cy;
 		cy = mpihelp_add_1(wp, up, usize, v);
 		wp[usize] = cy;
 		wsize = usize + cy;
-	} else {		/* The signs are different.  Need exact comparison to determine
-				 * which operand to subtract from which.  */
+	} else {		
 		if (usize == 1 && up[0] < v) {
 			wp[0] = v - up[0];
 			wsize = 1;
 		} else {
 			mpihelp_sub_1(wp, up, usize, v);
-			/* Size can decrease with at most one limb. */
+			
 			wsize = usize - (wp[usize - 1] == 0);
 			wsign = 1;
 		}
@@ -85,7 +80,7 @@ int mpi_add(MPI w, MPI u, MPI v)
 	mpi_size_t usize, vsize, wsize;
 	int usign, vsign, wsign;
 
-	if (u->nlimbs < v->nlimbs) {	/* Swap U and V. */
+	if (u->nlimbs < v->nlimbs) {	
 		usize = v->nlimbs;
 		usign = v->sign;
 		vsize = u->nlimbs;
@@ -93,7 +88,7 @@ int mpi_add(MPI w, MPI u, MPI v)
 		wsize = usize + 1;
 		if (RESIZE_IF_NEEDED(w, wsize) < 0)
 			return -ENOMEM;
-		/* These must be after realloc (u or v may be the same as w).  */
+		
 		up = v->d;
 		vp = u->d;
 	} else {
@@ -104,19 +99,19 @@ int mpi_add(MPI w, MPI u, MPI v)
 		wsize = usize + 1;
 		if (RESIZE_IF_NEEDED(w, wsize) < 0)
 			return -ENOMEM;
-		/* These must be after realloc (u or v may be the same as w).  */
+		
 		up = u->d;
 		vp = v->d;
 	}
 	wp = w->d;
 	wsign = 0;
 
-	if (!vsize) {		/* simple */
+	if (!vsize) {		
 		MPN_COPY(wp, up, usize);
 		wsize = usize;
 		wsign = usign;
-	} else if (usign != vsign) {	/* different sign */
-		/* This test is right since USIZE >= VSIZE */
+	} else if (usign != vsign) {	
+		
 		if (usize != vsize) {
 			mpihelp_sub(wp, up, usize, vp, vsize);
 			wsize = usize;
@@ -135,7 +130,7 @@ int mpi_add(MPI w, MPI u, MPI v)
 			if (usign)
 				wsign = 1;
 		}
-	} else {		/* U and V have same sign. Add them. */
+	} else {		
 		mpi_limb_t cy = mpihelp_add(wp, up, usize, vp, vsize);
 		wp[usize] = cy;
 		wsize = usize + cy;
@@ -148,10 +143,6 @@ int mpi_add(MPI w, MPI u, MPI v)
 	return 0;
 }
 
-/****************
- * Subtract the unsigned integer V from the mpi-integer U and store the
- * result in W.
- */
 int mpi_sub_ui(MPI w, MPI u, unsigned long v)
 {
 	mpi_ptr_t wp, up;
@@ -162,34 +153,33 @@ int mpi_sub_ui(MPI w, MPI u, unsigned long v)
 	usign = u->sign;
 	wsign = 0;
 
-	/* If not space for W (and possible carry), increase space.  */
+	
 	wsize = usize + 1;
 	if (w->alloced < wsize)
 		if (mpi_resize(w, wsize) < 0)
 			return -ENOMEM;
 
-	/* These must be after realloc (U may be the same as W).  */
+	
 	up = u->d;
 	wp = w->d;
 
-	if (!usize) {		/* simple */
+	if (!usize) {		
 		wp[0] = v;
 		wsize = v ? 1 : 0;
 		wsign = 1;
-	} else if (usign) {	/* mpi and v are negative */
+	} else if (usign) {	
 		mpi_limb_t cy;
 		cy = mpihelp_add_1(wp, up, usize, v);
 		wp[usize] = cy;
 		wsize = usize + cy;
-	} else {		/* The signs are different.  Need exact comparison to determine
-				 * which operand to subtract from which.  */
+	} else {		
 		if (usize == 1 && up[0] < v) {
 			wp[0] = v - up[0];
 			wsize = 1;
 			wsign = 1;
 		} else {
 			mpihelp_sub_1(wp, up, usize, v);
-			/* Size can decrease with at most one limb. */
+			
 			wsize = usize - (wp[usize - 1] == 0);
 		}
 	}
@@ -211,7 +201,7 @@ int mpi_sub(MPI w, MPI u, MPI v)
 		rc = mpi_add(w, u, vv);
 		mpi_free(vv);
 	} else {
-		/* fixme: this is not thread-save (we temp. modify v) */
+		
 		v->sign = !v->sign;
 		rc = mpi_add(w, u, v);
 		v->sign = !v->sign;

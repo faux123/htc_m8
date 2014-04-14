@@ -12,31 +12,25 @@
 
 #ifndef __ASSEMBLY__
 
-struct blackfin_pda {			/* Per-processor Data Area */
+struct blackfin_pda {			
 	struct blackfin_pda *next;
 
 	unsigned long syscfg;
 #ifdef CONFIG_SMP
-	unsigned long imask;		/* Current IMASK value */
+	unsigned long imask;		
 #endif
 
-	unsigned long *ipdt;		/* Start of switchable I-CPLB table */
-	unsigned long *ipdt_swapcount;	/* Number of swaps in ipdt */
-	unsigned long *dpdt;		/* Start of switchable D-CPLB table */
-	unsigned long *dpdt_swapcount;	/* Number of swaps in dpdt */
+	unsigned long *ipdt;		
+	unsigned long *ipdt_swapcount;	
+	unsigned long *dpdt;		
+	unsigned long *dpdt_swapcount;	
 
-	/*
-	 * Single instructions can have multiple faults, which
-	 * need to be handled by traps.c, in irq5. We store
-	 * the exception cause to ensure we don't miss a
-	 * double fault condition
-	 */
 	unsigned long ex_iptr;
 	unsigned long ex_optr;
 	unsigned long ex_buf[4];
-	unsigned long ex_imask;		/* Saved imask from exception */
-	unsigned long ex_ipend;		/* Saved IPEND from exception */
-	unsigned long *ex_stack;	/* Exception stack space */
+	unsigned long ex_imask;		
+	unsigned long ex_ipend;		
+	unsigned long *ex_stack;	
 
 #ifdef ANOMALY_05000261
 	unsigned long last_cplb_fault_retx;
@@ -45,7 +39,7 @@ struct blackfin_pda {			/* Per-processor Data Area */
 	unsigned long icplb_fault_addr;
 	unsigned long retx;
 	unsigned long seqstat;
-	unsigned int __nmi_count;	/* number of times NMI asserted on this CPU */
+	unsigned int __nmi_count;	
 #ifdef CONFIG_DEBUG_DOUBLEFAULT
 	unsigned long dcplb_doublefault_addr;
 	unsigned long icplb_doublefault_addr;
@@ -66,6 +60,6 @@ struct blackfin_initial_pda {
 
 extern struct blackfin_pda cpu_pda[];
 
-#endif	/* __ASSEMBLY__ */
+#endif	
 
-#endif /* _ASM_BLACKFIN_PDA_H */
+#endif 

@@ -39,7 +39,6 @@
 
 #include "et61x251_sensor.h"
 
-/*****************************************************************************/
 
 #define ET61X251_DEBUG
 #define ET61X251_DEBUG_LEVEL         2
@@ -55,7 +54,6 @@
 #define ET61X251_CTRL_TIMEOUT        100
 #define ET61X251_FRAME_TIMEOUT       2
 
-/*****************************************************************************/
 
 static const struct usb_device_id et61x251_id_table[] = {
 	{ USB_DEVICE(0x102c, 0x6251), },
@@ -64,7 +62,6 @@ static const struct usb_device_id et61x251_id_table[] = {
 
 ET61X251_SENSOR_TABLE
 
-/*****************************************************************************/
 
 enum et61x251_frame_state {
 	F_UNUSED,
@@ -144,7 +141,6 @@ struct et61x251_device {
 	wait_queue_head_t wait_open, wait_frame, wait_stream;
 };
 
-/*****************************************************************************/
 
 struct et61x251_device*
 et61x251_match_id(struct et61x251_device* cam, const struct usb_device_id *id)
@@ -160,7 +156,6 @@ et61x251_attach_sensor(struct et61x251_device* cam,
 	memcpy(&cam->sensor, sensor, sizeof(struct et61x251_sensor));
 }
 
-/*****************************************************************************/
 
 #undef DBG
 #undef KDBG
@@ -208,6 +203,6 @@ do {									\
 		 __FILE__, __func__, __LINE__, ##__VA_ARGS__)
 
 #undef PDBGG
-#define PDBGG(fmt, args...) do {;} while (0) /* placeholder */
+#define PDBGG(fmt, args...) do {;} while (0) 
 
-#endif /* _ET61X251_H_ */
+#endif 

@@ -1,6 +1,3 @@
-/*
- * Declarations of CHRP platform-specific things.
- */
 
 extern void chrp_nvram_init(void);
 extern void chrp_get_rtc_time(struct rtc_time *);

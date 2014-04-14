@@ -25,10 +25,6 @@
  *
  *
  **************************************************************************/
-/*
- * Authors:
- * Dave Airlie <airlied@redhat.com>
- */
 
 #ifndef _DRM_CACHE_H_
 #define _DRM_CACHE_H_

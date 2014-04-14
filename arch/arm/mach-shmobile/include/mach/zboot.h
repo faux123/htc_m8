@@ -4,11 +4,6 @@
 #include <asm/mach-types.h>
 #include <mach/zboot_macros.h>
 
-/**************************************************
- *
- *		board specific settings
- *
- **************************************************/
 
 #ifdef CONFIG_MACH_AP4EVB
 #define MACH_TYPE	MACH_TYPE_AP4EVB
@@ -20,4 +15,4 @@
 #error "unsupported board."
 #endif
 
-#endif /* ZBOOT_H */
+#endif 

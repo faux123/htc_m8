@@ -18,4 +18,4 @@
 
 #include <plat/mfp.h>
 
-#endif /* __ASM_ARCH_MFP_H */
+#endif 

@@ -21,4 +21,4 @@
 #include <asm/sizes.h>
 #include <mach/map.h>
 
-#endif /* __ASM_ARCH_HARDWARE_H */
+#endif 

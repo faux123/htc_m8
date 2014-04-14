@@ -22,15 +22,7 @@
 #include <linux/spinlock.h>
 #include <net/mac80211.h>
 
-/*
- * The key cache is used for h/w cipher state and also for
- * tracking station state such as the current tx antenna.
- * We also setup a mapping table between key cache slot indices
- * and station state to short-circuit node lookups on rx.
- * Different parts have different size key caches.  We handle
- * up to ATH_KEYMAX entries (could dynamically allocate state).
- */
-#define	ATH_KEYMAX	        128     /* max key cache size we handle */
+#define	ATH_KEYMAX	        128     
 
 static const u8 ath_bcast_mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -85,11 +77,9 @@ struct ath_keyval {
 	u8 kv_type;
 	u8 kv_pad;
 	u16 kv_len;
-	u8 kv_val[16]; /* TK */
-	u8 kv_mic[8]; /* Michael MIC key */
-	u8 kv_txmic[8]; /* Michael MIC TX key (used only if the hardware
-			 * supports both MIC keys in the same key cache entry;
-			 * in that case, kv_mic is the RX key) */
+	u8 kv_val[16]; 
+	u8 kv_mic[8]; 
+	u8 kv_txmic[8]; 
 };
 
 enum ath_cipher {
@@ -102,15 +92,6 @@ enum ath_cipher {
 	ATH_CIPHER_MIC = 127
 };
 
-/**
- * struct ath_ops - Register read/write operations
- *
- * @read: Register read
- * @multi_read: Multiple register read
- * @write: Register write
- * @enable_write_buffer: Enable multiple register writes
- * @write_flush: flush buffered register writes and disable buffering
- */
 struct ath_ops {
 	unsigned int (*read)(void *, u32 reg_offset);
 	void (*multi_read)(void *, u32 *addr, u32 *val, u16 count);
@@ -193,36 +174,6 @@ void ath_printk(const char *level, const struct ath_common *common,
 #define ath_info(common, fmt, ...)				\
 	ath_printk(KERN_INFO, common, fmt, ##__VA_ARGS__)
 
-/**
- * enum ath_debug_level - atheros wireless debug level
- *
- * @ATH_DBG_RESET: reset processing
- * @ATH_DBG_QUEUE: hardware queue management
- * @ATH_DBG_EEPROM: eeprom processing
- * @ATH_DBG_CALIBRATE: periodic calibration
- * @ATH_DBG_INTERRUPT: interrupt processing
- * @ATH_DBG_REGULATORY: regulatory processing
- * @ATH_DBG_ANI: adaptive noise immunitive processing
- * @ATH_DBG_XMIT: basic xmit operation
- * @ATH_DBG_BEACON: beacon handling
- * @ATH_DBG_CONFIG: configuration of the hardware
- * @ATH_DBG_FATAL: fatal errors, this is the default, DBG_DEFAULT
- * @ATH_DBG_PS: power save processing
- * @ATH_DBG_HWTIMER: hardware timer handling
- * @ATH_DBG_BTCOEX: bluetooth coexistance
- * @ATH_DBG_BSTUCK: stuck beacons
- * @ATH_DBG_MCI: Message Coexistence Interface, a private protocol
- *	used exclusively for WLAN-BT coexistence starting from
- *	AR9462.
- * @ATH_DBG_DFS: radar datection
- * @ATH_DBG_ANY: enable all debugging
- *
- * The debug level is used to control the amount and type of debugging output
- * we want to see. Each driver has its own method for enabling debugging and
- * modifying debug level states -- but this is typically done through a
- * module parameter 'debug' along with a respective 'debug' debugfs file
- * entry.
- */
 enum ATH_DEBUG {
 	ATH_DBG_RESET		= 0x00000001,
 	ATH_DBG_QUEUE		= 0x00000002,
@@ -274,9 +225,8 @@ void _ath_dbg(struct ath_common *common, enum ATH_DEBUG dbg_mask,
 	unlikely(__ret_warn_once);				\
 })
 
-#endif /* CONFIG_ATH_DEBUG */
+#endif 
 
-/** Returns string describing opmode, or NULL if unknown mode. */
 #ifdef CONFIG_ATH_DEBUG
 const char *ath_opmode_to_string(enum nl80211_iftype opmode);
 #else
@@ -286,4 +236,4 @@ static inline const char *ath_opmode_to_string(enum nl80211_iftype opmode)
 }
 #endif
 
-#endif /* ATH_H */
+#endif 

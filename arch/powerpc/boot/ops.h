@@ -17,11 +17,10 @@
 
 #define	COMMAND_LINE_SIZE	512
 #define	MAX_PATH_LEN		256
-#define	MAX_PROP_LEN		256 /* What should this be? */
+#define	MAX_PROP_LEN		256 
 
 typedef void (*kernel_entry_t)(unsigned long r3, unsigned long r4, void *r5);
 
-/* Platform specific operations */
 struct platform_ops {
 	void	(*fixups)(void);
 	void	(*image_hdr)(const void *);
@@ -33,7 +32,6 @@ struct platform_ops {
 };
 extern struct platform_ops platform_ops;
 
-/* Device Tree operations */
 struct dt_ops {
 	void *	(*finddevice)(const char *name);
 	int	(*getprop)(const void *phandle, const char *name, void *buf,
@@ -42,7 +40,7 @@ struct dt_ops {
 			const void *buf, const int buflen);
 	int (*del_node)(const void *phandle);
 	void *(*get_parent)(const void *phandle);
-	/* The node must not already exist. */
+	
 	void *(*create_node)(const void *parent, const char *name);
 	void *(*find_node_by_prop_value)(const void *prev,
 	                                 const char *propname,
@@ -54,7 +52,6 @@ struct dt_ops {
 };
 extern struct dt_ops dt_ops;
 
-/* Console operations */
 struct console_ops {
 	int	(*open)(void);
 	void	(*write)(const char *buf, int len);
@@ -64,7 +61,6 @@ struct console_ops {
 };
 extern struct console_ops console_ops;
 
-/* Serial console operations */
 struct serial_console_data {
 	int		(*open)(void);
 	void		(*putc)(unsigned char c);
@@ -259,4 +255,4 @@ int __ilog2_u32(u32 n)
 	return 31 - bit;
 }
 
-#endif /* _PPC_BOOT_OPS_H_ */
+#endif 

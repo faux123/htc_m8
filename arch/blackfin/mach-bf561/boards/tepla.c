@@ -16,9 +16,6 @@
 
 const char bfin_board_name[] = "Tepla-BF561";
 
-/*
- *  Driver needs to know address, irq and flag pin.
- */
 static struct resource smc91x_resources[] = {
 	{
 		.start	= 0x2C000300,
@@ -87,7 +84,7 @@ static struct platform_device bfin_uart0_device = {
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
 	.resource = bfin_uart0_resources,
 	.dev = {
-		.platform_data = &bfin_uart0_peripherals, /* Passed to driver */
+		.platform_data = &bfin_uart0_peripherals, 
 	},
 };
 #endif

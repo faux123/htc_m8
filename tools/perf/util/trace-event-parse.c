@@ -97,7 +97,7 @@ void parse_cmdlines(char *file, int size __unused)
 	while (line) {
 		item = malloc_or_die(sizeof(*item));
 		sscanf(line, "%d %as", &item->pid,
-		       (float *)(void *)&item->comm); /* workaround gcc warning */
+		       (float *)(void *)&item->comm); 
 		item->next = list;
 		list = item;
 		line = strtok_r(NULL, "\n", &next);
@@ -159,14 +159,14 @@ void parse_proc_kallsyms(char *file, unsigned int size __unused)
 		item = malloc_or_die(sizeof(*item));
 		item->mod = NULL;
 		ret = sscanf(line, "%as %c %as\t[%as",
-			     (float *)(void *)&addr_str, /* workaround gcc warning */
+			     (float *)(void *)&addr_str, 
 			     &ch,
 			     (float *)(void *)&item->func,
 			     (float *)(void *)&item->mod);
 		item->addr = strtoull(addr_str, NULL, 16);
 		free(addr_str);
 
-		/* truncate the extra ']' */
+		
 		if (item->mod)
 			item->mod[strlen(item->mod) - 1] = 0;
 
@@ -192,18 +192,11 @@ void parse_proc_kallsyms(char *file, unsigned int size __unused)
 
 	qsort(func_list, func_count, sizeof(*func_list), func_cmp);
 
-	/*
-	 * Add a special record at the end.
-	 */
 	func_list[func_count].func = NULL;
 	func_list[func_count].addr = 0;
 	func_list[func_count].mod = NULL;
 }
 
-/*
- * We are searching for a record in between, not an exact
- * match.
- */
 static int func_bcmp(const void *a, const void *b)
 {
 	const struct func_map *fa = a;
@@ -302,7 +295,7 @@ void parse_ftrace_printk(char *file, unsigned int size __unused)
 		}
 		item = malloc_or_die(sizeof(*item));
 		item->addr = strtoull(addr_str, NULL, 16);
-		/* fmt still has a space, skip it */
+		
 		item->printk = strdup(line+1);
 		item->next = list;
 		list = item;
@@ -390,7 +383,7 @@ static void free_arg(struct print_arg *arg)
 	case PRINT_NULL:
 	case PRINT_FIELD ... PRINT_OP:
 	default:
-		/* todo */
+		
 		break;
 	}
 
@@ -470,7 +463,7 @@ static enum event_type __read_token(char **tok)
 				buf[i++] = __read_char();
 				break;
 			}
-			/* fall through */
+			
 		case '+':
 		case '|':
 		case '&':
@@ -492,7 +485,7 @@ static enum event_type __read_token(char **tok)
 		case '!':
 		case '=':
 			goto test_equal;
-		default: /* what should we do instead? */
+		default: 
 			break;
 		}
 		buf[i] = 0;
@@ -507,7 +500,7 @@ static enum event_type __read_token(char **tok)
 
 	case EVENT_DQUOTE:
 	case EVENT_SQUOTE:
-		/* don't keep quotes */
+		
 		i--;
 		quote_ch = ch;
 		last_ch = 0;
@@ -530,11 +523,11 @@ static enum event_type __read_token(char **tok)
 			last_ch = ch;
 			ch = __read_char();
 			buf[i++] = ch;
-			/* the '\' '\' will cancel itself */
+			
 			if (ch == '\\' && last_ch == '\\')
 				last_ch = 0;
 		} while (ch != quote_ch || last_ch == '\\');
-		/* remove the last quote */
+		
 		i--;
 		goto out;
 
@@ -597,11 +590,10 @@ static enum event_type read_token(char **tok)
 		free_token(*tok);
 	}
 
-	/* not reached */
+	
 	return EVENT_NONE;
 }
 
-/* no newline */
 static enum event_type read_token_item(char **tok)
 {
 	enum event_type type;
@@ -614,7 +606,7 @@ static enum event_type read_token_item(char **tok)
 		free_token(*tok);
 	}
 
-	/* not reached */
+	
 	return EVENT_NONE;
 }
 
@@ -780,10 +772,6 @@ static int event_read_fields(struct event *event, struct format_field **fields)
 		free_token(token);
 
 		type = read_token(&token);
-		/*
-		 * The ftrace fields may still use the "special" name.
-		 * Just ignore it.
-		 */
 		if (event->flags & EVENT_FL_ISFTRACE &&
 		    type == EVENT_ITEM && strcmp(token, "special") == 0) {
 			free_token(token);
@@ -801,15 +789,11 @@ static int event_read_fields(struct event *event, struct format_field **fields)
 		field = malloc_or_die(sizeof(*field));
 		memset(field, 0, sizeof(*field));
 
-		/* read the rest of the type */
+		
 		for (;;) {
 			type = read_token(&token);
 			if (type == EVENT_ITEM ||
 			    (type == EVENT_OP && strcmp(token, "*") == 0) ||
-			    /*
-			     * Some of the ftrace fields are broken and have
-			     * an illegal "." in them.
-			     */
 			    (event->flags & EVENT_FL_ISFTRACE &&
 			     type == EVENT_OP && strcmp(token, ".") == 0)) {
 
@@ -875,13 +859,9 @@ static int event_read_fields(struct event *event, struct format_field **fields)
 			brackets = realloc(brackets, strlen(brackets) + 2);
 			strcat(brackets, "]");
 
-			/* add brackets to type */
+			
 
 			type = read_token(&token);
-			/*
-			 * If the next token is not an OP, then it is of
-			 * the format: type [] item;
-			 */
 			if (type == EVENT_ITEM) {
 				field->type = realloc(field->type,
 						      strlen(field->type) +
@@ -942,7 +922,7 @@ static int event_read_fields(struct event *event, struct format_field **fields)
 
 		type = read_token(&token);
 		if (type != EVENT_NEWLINE) {
-			/* newer versions of the kernel have a "signed" type */
+			
 			if (test_type_token(type, token, EVENT_ITEM, "signed"))
 				goto fail;
 
@@ -1110,11 +1090,11 @@ static int get_op_prio(char *op)
 		case '+':
 		case '-':
 			return 7;
-			/* '>>' and '<<' are 8 */
+			
 		case '<':
 		case '>':
 			return 9;
-			/* '==' and '!=' are 10 */
+			
 		case '&':
 			return 11;
 		case '^':
@@ -1154,7 +1134,7 @@ static int get_op_prio(char *op)
 static void set_op_prio(struct print_arg *arg)
 {
 
-	/* single ops are the greatest */
+	
 	if (!arg->op.left || arg->op.left->type == PRINT_NULL) {
 		arg->op.prio = 0;
 		return;
@@ -1170,11 +1150,11 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 	enum event_type type;
 	char *token;
 
-	/* the op is passed in via tok */
+	
 	token = *tok;
 
 	if (arg->type == PRINT_OP && !arg->op.left) {
-		/* handle single op */
+		
 		if (token[1]) {
 			die("bad op token %s", token);
 			return EVENT_ERROR;
@@ -1189,7 +1169,7 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 			return EVENT_ERROR;
 		}
 
-		/* make an empty left */
+		
 		left = malloc_or_die(sizeof(*left));
 		left->type = PRINT_NULL;
 		arg->op.left = left;
@@ -1202,7 +1182,7 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 	} else if (strcmp(token, "?") == 0) {
 
 		left = malloc_or_die(sizeof(*left));
-		/* copy the top arg to the left */
+		
 		*left = *arg;
 
 		arg->type = PRINT_OP;
@@ -1230,7 +1210,7 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 
 		left = malloc_or_die(sizeof(*left));
 
-		/* copy the top arg to the left */
+		
 		*left = *arg;
 
 		arg->type = PRINT_OP;
@@ -1244,7 +1224,7 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 		type = read_token_item(&token);
 		*tok = token;
 
-		/* could just be a type pointer */
+		
 		if ((strcmp(arg->op.op, "*") == 0) &&
 		    type == EVENT_DELIM && (strcmp(token, ")") == 0)) {
 			if (left->type != PRINT_ATOM)
@@ -1277,14 +1257,14 @@ process_op(struct event *event, struct print_arg *arg, char **tok)
 	} else {
 		warning("unknown op '%s'", token);
 		event->flags |= EVENT_FL_FAILED;
-		/* the arg is now the left side */
+		
 		return EVENT_NONE;
 	}
 
 	if (type == EVENT_OP) {
 		int prio;
 
-		/* higher prios need to be closer to the root */
+		
 		prio = get_op_prio(*tok);
 
 		if (prio > arg->op.prio)
@@ -1590,6 +1570,8 @@ process_symbols(struct event *event, struct print_arg *arg, char **tok)
 	field = malloc_or_die(sizeof(*field));
 
 	type = process_arg(event, field, &token);
+	while (type == EVENT_OP)
+		type = process_op(event, field, &token);
 	if (test_type_token(type, token, EVENT_DELIM, ","))
 		goto out_free;
 
@@ -1634,16 +1616,12 @@ process_paren(struct event *event, struct print_arg *arg, char **tok)
 	free_token(token);
 	type = read_token_item(&token);
 
-	/*
-	 * If the next token is an item or another open paren, then
-	 * this was a typecast.
-	 */
 	if (event_item_type(type) ||
 	    (type == EVENT_DELIM && strcmp(token, "(") == 0)) {
 
-		/* make this a typecast and contine */
+		
 
-		/* prevous must be an atom */
+		
 		if (arg->type != PRINT_ATOM)
 			die("previous needed to be PRINT_ATOM");
 
@@ -1716,10 +1694,10 @@ process_arg_token(struct event *event, struct print_arg *arg,
 			type = process_str(event, arg, &token);
 		} else {
 			atom = token;
-			/* test the next token */
+			
 			type = read_token_item(&token);
 
-			/* atoms can be more than one token long */
+			
 			while (type == EVENT_ITEM) {
 				atom = realloc(atom, strlen(atom) + strlen(token) + 2);
 				strcat(atom, " ");
@@ -1728,7 +1706,7 @@ process_arg_token(struct event *event, struct print_arg *arg,
 				type = read_token_item(&token);
 			}
 
-			/* todo, test for function */
+			
 
 			arg->type = PRINT_ATOM;
 			arg->atom.atom = atom;
@@ -1747,7 +1725,7 @@ process_arg_token(struct event *event, struct print_arg *arg,
 			break;
 		}
 	case EVENT_OP:
-		/* handle single ops */
+		
 		arg->type = PRINT_OP;
 		arg->op.op = token;
 		arg->op.left = NULL;
@@ -1834,13 +1812,13 @@ static int event_read_print(struct event *event)
 	event->print_fmt.format = token;
 	event->print_fmt.args = NULL;
 
-	/* ok to have no arg */
+	
 	type = read_token_item(&token);
 
 	if (type == EVENT_NONE)
 		return 0;
 
-	/* Handle concatination of print lines */
+	
 	if (type == EVENT_DQUOTE) {
 		char *cat;
 
@@ -1922,7 +1900,7 @@ unsigned long long read_size(void *ptr, int size)
 	case 8:
 		return data2host8(ptr);
 	default:
-		/* BUG! */
+		
 		return 0;
 	}
 }
@@ -1964,10 +1942,6 @@ static int get_common_info(const char *type, int *offset, int *size)
 	struct event *event;
 	struct format_field *field;
 
-	/*
-	 * All events should have the same common elements.
-	 * Pick any event to find where the type is;
-	 */
 	if (!event_list)
 		die("no event_list!");
 
@@ -2073,7 +2047,7 @@ static unsigned long long eval_num_arg(void *data, int size,
 
 	switch (arg->type) {
 	case PRINT_NULL:
-		/* ?? */
+		
 		return 0;
 	case PRINT_ATOM:
 		return strtoull(arg->atom.atom, NULL, 0);
@@ -2083,7 +2057,7 @@ static unsigned long long eval_num_arg(void *data, int size,
 			if (!arg->field.field)
 				die("field %s not found", arg->field.name);
 		}
-		/* must be a number */
+		
 		val = read_size(data + arg->field.field->offset,
 				arg->field.field->size);
 		break;
@@ -2097,12 +2071,8 @@ static unsigned long long eval_num_arg(void *data, int size,
 		break;
 	case PRINT_OP:
 		if (strcmp(arg->op.op, "[") == 0) {
-			/*
-			 * Arrays are special, since we don't want
-			 * to read the arg as is.
-			 */
 			if (arg->op.left->type != PRINT_FIELD)
-				goto default_op; /* oops, all bets off */
+				goto default_op; 
 			larg = arg->op.left;
 			if (!larg->field.field) {
 				larg->field.field =
@@ -2176,7 +2146,7 @@ static unsigned long long eval_num_arg(void *data, int size,
 			die("unknown op '%s'", arg->op.op);
 		}
 		break;
-	default: /* not sure what to do there */
+	default: 
 		return 0;
 	}
 	return val;
@@ -2207,11 +2177,6 @@ unsigned long long eval_flag(const char *flag)
 {
 	int i;
 
-	/*
-	 * Some flags in the format files do not get converted.
-	 * If the flag is not numeric, see if it is something that
-	 * we already know about.
-	 */
 	if (isdigit(flag[0]))
 		return strtoull(flag, NULL, 0);
 
@@ -2232,7 +2197,7 @@ static void print_str_arg(void *data, int size,
 
 	switch (arg->type) {
 	case PRINT_NULL:
-		/* ?? */
+		
 		return;
 	case PRINT_ATOM:
 		printf("%s", arg->atom.atom);
@@ -2296,9 +2261,6 @@ static void print_str_arg(void *data, int size,
 		break;
 	}
 	case PRINT_OP:
-		/*
-		 * The only op for string should be ? :
-		 */
 		if (arg->op.op[0] != '?')
 			return;
 		val = eval_num_arg(data, size, event, arg->op.left);
@@ -2308,7 +2270,7 @@ static void print_str_arg(void *data, int size,
 			print_str_arg(data, size, event, arg->op.right->op.right);
 		break;
 	default:
-		/* well... */
+		
 		break;
 	}
 }
@@ -2332,9 +2294,6 @@ static struct print_arg *make_bprint_args(char *fmt, void *data, int size, struc
 
 	ip = read_size(data + ip_field->offset, ip_field->size);
 
-	/*
-	 * The first arg is the IP pointer.
-	 */
 	args = malloc_or_die(sizeof(*args));
 	arg = args;
 	arg->next = NULL;
@@ -2344,7 +2303,7 @@ static struct print_arg *make_bprint_args(char *fmt, void *data, int size, struc
 	arg->atom.atom = malloc_or_die(32);
 	sprintf(arg->atom.atom, "%lld", ip);
 
-	/* skip the first "%pf : " */
+	
 	for (ptr = fmt + 6, bptr = data + field->offset;
 	     bptr < data + size && *ptr; ptr++) {
 		int ls = 0;
@@ -2365,12 +2324,12 @@ static struct print_arg *make_bprint_args(char *fmt, void *data, int size, struc
 				goto process_again;
 			case 'p':
 				ls = 1;
-				/* fall through */
+				
 			case 'd':
 			case 'u':
 			case 'x':
 			case 'i':
-				/* the pointers are always 4 bytes aligned */
+				
 				bptr = (void *)(((unsigned long)bptr + 3) &
 						~3);
 				switch (ls) {
@@ -2452,12 +2411,12 @@ static char *get_bprint_format(void *data, int size __unused, struct event *even
 	}
 
 	p = printk->printk;
-	/* Remove any quotes. */
+	
 	if (*p == '"')
 		p++;
 	format = malloc_or_die(strlen(p) + 10);
 	sprintf(format, "%s : %s", "%pf", p);
-	/* remove ending quotes and new line since we will add one too */
+	
 	p = format + strlen(format) - 1;
 	if (*p == '"')
 		*p = 0;
@@ -2547,7 +2506,7 @@ static void pretty_print(void *data, int size, struct event *event)
 					show_func = *ptr;
 				}
 
-				/* fall through */
+				
 			case 'd':
 			case 'i':
 			case 'x':
@@ -2559,7 +2518,7 @@ static void pretty_print(void *data, int size, struct event *event)
 				len = ((unsigned long)ptr + 1) -
 					(unsigned long)saveptr;
 
-				/* should never happen */
+				
 				if (len > 32)
 					die("bad format!");
 
@@ -2688,22 +2647,21 @@ get_return_for_leaf(int cpu, int cur_pid, unsigned long long cur_func,
 	if (cur_pid != pid || cur_func != val)
 		return NULL;
 
-	/* this is a leaf, now advance the iterator */
+	
 	return trace_read_data(cpu);
 }
 
-/* Signal a overhead of time execution to the output */
 static void print_graph_overhead(unsigned long long duration)
 {
-	/* Non nested entry or return */
+	
 	if (duration == ~0ULL)
 		return (void)printf("  ");
 
-	/* Duration exceeded 100 msecs */
+	
 	if (duration > 100000ULL)
 		return (void)printf("! ");
 
-	/* Duration exceeded 10 msecs */
+	
 	if (duration > 10000ULL)
 		return (void)printf("+ ");
 
@@ -2714,7 +2672,7 @@ static void print_graph_duration(unsigned long long duration)
 {
 	unsigned long usecs = duration / 1000;
 	unsigned long nsecs_rem = duration % 1000;
-	/* log10(ULONG_MAX) + '\0' */
+	
 	char msecs_str[21];
 	char nsecs_str[5];
 	int len;
@@ -2722,10 +2680,10 @@ static void print_graph_duration(unsigned long long duration)
 
 	sprintf(msecs_str, "%lu", usecs);
 
-	/* Print msecs */
+	
 	len = printf("%lu", usecs);
 
-	/* Print nsecs (we don't want to exceed 7 numbers) */
+	
 	if (len < 7) {
 		snprintf(nsecs_str, 8 - len, "%03lu", nsecs_rem);
 		len += printf(".%s", nsecs_str);
@@ -2733,7 +2691,7 @@ static void print_graph_duration(unsigned long long duration)
 
 	printf(" us ");
 
-	/* Print remaining spaces to fit the row's width */
+	
 	for (i = len; i < 7; i++)
 		printf(" ");
 
@@ -2767,10 +2725,10 @@ print_graph_entry_leaf(struct event *event, void *data, struct record *ret_rec)
 
 	duration = rettime - calltime;
 
-	/* Overhead */
+	
 	print_graph_overhead(duration);
 
-	/* Duration */
+	
 	print_graph_duration(duration);
 
 	field = find_field(event, "depth");
@@ -2778,7 +2736,7 @@ print_graph_entry_leaf(struct event *event, void *data, struct record *ret_rec)
 		die("can't find depth in entry graph");
 	depth = read_size(data + field->offset, field->size);
 
-	/* Function */
+	
 	for (i = 0; i < (int)(depth * TRACE_GRAPH_INDENT); i++)
 		printf(" ");
 
@@ -2802,10 +2760,10 @@ static void print_graph_nested(struct event *event, void *data)
 	struct func_map *func;
 	int i;
 
-	/* No overhead */
+	
 	print_graph_overhead(-1);
 
-	/* No time */
+	
 	printf("           |  ");
 
 	field = find_field(event, "depth");
@@ -2813,7 +2771,7 @@ static void print_graph_nested(struct event *event, void *data)
 		die("can't find depth in entry graph");
 	depth = read_size(data + field->offset, field->size);
 
-	/* Function */
+	
 	for (i = 0; i < (int)(depth * TRACE_GRAPH_INDENT); i++)
 		printf(" ");
 
@@ -2849,9 +2807,6 @@ pretty_print_func_ent(void *data, int size, struct event *event,
 
 	val = read_size(data + field->offset, field->size);
 
-	/*
-	 * peek_data may unmap the data pointer. Copy it first.
-	 */
 	copy_data = malloc_or_die(size);
 	memcpy(copy_data, data, size);
 	data = copy_data;
@@ -2894,10 +2849,10 @@ pretty_print_func_ret(void *data, int size __unused, struct event *event)
 
 	duration = rettime - calltime;
 
-	/* Overhead */
+	
 	print_graph_overhead(duration);
 
-	/* Duration */
+	
 	print_graph_duration(duration);
 
 	field = find_field(event, "depth");
@@ -2905,7 +2860,7 @@ pretty_print_func_ret(void *data, int size __unused, struct event *event)
 		die("can't find depth in entry graph");
 	depth = read_size(data + field->offset, field->size);
 
-	/* Function */
+	
 	for (i = 0; i < (int)(depth * TRACE_GRAPH_INDENT); i++)
 		printf(" ");
 
@@ -3010,7 +2965,7 @@ static void print_args(struct print_arg *args)
 			printf(")");
 		break;
 	default:
-		/* we should warn... */
+		
 		return;
 	}
 	if (args->next) {
@@ -3064,13 +3019,9 @@ int parse_ftrace_file(char *buf, unsigned long size)
 	if (ret < 0)
 		die("failed to read ftrace event print fmt");
 
-	/* New ftrace handles args */
+	
 	if (ret > 0)
 		return 0;
-	/*
-	 * The arguments for ftrace files are parsed by the fields.
-	 * Set up the fields as their arguments.
-	 */
 	list = &event->print_fmt.args;
 	for (field = event->format.fields; field; field = field->next) {
 		arg = malloc_or_die(sizeof(*arg));
@@ -3126,7 +3077,7 @@ int parse_event_file(char *buf, unsigned long size, char *sys)
 
  event_failed:
 	event->flags |= EVENT_FL_FAILED;
-	/* still add it even if it failed */
+	
 	add_event(event);
 	return -1;
 }

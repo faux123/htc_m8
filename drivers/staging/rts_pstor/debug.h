@@ -40,4 +40,4 @@
 #define RTSX_DEBUG(x)
 #endif
 
-#endif   /* __REALTEK_RTSX_DEBUG_H */
+#endif   

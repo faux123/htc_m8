@@ -1,8 +1,3 @@
-/*
- * Interrupt handling H8/300H depend.
- * Yoshinori Sato <ysato@users.sourceforge.jp>
- *
- */
 
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -16,7 +11,7 @@
 
 const int __initdata h8300_saved_vectors[] = {
 #if defined(CONFIG_GDB_DEBUG)
-	TRAP3_VEC,	/* TRAPA #3 is GDB breakpoint */
+	TRAP3_VEC,	
 #endif
 	-1,
 };
@@ -35,7 +30,7 @@ int h8300_enable_irq_pin(unsigned int irq)
 	if (irq < EXT_IRQ0 || irq > EXT_IRQ5)
 		return 0;
 
-	/* initialize IRQ pin */
+	
 	bitmask = 1 << (irq - EXT_IRQ0);
 	switch(irq) {
 	case EXT_IRQ0:
@@ -63,7 +58,7 @@ void h8300_disable_irq_pin(unsigned int irq)
 	if (irq < EXT_IRQ0 || irq > EXT_IRQ5)
 		return;
 
-	/* disable interrupt & release IRQ pin */
+	
 	bitmask = 1 << (irq - EXT_IRQ0);
 	switch(irq) {
 	case EXT_IRQ0:

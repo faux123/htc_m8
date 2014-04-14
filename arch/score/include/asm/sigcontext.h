@@ -1,10 +1,6 @@
 #ifndef _ASM_SCORE_SIGCONTEXT_H
 #define _ASM_SCORE_SIGCONTEXT_H
 
-/*
- * Keep this struct definition in sync with the sigcontext fragment
- * in arch/score/tools/offset.c
- */
 struct sigcontext {
 	unsigned int		sc_regmask;
 	unsigned int		sc_psr;
@@ -19,4 +15,4 @@ struct sigcontext {
 	unsigned long		sc_sigset[4];
 };
 
-#endif /* _ASM_SCORE_SIGCONTEXT_H */
+#endif 

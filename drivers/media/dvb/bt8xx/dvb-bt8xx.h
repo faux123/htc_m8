@@ -60,4 +60,4 @@ struct dvb_bt8xx_card {
 	struct dvb_frontend* fe;
 };
 
-#endif /* DVB_BT8XX_H */
+#endif 

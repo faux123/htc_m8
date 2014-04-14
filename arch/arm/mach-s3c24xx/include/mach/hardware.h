@@ -21,22 +21,20 @@ extern unsigned int s3c2410_modify_misccr(unsigned int clr, unsigned int chg);
 
 extern int s3c2440_set_dsc(unsigned int pin, unsigned int value);
 
-#endif /* CONFIG_CPU_S3C2440 */
+#endif 
 
 #ifdef CONFIG_CPU_S3C2412
 
 extern int s3c2412_gpio_set_sleepcfg(unsigned int pin, unsigned int state);
 
-#endif /* CONFIG_CPU_S3C2412 */
+#endif 
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
 #include <asm/sizes.h>
 #include <mach/map.h>
 
-/* machine specific hardware definitions should go after this */
 
-/* currently here until moved into config (todo) */
 #define CONFIG_NO_MULTIWORD_IO
 
-#endif /* __ASM_ARCH_HARDWARE_H */
+#endif 

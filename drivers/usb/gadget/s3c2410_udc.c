@@ -81,7 +81,6 @@ static inline void udc_writeb(void __iomem *base, u32 value, u32 reg)
 
 static struct s3c2410_udc_mach_info *udc_info;
 
-/*************************** DEBUG FUNCTION ***************************/
 #define DEBUG_NORMAL	1
 #define DEBUG_VERBOSE	2
 
@@ -187,7 +186,6 @@ static const struct file_operations s3c2410_udc_debugfs_fops = {
 	.owner		= THIS_MODULE,
 };
 
-/* io macros */
 
 static inline void s3c2410_udc_clear_ep0_opr(void __iomem *base)
 {
@@ -251,11 +249,7 @@ static inline void s3c2410_udc_set_ep0_de_in(void __iomem *base)
 		S3C2410_UDC_EP0_CSR_REG);
 }
 
-/*------------------------- I/O ----------------------------------*/
 
-/*
- *	s3c2410_udc_done
- */
 static void s3c2410_udc_done(struct s3c2410_ep *ep,
 		struct s3c2410_request *req, int status)
 {
@@ -276,7 +270,7 @@ static void s3c2410_udc_done(struct s3c2410_ep *ep,
 static void s3c2410_udc_nuke(struct s3c2410_udc *udc,
 		struct s3c2410_ep *ep, int status)
 {
-	/* Sanity check */
+	
 	if (&ep->queue == NULL)
 		return;
 
@@ -292,9 +286,6 @@ static inline void s3c2410_udc_clear_ep_state(struct s3c2410_udc *dev)
 {
 	unsigned i;
 
-	/* hardware SET_{CONFIGURATION,INTERFACE} automagic resets endpoint
-	 * fifos, and pending transactions mustn't be continued in any case.
-	 */
 
 	for (i = 1; i < S3C2410_ENDPOINTS; i++)
 		s3c2410_udc_nuke(dev, &dev->ep[i], -ECONNABORTED);
@@ -309,9 +300,6 @@ static inline int s3c2410_udc_fifo_count_out(void)
 	return tmp;
 }
 
-/*
- *	s3c2410_udc_write_packet
- */
 static inline int s3c2410_udc_write_packet(int fifo,
 		struct s3c2410_request *req,
 		unsigned max)
@@ -331,11 +319,6 @@ static inline int s3c2410_udc_write_packet(int fifo,
 	return len;
 }
 
-/*
- *	s3c2410_udc_write_fifo
- *
- * return:  0 = still running, 1 = completed, negative = errno
- */
 static int s3c2410_udc_write_fifo(struct s3c2410_ep *ep,
 		struct s3c2410_request *req)
 {
@@ -368,7 +351,7 @@ static int s3c2410_udc_write_fifo(struct s3c2410_ep *ep,
 
 	count = s3c2410_udc_write_packet(fifo_reg, req, ep->ep.maxpacket);
 
-	/* last packet is often short (sometimes a zlp) */
+	
 	if (count != ep->ep.maxpacket)
 		is_last = 1;
 	else if (req->req.length != req->req.actual || req->req.zero)
@@ -376,7 +359,7 @@ static int s3c2410_udc_write_fifo(struct s3c2410_ep *ep,
 	else
 		is_last = 2;
 
-	/* Only ep0 debug messages are interesting */
+	
 	if (idx == 0)
 		dprintk(DEBUG_NORMAL,
 			"Written ep%d %d.%d of %d b [last %d,z %d]\n",
@@ -384,11 +367,9 @@ static int s3c2410_udc_write_fifo(struct s3c2410_ep *ep,
 			is_last, req->req.zero);
 
 	if (is_last) {
-		/* The order is important. It prevents sending 2 packets
-		 * at the same time */
 
 		if (idx == 0) {
-			/* Reset signal => no need to say 'data sent' */
+			
 			if (! (udc_read(S3C2410_UDC_USB_INT_REG)
 					& S3C2410_UDC_USBINT_RESET))
 				s3c2410_udc_set_ep0_de_in(base_addr);
@@ -405,7 +386,7 @@ static int s3c2410_udc_write_fifo(struct s3c2410_ep *ep,
 		is_last = 1;
 	} else {
 		if (idx == 0) {
-			/* Reset signal => no need to say 'data sent' */
+			
 			if (! (udc_read(S3C2410_UDC_USB_INT_REG)
 					& S3C2410_UDC_USBINT_RESET))
 				s3c2410_udc_set_ep0_ipr(base_addr);
@@ -433,9 +414,6 @@ static inline int s3c2410_udc_read_packet(int fifo, u8 *buf,
 	return len;
 }
 
-/*
- * return:  0 = still running, 1 = queue empty, negative = errno
- */
 static int s3c2410_udc_read_fifo(struct s3c2410_ep *ep,
 				 struct s3c2410_request *req)
 {
@@ -492,12 +470,9 @@ static int s3c2410_udc_read_fifo(struct s3c2410_ep *ep,
 
 	fifo_count = s3c2410_udc_read_packet(fifo_reg, buf, req, avail);
 
-	/* checking this with ep0 is not accurate as we already
-	 * read a control request
-	 **/
 	if (idx != 0 && fifo_count < ep->ep.maxpacket) {
 		is_last = 1;
-		/* overflowed this request?  flush extra data */
+		
 		if (fifo_count != avail)
 			req->req.status = -EOVERFLOW;
 	} else {
@@ -507,7 +482,7 @@ static int s3c2410_udc_read_fifo(struct s3c2410_ep *ep,
 	udc_write(idx, S3C2410_UDC_INDEX_REG);
 	fifo_count = s3c2410_udc_fifo_count_out();
 
-	/* Only ep0 debug messages are interesting */
+	
 	if (idx == 0)
 		dprintk(DEBUG_VERBOSE, "%s fifo count : %d [last %d]\n",
 			__func__, fifo_count,is_last);
@@ -604,7 +579,7 @@ static int s3c2410_udc_get_status(struct s3c2410_udc *dev,
 		return 1;
 	}
 
-	/* Seems to be needed to get it working. ouch :( */
+	
 	udelay(5);
 	udc_write(status & 0xFF, S3C2410_UDC_EP0_FIFO_REG);
 	udc_write(status >> 8, S3C2410_UDC_EP0_FIFO_REG);
@@ -612,7 +587,6 @@ static int s3c2410_udc_get_status(struct s3c2410_udc *dev,
 
 	return 0;
 }
-/*------------------------- usb state machine -------------------------------*/
 static int s3c2410_udc_set_halt(struct usb_ep *_ep, int value);
 
 static void s3c2410_udc_handle_ep0_idle(struct s3c2410_udc *dev,
@@ -622,7 +596,7 @@ static void s3c2410_udc_handle_ep0_idle(struct s3c2410_udc *dev,
 {
 	int len, ret, tmp;
 
-	/* start control request? */
+	
 	if (!(ep0csr & S3C2410_UDC_EP0_CSR_OPKRDY))
 		return;
 
@@ -640,7 +614,7 @@ static void s3c2410_udc_handle_ep0_idle(struct s3c2410_udc *dev,
 	dprintk(DEBUG_NORMAL, "bRequest = %d bRequestType %d wLength = %d\n",
 		crq->bRequest, crq->bRequestType, crq->wLength);
 
-	/* cope with automagic for some standard requests. */
+	
 	dev->req_std = (crq->bRequestType & USB_TYPE_MASK)
 		== USB_TYPE_STANDARD;
 	dev->req_config = 0;
@@ -728,7 +702,7 @@ static void s3c2410_udc_handle_ep0_idle(struct s3c2410_udc *dev,
 	if (!dev->driver)
 		return;
 
-	/* deliver the request to the gadget driver */
+	
 	ret = dev->driver->setup(&dev->gadget, crq);
 	if (ret < 0) {
 		if (dev->req_config) {
@@ -747,7 +721,7 @@ static void s3c2410_udc_handle_ep0_idle(struct s3c2410_udc *dev,
 		s3c2410_udc_set_ep0_ss(base_addr);
 		s3c2410_udc_set_ep0_de_out(base_addr);
 		dev->ep0state = EP0_IDLE;
-		/* deferred i/o == no response yet */
+		
 	} else if (dev->req_pending) {
 		dprintk(DEBUG_VERBOSE, "dev->req_pending... what now?\n");
 		dev->req_pending=0;
@@ -768,8 +742,6 @@ static void s3c2410_udc_handle_ep0(struct s3c2410_udc *dev)
 	else
 		req = list_entry(ep->queue.next, struct s3c2410_request, queue);
 
-	/* We make the assumption that S3C2410_UDC_IN_CSR1_REG equal to
-	 * S3C2410_UDC_EP0_CSR_REG when index is zero */
 
 	udc_write(0, S3C2410_UDC_INDEX_REG);
 	ep0csr = udc_read(S3C2410_UDC_IN_CSR1_REG);
@@ -777,7 +749,7 @@ static void s3c2410_udc_handle_ep0(struct s3c2410_udc *dev)
 	dprintk(DEBUG_NORMAL, "ep0csr %x ep0state %s\n",
 		ep0csr, ep0states[dev->ep0state]);
 
-	/* clear stall status */
+	
 	if (ep0csr & S3C2410_UDC_EP0_CSR_SENTSTL) {
 		s3c2410_udc_nuke(dev, ep, -EPIPE);
 		dprintk(DEBUG_NORMAL, "... clear SENT_STALL ...\n");
@@ -786,7 +758,7 @@ static void s3c2410_udc_handle_ep0(struct s3c2410_udc *dev)
 		return;
 	}
 
-	/* clear setup end */
+	
 	if (ep0csr & S3C2410_UDC_EP0_CSR_SE) {
 		dprintk(DEBUG_NORMAL, "... serviced SETUP_END ...\n");
 		s3c2410_udc_nuke(dev, ep, 0);
@@ -799,14 +771,14 @@ static void s3c2410_udc_handle_ep0(struct s3c2410_udc *dev)
 		s3c2410_udc_handle_ep0_idle(dev, ep, &crq, ep0csr);
 		break;
 
-	case EP0_IN_DATA_PHASE:			/* GET_DESCRIPTOR etc */
+	case EP0_IN_DATA_PHASE:			
 		dprintk(DEBUG_NORMAL, "EP0_IN_DATA_PHASE ... what now?\n");
 		if (!(ep0csr & S3C2410_UDC_EP0_CSR_IPKRDY) && req) {
 			s3c2410_udc_write_fifo(ep, req);
 		}
 		break;
 
-	case EP0_OUT_DATA_PHASE:		/* SET_DESCRIPTOR etc */
+	case EP0_OUT_DATA_PHASE:		
 		dprintk(DEBUG_NORMAL, "EP0_OUT_DATA_PHASE ... what now?\n");
 		if ((ep0csr & S3C2410_UDC_EP0_CSR_OPKRDY) && req ) {
 			s3c2410_udc_read_fifo(ep,req);
@@ -825,9 +797,6 @@ static void s3c2410_udc_handle_ep0(struct s3c2410_udc *dev)
 	}
 }
 
-/*
- *	handle_ep - Manage I/O endpoints
- */
 
 static void s3c2410_udc_handle_ep(struct s3c2410_ep *ep)
 {
@@ -881,9 +850,6 @@ static void s3c2410_udc_handle_ep(struct s3c2410_ep *ep)
 
 #include <mach/regs-irq.h>
 
-/*
- *	s3c2410_udc_irq - interrupt handler
- */
 static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 {
 	struct s3c2410_udc *dev = _dev;
@@ -897,19 +863,19 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 
 	spin_lock_irqsave(&dev->lock, flags);
 
-	/* Driver connected ? */
+	
 	if (!dev->driver) {
-		/* Clear interrupts */
+		
 		udc_write(udc_read(S3C2410_UDC_USB_INT_REG),
 				S3C2410_UDC_USB_INT_REG);
 		udc_write(udc_read(S3C2410_UDC_EP_INT_REG),
 				S3C2410_UDC_EP_INT_REG);
 	}
 
-	/* Save index */
+	
 	idx = udc_read(S3C2410_UDC_INDEX_REG);
 
-	/* Read status registers */
+	
 	usb_status = udc_read(S3C2410_UDC_USB_INT_REG);
 	usbd_status = udc_read(S3C2410_UDC_EP_INT_REG);
 	pwr_reg = udc_read(S3C2410_UDC_PWR_REG);
@@ -920,18 +886,9 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 	dprintk(DEBUG_NORMAL, "usbs=%02x, usbds=%02x, pwr=%02x ep0csr=%02x\n",
 		usb_status, usbd_status, pwr_reg, ep0csr);
 
-	/*
-	 * Now, handle interrupts. There's two types :
-	 * - Reset, Resume, Suspend coming -> usb_int_reg
-	 * - EP -> ep_int_reg
-	 */
 
-	/* RESET */
+	
 	if (usb_status & S3C2410_UDC_USBINT_RESET) {
-		/* two kind of reset :
-		 * - reset start -> pwr reg = 8
-		 * - reset end   -> pwr reg = 0
-		 **/
 		dprintk(DEBUG_NORMAL, "USB reset csr %x pwr %x\n",
 			ep0csr, pwr_reg);
 
@@ -944,7 +901,7 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 		dev->ep0state = EP0_IDLE;
 		dev->gadget.speed = USB_SPEED_FULL;
 
-		/* clear interrupt */
+		
 		udc_write(S3C2410_UDC_USBINT_RESET,
 				S3C2410_UDC_USB_INT_REG);
 
@@ -953,11 +910,11 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 		return IRQ_HANDLED;
 	}
 
-	/* RESUME */
+	
 	if (usb_status & S3C2410_UDC_USBINT_RESUME) {
 		dprintk(DEBUG_NORMAL, "USB resume\n");
 
-		/* clear interrupt */
+		
 		udc_write(S3C2410_UDC_USBINT_RESUME,
 				S3C2410_UDC_USB_INT_REG);
 
@@ -967,11 +924,11 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 			dev->driver->resume(&dev->gadget);
 	}
 
-	/* SUSPEND */
+	
 	if (usb_status & S3C2410_UDC_USBINT_SUSPEND) {
 		dprintk(DEBUG_NORMAL, "USB suspend\n");
 
-		/* clear interrupt */
+		
 		udc_write(S3C2410_UDC_USBINT_SUSPEND,
 				S3C2410_UDC_USB_INT_REG);
 
@@ -983,31 +940,28 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 		dev->ep0state = EP0_IDLE;
 	}
 
-	/* EP */
-	/* control traffic */
-	/* check on ep0csr != 0 is not a good idea as clearing in_pkt_ready
-	 * generate an interrupt
-	 */
+	
+	
 	if (usbd_status & S3C2410_UDC_INT_EP0) {
 		dprintk(DEBUG_VERBOSE, "USB ep0 irq\n");
-		/* Clear the interrupt bit by setting it to 1 */
+		
 		udc_write(S3C2410_UDC_INT_EP0, S3C2410_UDC_EP_INT_REG);
 		s3c2410_udc_handle_ep0(dev);
 	}
 
-	/* endpoint data transfers */
+	
 	for (i = 1; i < S3C2410_ENDPOINTS; i++) {
 		u32 tmp = 1 << i;
 		if (usbd_status & tmp) {
 			dprintk(DEBUG_VERBOSE, "USB ep%d irq\n", i);
 
-			/* Clear the interrupt bit by setting it to 1 */
+			
 			udc_write(tmp, S3C2410_UDC_EP_INT_REG);
 			s3c2410_udc_handle_ep(&dev->ep[i]);
 		}
 	}
 
-	/* what else causes this interrupt? a receive! who is it? */
+	
 	if (!usb_status && !usbd_status && !pwr_reg && !ep0csr) {
 		for (i = 1; i < S3C2410_ENDPOINTS; i++) {
 			idx2 = udc_read(S3C2410_UDC_INDEX_REG);
@@ -1016,21 +970,20 @@ static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
 			if (udc_read(S3C2410_UDC_OUT_CSR1_REG) & 0x1)
 				s3c2410_udc_handle_ep(&dev->ep[i]);
 
-			/* restore index */
+			
 			udc_write(idx2, S3C2410_UDC_INDEX_REG);
 		}
 	}
 
 	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", IRQ_USBD);
 
-	/* Restore old index */
+	
 	udc_write(idx, S3C2410_UDC_INDEX_REG);
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	return IRQ_HANDLED;
 }
-/*------------------------- s3c2410_ep_ops ----------------------------------*/
 
 static inline struct s3c2410_ep *to_s3c2410_ep(struct usb_ep *ep)
 {
@@ -1047,9 +1000,6 @@ static inline struct s3c2410_request *to_s3c2410_req(struct usb_request *req)
 	return container_of(req, struct s3c2410_request, req);
 }
 
-/*
- *	s3c2410_udc_ep_enable
- */
 static int s3c2410_udc_ep_enable(struct usb_ep *_ep,
 				 const struct usb_endpoint_descriptor *desc)
 {
@@ -1079,11 +1029,11 @@ static int s3c2410_udc_ep_enable(struct usb_ep *_ep,
 	ep->halted = 0;
 	ep->bEndpointAddress = desc->bEndpointAddress;
 
-	/* set max packet */
+	
 	udc_write(ep->num, S3C2410_UDC_INDEX_REG);
 	udc_write(max >> 3, S3C2410_UDC_MAXP_REG);
 
-	/* set type, direction, address; reset fifo counters */
+	
 	if (desc->bEndpointAddress & USB_DIR_IN) {
 		csr1 = S3C2410_UDC_ICSR1_FFLUSH|S3C2410_UDC_ICSR1_CLRDT;
 		csr2 = S3C2410_UDC_ICSR2_MODEIN|S3C2410_UDC_ICSR2_DMAIEN;
@@ -1093,7 +1043,7 @@ static int s3c2410_udc_ep_enable(struct usb_ep *_ep,
 		udc_write(ep->num, S3C2410_UDC_INDEX_REG);
 		udc_write(csr2, S3C2410_UDC_IN_CSR2_REG);
 	} else {
-		/* don't flush in fifo or it will cause endpoint interrupt */
+		
 		csr1 = S3C2410_UDC_ICSR1_CLRDT;
 		csr2 = S3C2410_UDC_ICSR2_DMAIEN;
 
@@ -1111,11 +1061,11 @@ static int s3c2410_udc_ep_enable(struct usb_ep *_ep,
 		udc_write(csr2, S3C2410_UDC_OUT_CSR2_REG);
 	}
 
-	/* enable irqs */
+	
 	int_en_reg = udc_read(S3C2410_UDC_EP_INT_EN_REG);
 	udc_write(int_en_reg | (1 << ep->num), S3C2410_UDC_EP_INT_EN_REG);
 
-	/* print some debug message */
+	
 	tmp = desc->bEndpointAddress;
 	dprintk (DEBUG_NORMAL, "enable %s(%d) ep%x%s-blk max %02x\n",
 		 _ep->name,ep->num, tmp,
@@ -1127,9 +1077,6 @@ static int s3c2410_udc_ep_enable(struct usb_ep *_ep,
 	return 0;
 }
 
-/*
- * s3c2410_udc_ep_disable
- */
 static int s3c2410_udc_ep_disable(struct usb_ep *_ep)
 {
 	struct s3c2410_ep *ep = to_s3c2410_ep(_ep);
@@ -1152,7 +1099,7 @@ static int s3c2410_udc_ep_disable(struct usb_ep *_ep)
 
 	s3c2410_udc_nuke (ep->dev, ep, -ESHUTDOWN);
 
-	/* disable irqs */
+	
 	int_en_reg = udc_read(S3C2410_UDC_EP_INT_EN_REG);
 	udc_write(int_en_reg & ~(1<<ep->num), S3C2410_UDC_EP_INT_EN_REG);
 
@@ -1163,9 +1110,6 @@ static int s3c2410_udc_ep_disable(struct usb_ep *_ep)
 	return 0;
 }
 
-/*
- * s3c2410_udc_alloc_request
- */
 static struct usb_request *
 s3c2410_udc_alloc_request(struct usb_ep *_ep, gfp_t mem_flags)
 {
@@ -1184,9 +1128,6 @@ s3c2410_udc_alloc_request(struct usb_ep *_ep, gfp_t mem_flags)
 	return &req->req;
 }
 
-/*
- * s3c2410_udc_free_request
- */
 static void
 s3c2410_udc_free_request(struct usb_ep *_ep, struct usb_request *_req)
 {
@@ -1202,9 +1143,6 @@ s3c2410_udc_free_request(struct usb_ep *_ep, struct usb_request *_req)
 	kfree(req);
 }
 
-/*
- *	s3c2410_udc_queue
- */
 static int s3c2410_udc_queue(struct usb_ep *_ep, struct usb_request *_req,
 		gfp_t gfp_flags)
 {
@@ -1261,9 +1199,9 @@ static int s3c2410_udc_queue(struct usb_ep *_ep, struct usb_request *_req,
 		fifo_count = s3c2410_udc_fifo_count_out();
 	}
 
-	/* kickstart this i/o queue? */
+	
 	if (list_empty(&ep->queue) && !ep->halted) {
-		if (ep->bEndpointAddress == 0 /* ep0 */) {
+		if (ep->bEndpointAddress == 0 ) {
 			switch (dev->ep0state) {
 			case EP0_IN_DATA_PHASE:
 				if (!(ep_csr&S3C2410_UDC_EP0_CSR_IPKRDY)
@@ -1299,7 +1237,7 @@ static int s3c2410_udc_queue(struct usb_ep *_ep, struct usb_request *_req,
 		}
 	}
 
-	/* pio or dma irq handler advances the queue. */
+	
 	if (likely (req != 0))
 		list_add_tail(&req->queue, &ep->queue);
 
@@ -1309,9 +1247,6 @@ static int s3c2410_udc_queue(struct usb_ep *_ep, struct usb_request *_req,
 	return 0;
 }
 
-/*
- *	s3c2410_udc_dequeue
- */
 static int s3c2410_udc_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 {
 	struct s3c2410_ep	*ep = to_s3c2410_ep(_ep);
@@ -1353,9 +1288,6 @@ static int s3c2410_udc_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	return retval;
 }
 
-/*
- * s3c2410_udc_set_halt
- */
 static int s3c2410_udc_set_halt(struct usb_ep *_ep, int value)
 {
 	struct s3c2410_ep	*ep = to_s3c2410_ep(_ep);
@@ -1423,11 +1355,7 @@ static const struct usb_ep_ops s3c2410_ep_ops = {
 	.set_halt	= s3c2410_udc_set_halt,
 };
 
-/*------------------------- usb_gadget_ops ----------------------------------*/
 
-/*
- *	s3c2410_udc_get_frame
- */
 static int s3c2410_udc_get_frame(struct usb_gadget *_gadget)
 {
 	int tmp;
@@ -1439,18 +1367,12 @@ static int s3c2410_udc_get_frame(struct usb_gadget *_gadget)
 	return tmp;
 }
 
-/*
- *	s3c2410_udc_wakeup
- */
 static int s3c2410_udc_wakeup(struct usb_gadget *_gadget)
 {
 	dprintk(DEBUG_NORMAL, "%s()\n", __func__);
 	return 0;
 }
 
-/*
- *	s3c2410_udc_set_selfpowered
- */
 static int s3c2410_udc_set_selfpowered(struct usb_gadget *gadget, int value)
 {
 	struct s3c2410_udc *udc = to_s3c2410_udc(gadget);
@@ -1583,19 +1505,15 @@ static void s3c2410_udc_command(enum s3c2410_udc_cmd_e cmd)
 	}
 }
 
-/*------------------------- gadget driver handling---------------------------*/
-/*
- * s3c2410_udc_disable
- */
 static void s3c2410_udc_disable(struct s3c2410_udc *dev)
 {
 	dprintk(DEBUG_NORMAL, "%s()\n", __func__);
 
-	/* Disable all interrupts */
+	
 	udc_write(0x00, S3C2410_UDC_USB_INT_EN_REG);
 	udc_write(0x00, S3C2410_UDC_EP_INT_EN_REG);
 
-	/* Clear the interrupt registers */
+	
 	udc_write(S3C2410_UDC_USBINT_RESET
 				| S3C2410_UDC_USBINT_RESUME
 				| S3C2410_UDC_USBINT_SUSPEND,
@@ -1603,21 +1521,18 @@ static void s3c2410_udc_disable(struct s3c2410_udc *dev)
 
 	udc_write(0x1F, S3C2410_UDC_EP_INT_REG);
 
-	/* Good bye, cruel world */
+	
 	s3c2410_udc_command(S3C2410_UDC_P_DISABLE);
 
-	/* Set speed to unknown */
+	
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 }
 
-/*
- * s3c2410_udc_reinit
- */
 static void s3c2410_udc_reinit(struct s3c2410_udc *dev)
 {
 	u32 i;
 
-	/* device/ep0 records init */
+	
 	INIT_LIST_HEAD (&dev->gadget.ep_list);
 	INIT_LIST_HEAD (&dev->gadget.ep0->ep_list);
 	dev->ep0state = EP0_IDLE;
@@ -1636,36 +1551,33 @@ static void s3c2410_udc_reinit(struct s3c2410_udc *dev)
 	}
 }
 
-/*
- * s3c2410_udc_enable
- */
 static void s3c2410_udc_enable(struct s3c2410_udc *dev)
 {
 	int i;
 
 	dprintk(DEBUG_NORMAL, "s3c2410_udc_enable called\n");
 
-	/* dev->gadget.speed = USB_SPEED_UNKNOWN; */
+	
 	dev->gadget.speed = USB_SPEED_FULL;
 
-	/* Set MAXP for all endpoints */
+	
 	for (i = 0; i < S3C2410_ENDPOINTS; i++) {
 		udc_write(i, S3C2410_UDC_INDEX_REG);
 		udc_write((dev->ep[i].ep.maxpacket & 0x7ff) >> 3,
 				S3C2410_UDC_MAXP_REG);
 	}
 
-	/* Set default power state */
+	
 	udc_write(DEFAULT_POWER_STATE, S3C2410_UDC_PWR_REG);
 
-	/* Enable reset and suspend interrupt interrupts */
+	
 	udc_write(S3C2410_UDC_USBINT_RESET | S3C2410_UDC_USBINT_SUSPEND,
 			S3C2410_UDC_USB_INT_EN_REG);
 
-	/* Enable ep0 interrupt */
+	
 	udc_write(S3C2410_UDC_INT_EP0, S3C2410_UDC_EP_INT_EN_REG);
 
-	/* time to say "hello, world" */
+	
 	s3c2410_udc_command(S3C2410_UDC_P_ENABLE);
 }
 
@@ -1677,7 +1589,7 @@ static int s3c2410_udc_start(struct usb_gadget_driver *driver,
 
 	dprintk(DEBUG_NORMAL, "%s() '%s'\n", __func__, driver->driver.name);
 
-	/* Sanity checks */
+	
 	if (!udc)
 		return -ENODEV;
 
@@ -1696,11 +1608,11 @@ static int s3c2410_udc_start(struct usb_gadget_driver *driver,
 	}
 #endif
 
-	/* Hook the driver */
+	
 	udc->driver = driver;
 	udc->gadget.dev.driver = &driver->driver;
 
-	/* Bind the driver */
+	
 	if ((retval = device_add(&udc->gadget.dev)) != 0) {
 		printk(KERN_ERR "Error in device_add() : %d\n",retval);
 		goto register_error;
@@ -1714,7 +1626,7 @@ static int s3c2410_udc_start(struct usb_gadget_driver *driver,
 		goto register_error;
 	}
 
-	/* Enable udc */
+	
 	s3c2410_udc_enable(udc);
 
 	return 0;
@@ -1738,7 +1650,7 @@ static int s3c2410_udc_stop(struct usb_gadget_driver *driver)
 	dprintk(DEBUG_NORMAL, "usb_gadget_unregister_driver() '%s'\n",
 		driver->driver.name);
 
-	/* report disconnect */
+	
 	if (driver->disconnect)
 		driver->disconnect(&udc->gadget);
 
@@ -1747,13 +1659,12 @@ static int s3c2410_udc_stop(struct usb_gadget_driver *driver)
 	device_del(&udc->gadget.dev);
 	udc->driver = NULL;
 
-	/* Disable udc */
+	
 	s3c2410_udc_disable(udc);
 
 	return 0;
 }
 
-/*---------------------------------------------------------------------------*/
 static struct s3c2410_udc memory = {
 	.gadget = {
 		.ops		= &s3c2410_ops,
@@ -1764,7 +1675,7 @@ static struct s3c2410_udc memory = {
 		},
 	},
 
-	/* control endpoint */
+	
 	.ep[0] = {
 		.num		= 0,
 		.ep = {
@@ -1775,7 +1686,7 @@ static struct s3c2410_udc memory = {
 		.dev		= &memory,
 	},
 
-	/* first group of endpoints */
+	
 	.ep[1] = {
 		.num		= 1,
 		.ep = {
@@ -1827,9 +1738,6 @@ static struct s3c2410_udc memory = {
 
 };
 
-/*
- *	probe - binds to the platform device
- */
 static int s3c2410_udc_probe(struct platform_device *pdev)
 {
 	struct s3c2410_udc *udc = &memory;
@@ -1892,7 +1800,7 @@ static int s3c2410_udc_probe(struct platform_device *pdev)
 	s3c2410_udc_disable(udc);
 	s3c2410_udc_reinit(udc);
 
-	/* irq setup after old hardware state is cleaned up */
+	
 	retval = request_irq(IRQ_USBD, s3c2410_udc_irq,
 			     0, gadget_name, udc);
 
@@ -1981,9 +1889,6 @@ err_mem:
 	return retval;
 }
 
-/*
- *	s3c2410_udc_remove
- */
 static int s3c2410_udc_remove(struct platform_device *pdev)
 {
 	struct s3c2410_udc *udc = platform_get_drvdata(pdev);

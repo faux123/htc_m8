@@ -16,9 +16,6 @@
 #include <asm/page.h>
 #include <asm/uaccess.h>
 
-/*
- * Nothing too terribly exciting here ..
- */
 void copy_page(void *to, void *from)
 {
 	memcpy(to, from, PAGE_SIZE);

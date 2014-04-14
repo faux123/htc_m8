@@ -1,45 +1,3 @@
-/*
- * comedi/drivers/adv_pci1710.c
- *
- * Author: Michal Dobes <dobes@tesnet.cz>
- *
- * Thanks to ZhenGang Shang <ZhenGang.Shang@Advantech.com.cn>
- * for testing and informations.
- *
- *  hardware driver for Advantech cards:
- *   card:   PCI-1710, PCI-1710HG, PCI-1711, PCI-1713, PCI-1720, PCI-1731
- *   driver: pci1710,  pci1710hg,  pci1711,  pci1713,  pci1720,  pci1731
- *
- * Options:
- *  [0] - PCI bus number - if bus number and slot number are 0,
- *                         then driver search for first unused card
- *  [1] - PCI slot number
- *
-*/
-/*
-Driver: adv_pci1710
-Description: Advantech PCI-1710, PCI-1710HG, PCI-1711, PCI-1713,
-	     Advantech PCI-1720, PCI-1731
-Author: Michal Dobes <dobes@tesnet.cz>
-Devices: [Advantech] PCI-1710 (adv_pci1710), PCI-1710HG (pci1710hg),
-  PCI-1711 (adv_pci1710), PCI-1713, PCI-1720,
-  PCI-1731
-Status: works
-
-This driver supports AI, AO, DI and DO subdevices.
-AI subdevice supports cmd and insn interface,
-other subdevices support only insn interface.
-
-The PCI-1710 and PCI-1710HG have the same PCI device ID, so the
-driver cannot distinguish between them, as would be normal for a
-PCI driver.
-
-Configuration options:
-  [0] - PCI bus of device (optional)
-  [1] - PCI slot of device (optional)
-	If bus/slot is not specified, the first available PCI
-	device will be used.
-*/
 
 #include <linux/interrupt.h>
 
@@ -50,9 +8,7 @@ Configuration options:
 #include "8253.h"
 #include "amcc_s5933.h"
 
-#define PCI171x_PARANOIDCHECK	/* if defined, then is used code which control
-				 * correct channel number on every 12 bit
-				 * sample */
+#define PCI171x_PARANOIDCHECK	
 
 #undef PCI171X_EXTDEBUG
 
@@ -67,7 +23,6 @@ Configuration options:
 
 #define PCI_VENDOR_ID_ADVANTECH		0x13fe
 
-/* hardware types of the cards */
 #define TYPE_PCI171X	0
 #define TYPE_PCI1713	2
 #define TYPE_PCI1720	3
@@ -75,60 +30,53 @@ Configuration options:
 #define IORANGE_171x	32
 #define IORANGE_1720	16
 
-#define PCI171x_AD_DATA	 0	/* R:   A/D data */
-#define PCI171x_SOFTTRG	 0	/* W:   soft trigger for A/D */
-#define PCI171x_RANGE	 2	/* W:   A/D gain/range register */
-#define PCI171x_MUX	 4	/* W:   A/D multiplexor control */
-#define PCI171x_STATUS	 6	/* R:   status register */
-#define PCI171x_CONTROL	 6	/* W:   control register */
-#define PCI171x_CLRINT	 8	/* W:   clear interrupts request */
-#define PCI171x_CLRFIFO	 9	/* W:   clear FIFO */
-#define PCI171x_DA1	10	/* W:   D/A register */
-#define PCI171x_DA2	12	/* W:   D/A register */
-#define PCI171x_DAREF	14	/* W:   D/A reference control */
-#define PCI171x_DI	16	/* R:   digi inputs */
-#define PCI171x_DO	16	/* R:   digi inputs */
-#define PCI171x_CNT0	24	/* R/W: 8254 counter 0 */
-#define PCI171x_CNT1	26	/* R/W: 8254 counter 1 */
-#define PCI171x_CNT2	28	/* R/W: 8254 counter 2 */
-#define PCI171x_CNTCTRL	30	/* W:   8254 counter control */
+#define PCI171x_AD_DATA	 0	
+#define PCI171x_SOFTTRG	 0	
+#define PCI171x_RANGE	 2	
+#define PCI171x_MUX	 4	
+#define PCI171x_STATUS	 6	
+#define PCI171x_CONTROL	 6	
+#define PCI171x_CLRINT	 8	
+#define PCI171x_CLRFIFO	 9	
+#define PCI171x_DA1	10	
+#define PCI171x_DA2	12	
+#define PCI171x_DAREF	14	
+#define PCI171x_DI	16	
+#define PCI171x_DO	16	
+#define PCI171x_CNT0	24	
+#define PCI171x_CNT1	26	
+#define PCI171x_CNT2	28	
+#define PCI171x_CNTCTRL	30	
 
-/* upper bits from status register (PCI171x_STATUS) (lower is same with control
- * reg) */
-#define	Status_FE	0x0100	/* 1=FIFO is empty */
-#define Status_FH	0x0200	/* 1=FIFO is half full */
-#define Status_FF	0x0400	/* 1=FIFO is full, fatal error */
-#define Status_IRQ	0x0800	/* 1=IRQ occurred */
-/* bits from control register (PCI171x_CONTROL) */
-#define Control_CNT0	0x0040	/* 1=CNT0 have external source,
-				 * 0=have internal 100kHz source */
-#define Control_ONEFH	0x0020	/* 1=IRQ on FIFO is half full, 0=every sample */
-#define Control_IRQEN	0x0010	/* 1=enable IRQ */
-#define Control_GATE	0x0008	/* 1=enable external trigger GATE (8254?) */
-#define Control_EXT	0x0004	/* 1=external trigger source */
-#define Control_PACER	0x0002	/* 1=enable internal 8254 trigger source */
-#define Control_SW	0x0001	/* 1=enable software trigger source */
-/* bits from counter control register (PCI171x_CNTCTRL) */
-#define Counter_BCD     0x0001	/* 0 = binary counter, 1 = BCD counter */
-#define Counter_M0      0x0002	/* M0-M2 select modes 0-5 */
-#define Counter_M1      0x0004	/* 000 = mode 0, 010 = mode 2 ... */
+#define	Status_FE	0x0100	
+#define Status_FH	0x0200	
+#define Status_FF	0x0400	
+#define Status_IRQ	0x0800	
+#define Control_CNT0	0x0040	
+#define Control_ONEFH	0x0020	
+#define Control_IRQEN	0x0010	
+#define Control_GATE	0x0008	
+#define Control_EXT	0x0004	
+#define Control_PACER	0x0002	
+#define Control_SW	0x0001	
+#define Counter_BCD     0x0001	
+#define Counter_M0      0x0002	
+#define Counter_M1      0x0004	
 #define Counter_M2      0x0008
-#define Counter_RW0     0x0010	/* RW0/RW1 select read/write mode */
+#define Counter_RW0     0x0010	
 #define Counter_RW1     0x0020
-#define Counter_SC0     0x0040	/* Select Counter. Only 00 or 11 may */
-#define Counter_SC1     0x0080	/* be used, 00 for CNT0,
-				 * 11 for read-back command */
+#define Counter_SC0     0x0040	
+#define Counter_SC1     0x0080	
 
-#define PCI1720_DA0	 0	/* W:   D/A register 0 */
-#define PCI1720_DA1	 2	/* W:   D/A register 1 */
-#define PCI1720_DA2	 4	/* W:   D/A register 2 */
-#define PCI1720_DA3	 6	/* W:   D/A register 3 */
-#define PCI1720_RANGE	 8	/* R/W: D/A range register */
-#define PCI1720_SYNCOUT	 9	/* W:   D/A synchronized output register */
-#define PCI1720_SYNCONT	15	/* R/W: D/A synchronized control */
+#define PCI1720_DA0	 0	
+#define PCI1720_DA1	 2	
+#define PCI1720_DA2	 4	
+#define PCI1720_DA3	 6	
+#define PCI1720_RANGE	 8	
+#define PCI1720_SYNCOUT	 9	
+#define PCI1720_SYNCONT	15	
 
-/* D/A synchronized control (PCI1720_SYNCONT) */
-#define Syncont_SC0	 1	/* set synchronous output mode */
+#define Syncont_SC0	 1	
 
 static const struct comedi_lrange range_pci1710_3 = { 9, {
 							  BIP_RANGE(5),
@@ -196,24 +144,24 @@ static int pci1710_attach(struct comedi_device *dev,
 static int pci1710_detach(struct comedi_device *dev);
 
 struct boardtype {
-	const char *name;	/*  board name */
+	const char *name;	
 	int device_id;
-	int iorange;		/*  I/O range len */
-	char have_irq;		/*  1=card support IRQ */
-	char cardtype;		/*  0=1710& co. 2=1713, ... */
-	int n_aichan;		/*  num of A/D chans */
-	int n_aichand;		/*  num of A/D chans in diff mode */
-	int n_aochan;		/*  num of D/A chans */
-	int n_dichan;		/*  num of DI chans */
-	int n_dochan;		/*  num of DO chans */
-	int n_counter;		/*  num of counters */
-	int ai_maxdata;		/*  resolution of A/D */
-	int ao_maxdata;		/*  resolution of D/A */
-	const struct comedi_lrange *rangelist_ai;	/*  rangelist for A/D */
-	const char *rangecode_ai;	/*  range codes for programming */
-	const struct comedi_lrange *rangelist_ao;	/*  rangelist for D/A */
-	unsigned int ai_ns_min;	/*  max sample speed of card v ns */
-	unsigned int fifo_half_size;	/*  size of FIFO/2 */
+	int iorange;		
+	char have_irq;		
+	char cardtype;		
+	int n_aichan;		
+	int n_aichand;		
+	int n_aochan;		
+	int n_dichan;		
+	int n_dochan;		
+	int n_counter;		
+	int ai_maxdata;		
+	int ao_maxdata;		
+	const struct comedi_lrange *rangelist_ai;	
+	const char *rangecode_ai;	
+	const struct comedi_lrange *rangelist_ao;	
+	unsigned int ai_ns_min;	
+	unsigned int fifo_half_size;	
 };
 
 static DEFINE_PCI_DEVICE_TABLE(pci1710_pci_table) = {
@@ -260,7 +208,7 @@ static const struct boardtype boardtypes[] = {
 	 16, 0, 0, 16, 16, 0, 0x0fff, 0x0000,
 	 &range_pci17x1, range_codes_pci17x1, NULL,
 	 10000, 512},
-	/*  dummy entry corresponding to driver name */
+	
 	{.name = DRV_NAME},
 };
 
@@ -277,43 +225,39 @@ static struct comedi_driver driver_pci1710 = {
 };
 
 struct pci1710_private {
-	struct pci_dev *pcidev;	/*  ptr to PCI device */
-	char valid;		/*  card is usable */
-	char neverending_ai;	/*  we do unlimited AI */
-	unsigned int CntrlReg;	/*  Control register */
-	unsigned int i8254_osc_base;	/*  frequence of onboard oscilator */
-	unsigned int ai_do;	/*  what do AI? 0=nothing, 1 to 4 mode */
-	unsigned int ai_act_scan;	/*  how many scans we finished */
-	unsigned int ai_act_chan;	/*  actual position in actual scan */
-	unsigned int ai_buf_ptr;	/*  data buffer ptr in samples */
-	unsigned char ai_eos;	/*  1=EOS wake up */
+	struct pci_dev *pcidev;	
+	char valid;		
+	char neverending_ai;	
+	unsigned int CntrlReg;	
+	unsigned int i8254_osc_base;	
+	unsigned int ai_do;	
+	unsigned int ai_act_scan;	
+	unsigned int ai_act_chan;	
+	unsigned int ai_buf_ptr;	
+	unsigned char ai_eos;	
 	unsigned char ai_et;
 	unsigned int ai_et_CntrlReg;
 	unsigned int ai_et_MuxVal;
 	unsigned int ai_et_div1, ai_et_div2;
-	unsigned int act_chanlist[32];	/*  list of scaned channel */
-	unsigned char act_chanlist_len;	/*  len of scanlist */
-	unsigned char act_chanlist_pos;	/*  actual position in MUX list */
-	unsigned char da_ranges;	/*  copy of D/A outpit range register */
-	unsigned int ai_scans;	/*  len of scanlist */
-	unsigned int ai_n_chan;	/*  how many channels is measured */
-	unsigned int *ai_chanlist;	/*  actaul chanlist */
-	unsigned int ai_flags;	/*  flaglist */
-	unsigned int ai_data_len;	/*  len of data buffer */
-	short *ai_data;		/*  data buffer */
-	unsigned int ai_timer1;	/*  timers */
+	unsigned int act_chanlist[32];	
+	unsigned char act_chanlist_len;	
+	unsigned char act_chanlist_pos;	
+	unsigned char da_ranges;	
+	unsigned int ai_scans;	
+	unsigned int ai_n_chan;	
+	unsigned int *ai_chanlist;	
+	unsigned int ai_flags;	
+	unsigned int ai_data_len;	
+	short *ai_data;		
+	unsigned int ai_timer1;	
 	unsigned int ai_timer2;
-	short ao_data[4];	/*  data output buffer */
-	unsigned int cnt0_write_wait;	/* after a write, wait for update of the
-					 * internal state */
+	short ao_data[4];	
+	unsigned int cnt0_write_wait;	
 };
 
 #define devpriv ((struct pci1710_private *)dev->private)
 #define this_board ((const struct boardtype *)dev->board_ptr)
 
-/*
-==============================================================================
-*/
 
 static int check_channel_list(struct comedi_device *dev,
 			      struct comedi_subdevice *s,
@@ -328,7 +272,6 @@ static int pci1710_reset(struct comedi_device *dev);
 static int pci171x_ai_cancel(struct comedi_device *dev,
 			     struct comedi_subdevice *s);
 
-/*  used for gain list programming */
 static const unsigned int muxonechan[] = {
 	0x0000, 0x0101, 0x0202, 0x0303, 0x0404, 0x0505, 0x0606, 0x0707,
 	0x0808, 0x0909, 0x0a0a, 0x0b0b, 0x0c0c, 0x0d0d, 0x0e0e, 0x0f0f,
@@ -336,9 +279,6 @@ static const unsigned int muxonechan[] = {
 	0x1818, 0x1919, 0x1a1a, 0x1b1b, 0x1c1c, 0x1d1d, 0x1e1e, 0x1f1f
 };
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_read_ai(struct comedi_device *dev,
 				struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data)
@@ -350,7 +290,7 @@ static int pci171x_insn_read_ai(struct comedi_device *dev,
 
 	DPRINTK("adv_pci1710 EDBG: BGN: pci171x_insn_read_ai(...)\n");
 	devpriv->CntrlReg &= Control_CNT0;
-	devpriv->CntrlReg |= Control_SW;	/*  set software trigger */
+	devpriv->CntrlReg |= Control_SW;	
 	outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);
 	outb(0, dev->iobase + PCI171x_CLRFIFO);
 	outb(0, dev->iobase + PCI171x_CLRINT);
@@ -361,10 +301,10 @@ static int pci171x_insn_read_ai(struct comedi_device *dev,
 		inw(dev->iobase + PCI171x_STATUS),
 		dev->iobase + PCI171x_STATUS);
 	for (n = 0; n < insn->n; n++) {
-		outw(0, dev->iobase + PCI171x_SOFTTRG);	/* start conversion */
+		outw(0, dev->iobase + PCI171x_SOFTTRG);	
 		DPRINTK("adv_pci1710 B n=%d ST=%4x\n", n,
 			inw(dev->iobase + PCI171x_STATUS));
-		/* udelay(1); */
+		
 		DPRINTK("adv_pci1710 C n=%d ST=%4x\n", n,
 			inw(dev->iobase + PCI171x_STATUS));
 		timeout = 100;
@@ -407,9 +347,6 @@ conv_finish:
 	return n;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_write_ao(struct comedi_device *dev,
 				 struct comedi_subdevice *s,
 				 struct comedi_insn *insn, unsigned int *data)
@@ -439,9 +376,6 @@ static int pci171x_insn_write_ao(struct comedi_device *dev,
 
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_read_ao(struct comedi_device *dev,
 				struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data)
@@ -455,9 +389,6 @@ static int pci171x_insn_read_ao(struct comedi_device *dev,
 	return n;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_bits_di(struct comedi_device *dev,
 				struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data)
@@ -467,9 +398,6 @@ static int pci171x_insn_bits_di(struct comedi_device *dev,
 	return 2;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_bits_do(struct comedi_device *dev,
 				struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data)
@@ -484,9 +412,6 @@ static int pci171x_insn_bits_do(struct comedi_device *dev,
 	return 2;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_counter_read(struct comedi_device *dev,
 				     struct comedi_subdevice *s,
 				     struct comedi_insn *insn,
@@ -495,7 +420,7 @@ static int pci171x_insn_counter_read(struct comedi_device *dev,
 	unsigned int msb, lsb, ccntrl;
 	int i;
 
-	ccntrl = 0xD2;		/* count only */
+	ccntrl = 0xD2;		
 	for (i = 0; i < insn->n; i++) {
 		outw(ccntrl, dev->iobase + PCI171x_CNTCTRL);
 
@@ -508,9 +433,6 @@ static int pci171x_insn_counter_read(struct comedi_device *dev,
 	return insn->n;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_counter_write(struct comedi_device *dev,
 				      struct comedi_subdevice *s,
 				      struct comedi_insn *insn,
@@ -521,12 +443,12 @@ static int pci171x_insn_counter_write(struct comedi_device *dev,
 	lsb = data[0] & 0x00FF;
 	msb = (data[0] & 0xFF00) >> 8;
 
-	/* write lsb, then msb */
+	
 	outw(lsb, dev->iobase + PCI171x_CNT0);
 	outw(msb, dev->iobase + PCI171x_CNT0);
 
 	if (devpriv->cnt0_write_wait) {
-		/* wait for the new count to be loaded */
+		
 		ccntrl = 0xE2;
 		do {
 			outw(ccntrl, dev->iobase + PCI171x_CNTCTRL);
@@ -537,22 +459,19 @@ static int pci171x_insn_counter_write(struct comedi_device *dev,
 	return insn->n;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_insn_counter_config(struct comedi_device *dev,
 				       struct comedi_subdevice *s,
 				       struct comedi_insn *insn,
 				       unsigned int *data)
 {
 #ifdef unused
-	/* This doesn't work like a normal Comedi counter config */
+	
 	uint ccntrl = 0;
 
 	devpriv->cnt0_write_wait = data[0] & 0x20;
 
-	/* internal or external clock? */
-	if (!(data[0] & 0x10)) {	/* internal */
+	
+	if (!(data[0] & 0x10)) {	
 		devpriv->CntrlReg &= ~Control_CNT0;
 	} else {
 		devpriv->CntrlReg |= Control_CNT0;
@@ -567,7 +486,7 @@ static int pci171x_insn_counter_config(struct comedi_device *dev,
 		ccntrl |= Counter_M2;
 	if (data[0] & 0x08)
 		ccntrl |= Counter_BCD;
-	ccntrl |= Counter_RW0;	/* set read/write mode */
+	ccntrl |= Counter_RW0;	
 	ccntrl |= Counter_RW1;
 	outw(ccntrl, dev->iobase + PCI171x_CNTCTRL);
 #endif
@@ -575,9 +494,6 @@ static int pci171x_insn_counter_config(struct comedi_device *dev,
 	return 1;
 }
 
-/*
-==============================================================================
-*/
 static int pci1720_insn_write_ao(struct comedi_device *dev,
 				 struct comedi_subdevice *s,
 				 struct comedi_insn *insn, unsigned int *data)
@@ -594,7 +510,7 @@ static int pci1720_insn_write_ao(struct comedi_device *dev,
 
 	for (n = 0; n < insn->n; n++) {
 		outw(data[n], dev->iobase + PCI1720_DA0 + (chan << 1));
-		outb(0, dev->iobase + PCI1720_SYNCOUT);	/*  update outputs */
+		outb(0, dev->iobase + PCI1720_SYNCOUT);	
 	}
 
 	devpriv->ao_data[chan] = data[n];
@@ -602,9 +518,6 @@ static int pci1720_insn_write_ao(struct comedi_device *dev,
 	return n;
 }
 
-/*
-==============================================================================
-*/
 static void interrupt_pci1710_every_sample(void *d)
 {
 	struct comedi_device *dev = d;
@@ -633,7 +546,7 @@ static void interrupt_pci1710_every_sample(void *d)
 		return;
 	}
 
-	outb(0, dev->iobase + PCI171x_CLRINT);	/*  clear our INT request */
+	outb(0, dev->iobase + PCI171x_CLRINT);	
 
 	DPRINTK("FOR ");
 	for (; !(inw(dev->iobase + PCI171x_STATUS) & Status_FE);) {
@@ -669,14 +582,14 @@ static void interrupt_pci1710_every_sample(void *d)
 			s->async->cur_chan = 0;
 
 
-		if (s->async->cur_chan == 0) {	/*  one scan done */
+		if (s->async->cur_chan == 0) {	
 			devpriv->ai_act_scan++;
 			DPRINTK
 			    ("adv_pci1710 EDBG: EOS1 bic %d bip %d buc %d bup %d\n",
 			     s->async->buf_int_count, s->async->buf_int_ptr,
 			     s->async->buf_user_count, s->async->buf_user_ptr);
 			DPRINTK("adv_pci1710 EDBG: EOS2\n");
-			if ((!devpriv->neverending_ai) && (devpriv->ai_act_scan >= devpriv->ai_scans)) {	/*  all data sampled */
+			if ((!devpriv->neverending_ai) && (devpriv->ai_act_scan >= devpriv->ai_scans)) {	
 				pci171x_ai_cancel(dev, s);
 				s->async->events |= COMEDI_CB_EOA;
 				comedi_event(dev, s);
@@ -685,15 +598,12 @@ static void interrupt_pci1710_every_sample(void *d)
 		}
 	}
 
-	outb(0, dev->iobase + PCI171x_CLRINT);	/*  clear our INT request */
+	outb(0, dev->iobase + PCI171x_CLRINT);	
 	DPRINTK("adv_pci1710 EDBG: END: interrupt_pci1710_every_sample(...)\n");
 
 	comedi_event(dev, s);
 }
 
-/*
-==============================================================================
-*/
 static int move_block_from_fifo(struct comedi_device *dev,
 				struct comedi_subdevice *s, int n, int turn)
 {
@@ -737,9 +647,6 @@ static int move_block_from_fifo(struct comedi_device *dev,
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static void interrupt_pci1710_half_fifo(void *d)
 {
 	struct comedi_device *dev = d;
@@ -780,52 +687,48 @@ static void interrupt_pci1710_half_fifo(void *d)
 	}
 
 	if (!devpriv->neverending_ai)
-		if (devpriv->ai_act_scan >= devpriv->ai_scans) { /* all data
-								    sampled */
+		if (devpriv->ai_act_scan >= devpriv->ai_scans) { 
 			pci171x_ai_cancel(dev, s);
 			s->async->events |= COMEDI_CB_EOA;
 			comedi_event(dev, s);
 			return;
 		}
-	outb(0, dev->iobase + PCI171x_CLRINT);	/*  clear our INT request */
+	outb(0, dev->iobase + PCI171x_CLRINT);	
 	DPRINTK("adv_pci1710 EDBG: END: interrupt_pci1710_half_fifo(...)\n");
 
 	comedi_event(dev, s);
 }
 
-/*
-==============================================================================
-*/
 static irqreturn_t interrupt_service_pci1710(int irq, void *d)
 {
 	struct comedi_device *dev = d;
 
 	DPRINTK("adv_pci1710 EDBG: BGN: interrupt_service_pci1710(%d,...)\n",
 		irq);
-	if (!dev->attached)	/*  is device attached? */
-		return IRQ_NONE;	/*  no, exit */
+	if (!dev->attached)	
+		return IRQ_NONE;	
 
-	if (!(inw(dev->iobase + PCI171x_STATUS) & Status_IRQ))	/*  is this interrupt from our board? */
-		return IRQ_NONE;	/*  no, exit */
+	if (!(inw(dev->iobase + PCI171x_STATUS) & Status_IRQ))	
+		return IRQ_NONE;	
 
 	DPRINTK("adv_pci1710 EDBG: interrupt_service_pci1710() ST: %4x\n",
 		inw(dev->iobase + PCI171x_STATUS));
 
-	if (devpriv->ai_et) {	/*  Switch from initial TRIG_EXT to TRIG_xxx. */
+	if (devpriv->ai_et) {	
 		devpriv->ai_et = 0;
 		devpriv->CntrlReg &= Control_CNT0;
-		devpriv->CntrlReg |= Control_SW;	/*  set software trigger */
+		devpriv->CntrlReg |= Control_SW;	
 		outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);
 		devpriv->CntrlReg = devpriv->ai_et_CntrlReg;
 		outb(0, dev->iobase + PCI171x_CLRFIFO);
 		outb(0, dev->iobase + PCI171x_CLRINT);
 		outw(devpriv->ai_et_MuxVal, dev->iobase + PCI171x_MUX);
 		outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);
-		/*  start pacer */
+		
 		start_pacer(dev, 1, devpriv->ai_et_div1, devpriv->ai_et_div2);
 		return IRQ_HANDLED;
 	}
-	if (devpriv->ai_eos) {	/*  We use FIFO half full INT or not? */
+	if (devpriv->ai_eos) {	
 		interrupt_pci1710_every_sample(d);
 	} else {
 		interrupt_pci1710_half_fifo(d);
@@ -834,9 +737,6 @@ static irqreturn_t interrupt_service_pci1710(int irq, void *d)
 	return IRQ_HANDLED;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 				     struct comedi_subdevice *s)
 {
@@ -845,7 +745,7 @@ static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 
 	DPRINTK("adv_pci1710 EDBG: BGN: pci171x_ai_docmd_and_mode(%d,...)\n",
 		mode);
-	start_pacer(dev, -1, 0, 0);	/*  stop pacer */
+	start_pacer(dev, -1, 0, 0);	
 
 	seglen = check_channel_list(dev, s, devpriv->ai_chanlist,
 				    devpriv->ai_n_chan);
@@ -865,7 +765,7 @@ static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 	devpriv->neverending_ai = 0;
 
 	devpriv->CntrlReg &= Control_CNT0;
-	if ((devpriv->ai_flags & TRIG_WAKE_EOS)) {	/*  don't we want wake up every scan?            devpriv->ai_eos=1; */
+	if ((devpriv->ai_flags & TRIG_WAKE_EOS)) {	
 		devpriv->ai_eos = 1;
 	} else {
 		devpriv->CntrlReg |= Control_ONEFH;
@@ -874,7 +774,7 @@ static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 
 	if ((devpriv->ai_scans == 0) || (devpriv->ai_scans == -1))
 		devpriv->neverending_ai = 1;
-	/* well, user want neverending */
+	
 	else
 		devpriv->neverending_ai = 0;
 
@@ -902,7 +802,7 @@ static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 		     devpriv->ai_timer1);
 		outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);
 		if (mode != 2) {
-			/*  start pacer */
+			
 			start_pacer(dev, mode, divisor1, divisor2);
 		} else {
 			devpriv->ai_et_div1 = divisor1;
@@ -920,9 +820,6 @@ static int pci171x_ai_docmd_and_mode(int mode, struct comedi_device *dev,
 }
 
 #ifdef PCI171X_EXTDEBUG
-/*
-==============================================================================
-*/
 static void pci171x_cmdtest_out(int e, struct comedi_cmd *cmd)
 {
 	printk("adv_pci1710 e=%d startsrc=%x scansrc=%x convsrc=%x\n", e,
@@ -936,9 +833,6 @@ static void pci171x_cmdtest_out(int e, struct comedi_cmd *cmd)
 }
 #endif
 
-/*
-==============================================================================
-*/
 static int pci171x_ai_cmdtest(struct comedi_device *dev,
 			      struct comedi_subdevice *s,
 			      struct comedi_cmd *cmd)
@@ -951,7 +845,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 #ifdef PCI171X_EXTDEBUG
 	pci171x_cmdtest_out(-1, cmd);
 #endif
-	/* step 1: make sure trigger sources are trivially valid */
+	
 
 	tmp = cmd->start_src;
 	cmd->start_src &= TRIG_NOW | TRIG_EXT;
@@ -988,7 +882,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 		return 1;
 	}
 
-	/* step 2: make sure trigger sources are unique and mutually compatible */
+	
 
 	if (cmd->start_src != TRIG_NOW && cmd->start_src != TRIG_EXT) {
 		cmd->start_src = TRIG_NOW;
@@ -1021,7 +915,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 		return 2;
 	}
 
-	/* step 3: make sure arguments are trivially compatible */
+	
 
 	if (cmd->start_arg != 0) {
 		cmd->start_arg = 0;
@@ -1038,7 +932,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 			cmd->convert_arg = this_board->ai_ns_min;
 			err++;
 		}
-	} else {		/* TRIG_FOLLOW */
+	} else {		
 		if (cmd->convert_arg != 0) {
 			cmd->convert_arg = 0;
 			err++;
@@ -1054,7 +948,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 			cmd->stop_arg = 1;
 			err++;
 		}
-	} else {		/* TRIG_NONE */
+	} else {		
 		if (cmd->stop_arg != 0) {
 			cmd->stop_arg = 0;
 			err++;
@@ -1071,7 +965,7 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 		return 3;
 	}
 
-	/* step 4: fix up any arguments */
+	
 
 	if (cmd->convert_src == TRIG_TIMER) {
 		tmp = cmd->convert_arg;
@@ -1091,21 +985,18 @@ static int pci171x_ai_cmdtest(struct comedi_device *dev,
 		return 4;
 	}
 
-	/* step 5: complain about special chanlist considerations */
+	
 
 	if (cmd->chanlist) {
 		if (!check_channel_list(dev, s, cmd->chanlist,
 					cmd->chanlist_len))
-			return 5;	/*  incorrect channels list */
+			return 5;	
 	}
 
 	DPRINTK("adv_pci1710 EDBG: BGN: pci171x_ai_cmdtest(...) ret=0\n");
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 {
 	struct comedi_cmd *cmd = &s->async->cmd;
@@ -1125,14 +1016,14 @@ static int pci171x_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		devpriv->ai_scans = 0;
 
 
-	if (cmd->scan_begin_src == TRIG_FOLLOW) {	/*  mode 1, 2, 3 */
-		if (cmd->convert_src == TRIG_TIMER) {	/*  mode 1 and 2 */
+	if (cmd->scan_begin_src == TRIG_FOLLOW) {	
+		if (cmd->convert_src == TRIG_TIMER) {	
 			devpriv->ai_timer1 = cmd->convert_arg;
 			return pci171x_ai_docmd_and_mode(cmd->start_src ==
 							 TRIG_EXT ? 2 : 1, dev,
 							 s);
 		}
-		if (cmd->convert_src == TRIG_EXT) {	/*  mode 3 */
+		if (cmd->convert_src == TRIG_EXT) {	
 			return pci171x_ai_docmd_and_mode(3, dev, s);
 		}
 	}
@@ -1140,12 +1031,6 @@ static int pci171x_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	return -1;
 }
 
-/*
-==============================================================================
- Check if channel list from user is builded correctly
- If it's ok, then program scan/gain logic.
- This works for all cards.
-*/
 static int check_channel_list(struct comedi_device *dev,
 			      struct comedi_subdevice *s,
 			      unsigned int *chanlist, unsigned int n_chan)
@@ -1154,19 +1039,19 @@ static int check_channel_list(struct comedi_device *dev,
 	unsigned int i, nowmustbechan, seglen, segpos;
 
 	DPRINTK("adv_pci1710 EDBG:  check_channel_list(...,%d)\n", n_chan);
-	/* correct channel and range number check itself comedi/range.c */
+	
 	if (n_chan < 1) {
 		comedi_error(dev, "range/channel list is empty!");
 		return 0;
 	}
 
 	if (n_chan > 1) {
-		chansegment[0] = chanlist[0];	/*  first channel is every time ok */
-		for (i = 1, seglen = 1; i < n_chan; i++, seglen++) {	/*  build part of chanlist */
-			/*  printk("%d. %d %d\n",i,CR_CHAN(chanlist[i]),CR_RANGE(chanlist[i])); */
+		chansegment[0] = chanlist[0];	
+		for (i = 1, seglen = 1; i < n_chan; i++, seglen++) {	
+			
 			if (chanlist[0] == chanlist[i])
-				break;	/*  we detect loop, this must by finish */
-			if (CR_CHAN(chanlist[i]) & 1)	/*  odd channel cann't by differencial */
+				break;	
+			if (CR_CHAN(chanlist[i]) & 1)	
 				if (CR_AREF(chanlist[i]) == AREF_DIFF) {
 					comedi_error(dev,
 						     "Odd channel can't be differential input!\n");
@@ -1176,18 +1061,18 @@ static int check_channel_list(struct comedi_device *dev,
 			    (CR_CHAN(chansegment[i - 1]) + 1) % s->n_chan;
 			if (CR_AREF(chansegment[i - 1]) == AREF_DIFF)
 				nowmustbechan = (nowmustbechan + 1) % s->n_chan;
-			if (nowmustbechan != CR_CHAN(chanlist[i])) {	/*  channel list isn't continuous :-( */
+			if (nowmustbechan != CR_CHAN(chanlist[i])) {	
 				printk
 				    ("channel list must be continuous! chanlist[%i]=%d but must be %d or %d!\n",
 				     i, CR_CHAN(chanlist[i]), nowmustbechan,
 				     CR_CHAN(chanlist[0]));
 				return 0;
 			}
-			chansegment[i] = chanlist[i];	/*  well, this is next correct channel in list */
+			chansegment[i] = chanlist[i];	
 		}
 
-		for (i = 0, segpos = 0; i < n_chan; i++) {	/*  check whole chanlist */
-			/* printk("%d %d=%d %d\n",CR_CHAN(chansegment[i%seglen]),CR_RANGE(chansegment[i%seglen]),CR_CHAN(chanlist[i]),CR_RANGE(chanlist[i])); */
+		for (i = 0, segpos = 0; i < n_chan; i++) {	
+			
 			if (chanlist[i] != chansegment[i % seglen]) {
 				printk
 				    ("bad channel, reference or range number! chanlist[%i]=%d,%d,%d and not %d,%d,%d!\n",
@@ -1197,7 +1082,7 @@ static int check_channel_list(struct comedi_device *dev,
 				     CR_CHAN(chanlist[i % seglen]),
 				     CR_RANGE(chanlist[i % seglen]),
 				     CR_AREF(chansegment[i % seglen]));
-				return 0;	/*  chan/gain list is strange */
+				return 0;	
 			}
 		}
 	} else {
@@ -1219,13 +1104,13 @@ static void setup_channel_list(struct comedi_device *dev,
 	devpriv->act_chanlist_pos = 0;
 
 	DPRINTK("SegLen: %d\n", seglen);
-	for (i = 0; i < seglen; i++) {	/*  store range list to card */
+	for (i = 0; i < seglen; i++) {	
 		chanprog = muxonechan[CR_CHAN(chanlist[i])];
-		outw(chanprog, dev->iobase + PCI171x_MUX);	/* select channel */
+		outw(chanprog, dev->iobase + PCI171x_MUX);	
 		range = this_board->rangecode_ai[CR_RANGE(chanlist[i])];
 		if (CR_AREF(chanlist[i]) == AREF_DIFF)
 			range |= 0x0020;
-		outw(range, dev->iobase + PCI171x_RANGE);	/* select gain */
+		outw(range, dev->iobase + PCI171x_RANGE);	
 #ifdef PCI171x_PARANOIDCHECK
 		devpriv->act_chanlist[i] =
 		    (CR_CHAN(chanlist[i]) << 12) & 0xf000;
@@ -1234,7 +1119,7 @@ static void setup_channel_list(struct comedi_device *dev,
 			devpriv->act_chanlist[i]);
 	}
 #ifdef PCI171x_PARANOIDCHECK
-	for ( ; i < n_chan; i++) { /* store remainder of channel list */
+	for ( ; i < n_chan; i++) { 
 		devpriv->act_chanlist[i] =
 		    (CR_CHAN(chanlist[i]) << 12) & 0xf000;
 	}
@@ -1242,15 +1127,12 @@ static void setup_channel_list(struct comedi_device *dev,
 
 	devpriv->ai_et_MuxVal =
 	    CR_CHAN(chanlist[0]) | (CR_CHAN(chanlist[seglen - 1]) << 8);
-	outw(devpriv->ai_et_MuxVal, dev->iobase + PCI171x_MUX);	/* select channel interval to scan */
+	outw(devpriv->ai_et_MuxVal, dev->iobase + PCI171x_MUX);	
 	DPRINTK("MUX: %4x L%4x.H%4x\n",
 		CR_CHAN(chanlist[0]) | (CR_CHAN(chanlist[seglen - 1]) << 8),
 		CR_CHAN(chanlist[0]), CR_CHAN(chanlist[seglen - 1]));
 }
 
-/*
-==============================================================================
-*/
 static void start_pacer(struct comedi_device *dev, int mode,
 			unsigned int divisor1, unsigned int divisor2)
 {
@@ -1268,9 +1150,6 @@ static void start_pacer(struct comedi_device *dev, int mode,
 	DPRINTK("adv_pci1710 EDBG: END: start_pacer(...)\n");
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_ai_cancel(struct comedi_device *dev,
 			     struct comedi_subdevice *s)
 {
@@ -1281,7 +1160,7 @@ static int pci171x_ai_cancel(struct comedi_device *dev,
 		devpriv->CntrlReg &= Control_CNT0;
 		devpriv->CntrlReg |= Control_SW;
 
-		outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);	/*  reset any operations */
+		outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);	
 		start_pacer(dev, -1, 0, 0);
 		outb(0, dev->iobase + PCI171x_CLRFIFO);
 		outb(0, dev->iobase + PCI171x_CLRINT);
@@ -1298,50 +1177,44 @@ static int pci171x_ai_cancel(struct comedi_device *dev,
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int pci171x_reset(struct comedi_device *dev)
 {
 	DPRINTK("adv_pci1710 EDBG: BGN: pci171x_reset(...)\n");
 	outw(0x30, dev->iobase + PCI171x_CNTCTRL);
-	devpriv->CntrlReg = Control_SW | Control_CNT0;	/*  Software trigger, CNT0=external */
-	outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);	/*  reset any operations */
-	outb(0, dev->iobase + PCI171x_CLRFIFO);	/*  clear FIFO */
-	outb(0, dev->iobase + PCI171x_CLRINT);	/*  clear INT request */
-	start_pacer(dev, -1, 0, 0);	/*  stop 8254 */
+	devpriv->CntrlReg = Control_SW | Control_CNT0;	
+	outw(devpriv->CntrlReg, dev->iobase + PCI171x_CONTROL);	
+	outb(0, dev->iobase + PCI171x_CLRFIFO);	
+	outb(0, dev->iobase + PCI171x_CLRINT);	
+	start_pacer(dev, -1, 0, 0);	
 	devpriv->da_ranges = 0;
 	if (this_board->n_aochan) {
-		outb(devpriv->da_ranges, dev->iobase + PCI171x_DAREF);	/*  set DACs to 0..5V */
-		outw(0, dev->iobase + PCI171x_DA1);	/*  set DA outputs to 0V */
+		outb(devpriv->da_ranges, dev->iobase + PCI171x_DAREF);	
+		outw(0, dev->iobase + PCI171x_DA1);	
 		devpriv->ao_data[0] = 0x0000;
 		if (this_board->n_aochan > 1) {
 			outw(0, dev->iobase + PCI171x_DA2);
 			devpriv->ao_data[1] = 0x0000;
 		}
 	}
-	outw(0, dev->iobase + PCI171x_DO);	/*  digital outputs to 0 */
-	outb(0, dev->iobase + PCI171x_CLRFIFO);	/*  clear FIFO */
-	outb(0, dev->iobase + PCI171x_CLRINT);	/*  clear INT request */
+	outw(0, dev->iobase + PCI171x_DO);	
+	outb(0, dev->iobase + PCI171x_CLRFIFO);	
+	outb(0, dev->iobase + PCI171x_CLRINT);	
 
 	DPRINTK("adv_pci1710 EDBG: END: pci171x_reset(...)\n");
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int pci1720_reset(struct comedi_device *dev)
 {
 	DPRINTK("adv_pci1710 EDBG: BGN: pci1720_reset(...)\n");
-	outb(Syncont_SC0, dev->iobase + PCI1720_SYNCONT);	/*  set synchronous output mode */
+	outb(Syncont_SC0, dev->iobase + PCI1720_SYNCONT);	
 	devpriv->da_ranges = 0xAA;
-	outb(devpriv->da_ranges, dev->iobase + PCI1720_RANGE);	/*  set all ranges to +/-5V */
-	outw(0x0800, dev->iobase + PCI1720_DA0);	/*  set outputs to 0V */
+	outb(devpriv->da_ranges, dev->iobase + PCI1720_RANGE);	
+	outw(0x0800, dev->iobase + PCI1720_DA0);	
 	outw(0x0800, dev->iobase + PCI1720_DA1);
 	outw(0x0800, dev->iobase + PCI1720_DA2);
 	outw(0x0800, dev->iobase + PCI1720_DA3);
-	outb(0, dev->iobase + PCI1720_SYNCOUT);	/*  update outputs */
+	outb(0, dev->iobase + PCI1720_SYNCOUT);	
 	devpriv->ao_data[0] = 0x0800;
 	devpriv->ao_data[1] = 0x0800;
 	devpriv->ao_data[2] = 0x0800;
@@ -1350,9 +1223,6 @@ static int pci1720_reset(struct comedi_device *dev)
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int pci1710_reset(struct comedi_device *dev)
 {
 	DPRINTK("adv_pci1710 EDBG: BGN: pci1710_reset(...)\n");
@@ -1365,9 +1235,6 @@ static int pci1710_reset(struct comedi_device *dev)
 	DPRINTK("adv_pci1710 EDBG: END: pci1710_reset(...)\n");
 }
 
-/*
-==============================================================================
-*/
 static int pci1710_attach(struct comedi_device *dev,
 			  struct comedi_devconfig *it)
 {
@@ -1391,7 +1258,7 @@ static int pci1710_attach(struct comedi_device *dev,
 	if (ret < 0)
 		return -ENOMEM;
 
-	/* Look for matching PCI device */
+	
 	errstr = "not found!";
 	pcidev = NULL;
 	board_index = this_board - boardtypes;
@@ -1411,23 +1278,19 @@ static int pci1710_attach(struct comedi_device *dev,
 				continue;
 		}
 
-		/* Found matching vendor/device. */
+		
 		if (opt_bus || opt_slot) {
-			/* Check bus/slot. */
+			
 			if (opt_bus != pcidev->bus->number
 			    || opt_slot != PCI_SLOT(pcidev->devfn))
-				continue;	/* no match */
+				continue;	
 		}
-		/*
-		 * Look for device that isn't in use.
-		 * Enable PCI device and request regions.
-		 */
 		if (comedi_pci_enable(pcidev, DRV_NAME)) {
 			errstr =
 			    "failed to enable PCI device and request regions!";
 			continue;
 		}
-		/*  fixup board_ptr in case we were using the dummy entry with the driver name */
+		
 		dev->board_ptr = &boardtypes[board_index];
 		break;
 	}
@@ -1481,7 +1344,7 @@ static int pci1710_attach(struct comedi_device *dev,
 					dev)) {
 				dev_dbg(dev->hw_dev, "unable to allocate IRQ %d, DISABLING IT",
 					irq);
-				irq = 0;	/* Can't use IRQ */
+				irq = 0;	
 			} else {
 				dev_dbg(dev->hw_dev, "irq=%u", irq);
 			}
@@ -1513,7 +1376,7 @@ static int pci1710_attach(struct comedi_device *dev,
 			s->do_cmdtest = pci171x_ai_cmdtest;
 			s->do_cmd = pci171x_ai_cmd;
 		}
-		devpriv->i8254_osc_base = 100;	/*  100ns=10MHz */
+		devpriv->i8254_osc_base = 100;	
 		subdev++;
 	}
 
@@ -1545,7 +1408,7 @@ static int pci1710_attach(struct comedi_device *dev,
 		s->maxdata = 1;
 		s->len_chanlist = this_board->n_dichan;
 		s->range_table = &range_digital;
-		s->io_bits = 0;	/* all bits input */
+		s->io_bits = 0;	
 		s->insn_bits = pci171x_insn_bits_di;
 		subdev++;
 	}
@@ -1558,7 +1421,7 @@ static int pci1710_attach(struct comedi_device *dev,
 		s->maxdata = 1;
 		s->len_chanlist = this_board->n_dochan;
 		s->range_table = &range_digital;
-		/* all bits output */
+		
 		s->io_bits = (1 << this_board->n_dochan) - 1;
 		s->state = 0;
 		s->insn_bits = pci171x_insn_bits_do;
@@ -1584,9 +1447,6 @@ static int pci1710_attach(struct comedi_device *dev,
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int pci1710_detach(struct comedi_device *dev)
 {
 
@@ -1606,9 +1466,6 @@ static int pci1710_detach(struct comedi_device *dev)
 	return 0;
 }
 
-/*
-==============================================================================
-*/
 static int __devinit driver_pci1710_pci_probe(struct pci_dev *dev,
 					      const struct pci_device_id *ent)
 {
@@ -1646,9 +1503,6 @@ static void __exit driver_pci1710_cleanup_module(void)
 
 module_init(driver_pci1710_init_module);
 module_exit(driver_pci1710_cleanup_module);
-/*
-==============================================================================
-*/
 
 MODULE_AUTHOR("Comedi http://www.comedi.org");
 MODULE_DESCRIPTION("Comedi low-level driver");

@@ -157,7 +157,6 @@ static struct platform_driver e800_driver = {
 
 module_platform_driver(e800_driver);
 
-/* Module information */
 MODULE_AUTHOR("Ian Molton <spyro@f2s.com>");
 MODULE_DESCRIPTION("ALSA SoC driver for e800");
 MODULE_LICENSE("GPL v2");

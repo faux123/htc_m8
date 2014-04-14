@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,10 +15,8 @@
 
 #ifdef CONFIG_MSM_GPIOMUX
 
-/* Increment a gpio's reference count, possibly activating the line. */
 int __must_check msm_gpiomux_get(unsigned gpio);
 
-/* Decrement a gpio's reference count, possibly suspending the line. */
 int msm_gpiomux_put(unsigned gpio);
 
 #else
@@ -35,4 +33,4 @@ static inline int msm_gpiomux_put(unsigned gpio)
 
 #endif
 
-#endif /* _LINUX_MSM_GPIOMUX_H */
+#endif 

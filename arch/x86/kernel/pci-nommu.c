@@ -1,5 +1,3 @@
-/* Fallback functions when the main IOMMU code is not compiled in. This
-   code is roughly equivalent to i386. */
 #include <linux/dma-mapping.h>
 #include <linux/scatterlist.h>
 #include <linux/string.h>
@@ -39,21 +37,6 @@ static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
 	return bus;
 }
 
-/* Map a set of buffers described by scatterlist in streaming
- * mode for DMA.  This is the scatter-gather version of the
- * above pci_map_single interface.  Here the scatter gather list
- * elements are each tagged with the appropriate dma address
- * and length.  They are obtained via sg_dma_{address,length}(SG).
- *
- * NOTE: An implementation may be able to use a smaller number of
- *       DMA address/length pairs than there are SG table elements.
- *       (for example via virtual mapping capabilities)
- *       The routine returns the number of addr/length pairs actually
- *       used, at most nents.
- *
- * Device ownership issues as mentioned above for pci_map_single are
- * the same here.
- */
 static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
 			int nents, enum dma_data_direction dir,
 			struct dma_attrs *attrs)
@@ -74,12 +57,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
 	return nents;
 }
 
-static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
-				dma_addr_t dma_addr, struct dma_attrs *attrs)
-{
-	free_pages((unsigned long)vaddr, get_order(size));
-}
-
 static void nommu_sync_single_for_device(struct device *dev,
 			dma_addr_t addr, size_t size,
 			enum dma_data_direction dir)
@@ -97,7 +74,7 @@ static void nommu_sync_sg_for_device(struct device *dev,
 
 struct dma_map_ops nommu_dma_ops = {
 	.alloc			= dma_generic_alloc_coherent,
-	.free			= nommu_free_coherent,
+	.free			= dma_generic_free_coherent,
 	.map_sg			= nommu_map_sg,
 	.map_page		= nommu_map_page,
 	.sync_single_for_device = nommu_sync_single_for_device,

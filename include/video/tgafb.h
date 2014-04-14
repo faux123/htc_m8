@@ -13,17 +13,11 @@
 #ifndef TGAFB_H
 #define TGAFB_H
 
-/*
- * TGA hardware description (minimal)
- */
 
 #define TGA_TYPE_8PLANE			0
 #define TGA_TYPE_24PLANE		1
 #define TGA_TYPE_24PLUSZ		3
 
-/*
- * Offsets within Memory Space
- */
 
 #define	TGA_ROM_OFFSET			0x0000000
 #define	TGA_REGS_OFFSET			0x0100000
@@ -65,9 +59,6 @@
 #define	TGA_CMD_STAT_REG		0x01f8
 
 
-/* 
- * Useful defines for managing the registers
- */
 
 #define TGA_HORIZ_ODD			0x80000000
 #define TGA_HORIZ_POLARITY		0x40000000
@@ -106,17 +97,11 @@
 #define TGA_MODE_DMA_WRITE_COPY		0x1f
 
 
-/*
- * Useful defines for managing the ICS1562 PLL clock
- */
 
-#define TGA_PLL_BASE_FREQ 		14318		/* .18 */
+#define TGA_PLL_BASE_FREQ 		14318		
 #define TGA_PLL_MAX_FREQ 		230000
 
 
-/*
- * Useful defines for managing the BT485 on the 8-plane TGA
- */
 
 #define	BT485_READ_BIT			0x01
 #define	BT485_WRITE_BIT			0x00
@@ -140,9 +125,6 @@
 #define	BT485_CUR_HIGH_Y		0x1e
 
 
-/*
- * Useful defines for managing the BT463 on the 24-plane TGAs/SFB+s
- */
 
 #define	BT463_ADDR_LO		0x0
 #define	BT463_ADDR_HI		0x1
@@ -168,9 +150,6 @@
 
 #define	BT463_WINDOW_TYPE_BASE	0x0300
 
-/*
- * Useful defines for managing the BT459 on the 8-plane SFB+s
- */
 
 #define	BT459_ADDR_LO		0x0
 #define	BT459_ADDR_HI		0x1
@@ -191,38 +170,32 @@
 
 #define	BT459_CUR_CMD_REG	0x0300
 
-/*
- * The framebuffer driver private data.
- */
 
 struct tga_par {
-	/* PCI/TC device.  */
+	
 	struct device *dev;
 
-	/* Device dependent information.  */
+	
 	void __iomem *tga_mem_base;
 	void __iomem *tga_fb_base;
 	void __iomem *tga_regs_base;
-	u8 tga_type;				/* TGA_TYPE_XXX */
-	u8 tga_chip_rev;			/* dc21030 revision */
+	u8 tga_type;				
+	u8 tga_chip_rev;			
 
-	/* Remember blank mode.  */
+	
 	u8 vesa_blanked;
 
-	/* Define the video mode.  */
-	u32 xres, yres;			/* resolution in pixels */
-	u32 htimings;			/* horizontal timing register */
-	u32 vtimings;			/* vertical timing register */
-	u32 pll_freq;			/* pixclock in mhz */
-	u32 bits_per_pixel;		/* bits per pixel */
-	u32 sync_on_green;		/* set if sync is on green */
+	
+	u32 xres, yres;			
+	u32 htimings;			
+	u32 vtimings;			
+	u32 pll_freq;			
+	u32 bits_per_pixel;		
+	u32 sync_on_green;		
 	u32 palette[16];
 };
 
 
-/*
- * Macros for reading/writing TGA and RAMDAC registers
- */
 
 static inline void
 TGA_WRITE_REG(struct tga_par *par, u32 v, u32 r)
@@ -277,4 +250,4 @@ BT459_WRITE(struct tga_par *par, u32 m, u16 a, u8 v)
 	TGA_WRITE_REG(par, v, TGA_RAMDAC_REG);
 }
 
-#endif /* TGAFB_H */
+#endif 

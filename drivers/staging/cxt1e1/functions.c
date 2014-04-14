@@ -71,7 +71,7 @@ pci_read_32 (u_int32_t *p)
         pr_info("pci_read : %x = %x\n", (u_int32_t) p, v);
     return v;
 #else
-    FLUSH_PCI_READ ();              /* */
+    FLUSH_PCI_READ ();              
     return le32_to_cpu (*p);
 #endif
 }
@@ -84,14 +84,7 @@ pci_write_32 (u_int32_t *p, u_int32_t v)
         pr_info("pci_write: %x = %x\n", (u_int32_t) p, v);
 #endif
     *p = cpu_to_le32 (v);
-    FLUSH_PCI_WRITE ();             /* This routine is called from routines
-                                     * which do multiple register writes
-                                     * which themselves need flushing between
-                                     * writes in order to guarantee write
-                                     * ordering.  It is less code-cumbersome
-                                     * to flush here-in then to investigate
-                                     * and code the many other register
-                                     * writing routines. */
+    FLUSH_PCI_WRITE ();             
 }
 #endif
 
@@ -101,8 +94,8 @@ pci_flush_write (ci_t * ci)
 {
     volatile u_int32_t v;
 
-    /* issue a PCI read to flush PCI write thru bridge */
-    v = *(u_int32_t *) &ci->reg->glcd;  /* any address would do */
+    
+    v = *(u_int32_t *) &ci->reg->glcd;  
 
     /*
      * return nothing, this just reads PCI bridge interface to flush
@@ -150,11 +143,11 @@ OS_uwait (int usec, char *description)
     if (usec >= 1000)
     {
         mdelay (usec / 1000);
-        /* now delay residual */
-        tmp = (usec / 1000) * 1000; /* round */
-        tmp = usec - tmp;           /* residual */
+        
+        tmp = (usec / 1000) * 1000; 
+        tmp = usec - tmp;           
         if (tmp)
-        {                           /* wait on residual */
+        {                           
             udelay (tmp);
         }
     } else
@@ -163,9 +156,6 @@ OS_uwait (int usec, char *description)
     }
 }
 
-/* dummy short delay routine called as a subroutine so that compiler
- * does not optimize/remove its intent (a short delay)
- */
 
 void
 OS_uwait_dummy (void)
@@ -189,8 +179,7 @@ OS_sem_init (void *sem, int state)
     case SEM_AVAILABLE:
 	    sema_init((struct semaphore *) sem, 1);
         break;
-    default:                        /* otherwise, set sem.count to state's
-                                     * value */
+    default:                        
         sema_init (sem, state);
         break;
     }
@@ -261,14 +250,10 @@ void sd_recv_consume(void *token, size_t len, void *user)
 }
 
 
-/**
- ** Read some reserved location w/in the COMET chip as a usable
- ** VMETRO trigger point or other trace marking event.
- **/
 
 #include "comet.h"
 
-extern ci_t *CI;                /* dummy pointer to board ZERO's data */
+extern ci_t *CI;                
 void
 VMETRO_TRACE (void *x)
 {
@@ -284,73 +269,72 @@ VMETRO_TRIGGER (ci_t * ci, int x)
     comet_t    *comet;
     volatile u_int32_t data;
 
-    comet = ci->port[0].cometbase;  /* default to COMET # 0 */
+    comet = ci->port[0].cometbase;  
 
     switch (x)
     {
     default:
     case 0:
-        data = pci_read_32 ((u_int32_t *) &comet->__res24);     /* 0x90 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res24);     
         break;
     case 1:
-        data = pci_read_32 ((u_int32_t *) &comet->__res25);     /* 0x94 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res25);     
         break;
     case 2:
-        data = pci_read_32 ((u_int32_t *) &comet->__res26);     /* 0x98 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res26);     
         break;
     case 3:
-        data = pci_read_32 ((u_int32_t *) &comet->__res27);     /* 0x9C */
+        data = pci_read_32 ((u_int32_t *) &comet->__res27);     
         break;
     case 4:
-        data = pci_read_32 ((u_int32_t *) &comet->__res88);     /* 0x220 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res88);     
         break;
     case 5:
-        data = pci_read_32 ((u_int32_t *) &comet->__res89);     /* 0x224 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res89);     
         break;
     case 6:
-        data = pci_read_32 ((u_int32_t *) &comet->__res8A);     /* 0x228 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res8A);     
         break;
     case 7:
-        data = pci_read_32 ((u_int32_t *) &comet->__res8B);     /* 0x22C */
+        data = pci_read_32 ((u_int32_t *) &comet->__res8B);     
         break;
     case 8:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA0);     /* 0x280 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA0);     
         break;
     case 9:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA1);     /* 0x284 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA1);     
         break;
     case 10:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA2);     /* 0x288 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA2);     
         break;
     case 11:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA3);     /* 0x28C */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA3);     
         break;
     case 12:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA4);     /* 0x290 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA4);     
         break;
     case 13:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA5);     /* 0x294 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA5);     
         break;
     case 14:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA6);     /* 0x298 */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA6);     
         break;
     case 15:
-        data = pci_read_32 ((u_int32_t *) &comet->__resA7);     /* 0x29C */
+        data = pci_read_32 ((u_int32_t *) &comet->__resA7);     
         break;
     case 16:
-        data = pci_read_32 ((u_int32_t *) &comet->__res74);     /* 0x1D0 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res74);     
         break;
     case 17:
-        data = pci_read_32 ((u_int32_t *) &comet->__res75);     /* 0x1D4 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res75);     
         break;
     case 18:
-        data = pci_read_32 ((u_int32_t *) &comet->__res76);     /* 0x1D8 */
+        data = pci_read_32 ((u_int32_t *) &comet->__res76);     
         break;
     case 19:
-        data = pci_read_32 ((u_int32_t *) &comet->__res77);     /* 0x1DC */
+        data = pci_read_32 ((u_int32_t *) &comet->__res77);     
         break;
     }
 }
 
 
-/***  End-of-File  ***/

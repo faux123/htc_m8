@@ -13,15 +13,12 @@
 
 #ifndef __ASSEMBLY__
 #include <linux/irq.h>
-#endif /* __ASSEMBLY__ */
+#endif 
 
 #include <asm/timer-regs.h>
 #include <unit/clock.h>
 #include <asm/param.h>
 
-/*
- * jiffies counter specifications
- */
 
 #define	TMJCBR_MAX		0xffff
 #define	TMJCIRQ			TM1IRQ
@@ -33,8 +30,7 @@
 
 #ifndef HZ
 # error HZ undeclared.
-#endif /* !HZ */
-/* use as little prescaling as possible to avoid losing accuracy */
+#endif 
 #if (MN10300_SRC_IOCLK + HZ / 2) / HZ - 1 <= TMJCBR_MAX
 # define IOCLK_PRESCALE		1
 # define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK
@@ -85,12 +81,9 @@ static inline void reload_jiffies_counter(u32 cnt)
 	tmp = TM01MD;
 }
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
 
-/*
- * timestamp counter specifications
- */
 
 #define	TMTSCBR_MAX		0xffffffff
 #define	TMTSCBC			TM45BC
@@ -101,9 +94,6 @@ static inline void startup_timestamp_counter(void)
 {
 	u32 t32;
 
-	/* set up timer 4 & 5 cascaded as a 32-bit counter to count real time
-	 * - count down from 4Gig-1 to 0 and wrap at IOCLK rate
-	 */
 	TM45BR = TMTSCBR_MAX;
 	t32 = TM45BR;
 
@@ -134,10 +124,6 @@ static inline void shutdown_timestamp_counter(void)
 	t8 = TM5MD;
 }
 
-/*
- * we use a cascaded pair of 16-bit down-counting timers to count I/O
- * clock cycles for the purposes of time keeping
- */
 typedef unsigned long cycles_t;
 
 static inline cycles_t read_timestamp_counter(void)
@@ -145,6 +131,6 @@ static inline cycles_t read_timestamp_counter(void)
 	return (cycles_t)~TMTSCBC;
 }
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* _ASM_UNIT_TIMEX_H */
+#endif 

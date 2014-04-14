@@ -3,4 +3,4 @@
 
 #include <asm-generic/cputime.h>
 
-#endif /* __M68K_CPUTIME_H */
+#endif 

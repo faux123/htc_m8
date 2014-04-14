@@ -15,9 +15,6 @@
 
 #include <linux/types.h>
 
-/*
- * No traps on overflows for any of these...
- */
 
 #define __div64_32(n, base)						\
 ({									\
@@ -63,6 +60,6 @@
 	__mod32;							\
 })
 
-#endif /* BITS_PER_LONG == 64 */
+#endif 
 
-#endif /* __ASM_DIV64_H */
+#endif 

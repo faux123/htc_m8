@@ -19,17 +19,16 @@
 
 #include <linux/fb.h>
 
-/* Also one should provide the CK3P6MI clock */
 struct tc6393xb_platform_data {
-	u16	scr_pll2cr;	/* PLL2 Control */
-	u16	scr_gper;	/* GP Enable */
+	u16	scr_pll2cr;	
+	u16	scr_gper;	
 
 	int	(*enable)(struct platform_device *dev);
 	int	(*disable)(struct platform_device *dev);
 	int	(*suspend)(struct platform_device *dev);
 	int	(*resume)(struct platform_device *dev);
 
-	int	irq_base;	/* base for subdevice irqs */
+	int	irq_base;	
 	int	gpio_base;
 	int	(*setup)(struct platform_device *dev);
 	void	(*teardown)(struct platform_device *dev);
@@ -37,18 +36,13 @@ struct tc6393xb_platform_data {
 	struct tmio_nand_data	*nand_data;
 	struct tmio_fb_data	*fb_data;
 
-	unsigned resume_restore : 1; /* make special actions
-					to preserve the state
-					on suspend/resume */
+	unsigned resume_restore : 1; 
 };
 
 extern int tc6393xb_lcd_mode(struct platform_device *fb,
 			     const struct fb_videomode *mode);
 extern int tc6393xb_lcd_set_power(struct platform_device *fb, bool on);
 
-/*
- * Relative to irq_base
- */
 #define	IRQ_TC6393_NAND		0
 #define	IRQ_TC6393_MMC		1
 #define	IRQ_TC6393_OHCI		2

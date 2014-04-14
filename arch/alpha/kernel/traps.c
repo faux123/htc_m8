@@ -4,9 +4,6 @@
  * (C) Copyright 1994 Linus Torvalds
  */
 
-/*
- * This file initializes the trap entry points
- */
 
 #include <linux/jiffies.h>
 #include <linux/mm.h>
@@ -28,7 +25,6 @@
 
 #include "proto.h"
 
-/* Work-around for some SRMs which mishandle opDEC faults.  */
 
 static int opDEC_fix;
 
@@ -36,20 +32,15 @@ static void __cpuinit
 opDEC_check(void)
 {
 	__asm__ __volatile__ (
-	/* Load the address of... */
+	
 	"	br	$16, 1f\n"
-	/* A stub instruction fault handler.  Just add 4 to the
-	   pc and continue.  */
 	"	ldq	$16, 8($sp)\n"
 	"	addq	$16, 4, $16\n"
 	"	stq	$16, 8($sp)\n"
 	"	call_pal %[rti]\n"
-	/* Install the instruction fault handler.  */
+	
 	"1:	lda	$17, 3\n"
 	"	call_pal %[wrent]\n"
-	/* With that in place, the fault from the round-to-minf fp
-	   insn will arrive either at the "lda 4" insn (bad) or one
-	   past that (good).  This places the correct fixup in %0.  */
 	"	lda %[fix], 0\n"
 	"	cvttq/svm $f31,$f31\n"
 	"	lda %[fix], 4"
@@ -150,10 +141,6 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 	unsigned long *stack;
 	int i;
 
-	/*
-	 * debugging aid: "show_stack(NULL);" prints the
-	 * back trace for this cpu.
-	 */
 	if(sp==NULL)
 		sp=(unsigned long*)&sp;
 
@@ -217,9 +204,6 @@ do_entArith(unsigned long summary, unsigned long write_mask,
 	siginfo_t info;
 
 	if (summary & 1) {
-		/* Software-completion summary bit is set, so try to
-		   emulate the instruction.  If the processor supports
-		   precise exceptions, we don't have to search.  */
 		if (!amask(AMASK_PRECISE_TRAP))
 			si_code = alpha_fp_emul(regs->pc - 4);
 		else
@@ -255,7 +239,7 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 	}
 
 	switch (type) {
-	      case 0: /* breakpoint */
+	      case 0: 
 		info.si_signo = SIGTRAP;
 		info.si_errno = 0;
 		info.si_code = TRAP_BRKPT;
@@ -263,13 +247,13 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 		info.si_addr = (void __user *) regs->pc;
 
 		if (ptrace_cancel_bpt(current)) {
-			regs->pc -= 4;	/* make pc point to former bpt */
+			regs->pc -= 4;	
 		}
 
 		send_sig_info(SIGTRAP, &info, current);
 		return;
 
-	      case 1: /* bugcheck */
+	      case 1: 
 		info.si_signo = SIGTRAP;
 		info.si_errno = 0;
 		info.si_code = __SI_FAULT;
@@ -278,7 +262,7 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 		send_sig_info(SIGTRAP, &info, current);
 		return;
 		
-	      case 2: /* gentrap */
+	      case 2: 
 		info.si_addr = (void __user *) regs->pc;
 		info.si_trapno = regs->r16;
 		switch ((long) regs->r16) {
@@ -345,23 +329,12 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 		send_sig_info(signo, &info, current);
 		return;
 
-	      case 4: /* opDEC */
+	      case 4: 
 		if (implver() == IMPLVER_EV4) {
 			long si_code;
 
-			/* The some versions of SRM do not handle
-			   the opDEC properly - they return the PC of the
-			   opDEC fault, not the instruction after as the
-			   Alpha architecture requires.  Here we fix it up.
-			   We do this by intentionally causing an opDEC
-			   fault during the boot sequence and testing if
-			   we get the correct PC.  If not, we set a flag
-			   to correct it every time through.  */
 			regs->pc += opDEC_fix; 
 			
-			/* EV4 does not implement anything except normal
-			   rounding.  Everything else will come here as
-			   an illegal instruction.  Emulate them.  */
 			si_code = alpha_fp_emul(regs->pc - 4);
 			if (si_code == 0)
 				return;
@@ -376,22 +349,13 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 		}
 		break;
 
-	      case 3: /* FEN fault */
-		/* Irritating users can call PAL_clrfen to disable the
-		   FPU for the process.  The kernel will then trap in
-		   do_switch_stack and undo_switch_stack when we try
-		   to save and restore the FP registers.
-
-		   Given that GCC by default generates code that uses the
-		   FP registers, PAL_clrfen is not useful except for DoS
-		   attacks.  So turn the bleeding FPU back on and be done
-		   with it.  */
+	      case 3: 
 		current_thread_info()->pcb.flags |= 1;
 		__reload_thread(&current_thread_info()->pcb);
 		return;
 
-	      case 5: /* illoc */
-	      default: /* unexpected instruction-fault type */
+	      case 5: 
+	      default: 
 		      ;
 	}
 
@@ -402,12 +366,6 @@ do_entIF(unsigned long type, struct pt_regs *regs)
 	send_sig_info(SIGILL, &info, current);
 }
 
-/* There is an ifdef in the PALcode in MILO that enables a 
-   "kernel debugging entry point" as an unprivileged call_pal.
-
-   We don't want to have anything to do with it, but unfortunately
-   several versions of MILO included in distributions have it enabled,
-   and if we don't put something on the entry point we'll oops.  */
 
 asmlinkage void
 do_entDbg(struct pt_regs *regs)
@@ -424,19 +382,6 @@ do_entDbg(struct pt_regs *regs)
 }
 
 
-/*
- * entUna has a different register layout to be reasonably simple. It
- * needs access to all the integer registers (the kernel doesn't use
- * fp-regs), and it needs to have them in order for simpler access.
- *
- * Due to the non-standard register layout (and because we don't want
- * to handle floating-point regs), user-mode unaligned accesses are
- * handled separately by do_entUnaUser below.
- *
- * Oh, btw, we don't handle the "gp" register correctly, but if we fault
- * on a gp-register unaligned load/store, something is _very_ wrong
- * in the kernel anyway..
- */
 struct allregs {
 	unsigned long regs[32];
 	unsigned long ps, pc, gp, a0, a1, a2;
@@ -447,7 +392,6 @@ struct unaligned_stat {
 } unaligned[2];
 
 
-/* Macro for exception fixup code to access integer registers.  */
 #define una_reg(r)  (_regs[(r) >= 16 && (r) <= 18 ? (r)+19 : (r)])
 
 
@@ -464,12 +408,9 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 	unaligned[0].va = (unsigned long) va;
 	unaligned[0].pc = pc;
 
-	/* We don't want to use the generic get/put unaligned macros as
-	   we want to trap exceptions.  Only if we actually get an
-	   exception will we decide whether we should have caught it.  */
 
 	switch (opcode) {
-	case 0x0c: /* ldwu */
+	case 0x0c: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,1(%3)\n"
@@ -489,7 +430,7 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 		una_reg(reg) = tmp1|tmp2;
 		return;
 
-	case 0x28: /* ldl */
+	case 0x28: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,3(%3)\n"
@@ -509,7 +450,7 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 		una_reg(reg) = (int)(tmp1|tmp2);
 		return;
 
-	case 0x29: /* ldq */
+	case 0x29: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,7(%3)\n"
@@ -529,10 +470,7 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 		una_reg(reg) = tmp1|tmp2;
 		return;
 
-	/* Note that the store sequences do not indicate that they change
-	   memory because it _should_ be affecting nothing in this context.
-	   (Otherwise we have other, much larger, problems.)  */
-	case 0x0d: /* stw */
+	case 0x0d: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,1(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -562,7 +500,7 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 			goto got_exception;
 		return;
 
-	case 0x2c: /* stl */
+	case 0x2c: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,3(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -592,7 +530,7 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 			goto got_exception;
 		return;
 
-	case 0x2d: /* stq */
+	case 0x2d: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,7(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -628,8 +566,6 @@ do_entUna(void * va, unsigned long opcode, unsigned long reg,
 	do_exit(SIGSEGV);
 
 got_exception:
-	/* Ok, we caught the exception, but we don't want it.  Is there
-	   someone to pass it along to?  */
 	if ((fixup = search_exception_tables(pc)) != 0) {
 		unsigned long newpc;
 		newpc = fixup_exception(una_reg, fixup, pc);
@@ -641,10 +577,6 @@ got_exception:
 		return;
 	}
 
-	/*
-	 * Yikes!  No one to forward the exception to.
-	 * Since the registers are in a weird format, dump them ourselves.
- 	 */
 
 	printk("%s(%d): unhandled unaligned exception\n",
 	       current->comm, task_pid_nr(current));
@@ -683,12 +615,6 @@ got_exception:
 	do_exit(SIGSEGV);
 }
 
-/*
- * Convert an s-floating point value in memory format to the
- * corresponding value in register format.  The exponent
- * needs to be remapped to preserve non-finite values
- * (infinities, not-a-numbers, denormals).
- */
 static inline unsigned long
 s_mem_to_reg (unsigned long s_mem)
 {
@@ -698,7 +624,7 @@ s_mem_to_reg (unsigned long s_mem)
 	unsigned long exp_low = (s_mem >> 23) & 0x7f;
 	unsigned long exp;
 
-	exp = (exp_msb << 10) | exp_low;	/* common case */
+	exp = (exp_msb << 10) | exp_low;	
 	if (exp_msb) {
 		if (exp_low == 0x7f) {
 			exp = 0x7ff;
@@ -713,50 +639,27 @@ s_mem_to_reg (unsigned long s_mem)
 	return (sign << 63) | (exp << 52) | (frac << 29);
 }
 
-/*
- * Convert an s-floating point value in register format to the
- * corresponding value in memory format.
- */
 static inline unsigned long
 s_reg_to_mem (unsigned long s_reg)
 {
 	return ((s_reg >> 62) << 30) | ((s_reg << 5) >> 34);
 }
 
-/*
- * Handle user-level unaligned fault.  Handling user-level unaligned
- * faults is *extremely* slow and produces nasty messages.  A user
- * program *should* fix unaligned faults ASAP.
- *
- * Notice that we have (almost) the regular kernel stack layout here,
- * so finding the appropriate registers is a little more difficult
- * than in the kernel case.
- *
- * Finally, we handle regular integer load/stores only.  In
- * particular, load-linked/store-conditionally and floating point
- * load/stores are not supported.  The former make no sense with
- * unaligned faults (they are guaranteed to fail) and I don't think
- * the latter will occur in any decent program.
- *
- * Sigh. We *do* have to handle some FP operations, because GCC will
- * uses them as temporary storage for integer memory to memory copies.
- * However, we need to deal with stt/ldt and sts/lds only.
- */
 
-#define OP_INT_MASK	( 1L << 0x28 | 1L << 0x2c   /* ldl stl */	\
-			| 1L << 0x29 | 1L << 0x2d   /* ldq stq */	\
-			| 1L << 0x0c | 1L << 0x0d   /* ldwu stw */	\
-			| 1L << 0x0a | 1L << 0x0e ) /* ldbu stb */
+#define OP_INT_MASK	( 1L << 0x28 | 1L << 0x2c   	\
+			| 1L << 0x29 | 1L << 0x2d   	\
+			| 1L << 0x0c | 1L << 0x0d   	\
+			| 1L << 0x0a | 1L << 0x0e ) 
 
-#define OP_WRITE_MASK	( 1L << 0x26 | 1L << 0x27   /* sts stt */	\
-			| 1L << 0x2c | 1L << 0x2d   /* stl stq */	\
-			| 1L << 0x0d | 1L << 0x0e ) /* stw stb */
+#define OP_WRITE_MASK	( 1L << 0x26 | 1L << 0x27   	\
+			| 1L << 0x2c | 1L << 0x2d   	\
+			| 1L << 0x0d | 1L << 0x0e ) 
 
 #define R(x)	((size_t) &((struct pt_regs *)0)->x)
 
 static int unauser_reg_offsets[32] = {
 	R(r0), R(r1), R(r2), R(r3), R(r4), R(r5), R(r6), R(r7), R(r8),
-	/* r9 ... r15 are stored in front of regs.  */
+	
 	-56, -48, -40, -32, -24, -16, -8,
 	R(r16), R(r17), R(r18),
 	R(r19), R(r20), R(r21), R(r22), R(r23), R(r24), R(r25), R(r26),
@@ -777,8 +680,6 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 	siginfo_t info;
 	long error;
 
-	/* Check the UAC bits to decide what the user wants us to do
-	   with the unaliged access.  */
 
 	if (!test_thread_flag (TIF_UAC_NOPRINT)) {
 		if (__ratelimit(&ratelimit)) {
@@ -789,13 +690,10 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 	}
 	if (test_thread_flag (TIF_UAC_SIGBUS))
 		goto give_sigbus;
-	/* Not sure why you'd want to use this, but... */
+	
 	if (test_thread_flag (TIF_UAC_NOFIX))
 		return;
 
-	/* Don't bother reading ds in the access check since we already
-	   know that this came from the user.  Also rely on the fact that
-	   the page at TASK_SIZE is unmapped and so can't be touched anyway. */
 	if (!__access_ok((unsigned long)va, 0, USER_DS))
 		goto give_sigsegv;
 
@@ -804,25 +702,22 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 	unaligned[1].pc = regs->pc - 4;
 
 	if ((1L << opcode) & OP_INT_MASK) {
-		/* it's an integer load/store */
+		
 		if (reg < 30) {
 			reg_addr = (unsigned long *)
 			  ((char *)regs + unauser_reg_offsets[reg]);
 		} else if (reg == 30) {
-			/* usp in PAL regs */
+			
 			fake_reg = rdusp();
 		} else {
-			/* zero "register" */
+			
 			fake_reg = 0;
 		}
 	}
 
-	/* We don't want to use the generic get/put unaligned macros as
-	   we want to trap exceptions.  Only if we actually get an
-	   exception will we decide whether we should have caught it.  */
 
 	switch (opcode) {
-	case 0x0c: /* ldwu */
+	case 0x0c: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,1(%3)\n"
@@ -842,7 +737,7 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		*reg_addr = tmp1|tmp2;
 		break;
 
-	case 0x22: /* lds */
+	case 0x22: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,3(%3)\n"
@@ -862,7 +757,7 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		alpha_write_fp_reg(reg, s_mem_to_reg((int)(tmp1|tmp2)));
 		return;
 
-	case 0x23: /* ldt */
+	case 0x23: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,7(%3)\n"
@@ -882,7 +777,7 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		alpha_write_fp_reg(reg, tmp1|tmp2);
 		return;
 
-	case 0x28: /* ldl */
+	case 0x28: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,3(%3)\n"
@@ -902,7 +797,7 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		*reg_addr = (int)(tmp1|tmp2);
 		break;
 
-	case 0x29: /* ldq */
+	case 0x29: 
 		__asm__ __volatile__(
 		"1:	ldq_u %1,0(%3)\n"
 		"2:	ldq_u %2,7(%3)\n"
@@ -922,10 +817,7 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		*reg_addr = tmp1|tmp2;
 		break;
 
-	/* Note that the store sequences do not indicate that they change
-	   memory because it _should_ be affecting nothing in this context.
-	   (Otherwise we have other, much larger, problems.)  */
-	case 0x0d: /* stw */
+	case 0x0d: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,1(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -955,11 +847,11 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 			goto give_sigsegv;
 		return;
 
-	case 0x26: /* sts */
+	case 0x26: 
 		fake_reg = s_reg_to_mem(alpha_read_fp_reg(reg));
-		/* FALLTHRU */
+		
 
-	case 0x2c: /* stl */
+	case 0x2c: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,3(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -989,11 +881,11 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 			goto give_sigsegv;
 		return;
 
-	case 0x27: /* stt */
+	case 0x27: 
 		fake_reg = alpha_read_fp_reg(reg);
-		/* FALLTHRU */
+		
 
-	case 0x2d: /* stq */
+	case 0x2d: 
 		__asm__ __volatile__(
 		"1:	ldq_u %2,7(%5)\n"
 		"2:	ldq_u %1,0(%5)\n"
@@ -1024,23 +916,20 @@ do_entUnaUser(void __user * va, unsigned long opcode,
 		return;
 
 	default:
-		/* What instruction were you trying to use, exactly?  */
+		
 		goto give_sigbus;
 	}
 
-	/* Only integer loads should get here; everyone else returns early. */
+	
 	if (reg == 30)
 		wrusp(fake_reg);
 	return;
 
 give_sigsegv:
-	regs->pc -= 4;  /* make pc point to faulting insn */
+	regs->pc -= 4;  
 	info.si_signo = SIGSEGV;
 	info.si_errno = 0;
 
-	/* We need to replicate some of the logic in mm/fault.c,
-	   since we don't have access to the fault code in the
-	   exception handling return path.  */
 	if (!__access_ok((unsigned long)va, 0, USER_DS))
 		info.si_code = SEGV_ACCERR;
 	else {
@@ -1069,12 +958,10 @@ give_sigbus:
 void __cpuinit
 trap_init(void)
 {
-	/* Tell PAL-code what global pointer we want in the kernel.  */
+	
 	register unsigned long gptr __asm__("$29");
 	wrkgp(gptr);
 
-	/* Hack for Multia (UDB) and JENSEN: some of their SRMs have
-	   a bug in the handling of the opDEC fault.  Fix it up if so.  */
 	if (implver() == IMPLVER_EV4)
 		opDEC_check();
 

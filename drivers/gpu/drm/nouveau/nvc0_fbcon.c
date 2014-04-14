@@ -178,11 +178,11 @@ nvc0_fbcon_accel_init(struct fb_info *info)
 		break;
 	case 32:
 		switch (info->var.transp.length) {
-		case 0: /* depth 24 */
-		case 8: /* depth 32, just use 24.. */
+		case 0: 
+		case 8: 
 			format = 0xe6;
 			break;
-		case 2: /* depth 30 */
+		case 2: 
 			format = 0xd1;
 			break;
 		default:

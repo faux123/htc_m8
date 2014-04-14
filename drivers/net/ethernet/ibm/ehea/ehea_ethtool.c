@@ -58,7 +58,7 @@ static int ehea_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 			break;
 		default:
 			speed = -1;
-			break; /* BUG */
+			break; 
 		}
 		cmd->duplex = port->full_duplex == 1 ?
 						     DUPLEX_FULL : DUPLEX_HALF;
@@ -273,7 +273,7 @@ static const struct ethtool_ops ehea_ethtool_ops = {
 	.get_sset_count = ehea_get_sset_count,
 	.get_ethtool_stats = ehea_get_ethtool_stats,
 	.set_settings = ehea_set_settings,
-	.nway_reset = ehea_nway_reset,		/* Restart autonegotiation */
+	.nway_reset = ehea_nway_reset,		
 };
 
 void ehea_set_ethtool_ops(struct net_device *netdev)

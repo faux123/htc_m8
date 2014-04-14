@@ -9,4 +9,4 @@
 
 #include <asm-generic/bitsperlong.h>
 
-#endif /* __ASM_POWERPC_BITSPERLONG_H */
+#endif 

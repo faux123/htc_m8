@@ -9,7 +9,7 @@
  *
  */
 
-#define DTMF_NPOINTS 205        /* Number of samples for DTMF recognition */
+#define DTMF_NPOINTS 205        
 typedef struct adpcm_state {
 	int a;
 	int d;

@@ -177,4 +177,4 @@ struct nvidia_par {
 	volatile u32 __iomem *PRAMDAC;
 };
 
-#endif				/* __NV_TYPE_H__ */
+#endif				

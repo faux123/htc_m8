@@ -23,7 +23,6 @@
 
 #include "sdram-nokia.h"
 
-/* In picoseconds, except for tREF (ns), tXP, tCKE, tWTR (clks) */
 struct sdram_timings {
 	u32 casl;
 	u32 tDAL;
@@ -36,7 +35,7 @@ struct sdram_timings {
 	u32 tRFC;
 	u32 tXSR;
 
-	u32 tREF; /* in ns */
+	u32 tREF; 
 
 	u32 tXP;
 	u32 tCKE;
@@ -142,7 +141,7 @@ static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
 
 static unsigned long sdrc_get_fclk_period(long rate)
 {
-	/* In picoseconds */
+	
 	return 1000000000 / rate;
 }
 
@@ -150,7 +149,7 @@ static unsigned int sdrc_ps_to_ticks(unsigned int time_ps, long rate)
 {
 	unsigned long tick_ps;
 
-	/* Calculate in picosecs to yield more exact results */
+	
 	tick_ps = sdrc_get_fclk_period(rate);
 
 	return (time_ps + tick_ps - 1) / tick_ps;
@@ -270,7 +269,7 @@ static int sdrc_timings(int id, long rate,
 #endif
 
 	l = rfr << 8;
-	rfr_ctrl = l | 0x1; /* autorefresh, reload counter with 1xARCV */
+	rfr_ctrl = l | 0x1; 
 
 	nokia_sdrc_params[id].rate = rate;
 	nokia_sdrc_params[id].actim_ctrla = actim_ctrla;

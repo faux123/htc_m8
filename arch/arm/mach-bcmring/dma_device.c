@@ -12,16 +12,9 @@
 * consent.
 *****************************************************************************/
 
-/****************************************************************************/
-/**
-*   @file   dma_device.c
-*
-*   @brief  private array of DMA_DeviceAttribute_t
-*/
-/****************************************************************************/
 
 DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
-	[DMA_DEVICE_MEM_TO_MEM] =	/* MEM 2 MEM */
+	[DMA_DEVICE_MEM_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "mem-to-mem",
@@ -40,15 +33,15 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 
 		    },
 	 },
-	[DMA_DEVICE_VPM_MEM_TO_MEM] =	/* VPM */
+	[DMA_DEVICE_VPM_MEM_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_IS_DEDICATED | DMA_DEVICE_FLAG_NO_ISR,
 	 .name = "vpm",
 	 .dedicatedController = 0,
 	 .dedicatedChannel = 0,
-	 /* reserve DMA0:0 for VPM */
+	 
 	 },
-	[DMA_DEVICE_NAND_MEM_TO_MEM] =	/* NAND */
+	[DMA_DEVICE_NAND_MEM_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "nand",
@@ -69,7 +62,7 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .channelPriority = dmacHw_CHANNEL_PRIORITY_6,
 		    },
 	 },
-	[DMA_DEVICE_PIF_MEM_TO_DEV] =	/* PIF TX */
+	[DMA_DEVICE_PIF_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1
 	 | DMA_DEVICE_FLAG_ALLOW_LARGE_FIFO
@@ -77,8 +70,8 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 	 .name = "pif_tx",
 	 .dmacPort = {14, 5},
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    /* dstPeripheralPort          = 5 or 14 */
+		    .srcPeripheralPort = 0,	
+		    
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -96,17 +89,17 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .maxDataPerBlock = 16256,
 		    },
 	 },
-	[DMA_DEVICE_PIF_DEV_TO_MEM] =	/* PIF RX */
+	[DMA_DEVICE_PIF_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1
 	 | DMA_DEVICE_FLAG_ALLOW_LARGE_FIFO
-	 /* DMA_DEVICE_FLAG_ALLOC_DMA1_FIRST */
+	 
 	 | DMA_DEVICE_FLAG_PORT_PER_DMAC,
 	 .name = "pif_rx",
 	 .dmacPort = {14, 5},
 	 .config = {
-		    /* srcPeripheralPort          = 5 or 14 */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -124,13 +117,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .maxDataPerBlock = 16256,
 		    },
 	 },
-	[DMA_DEVICE_I2S0_DEV_TO_MEM] =	/* I2S RX */
+	[DMA_DEVICE_I2S0_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "i2s0_rx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: I2S0 */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_PERIPHERAL_TO_MEM,
@@ -147,13 +140,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_I2S0_MEM_TO_DEV] =	/* I2S TX */
+	[DMA_DEVICE_I2S0_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "i2s0_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 1,	/* DST: I2S0 */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 1,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_MEM_TO_PERIPHERAL,
@@ -170,13 +163,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_I2S1_DEV_TO_MEM] =	/* I2S1 RX */
+	[DMA_DEVICE_I2S1_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "i2s1_rx",
 	 .config = {
-		    .srcPeripheralPort = 2,	/* SRC: I2S1 */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 2,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_PERIPHERAL_TO_MEM,
@@ -193,13 +186,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_I2S1_MEM_TO_DEV] =	/* I2S1 TX */
+	[DMA_DEVICE_I2S1_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "i2s1_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 3,	/* DST: I2S1 */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 3,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_MEM_TO_PERIPHERAL,
@@ -216,24 +209,24 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_ESW_MEM_TO_DEV] =	/* ESW TX */
+	[DMA_DEVICE_ESW_MEM_TO_DEV] =	
 	{
 	 .name = "esw_tx",
 	 .flags = DMA_DEVICE_FLAG_IS_DEDICATED,
 	 .dedicatedController = 1,
 	 .dedicatedChannel = 3,
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 1,	/* DST: ESW (MTP) */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 1,	
 		    .completeTransferInterrupt = dmacHw_INTERRUPT_ENABLE,
 		    .errorInterrupt = dmacHw_INTERRUPT_DISABLE,
-		    /* DMAx_AHB_SSTATARy */
+		    
 		    .srcStatusRegisterAddress = 0x00000000,
-		    /* DMAx_AHB_DSTATARy */
+		    
 		    .dstStatusRegisterAddress = 0x30490010,
-		    /* DMAx_AHB_CFGy */
+		    
 		    .channelPriority = dmacHw_CHANNEL_PRIORITY_7,
-		    /* DMAx_AHB_CTLy */
+		    
 		    .srcMasterInterface = dmacHw_SRC_MASTER_INTERFACE_2,
 		    .dstMasterInterface = dmacHw_DST_MASTER_INTERFACE_1,
 		    .transferType = dmacHw_TRANSFER_TYPE_MEM_TO_PERIPHERAL,
@@ -245,24 +238,24 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .dstMaxTransactionWidth = dmacHw_DST_TRANSACTION_WIDTH_64,
 		    },
 	 },
-	[DMA_DEVICE_ESW_DEV_TO_MEM] =	/* ESW RX */
+	[DMA_DEVICE_ESW_DEV_TO_MEM] =	
 	{
 	 .name = "esw_rx",
 	 .flags = DMA_DEVICE_FLAG_IS_DEDICATED,
 	 .dedicatedController = 1,
 	 .dedicatedChannel = 2,
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: ESW (PTM) */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 0,	
 		    .completeTransferInterrupt = dmacHw_INTERRUPT_ENABLE,
 		    .errorInterrupt = dmacHw_INTERRUPT_DISABLE,
-		    /* DMAx_AHB_SSTATARy */
+		    
 		    .srcStatusRegisterAddress = 0x30480010,
-		    /* DMAx_AHB_DSTATARy */
+		    
 		    .dstStatusRegisterAddress = 0x00000000,
-		    /* DMAx_AHB_CFGy */
+		    
 		    .channelPriority = dmacHw_CHANNEL_PRIORITY_7,
-		    /* DMAx_AHB_CTLy */
+		    
 		    .srcMasterInterface = dmacHw_SRC_MASTER_INTERFACE_2,
 		    .dstMasterInterface = dmacHw_DST_MASTER_INTERFACE_1,
 		    .transferType = dmacHw_TRANSFER_TYPE_PERIPHERAL_TO_MEM,
@@ -274,13 +267,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .dstMaxTransactionWidth = dmacHw_DST_TRANSACTION_WIDTH_64,
 		    },
 	 },
-	[DMA_DEVICE_APM_CODEC_A_DEV_TO_MEM] =	/* APM Codec A Ingress */
+	[DMA_DEVICE_APM_CODEC_A_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "apm_a_rx",
 	 .config = {
-		    .srcPeripheralPort = 2,	/* SRC: Codec A Ingress FIFO */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 2,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -299,13 +292,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_APM_CODEC_A_MEM_TO_DEV] =	/* APM Codec A Egress */
+	[DMA_DEVICE_APM_CODEC_A_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "apm_a_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 3,	/* DST: Codec A Egress FIFO */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 3,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -324,13 +317,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_APM_CODEC_B_DEV_TO_MEM] =	/* APM Codec B Ingress */
+	[DMA_DEVICE_APM_CODEC_B_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "apm_b_rx",
 	 .config = {
-		    .srcPeripheralPort = 4,	/* SRC: Codec B Ingress FIFO */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 4,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -349,13 +342,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_APM_CODEC_B_MEM_TO_DEV] =	/* APM Codec B Egress */
+	[DMA_DEVICE_APM_CODEC_B_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "apm_b_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 5,	/* DST: Codec B Egress FIFO */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 5,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -374,13 +367,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_APM_CODEC_C_DEV_TO_MEM] =	/* APM Codec C Ingress */
+	[DMA_DEVICE_APM_CODEC_C_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "apm_c_rx",
 	 .config = {
-		    .srcPeripheralPort = 4,	/* SRC: Codec C Ingress FIFO */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 4,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -399,13 +392,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_APM_PCM0_DEV_TO_MEM] =	/* PCM0 RX */
+	[DMA_DEVICE_APM_PCM0_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "pcm0_rx",
 	 .config = {
-		    .srcPeripheralPort = 12,	/* SRC: PCM0 */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 12,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_PERIPHERAL_TO_MEM,
@@ -422,13 +415,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_APM_PCM0_MEM_TO_DEV] =	/* PCM0 TX */
+	[DMA_DEVICE_APM_PCM0_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0,
 	 .name = "pcm0_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 13,	/* DST: PCM0 */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 13,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_MEM_TO_PERIPHERAL,
@@ -445,13 +438,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_APM_PCM1_DEV_TO_MEM] =	/* PCM1 RX */
+	[DMA_DEVICE_APM_PCM1_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "pcm1_rx",
 	 .config = {
-		    .srcPeripheralPort = 14,	/* SRC: PCM1 */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 14,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_PERIPHERAL_TO_MEM,
@@ -468,13 +461,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_CONTINUOUS,
 		    },
 	 },
-	[DMA_DEVICE_APM_PCM1_MEM_TO_DEV] =	/* PCM1 TX */
+	[DMA_DEVICE_APM_PCM1_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "pcm1_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 15,	/* DST: PCM1 */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 15,	
 		    .srcStatusRegisterAddress = 0,
 		    .dstStatusRegisterAddress = 0,
 		    .transferType = dmacHw_TRANSFER_TYPE_MEM_TO_PERIPHERAL,
@@ -491,13 +484,13 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_SPUM_DEV_TO_MEM] =	/* SPUM RX */
+	[DMA_DEVICE_SPUM_DEV_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "spum_rx",
 	 .config = {
-		    .srcPeripheralPort = 6,	/* SRC: Codec A Ingress FIFO */
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .srcPeripheralPort = 6,	
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -511,21 +504,21 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .channelPriority = dmacHw_CHANNEL_PRIORITY_7,
 		    .srcMaxTransactionWidth = dmacHw_SRC_TRANSACTION_WIDTH_32,
 		    .dstMaxTransactionWidth = dmacHw_DST_TRANSACTION_WIDTH_32,
-		    /* Busrt size **MUST** be 16 for SPUM to work */
+		    
 		    .srcMaxBurstWidth = dmacHw_SRC_BURST_WIDTH_16,
 		    .dstMaxBurstWidth = dmacHw_DST_BURST_WIDTH_16,
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
-		    /* on the RX side, SPU needs to be the flow controller */
+		    
 		    .flowControler = dmacHw_FLOW_CONTROL_PERIPHERAL,
 		    },
 	 },
-	[DMA_DEVICE_SPUM_MEM_TO_DEV] =	/* SPUM TX */
+	[DMA_DEVICE_SPUM_MEM_TO_DEV] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "spum_tx",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
-		    .dstPeripheralPort = 7,	/* DST: SPUM */
+		    .srcPeripheralPort = 0,	
+		    .dstPeripheralPort = 7,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -539,18 +532,18 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .channelPriority = dmacHw_CHANNEL_PRIORITY_7,
 		    .srcMaxTransactionWidth = dmacHw_SRC_TRANSACTION_WIDTH_32,
 		    .dstMaxTransactionWidth = dmacHw_DST_TRANSACTION_WIDTH_32,
-		    /* Busrt size **MUST** be 16 for SPUM to work */
+		    
 		    .srcMaxBurstWidth = dmacHw_SRC_BURST_WIDTH_16,
 		    .dstMaxBurstWidth = dmacHw_DST_BURST_WIDTH_16,
 		    .transferMode = dmacHw_TRANSFER_MODE_PERREQUEST,
 		    },
 	 },
-	[DMA_DEVICE_MEM_TO_VRAM] =	/* MEM 2 VRAM */
+	[DMA_DEVICE_MEM_TO_VRAM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "mem-to-vram",
 	 .config = {
-		    .srcPeripheralPort = 0,	/* SRC: memory */
+		    .srcPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -567,12 +560,12 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    .dstMaxBurstWidth = dmacHw_DST_BURST_WIDTH_8,
 		    },
 	 },
-	[DMA_DEVICE_VRAM_TO_MEM] =	/* VRAM 2 MEM */
+	[DMA_DEVICE_VRAM_TO_MEM] =	
 	{
 	 .flags = DMA_DEVICE_FLAG_ON_DMA0 | DMA_DEVICE_FLAG_ON_DMA1,
 	 .name = "vram-to-mem",
 	 .config = {
-		    .dstPeripheralPort = 0,	/* DST: memory */
+		    .dstPeripheralPort = 0,	
 		    .srcStatusRegisterAddress = 0x00000000,
 		    .dstStatusRegisterAddress = 0x00000000,
 		    .srcUpdate = dmacHw_SRC_ADDRESS_UPDATE_MODE_INC,
@@ -590,4 +583,4 @@ DMA_DeviceAttribute_t DMA_gDeviceAttribute[DMA_NUM_DEVICE_ENTRIES] = {
 		    },
 	 },
 };
-EXPORT_SYMBOL(DMA_gDeviceAttribute);	/* primarily for dma-test.c */
+EXPORT_SYMBOL(DMA_gDeviceAttribute);	

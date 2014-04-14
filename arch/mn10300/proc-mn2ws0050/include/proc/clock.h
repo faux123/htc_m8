@@ -17,4 +17,4 @@
 
 #include <unit/clock.h>
 
-#endif /* _ASM_PROC_CLOCK_H */
+#endif 

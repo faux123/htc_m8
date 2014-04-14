@@ -88,9 +88,6 @@ static inline u8 dac_read(struct pmagbafb_par *par, unsigned int reg)
 }
 
 
-/*
- * Set the palette.
- */
 static int pmagbafb_setcolreg(unsigned int regno, unsigned int red,
 			      unsigned int green, unsigned int blue,
 			      unsigned int transp, struct fb_info *info)
@@ -100,9 +97,9 @@ static int pmagbafb_setcolreg(unsigned int regno, unsigned int red,
 	if (regno >= info->cmap.len)
 		return 1;
 
-	red   >>= 8;	/* The cmap fields are 16 bits    */
-	green >>= 8;	/* wide, but the hardware colormap */
-	blue  >>= 8;	/* registers are only 8 bits wide */
+	red   >>= 8;	
+	green >>= 8;	
+	blue  >>= 8;	
 
 	mb();
 	dac_write(par, BT459_ADDR_LO, regno);
@@ -126,9 +123,6 @@ static struct fb_ops pmagbafb_ops = {
 };
 
 
-/*
- * Turn the hardware cursor off.
- */
 static void __init pmagbafb_erase_cursor(struct fb_info *info)
 {
 	struct pmagbafb_par *par = info->par;
@@ -170,7 +164,7 @@ static int __devinit pmagbafb_probe(struct device *dev)
 	info->var = pmagbafb_defined;
 	info->flags = FBINFO_DEFAULT;
 
-	/* Request the I/O MEM resource.  */
+	
 	start = tdev->resource.start;
 	len = tdev->resource.end - start + 1;
 	if (!request_mem_region(start, len, dev_name(dev))) {
@@ -180,7 +174,7 @@ static int __devinit pmagbafb_probe(struct device *dev)
 		goto err_cmap;
 	}
 
-	/* MMIO mapping setup.  */
+	
 	info->fix.mmio_start = start;
 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
 	if (!par->mmio) {
@@ -190,7 +184,7 @@ static int __devinit pmagbafb_probe(struct device *dev)
 	}
 	par->dac = par->mmio + PMAG_BA_BT459;
 
-	/* Frame buffer mapping setup.  */
+	
 	info->fix.smem_start = start + PMAG_BA_FBMEM;
 	info->screen_base = ioremap_nocache(info->fix.smem_start,
 					    info->fix.smem_len);
@@ -255,9 +249,6 @@ static int __exit pmagbafb_remove(struct device *dev)
 }
 
 
-/*
- * Initialize the framebuffer.
- */
 static const struct tc_device_id pmagbafb_tc_table[] = {
 	{ "DEC     ", "PMAG-BA " },
 	{ }

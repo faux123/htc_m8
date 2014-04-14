@@ -22,7 +22,6 @@
 #include "main.h"
 #include "hash.h"
 
-/* clears the hash */
 static void hash_init(struct hashtable_t *hash)
 {
 	uint32_t i;
@@ -33,7 +32,6 @@ static void hash_init(struct hashtable_t *hash)
 	}
 }
 
-/* free only the hashtable and the hash itself. */
 void hash_destroy(struct hashtable_t *hash)
 {
 	kfree(hash->list_locks);
@@ -41,7 +39,6 @@ void hash_destroy(struct hashtable_t *hash)
 	kfree(hash);
 }
 
-/* allocates and clears the hash */
 struct hashtable_t *hash_new(uint32_t size)
 {
 	struct hashtable_t *hash;

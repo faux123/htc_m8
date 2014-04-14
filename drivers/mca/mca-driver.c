@@ -1,4 +1,3 @@
-/* -*- mode: c; c-basic-offset: 8 -*- */
 
 /*
  * MCA driver support functions for sysfs.

@@ -1,7 +1,7 @@
 /*
  * vDSO implementation for Hexagon
  *
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,9 +27,6 @@
 
 static struct page *vdso_page;
 
-/* Create a vDSO page holding the signal trampoline.
- * We want this for a non-executable stack.
- */
 static int __init vdso_init(void)
 {
 	struct hexagon_vdso *vdso;
@@ -43,10 +40,6 @@ static int __init vdso_init(void)
 		panic("Cannot map vdso");
 	clear_page(vdso);
 
-	/* Install the signal trampoline; currently looks like this:
-	 *	r6 = #__NR_rt_sigreturn;
-	 *	trap0(#1);
-	 */
 	vdso->rt_signal_trampoline[0] = __rt_sigtramp_template[0];
 	vdso->rt_signal_trampoline[1] = __rt_sigtramp_template[1];
 
@@ -56,9 +49,6 @@ static int __init vdso_init(void)
 }
 arch_initcall(vdso_init);
 
-/*
- * Called from binfmt_elf.  Create a VMA for the vDSO page.
- */
 int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 {
 	int ret;
@@ -67,7 +57,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 
 	down_write(&mm->mmap_sem);
 
-	/* Try to get it loaded right near ld.so/glibc. */
+	
 	vdso_base = STACK_TOP;
 
 	vdso_base = get_unmapped_area(NULL, vdso_base, PAGE_SIZE, 0, 0);
@@ -76,7 +66,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 		goto up_fail;
 	}
 
-	/* MAYWRITE to allow gdb to COW and set breakpoints. */
+	
 	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
 				      VM_READ|VM_EXEC|
 				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,

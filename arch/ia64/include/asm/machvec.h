@@ -12,7 +12,6 @@
 
 #include <linux/types.h>
 
-/* forward declarations: */
 struct device;
 struct pt_regs;
 struct scatterlist;
@@ -42,20 +41,10 @@ typedef void ia64_mv_migrate_t(struct task_struct * task);
 typedef void ia64_mv_pci_fixup_bus_t (struct pci_bus *);
 typedef void ia64_mv_kernel_launch_event_t(void);
 
-/* DMA-mapping interface: */
 typedef void ia64_mv_dma_init (void);
 typedef u64 ia64_mv_dma_get_required_mask (struct device *);
 typedef struct dma_map_ops *ia64_mv_dma_get_ops(struct device *);
 
-/*
- * WARNING: The legacy I/O space is _architected_.  Platforms are
- * expected to follow this architected model (see Section 10.7 in the
- * IA-64 Architecture Software Developer's Manual).  Unfortunately,
- * some broken machines do not follow that model, which is why we have
- * to make the inX/outX operations part of the machine vector.
- * Platform designers should follow the architected model whenever
- * possible.
- */
 typedef unsigned int ia64_mv_inb_t (unsigned long);
 typedef unsigned int ia64_mv_inw_t (unsigned long);
 typedef unsigned int ia64_mv_inl_t (unsigned long);
@@ -158,11 +147,6 @@ extern void machvec_tlb_migrate_finish (struct mm_struct *);
 #  define platform_kernel_launch_event	ia64_mv.kernel_launch_event
 # endif
 
-/* __attribute__((__aligned__(16))) is required to make size of the
- * structure multiple of 16 bytes.
- * This will fillup the holes created because of section 3.3.1 in
- * Software Conventions guide.
- */
 struct ia64_machine_vector {
 	const char *name;
 	ia64_mv_setup_t *setup;
@@ -200,7 +184,7 @@ struct ia64_machine_vector {
 	ia64_mv_teardown_msi_irq_t *teardown_msi_irq;
 	ia64_mv_pci_fixup_bus_t *pci_fixup_bus;
 	ia64_mv_kernel_launch_event_t *kernel_launch_event;
-} __attribute__((__aligned__(16))); /* align attrib? see above comment */
+} __attribute__((__aligned__(16))); 
 
 #define MACHVEC_INIT(name)			\
 {						\
@@ -248,15 +232,11 @@ extern void machvec_init_from_cmdline(const char *cmdline);
 
 # else
 #  error Unknown configuration.  Update arch/ia64/include/asm/machvec.h.
-# endif /* CONFIG_IA64_GENERIC */
+# endif 
 
 extern void swiotlb_dma_init(void);
 extern struct dma_map_ops *dma_get_ops(struct device *);
 
-/*
- * Define default versions so we can extend machvec for new platforms without having
- * to update the machvec files for all existing platforms.
- */
 #ifndef platform_setup
 # define platform_setup			machvec_setup
 #endif
@@ -268,13 +248,13 @@ extern struct dma_map_ops *dma_get_ops(struct device *);
 #endif
 
 #ifndef platform_send_ipi
-# define platform_send_ipi		ia64_send_ipi	/* default to architected version */
+# define platform_send_ipi		ia64_send_ipi	
 #endif
 #ifndef platform_timer_interrupt
 # define platform_timer_interrupt 	machvec_timer_interrupt
 #endif
 #ifndef platform_global_tlb_purge
-# define platform_global_tlb_purge	ia64_global_tlb_purge /* default to architected version */
+# define platform_global_tlb_purge	ia64_global_tlb_purge 
 #endif
 #ifndef platform_tlb_migrate_finish
 # define platform_tlb_migrate_finish	machvec_noop_mm
@@ -366,4 +346,4 @@ extern int ia64_pci_legacy_write(struct pci_bus *bus, u16 port, u32 val, u8 size
 # define platform_pci_fixup_bus	machvec_noop_bus
 #endif
 
-#endif /* _ASM_IA64_MACHVEC_H */
+#endif 

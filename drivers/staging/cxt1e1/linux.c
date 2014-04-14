@@ -31,17 +31,6 @@
 #include "pmcc4_private.h"
 #include "sbeproc.h"
 
-/*****************************************************************************************
- * Error out early if we have compiler trouble.
- *
- *   (This section is included from the kernel's init/main.c as a friendly
- *   spiderman recommendation...)
- *
- * Versions of gcc older than that listed below may actually compile and link
- * okay, but the end product can have subtle run time bugs.  To avoid associated
- * bogus bug reports, we flatly refuse to compile with a gcc that is known to be
- * too old from the very beginning.
- */
 #if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
 #error Sorry, your GCC is too old. It builds incorrect kernels.
 #endif
@@ -50,7 +39,6 @@
 #warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
 #endif
 
-/*****************************************************************************************/
 
 #ifdef SBE_INCLUDE_SYMBOLS
 #define STATIC
@@ -60,8 +48,6 @@
 
 #define CHANNAME "hdlc"
 
-/*******************************************************************/
-/* forward references */
 status_t    c4_chan_work_init (mpi_t *, mch_t *);
 void        musycc_wq_chan_restart (void *);
 status_t __init c4_init (ci_t *, u_char *, u_char *);
@@ -108,7 +94,7 @@ extern int  unregister_hdlc_device_v7 (hdlc_device *);
 #define V7(x) x
 #endif
 
-int         error_flag;         /* module load error reporting */
+int         error_flag;         
 int         cxt1e1_log_level = LOG_ERROR;
 int         log_level_default = LOG_ERROR;
 module_param(cxt1e1_log_level, int, 0444);
@@ -129,9 +115,6 @@ int         max_rxdesc_used = MUSYCC_RXDESC_MIN;
 int         max_rxdesc_default = MUSYCC_RXDESC_MIN;
 module_param(max_rxdesc_used, int, 0444);
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 
 void       *
 getuserbychan (int channum)
@@ -162,28 +145,10 @@ mkret (int bsd)
         return bsd;
 }
 
-/***************************************************************************/
 #include <linux/workqueue.h>
 
-/***
- * One workqueue (wq) per port (since musycc allows simultaneous group
- * commands), with individual data for each channel:
- *
- *   mpi_t -> struct workqueue_struct *wq_port;  (dynamically allocated using
- *                                               create_workqueue())
- *
- * With work structure (work) statically allocated for each channel:
- *
- *   mch_t -> struct work_struct ch_work;  (statically allocated using ???)
- *
- ***/
 
 
-/*
- * Called by the start transmit routine when a channel TX_ENABLE is to be
- * issued.  This queues the transmission start request among other channels
- * within a port's group.
- */
 void
 c4_wk_chan_restart (mch_t * ch)
 {
@@ -194,68 +159,51 @@ c4_wk_chan_restart (mch_t * ch)
             __func__, pi->portnum, ch->channum, ch);
 #endif
 
-    /* create new entry w/in workqueue for this channel and let'er rip */
+    
 
-    /** queue_work (struct workqueue_struct *queue,
-     **             struct work_struct *work);
-     **/
     queue_work (pi->wq_port, &ch->ch_work);
 }
 
 status_t
 c4_wk_chan_init (mpi_t * pi, mch_t * ch)
 {
-    /*
-     * this will be used to restart a stopped channel
-     */
 
-    /** INIT_WORK (struct work_struct *work,
-     **            void (*function)(void *),
-     **            void *data);
-     **/
     INIT_WORK(&ch->ch_work, (void *)musycc_wq_chan_restart);
-    return 0;                       /* success */
+    return 0;                       
 }
 
 status_t
 c4_wq_port_init (mpi_t * pi)
 {
 
-    char        name[16], *np;  /* NOTE: name of the queue limited by system
-                                 * to 10 characters */
+    char        name[16], *np;  
 
     if (pi->wq_port)
-        return 0;                   /* already initialized */
+        return 0;                   
 
     np = name;
     memset (name, 0, 16);
-    sprintf (np, "%s%d", pi->up->devname, pi->portnum); /* IE pmcc4-01) */
+    sprintf (np, "%s%d", pi->up->devname, pi->portnum); 
 
 #ifdef RLD_RESTART_DEBUG
     pr_info(">> %s: creating workqueue <%s> for Port %d.\n",
-            __func__, name, pi->portnum); /* RLD DEBUG */
+            __func__, name, pi->portnum); 
 #endif
     if (!(pi->wq_port = create_singlethread_workqueue (name)))
         return ENOMEM;
-    return 0;                       /* success */
+    return 0;                       
 }
 
 void
 c4_wq_port_cleanup (mpi_t * pi)
 {
-    /*
-     * PORT POINT: cannot call this if WQ is statically allocated w/in
-     * structure since it calls kfree(wq);
-     */
     if (pi->wq_port)
     {
-        destroy_workqueue (pi->wq_port);        /* this also calls
-                                                 * flush_workqueue() */
+        destroy_workqueue (pi->wq_port);        
         pi->wq_port = 0;
     }
 }
 
-/***************************************************************************/
 
 irqreturn_t
 c4_linux_interrupt (int irq, void *dev_instance)
@@ -301,7 +249,7 @@ chan_open (struct net_device * ndev)
         return -ret;
     try_module_get (THIS_MODULE);
     netif_start_queue (ndev);
-    return 0;                       /* no error = success */
+    return 0;                       
 }
 
 
@@ -329,8 +277,7 @@ chan_dev_ioctl (struct net_device * dev, struct ifreq * ifr, int cmd)
 STATIC int
 chan_attach_noop (struct net_device * ndev, unsigned short foo_1, unsigned short foo_2)
 {
-    return 0;                   /* our driver has nothing to do here, show's
-                                 * over, go home */
+    return 0;                   
 }
 
 
@@ -426,12 +373,12 @@ create_chan (struct net_device * ndev, ci_t * ci,
     int         ret;
 
     if (c4_find_chan (cp->channum))
-        return 0;                   /* channel already exists */
+        return 0;                   
 
     {
         struct c4_priv *priv;
 
-        /* allocate then fill in private data structure */
+        
         priv = OS_kmalloc (sizeof (struct c4_priv));
         if (!priv)
         {
@@ -451,10 +398,10 @@ create_chan (struct net_device * ndev, ci_t * ci,
 
     hdlc = dev_to_hdlc (dev);
 
-    dev->base_addr = 0;             /* not I/O mapped */
+    dev->base_addr = 0;             
     dev->irq = ndev->irq;
     dev->type = ARPHRD_RAWHDLC;
-    *dev->name = 0;                 /* default ifconfig name = "hdlc" */
+    *dev->name = 0;                 
 
     hi = (hdw_info_t *) ci->hdw_info;
     if (hi->mfg_info_sts == EEPROM_OK)
@@ -479,42 +426,33 @@ create_chan (struct net_device * ndev, ci_t * ci,
     hdlc->xmit = c4_linux_xmit;
 
     dev->netdev_ops = &chan_ops;
-    /*
-     * The native hdlc stack calls this 'attach' routine during
-     * hdlc_raw_ioctl(), passing parameters for line encoding and parity.
-     * Since hdlc_raw_ioctl() stack does not interrogate whether an 'attach'
-     * routine is actually registered or not, we supply a dummy routine which
-     * does nothing (since encoding and parity are setup for our driver via a
-     * special configuration application).
-     */
 
     hdlc->attach = chan_attach_noop;
 
-    rtnl_unlock ();                 /* needed due to Ioctl calling sequence */
+    rtnl_unlock ();                 
     ret = register_hdlc_device (dev);
-    /* NOTE: <stats> setting must occur AFTER registration in order to "take" */
+    
     dev->tx_queue_len = MAX_DEFAULT_IFQLEN;
 
-    rtnl_lock ();                   /* needed due to Ioctl calling sequence */
+    rtnl_lock ();                   
     if (ret)
     {
         if (cxt1e1_log_level >= LOG_WARN)
             pr_info("%s: create_chan[%d] registration error = %d.\n",
                     ci->devname, cp->channum, ret);
-        free_netdev (dev);          /* cleanup */
-        return 0;                   /* failed to register */
+        free_netdev (dev);          
+        return 0;                   
     }
     return dev;
 }
 
 
-/* the idea here is to get port information and pass it back (using pointer) */
 STATIC      status_t
 do_get_port (struct net_device * ndev, void *data)
 {
     int         ret;
-    ci_t       *ci;             /* ci stands for card information */
-    struct sbecom_port_param pp;/* copy data to kernel land */
+    ci_t       *ci;             
+    struct sbecom_port_param pp;
 
     if (copy_from_user (&pp, data, sizeof (struct sbecom_port_param)))
         return -EFAULT;
@@ -522,7 +460,7 @@ do_get_port (struct net_device * ndev, void *data)
         return -EFAULT;
     ci = get_ci_by_dev (ndev);
     if (!ci)
-        return -EINVAL;             /* get card info */
+        return -EINVAL;             
 
     ret = mkret (c4_get_port (ci, pp.portnum));
     if (ret)
@@ -533,12 +471,11 @@ do_get_port (struct net_device * ndev, void *data)
     return 0;
 }
 
-/* this function copys the user data and then calls the real action function */
 STATIC      status_t
 do_set_port (struct net_device * ndev, void *data)
 {
-    ci_t       *ci;             /* ci stands for card information */
-    struct sbecom_port_param pp;/* copy data to kernel land */
+    ci_t       *ci;             
+    struct sbecom_port_param pp;
 
     if (copy_from_user (&pp, data, sizeof (struct sbecom_port_param)))
         return -EFAULT;
@@ -546,16 +483,15 @@ do_set_port (struct net_device * ndev, void *data)
         return -EFAULT;
     ci = get_ci_by_dev (ndev);
     if (!ci)
-        return -EINVAL;             /* get card info */
+        return -EINVAL;             
 
-    if (pp.portnum >= ci->max_port) /* sanity check */
+    if (pp.portnum >= ci->max_port) 
         return -ENXIO;
 
     memcpy (&ci->port[pp.portnum].p, &pp, sizeof (struct sbecom_port_param));
     return mkret (c4_set_port (ci, pp.portnum));
 }
 
-/* work the port loopback mode as per directed */
 STATIC      status_t
 do_port_loop (struct net_device * ndev, void *data)
 {
@@ -570,7 +506,6 @@ do_port_loop (struct net_device * ndev, void *data)
     return mkret (c4_loop_port (ci, pp.portnum, pp.port_mode));
 }
 
-/* set the specified register with the given value / or just read it */
 STATIC      status_t
 do_framer_rw (struct net_device * ndev, void *data)
 {
@@ -591,7 +526,6 @@ do_framer_rw (struct net_device * ndev, void *data)
     return 0;
 }
 
-/* set the specified register with the given value / or just read it */
 STATIC      status_t
 do_pld_rw (struct net_device * ndev, void *data)
 {
@@ -612,7 +546,6 @@ do_pld_rw (struct net_device * ndev, void *data)
     return 0;
 }
 
-/* set the specified register with the given value / or just read it */
 STATIC      status_t
 do_musycc_rw (struct net_device * ndev, void *data)
 {
@@ -691,9 +624,9 @@ do_create_chan (struct net_device * ndev, void *data)
     ret = mkret (c4_new_chan (ci, cp.port, cp.channum, dev));
     if (ret)
     {
-        rtnl_unlock ();             /* needed due to Ioctl calling sequence */
+        rtnl_unlock ();             
         unregister_hdlc_device (dev);
-        rtnl_lock ();               /* needed due to Ioctl calling sequence */
+        rtnl_lock ();               
         free_netdev (dev);
     }
     return ret;
@@ -750,14 +683,14 @@ do_deluser (struct net_device * ndev, int lockit)
         ch = c4_find_chan (channum);
         if (ch == NULL)
             return -ENOENT;
-        ch->user = 0;               /* will be freed, below */
+        ch->user = 0;               
     }
 
     if (lockit)
-        rtnl_unlock ();             /* needed if Ioctl calling sequence */
+        rtnl_unlock ();             
     unregister_hdlc_device (ndev);
     if (lockit)
-        rtnl_lock ();               /* needed if Ioctl calling sequence */
+        rtnl_lock ();               
     free_netdev (ndev);
     return 0;
 }
@@ -879,23 +812,23 @@ c4_ioctl (struct net_device * ndev, struct ifreq * ifr, int cmd)
     switch (iocmd)
     {
     case SBE_IOC_PORT_GET:
-        //pr_info(">> SBE_IOC_PORT_GET Ioctl...\n");
+        
         ret = do_get_port (ndev, data);
         break;
     case SBE_IOC_PORT_SET:
-        //pr_info(">> SBE_IOC_PORT_SET Ioctl...\n");
+        
         ret = do_set_port (ndev, data);
         break;
     case SBE_IOC_CHAN_GET:
-        //pr_info(">> SBE_IOC_CHAN_GET Ioctl...\n");
+        
         ret = do_get_chan (ndev, data);
         break;
     case SBE_IOC_CHAN_SET:
-        //pr_info(">> SBE_IOC_CHAN_SET Ioctl...\n");
+        
         ret = do_set_chan (ndev, data);
         break;
     case C4_DEL_CHAN:
-        //pr_info(">> C4_DEL_CHAN Ioctl...\n");
+        
         ret = do_del_chan (ndev, data);
         break;
     case SBE_IOC_CHAN_NEW:
@@ -927,12 +860,12 @@ c4_ioctl (struct net_device * ndev, struct ifreq * ifr, int cmd)
         break;
     case SBE_IOC_IID_GET:
         ret = (iolen == sizeof (struct sbe_iid_info)) ? c4_get_iidinfo (ci, &arg.u.iip) : -EFAULT;
-        if (ret == 0)               /* no error, copy data */
+        if (ret == 0)               
             if (copy_to_user (data, &arg, iolen))
                 return -EFAULT;
         break;
     default:
-        //pr_info(">> c4_ioctl: EINVAL - unknown iocmd <%x>\n", iocmd);
+        
         ret = -EINVAL;
         break;
     }
@@ -969,18 +902,18 @@ c4_add_dev (hdw_info_t * hi, int brdno, unsigned long f0, unsigned long f1,
     ndev->irq = irq0;
 
     ci->hdw_info = hi;
-    ci->state = C_INIT;         /* mark as hardware not available */
+    ci->state = C_INIT;         
     ci->next = c4_list;
     c4_list = ci;
     ci->brdno = ci->next ? ci->next->brdno + 1 : 0;
 
     if (CI == 0)
-        CI = ci;                    /* DEBUG, only board 0 usage */
+        CI = ci;                    
 
     strcpy (ci->devname, hi->devname);
     ci->release = &pmcc4_OSSI_release[0];
 
-    /* tasklet */
+    
 #if defined(SBE_ISR_TASKLET)
     tasklet_init (&ci->ci_musycc_isr_tasklet,
                   (void (*) (unsigned long)) musycc_intr_bh_tasklet,
@@ -1002,20 +935,6 @@ c4_add_dev (hdw_info_t * hi, int brdno, unsigned long f0, unsigned long f1,
         error_flag = ENODEV;
         return 0;
     }
-    /*************************************************************
-     *  int request_irq(unsigned int irq,
-     *                  void (*handler)(int, void *, struct pt_regs *),
-     *                  unsigned long flags, const char *dev_name, void *dev_id);
-     *  wherein:
-     *  irq      -> The interrupt number that is being requested.
-     *  handler  -> Pointer to handling function being installed.
-     *  flags    -> A bit mask of options related to interrupt management.
-     *  dev_name -> String used in /proc/interrupts to show owner of interrupt.
-     *  dev_id   -> Pointer (for shared interrupt lines) to point to its own
-     *              private data area (to identify which device is interrupting).
-     *
-     *  extern void free_irq(unsigned int irq, void *dev_id);
-     **************************************************************/
 
     if (request_irq (irq0, &c4_linux_interrupt,
                      IRQF_SHARED,
@@ -1041,26 +960,23 @@ c4_add_dev (hdw_info_t * hi, int brdno, unsigned long f0, unsigned long f1,
     }
 #endif
 
-    /* setup board identification information */
+    
 
     {
         u_int32_t   tmp;
 
-        hdw_sn_get (hi, brdno);     /* also sets PROM format type (promfmt)
-                                     * for later usage */
+        hdw_sn_get (hi, brdno);     
 
         switch (hi->promfmt)
         {
         case PROM_FORMAT_TYPE1:
             memcpy (ndev->dev_addr, (FLD_TYPE1 *) (hi->mfg_info.pft1.Serial), 6);
-            memcpy (&tmp, (FLD_TYPE1 *) (hi->mfg_info.pft1.Id), 4);     /* unaligned data
-                                                                         * acquisition */
+            memcpy (&tmp, (FLD_TYPE1 *) (hi->mfg_info.pft1.Id), 4);     
             ci->brd_id = cpu_to_be32 (tmp);
             break;
         case PROM_FORMAT_TYPE2:
             memcpy (ndev->dev_addr, (FLD_TYPE2 *) (hi->mfg_info.pft2.Serial), 6);
-            memcpy (&tmp, (FLD_TYPE2 *) (hi->mfg_info.pft2.Id), 4);     /* unaligned data
-                                                                         * acquisition */
+            memcpy (&tmp, (FLD_TYPE2 *) (hi->mfg_info.pft2.Id), 4);     
             ci->brd_id = cpu_to_be32 (tmp);
             break;
         default:
@@ -1070,9 +986,9 @@ c4_add_dev (hdw_info_t * hi, int brdno, unsigned long f0, unsigned long f1,
         }
 
 #if 1
-        sbeid_set_hdwbid (ci);      /* requires bid to be preset */
+        sbeid_set_hdwbid (ci);      
 #else
-        sbeid_set_bdtype (ci);      /* requires hdw_bid to be preset */
+        sbeid_set_bdtype (ci);      
 #endif
 
     }
@@ -1095,7 +1011,7 @@ c4_add_dev (hdw_info_t * hi, int brdno, unsigned long f0, unsigned long f1,
         free_irq (irq0, ndev);
         OS_kfree (netdev_priv(ndev));
         OS_kfree (ndev);
-        return 0;                   /* failure, error_flag is set */
+        return 0;                   
     }
     return ndev;
 }
@@ -1107,9 +1023,9 @@ c4_mod_init (void)
 
     pr_warning("%s\n", pmcc4_OSSI_release);
     if ((rtn = c4hw_attach_all ()))
-        return -rtn;                /* installation failure - see system log */
+        return -rtn;                
 
-    /* housekeeping notifications */
+    
     if (cxt1e1_log_level != log_level_default)
         pr_info("NOTE: driver parameter <cxt1e1_log_level> changed from default %d to %d.\n",
                 log_level_default, cxt1e1_log_level);
@@ -1122,25 +1038,21 @@ c4_mod_init (void)
     if (max_rxdesc_used != max_rxdesc_default)
     {
         if (max_rxdesc_used > 2000)
-            max_rxdesc_used = 2000; /* out-of-bounds reset */
+            max_rxdesc_used = 2000; 
         pr_info("NOTE: driver parameter <max_rxdesc_used> changed from default %d to %d.\n",
                 max_rxdesc_default, max_rxdesc_used);
     }
     if (max_txdesc_used != max_txdesc_default)
     {
         if (max_txdesc_used > 1000)
-            max_txdesc_used = 1000; /* out-of-bounds reset */
+            max_txdesc_used = 1000; 
         pr_info("NOTE: driver parameter <max_txdesc_used> changed from default %d to %d.\n",
                 max_txdesc_default, max_txdesc_used);
     }
-    return 0;                       /* installation success */
+    return 0;                       
 }
 
 
- /*
-  * find any still allocated hdlc registrations and unregister via call to
-  * do_deluser()
-  */
 
 STATIC void __exit
 cleanup_hdlc (void)
@@ -1152,7 +1064,7 @@ cleanup_hdlc (void)
 
     for (i = 0, hi = hdw_info; i < MAX_BOARDS; i++, hi++)
     {
-        if (hi->ndev)               /* a board has been attached */
+        if (hi->ndev)               
         {
             ci = (ci_t *)(netdev_priv(hi->ndev));
             for (j = 0; j < ci->max_port; j++)
@@ -1169,7 +1081,7 @@ cleanup_hdlc (void)
 STATIC void __exit
 c4_mod_remove (void)
 {
-    cleanup_hdlc ();            /* delete any missed channels */
+    cleanup_hdlc ();            
     cleanup_devs ();
     c4_cleanup ();
     cleanup_ioremap ();
@@ -1185,4 +1097,3 @@ MODULE_DESCRIPTION ("wanPCI-CxT1E1 Generic HDLC WAN Driver module");
 MODULE_LICENSE ("GPL");
 #endif
 
-/***  End-of-File  ***/

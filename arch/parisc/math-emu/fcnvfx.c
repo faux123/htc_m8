@@ -18,31 +18,6 @@
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/*
- * BEGIN_DESC
- *
- *  File:
- *	@(#)	pa/spmath/fcnvfx.c		$Revision: 1.1 $
- *
- *  Purpose:
- *	Single Floating-point to Single Fixed-point
- *	Single Floating-point to Double Fixed-point 
- *	Double Floating-point to Single Fixed-point 
- *	Double Floating-point to Double Fixed-point 
- *
- *  External Interfaces:
- *	dbl_to_dbl_fcnvfx(srcptr,nullptr,dstptr,status)
- *	dbl_to_sgl_fcnvfx(srcptr,nullptr,dstptr,status)
- *	sgl_to_dbl_fcnvfx(srcptr,nullptr,dstptr,status)
- *	sgl_to_sgl_fcnvfx(srcptr,nullptr,dstptr,status)
- *
- *  Internal Interfaces:
- *
- *  Theory:
- *	<<please update with a overview of the operation of this file>>
- *
- * END_DESC
-*/
 
 
 #include "float.h"
@@ -50,10 +25,6 @@
 #include "dbl_float.h"
 #include "cnv_float.h"
 
-/*
- *  Single Floating-point to Single Fixed-point 
- */
-/*ARGSUSED*/
 int
 sgl_to_sgl_fcnvfx(
 		    sgl_floating_point *srcptr,
@@ -68,11 +39,8 @@ sgl_to_sgl_fcnvfx(
 	src = *srcptr;
 	src_exponent = Sgl_exponent(src) - SGL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > SGL_FX_MAX_EXP) {
-		/* check for MININT */
+		
 		if ((src_exponent > SGL_FX_MAX_EXP + 1) || 
 		Sgl_isnotzero_mantissa(src) || Sgl_iszero_sign(src)) {
                         if (Sgl_iszero_sign(src)) result = 0x7fffffff;
@@ -86,9 +54,6 @@ sgl_to_sgl_fcnvfx(
 			return(NOEXCEPTION);
        		}
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
 		temp = src;
 		Sgl_clear_signexponent_set_hidden(temp);
@@ -96,10 +61,10 @@ sgl_to_sgl_fcnvfx(
 		if (Sgl_isone_sign(src))  result = -Sgl_all(temp);
 		else result = Sgl_all(temp);
 
-		/* check for inexact */
+		
 		if (Sgl_isinexact_to_fix(src,src_exponent)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 			     if (Sgl_iszero_sign(src)) result++;
@@ -120,10 +85,10 @@ sgl_to_sgl_fcnvfx(
 	else {
 		result = 0;
 
-		/* check for inexact */
+		
 		if (Sgl_isnotzero_exponentmantissa(src)) {
 			inexact = TRUE;
-			/*  round result  */
+			
 			switch (Rounding_mode()) {
 			case ROUNDPLUS:
 			     if (Sgl_iszero_sign(src)) result++;
@@ -147,10 +112,6 @@ sgl_to_sgl_fcnvfx(
 	return(NOEXCEPTION);
 }
 
-/*
- *  Single Floating-point to Double Fixed-point 
- */
-/*ARGSUSED*/
 int
 sgl_to_dbl_fcnvfx(
 		sgl_floating_point *srcptr,
@@ -165,11 +126,8 @@ sgl_to_dbl_fcnvfx(
 	src = *srcptr;
 	src_exponent = Sgl_exponent(src) - SGL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > DBL_FX_MAX_EXP) {
-		/* check for MININT */
+		
 		if ((src_exponent > DBL_FX_MAX_EXP + 1) || 
 		Sgl_isnotzero_mantissa(src) || Sgl_iszero_sign(src)) {
                         if (Sgl_iszero_sign(src)) {
@@ -191,9 +149,6 @@ sgl_to_dbl_fcnvfx(
 		Dint_copytoptr(resultp1,resultp2,dstptr);
 		return(NOEXCEPTION);
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
 		temp = src;
 		Sgl_clear_signexponent_set_hidden(temp);
@@ -202,10 +157,10 @@ sgl_to_dbl_fcnvfx(
 			Dint_setone_sign(resultp1,resultp2);
 		}
 
-		/* check for inexact */
+		
 		if (Sgl_isinexact_to_fix(src,src_exponent)) {
 			inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Sgl_iszero_sign(src)) {
@@ -233,10 +188,10 @@ sgl_to_dbl_fcnvfx(
 	else {
 		Dint_setzero(resultp1,resultp2);
 
-		/* check for inexact */
+		
 		if (Sgl_isnotzero_exponentmantissa(src)) {
 			inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Sgl_iszero_sign(src)) {
@@ -268,10 +223,6 @@ sgl_to_dbl_fcnvfx(
 	return(NOEXCEPTION);
 }
 
-/*
- *  Double Floating-point to Single Fixed-point 
- */
-/*ARGSUSED*/
 int
 dbl_to_sgl_fcnvfx(
 		    dbl_floating_point *srcptr,
@@ -286,11 +237,8 @@ dbl_to_sgl_fcnvfx(
 	Dbl_copyfromptr(srcptr,srcp1,srcp2);
 	src_exponent = Dbl_exponent(srcp1) - DBL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > SGL_FX_MAX_EXP) {
-		/* check for MININT */
+		
 		if (Dbl_isoverflow_to_int(src_exponent,srcp1,srcp2)) {
                         if (Dbl_iszero_sign(srcp1)) result = 0x7fffffff;
                         else result = 0x80000000; 
@@ -303,9 +251,6 @@ dbl_to_sgl_fcnvfx(
 			return(NOEXCEPTION);
 		}
 	}
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
 		tempp1 = srcp1;
 		tempp2 = srcp2;
@@ -315,10 +260,10 @@ dbl_to_sgl_fcnvfx(
 			result = -Dbl_allp1(tempp1);
 		else result = Dbl_allp1(tempp1);
 
-		/* check for inexact */
+		
 		if (Dbl_isinexact_to_fix(srcp1,srcp2,src_exponent)) {
                         inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Dbl_iszero_sign(srcp1)) result++;
@@ -333,7 +278,7 @@ dbl_to_sgl_fcnvfx(
                                    if (Dbl_iszero_sign(srcp1)) result++;
                                    else result--;
                         } 
-			/* check for overflow */
+			
 			if ((Dbl_iszero_sign(srcp1) && result < 0) ||
 			    (Dbl_isone_sign(srcp1) && result > 0)) {
 			        
@@ -352,10 +297,10 @@ dbl_to_sgl_fcnvfx(
 	else {
 		result = 0;
 
-		/* check for inexact */
+		
 		if (Dbl_isnotzero_exponentmantissa(srcp1,srcp2)) {
                         inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Dbl_iszero_sign(srcp1)) result++;
@@ -379,10 +324,6 @@ dbl_to_sgl_fcnvfx(
 	return(NOEXCEPTION);
 }
 
-/*
- *  Double Floating-point to Double Fixed-point 
- */
-/*ARGSUSED*/
 int
 dbl_to_dbl_fcnvfx(
 		    dbl_floating_point *srcptr,
@@ -397,11 +338,8 @@ dbl_to_dbl_fcnvfx(
 	Dbl_copyfromptr(srcptr,srcp1,srcp2);
 	src_exponent = Dbl_exponent(srcp1) - DBL_BIAS;
 
-	/* 
-	 * Test for overflow
-	 */
 	if (src_exponent > DBL_FX_MAX_EXP) {
-		/* check for MININT */
+		
 		if ((src_exponent > DBL_FX_MAX_EXP + 1) || 
 		Dbl_isnotzero_mantissa(srcp1,srcp2) || Dbl_iszero_sign(srcp1)) {
                         if (Dbl_iszero_sign(srcp1)) {
@@ -421,9 +359,6 @@ dbl_to_dbl_fcnvfx(
 		}
 	}
  
-	/*
-	 * Generate result
-	 */
 	if (src_exponent >= 0) {
 		tempp1 = srcp1;
 		tempp2 = srcp2;
@@ -434,10 +369,10 @@ dbl_to_dbl_fcnvfx(
 			Dint_setone_sign(resultp1,resultp2);
 		}
 
-		/* check for inexact */
+		
 		if (Dbl_isinexact_to_fix(srcp1,srcp2,src_exponent)) {
                         inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Dbl_iszero_sign(srcp1)) {
@@ -465,10 +400,10 @@ dbl_to_dbl_fcnvfx(
 	else {
 		Dint_setzero(resultp1,resultp2);
 
-		/* check for inexact */
+		
 		if (Dbl_isnotzero_exponentmantissa(srcp1,srcp2)) {
                         inexact = TRUE;
-                        /*  round result  */
+                        
                         switch (Rounding_mode()) {
                         case ROUNDPLUS:
                              if (Dbl_iszero_sign(srcp1)) {

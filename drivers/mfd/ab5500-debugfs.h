@@ -9,7 +9,7 @@
 void ab5500_setup_debugfs(struct ab5500 *ab);
 void ab5500_remove_debugfs(void);
 
-#else /* !CONFIG_DEBUG_FS */
+#else 
 
 static inline void ab5500_setup_debugfs(struct ab5500 *ab)
 {

@@ -13,9 +13,6 @@
 #include <asm/cache.h>
 #include <asm/soc.h>
 
-/*
- * Internal Memory Control Registers for caches
- */
 #define IMCR_CCFG	  0x0000
 #define IMCR_L1PCFG	  0x0020
 #define IMCR_L1PCC	  0x0024
@@ -87,9 +84,6 @@
 #define IMCR_L2PDSTAT0	  0xc060
 #define IMCR_L2PDSTAT1	  0xc064
 
-/*
- * CCFG register values and bits
- */
 #define L2MODE_0K_CACHE   0x0
 #define L2MODE_32K_CACHE  0x1
 #define L2MODE_64K_CACHE  0x2
@@ -101,14 +95,11 @@
 #define L2PRIO_MEDIUM     0x2
 #define L2PRIO_LOW        0x3
 
-#define CCFG_ID           0x100   /* Invalidate L1P bit */
-#define CCFG_IP           0x200   /* Invalidate L1D bit */
+#define CCFG_ID           0x100   
+#define CCFG_IP           0x200   
 
 static void __iomem *cache_base;
 
-/*
- * L1 & L2 caches generic functions
- */
 #define imcr_get(reg) soc_readl(cache_base + (reg))
 #define imcr_set(reg, value) \
 do {								\
@@ -118,17 +109,13 @@ do {								\
 
 static void cache_block_operation_wait(unsigned int wc_reg)
 {
-	/* Wait for completion */
+	
 	while (imcr_get(wc_reg))
 		cpu_relax();
 }
 
 static DEFINE_SPINLOCK(cache_lock);
 
-/*
- * Generic function to perform a block cache operation as
- * invalidate or writeback/invalidate
- */
 static void cache_block_operation(unsigned int *start,
 				  unsigned int *end,
 				  unsigned int bar_reg,
@@ -144,16 +131,13 @@ static void cache_block_operation(unsigned int *start,
 loop:
 		spin_lock_irqsave(&cache_lock, flags);
 
-		/*
-		 * If another cache operation is occuring
-		 */
 		if (unlikely(imcr_get(wc_reg))) {
 			spin_unlock_irqrestore(&cache_lock, flags);
 
-			/* Wait for previous operation completion */
+			
 			cache_block_operation_wait(wc_reg);
 
-			/* Try again */
+			
 			goto loop;
 		}
 
@@ -164,12 +148,12 @@ loop:
 		else
 			wc = wcnt;
 
-		/* Set word count value in the WC register */
+		
 		imcr_set(wc_reg, wc & 0xffff);
 
 		spin_unlock_irqrestore(&cache_lock, flags);
 
-		/* Wait for completion */
+		
 		cache_block_operation_wait(wc_reg);
 	}
 }
@@ -196,24 +180,18 @@ static void cache_block_operation_nowait(unsigned int *start,
 		else
 			wc = wcnt;
 
-		/* Set word count value in the WC register */
+		
 		imcr_set(wc_reg, wc & 0xffff);
 
 		spin_unlock_irqrestore(&cache_lock, flags);
 
-		/* Don't wait for completion on last cache operation */
+		
 		if (wcnt > 0xffff)
 			cache_block_operation_wait(wc_reg);
 	}
 }
 
-/*
- * L1 caches management
- */
 
-/*
- * Disable L1 caches
- */
 void L1_cache_off(void)
 {
 	unsigned int dummy;
@@ -225,9 +203,6 @@ void L1_cache_off(void)
 	dummy = imcr_get(IMCR_L1DCFG);
 }
 
-/*
- * Enable L1 caches
- */
 void L1_cache_on(void)
 {
 	unsigned int dummy;
@@ -239,9 +214,6 @@ void L1_cache_on(void)
 	dummy = imcr_get(IMCR_L1DCFG);
 }
 
-/*
- *  L1P global-invalidate all
- */
 void L1P_cache_global_invalidate(void)
 {
 	unsigned int set = 1;
@@ -281,27 +253,18 @@ void L1D_cache_global_writeback_invalidate(void)
 		cpu_relax();
 }
 
-/*
- * L2 caches management
- */
 
-/*
- * Set L2 operation mode
- */
 void L2_cache_set_mode(unsigned int mode)
 {
 	unsigned int ccfg = imcr_get(IMCR_CCFG);
 
-	/* Clear and set the L2MODE bits in CCFG */
+	
 	ccfg &= ~7;
 	ccfg |= (mode & 7);
 	imcr_set(IMCR_CCFG, ccfg);
 	ccfg = imcr_get(IMCR_CCFG);
 }
 
-/*
- *  L2 global-writeback and global-invalidate all
- */
 void L2_cache_global_writeback_invalidate(void)
 {
 	imcr_set(IMCR_L2WBINV, 1);
@@ -309,9 +272,6 @@ void L2_cache_global_writeback_invalidate(void)
 		cpu_relax();
 }
 
-/*
- *  L2 global-writeback all
- */
 void L2_cache_global_writeback(void)
 {
 	imcr_set(IMCR_L2WB, 1);
@@ -319,9 +279,6 @@ void L2_cache_global_writeback(void)
 		cpu_relax();
 }
 
-/*
- * Cacheability controls
- */
 void enable_caching(unsigned long start, unsigned long end)
 {
 	unsigned int mar = IMCR_MAR_BASE + ((start >> 24) << 2);
@@ -341,9 +298,6 @@ void disable_caching(unsigned long start, unsigned long end)
 }
 
 
-/*
- *  L1 block operations
- */
 void L1P_cache_block_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
@@ -372,9 +326,6 @@ void L1D_cache_block_writeback(unsigned int start, unsigned int end)
 			      IMCR_L1DWBAR, IMCR_L1DWWC);
 }
 
-/*
- *  L2 block operations
- */
 void L2_cache_block_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
@@ -419,9 +370,6 @@ void L2_cache_block_writeback_invalidate_nowait(unsigned int start,
 }
 
 
-/*
- * L1 and L2 caches configuration
- */
 void __init c6x_cache_init(void)
 {
 	struct device_node *node;
@@ -437,9 +385,9 @@ void __init c6x_cache_init(void)
 	if (!cache_base)
 		return;
 
-	/* Set L2 caches on the the whole L2 SRAM memory */
+	
 	L2_cache_set_mode(L2MODE_SIZE);
 
-	/* Enable L1 */
+	
 	L1_cache_on();
 }

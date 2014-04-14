@@ -16,9 +16,6 @@
 #include <asm/ptrace.h>
 #include <asm/processor.h>
 
-/*
- * Save stack-backtrace addresses into a stack_trace buffer.
- */
 static void save_context_stack(struct stack_trace *trace, unsigned long sp,
 			struct task_struct *tsk, int savesched)
 {

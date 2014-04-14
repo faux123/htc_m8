@@ -3,7 +3,7 @@
  *
  * Copyright 2003 José Fonseca.
  * Copyright 2003 Leif Delgass.
- * Copyright (c) 2009, Code Aurora Forum.
+ * Copyright (c) 2009, The Linux Foundation.
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,16 +28,6 @@
 #include <linux/export.h>
 #include "drmP.h"
 
-/**
- * Register.
- *
- * \param platdev - Platform device struture
- * \return zero on success or a negative number on failure.
- *
- * Attempt to gets inter module "drm" information. If we are first
- * then register the character device and inter module information.
- * Try and register, if we fail to register, backout previous work.
- */
 
 int drm_get_platform_dev(struct platform_device *platdev,
 			 struct drm_driver *driver)
@@ -80,7 +70,7 @@ int drm_get_platform_dev(struct platform_device *platdev,
 			goto err_g3;
 	}
 
-	/* setup the grouping for the legacy output */
+	
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
 		ret = drm_mode_group_init_legacy_group(dev,
 				&dev->primary->mode_group);
@@ -133,9 +123,6 @@ static int drm_platform_set_busid(struct drm_device *dev, struct drm_master *mas
 
 	id = dev->platformdev->id;
 
-	/* if only a single instance of the platform device, id will be
-	 * set to -1.. use 0 instead to avoid a funny looking bus-id:
-	 */
 	if (id == -1)
 		id = 0;
 
@@ -171,17 +158,6 @@ static struct drm_bus drm_platform_bus = {
 	.set_busid = drm_platform_set_busid,
 };
 
-/**
- * Platform device initialization. Called direct from modules.
- *
- * \return zero on success or a negative number on failure.
- *
- * Initializes a drm_device structures,registering the
- * stubs
- *
- * Expands the \c DRIVER_PREINIT and \c DRIVER_POST_INIT macros before and
- * after the initialization for driver customization.
- */
 
 int drm_platform_init(struct drm_driver *driver, struct platform_device *platform_device)
 {

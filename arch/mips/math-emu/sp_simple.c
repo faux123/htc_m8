@@ -1,6 +1,3 @@
-/* IEEE754 floating point arithmetic
- * single precision
- */
 /*
  * MIPS floating point support
  * Copyright (C) 1994-2000 Algorithmics Ltd.
@@ -47,11 +44,7 @@ ieee754sp ieee754sp_neg(ieee754sp x)
 	CLEARCX;
 	FLUSHXSP;
 
-	/*
-	 * Invert the sign ALWAYS to prevent an endless recursion on
-	 * pow() in libc.
-	 */
-	/* quick fix up */
+	
 	SPSIGN(x) ^= 1;
 
 	if (xc == IEEE754_CLASS_SNAN) {
@@ -73,7 +66,7 @@ ieee754sp ieee754sp_abs(ieee754sp x)
 	CLEARCX;
 	FLUSHXSP;
 
-	/* Clear sign ALWAYS, irrespective of NaN */
+	
 	SPSIGN(x) = 0;
 
 	if (xc == IEEE754_CLASS_SNAN) {

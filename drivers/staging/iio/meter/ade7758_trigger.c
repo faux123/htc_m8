@@ -15,9 +15,6 @@
 #include "../trigger.h"
 #include "ade7758.h"
 
-/**
- * ade7758_data_rdy_trig_poll() the event handler for the data rdy trig
- **/
 static irqreturn_t ade7758_data_rdy_trig_poll(int irq, void *private)
 {
 	disable_irq_nosync(irq);
@@ -26,9 +23,6 @@ static irqreturn_t ade7758_data_rdy_trig_poll(int irq, void *private)
 	return IRQ_HANDLED;
 }
 
-/**
- * ade7758_data_rdy_trigger_set_state() set datardy interrupt state
- **/
 static int ade7758_data_rdy_trigger_set_state(struct iio_trigger *trig,
 						bool state)
 {
@@ -38,17 +32,13 @@ static int ade7758_data_rdy_trigger_set_state(struct iio_trigger *trig,
 	return ade7758_set_irq(&indio_dev->dev, state);
 }
 
-/**
- * ade7758_trig_try_reen() try renabling irq for data rdy trigger
- * @trig:	the datardy trigger
- **/
 static int ade7758_trig_try_reen(struct iio_trigger *trig)
 {
 	struct iio_dev *indio_dev = trig->private_data;
 	struct ade7758_state *st = iio_priv(indio_dev);
 
 	enable_irq(st->us->irq);
-	/* irq reenabled so success! */
+	
 	return 0;
 }
 
@@ -84,7 +74,7 @@ int ade7758_probe_trigger(struct iio_dev *indio_dev)
 	st->trig->private_data = indio_dev;
 	ret = iio_trigger_register(st->trig);
 
-	/* select default trigger */
+	
 	indio_dev->trig = st->trig;
 	if (ret)
 		goto error_free_irq;

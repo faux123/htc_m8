@@ -28,7 +28,6 @@ static void ssl_announce(char *dev_name, int dev)
 	       dev_name);
 }
 
-/* Almost const, except that xterm_title may be changed in an initcall */
 static struct chan_opts opts = {
 	.announce 	= ssl_announce,
 	.xterm_title	= "Serial Line #%d",
@@ -40,7 +39,6 @@ static int ssl_get_config(char *dev, char *str, int size, char **error_out);
 static int ssl_remove(int n, char **error_out);
 
 
-/* Const, except for .mc.list */
 static struct line_driver driver = {
 	.name 			= "UML serial line",
 	.device_name 		= "ttyS",
@@ -62,9 +60,6 @@ static struct line_driver driver = {
 	},
 };
 
-/* The array is initialized by line_init, at initcall time.  The
- * elements are locked individually as needed.
- */
 static char *conf[NR_PORTS];
 static char *def_conf = CONFIG_SSL_CHAN;
 static struct line serial_lines[NR_PORTS];
@@ -139,9 +134,6 @@ static const struct tty_operations ssl_ops = {
 #endif
 };
 
-/* Changed by ssl_init and referenced by ssl_exit, which are both serialized
- * by being an initcall and exitcall, respectively.
- */
 static int ssl_init_done = 0;
 
 static void ssl_console_write(struct console *c, const char *string,
@@ -168,7 +160,6 @@ static int ssl_console_setup(struct console *co, char *options)
 	return console_open_chan(line, co);
 }
 
-/* No locking for register_console call - relies on single-threaded initcalls */
 static struct console ssl_cons = {
 	.name		= "ttyS",
 	.write		= ssl_console_write,

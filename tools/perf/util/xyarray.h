@@ -17,4 +17,4 @@ static inline void *xyarray__entry(struct xyarray *xy, int x, int y)
 	return &xy->contents[x * xy->row_size + y * xy->entry_size];
 }
 
-#endif /* _PERF_XYARRAY_H_ */
+#endif 

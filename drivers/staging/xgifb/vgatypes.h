@@ -2,9 +2,9 @@
 #define _VGATYPES_
 
 #include <linux/ioctl.h>
-#include <linux/fb.h>	/* for struct fb_var_screeninfo for sis.h */
+#include <linux/fb.h>	
 #include "../../video/sis/vgatypes.h"
-#include "../../video/sis/sis.h"		/* for LCD_TYPE */
+#include "../../video/sis/sis.h"		
 
 #ifndef XGI_VB_CHIP_TYPE
 enum XGI_VB_CHIP_TYPE {
@@ -17,24 +17,20 @@ enum XGI_VB_CHIP_TYPE {
 	VB_CHIP_302LV,
 	VB_CHIP_301C,
 	VB_CHIP_302ELV,
-	VB_CHIP_UNKNOWN, /* other video bridge or no video bridge */
+	VB_CHIP_UNKNOWN, 
 	MAX_VB_CHIP
 };
 #endif
 
 
 #define XGI_LCD_TYPE
-/* Since the merge with video/sis the LCD_TYPEs are used from
- drivers/video/sis/sis.h . Nevertheless we keep this (for the moment) for
- future reference until the code is merged completely and we are sure
- nothing of this should be added to the sis.h header */
 #ifndef XGI_LCD_TYPE
 enum XGI_LCD_TYPE {
 	LCD_INVALID = 0,
-	LCD_320x480,       /* FSTN, DSTN */
+	LCD_320x480,       
 	LCD_640x480,
-	LCD_640x480_2,     /* FSTN, DSTN */
-	LCD_640x480_3,     /* FSTN, DSTN */
+	LCD_640x480_2,     
+	LCD_640x480_3,     
 	LCD_800x600,
 	LCD_848x480,
 	LCD_1024x600,
@@ -57,32 +53,28 @@ enum XGI_LCD_TYPE {
 #endif
 
 struct xgi_hw_device_info {
-	unsigned long ulExternalChip; /* NO VB or other video bridge*/
-				      /* if ujVBChipID = VB_CHIP_UNKNOWN, */
+	unsigned long ulExternalChip; 
+				      
 
-	void __iomem *pjVideoMemoryAddress;/* base virtual memory address */
-					    /* of Linear VGA memory */
+	void __iomem *pjVideoMemoryAddress;
+					    
 
-	unsigned long ulVideoMemorySize; /* size, in bytes, of the
-					    memory on the board */
+	unsigned long ulVideoMemorySize; 
 
-	unsigned char *pjIOAddress; /* base I/O address of VGA ports (0x3B0) */
+	unsigned char *pjIOAddress; 
 
-	unsigned char jChipType; /* Used to Identify Graphics Chip */
-				 /* defined in the data structure type  */
-				 /* "XGI_CHIP_TYPE" */
+	unsigned char jChipType; 
+				 
+				 
 
-	unsigned char jChipRevision; /* Used to Identify Graphics
-					Chip Revision */
+	unsigned char jChipRevision; 
 
-	unsigned char ujVBChipID; /* the ID of video bridge */
-				  /* defined in the data structure type */
-				  /* "XGI_VB_CHIP_TYPE" */
+	unsigned char ujVBChipID; 
+				  
+				  
 
-	unsigned long ulCRT2LCDType; /* defined in the data structure type */
+	unsigned long ulCRT2LCDType; 
 };
 
-/* Additional IOCTL for communication xgifb <> X driver        */
-/* If changing this, xgifb.h must also be changed (for xgifb) */
 #endif
 

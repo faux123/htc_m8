@@ -10,7 +10,7 @@
 #include "linux/compiler.h"
 #include "asm/errno.h"
 
-#define __FRAME_OFFSETS /* Needed to get the R* macros */
+#define __FRAME_OFFSETS 
 #include "asm/ptrace-generic.h"
 
 #define HOST_AUDIT_ARCH AUDIT_ARCH_X86_64
@@ -44,7 +44,6 @@
 
 #define PT_REGS_EFLAGS(r) UPT_EFLAGS(&(r)->regs)
 
-/* XXX */
 #define user_mode(r) UPT_IS_USER(&(r)->regs)
 #define PT_REGS_ORIG_SYSCALL(r) PT_REGS_RAX(r)
 #define PT_REGS_SYSCALL_RET(r) PT_REGS_RAX(r)

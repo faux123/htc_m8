@@ -27,8 +27,6 @@
 #include <sound/initval.h>
 #include <linux/init.h>
 
-/*
- */
 
 #define CARD_NAME	"PDAudio-CF"
 
@@ -37,9 +35,9 @@ MODULE_DESCRIPTION("Sound Core " CARD_NAME);
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Sound Core," CARD_NAME "}}");
 
-static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
-static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
-static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;	/* Enable switches */
+static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	
+static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	
+static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;	
 
 module_param_array(index, int, NULL, 0444);
 MODULE_PARM_DESC(index, "Index value for " CARD_NAME " soundcard.");
@@ -48,14 +46,9 @@ MODULE_PARM_DESC(id, "ID string for " CARD_NAME " soundcard.");
 module_param_array(enable, bool, NULL, 0444);
 MODULE_PARM_DESC(enable, "Enable " CARD_NAME " soundcard.");
 
-/*
- */
 
 static struct snd_card *card_list[SNDRV_CARDS];
 
-/*
- * prototypes
- */
 static int pdacf_config(struct pcmcia_device *link);
 static void snd_pdacf_detach(struct pcmcia_device *p_dev);
 
@@ -64,9 +57,6 @@ static void pdacf_release(struct pcmcia_device *link)
 	pcmcia_disable_device(link);
 }
 
-/*
- * destructor
- */
 static int snd_pdacf_free(struct snd_pdacf *pdacf)
 {
 	struct pcmcia_device *link = pdacf->p_dev;
@@ -86,9 +76,6 @@ static int snd_pdacf_dev_free(struct snd_device *device)
 	return snd_pdacf_free(chip);
 }
 
-/*
- * snd_pdacf_attach - attach callback for cs
- */
 static int snd_pdacf_probe(struct pcmcia_device *link)
 {
 	int i, err;
@@ -99,7 +86,7 @@ static int snd_pdacf_probe(struct pcmcia_device *link)
 	};
 
 	snd_printdd(KERN_DEBUG "pdacf_attach called\n");
-	/* find an empty slot from the card list */
+	
 	for (i = 0; i < SNDRV_CARDS; i++) {
 		if (! card_list[i])
 			break;
@@ -109,9 +96,9 @@ static int snd_pdacf_probe(struct pcmcia_device *link)
 		return -EINVAL;
 	}
 	if (! enable[i])
-		return -ENODEV; /* disabled explicitly */
+		return -ENODEV; 
 
-	/* ok, create a card instance */
+	
 	err = snd_card_create(index[i], id[i], THIS_MODULE, 0, &card);
 	if (err < 0) {
 		snd_printk(KERN_ERR "pdacf: cannot create a card instance\n");
@@ -150,16 +137,6 @@ static int snd_pdacf_probe(struct pcmcia_device *link)
 }
 
 
-/**
- * snd_pdacf_assign_resources - initialize the hardware and card instance.
- * @port: i/o port for the card
- * @irq: irq number for the card
- *
- * this function assigns the specified port and irq, boot the card,
- * create pcm and control instances, and initialize the rest hardware.
- *
- * returns 0 if successful, or a negative error code.
- */
 static int snd_pdacf_assign_resources(struct snd_pdacf *pdacf, int port, int irq)
 {
 	int err;
@@ -190,9 +167,6 @@ static int snd_pdacf_assign_resources(struct snd_pdacf *pdacf, int port, int irq
 }
 
 
-/*
- * snd_pdacf_detach - detach callback for cs
- */
 static void snd_pdacf_detach(struct pcmcia_device *link)
 {
 	struct snd_pdacf *chip = link->priv;
@@ -201,14 +175,11 @@ static void snd_pdacf_detach(struct pcmcia_device *link)
 
 	if (chip->chip_status & PDAUDIOCF_STAT_IS_CONFIGURED)
 		snd_pdacf_powerdown(chip);
-	chip->chip_status |= PDAUDIOCF_STAT_IS_STALE; /* to be sure */
+	chip->chip_status |= PDAUDIOCF_STAT_IS_STALE; 
 	snd_card_disconnect(chip->card);
 	snd_card_free_when_closed(chip->card);
 }
 
-/*
- * configuration callback
- */
 
 static int pdacf_config(struct pcmcia_device *link)
 {
@@ -275,11 +246,8 @@ static int pdacf_resume(struct pcmcia_device *link)
 
 #endif
 
-/*
- * Module entry points
- */
 static const struct pcmcia_device_id snd_pdacf_ids[] = {
-	/* this is too general PCMCIA_DEVICE_MANF_CARD(0x015d, 0x4c45), */
+	
 	PCMCIA_DEVICE_PROD_ID12("Core Sound","PDAudio-CF",0x396d19d2,0x71717b49),
 	PCMCIA_DEVICE_NULL
 };

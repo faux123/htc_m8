@@ -1,11 +1,3 @@
-/*
- * perf.c
- *
- * Performance analysis utility.
- *
- * This is the main hub from which the sub-commands (perf stat,
- * perf top, perf record, perf report, etc.) are started.
- */
 #include "builtin.h"
 
 #include "util/exec_cmd.h"
@@ -37,7 +29,6 @@ static int pager_command_config(const char *var, const char *value, void *data)
 	return 0;
 }
 
-/* returns 0 for "no pager", 1 for "use pager", and -1 for "not specified" */
 int check_pager_config(const char *cmd)
 {
 	struct pager_config c;
@@ -55,7 +46,6 @@ static int tui_command_config(const char *var, const char *value, void *data)
 	return 0;
 }
 
-/* returns 0 for "no tui", 1 for "use tui", and -1 for "not specified" */
 static int check_tui_config(const char *cmd)
 {
 	struct pager_config c;
@@ -72,7 +62,7 @@ static void commit_pager_choice(void)
 		setenv("PERF_PAGER", "cat", 1);
 		break;
 	case 1:
-		/* setup_pager(); */
+		
 		break;
 	default:
 		break;
@@ -96,9 +86,6 @@ static int handle_options(const char ***argv, int *argc, int *envchanged)
 		if (!strcmp(cmd, "--help") || !strcmp(cmd, "--version"))
 			break;
 
-		/*
-		 * Check remaining flags.
-		 */
 		if (!prefixcmp(cmd, CMD_EXEC_PATH)) {
 			cmd += strlen(CMD_EXEC_PATH);
 			if (*cmd == '=')
@@ -220,7 +207,7 @@ static int handle_alias(int *argcp, const char ***argv)
 
 		new_argv = realloc(new_argv, sizeof(char *) *
 				    (count + *argcp + 1));
-		/* insert after command name */
+		
 		memcpy(new_argv + count, *argv + 1, sizeof(char *) * *argcp);
 		new_argv[count + *argcp] = NULL;
 
@@ -239,10 +226,6 @@ const char perf_version_string[] = PERF_VERSION;
 
 #define RUN_SETUP	(1<<0)
 #define USE_PAGER	(1<<1)
-/*
- * require working tree to be present -- anything uses this needs
- * RUN_SETUP for reading from the configuration file.
- */
 #define NEED_WORK_TREE	(1<<2)
 
 struct cmd_struct {
@@ -259,7 +242,7 @@ static int run_builtin(struct cmd_struct *p, int argc, const char **argv)
 
 	prefix = NULL;
 	if (p->option & RUN_SETUP)
-		prefix = NULL; /* setup_perf_directory(); */
+		prefix = NULL; 
 
 	if (use_browser == -1)
 		use_browser = check_tui_config(p->cmd);
@@ -276,14 +259,14 @@ static int run_builtin(struct cmd_struct *p, int argc, const char **argv)
 	if (status)
 		return status & 0xff;
 
-	/* Somebody closed stdout? */
+	
 	if (fstat(fileno(stdout), &st))
 		return 0;
-	/* Ignore write errors for pipes and sockets.. */
+	
 	if (S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode))
 		return 0;
 
-	/* Check for ENOSPC and EIO errors.. */
+	
 	if (fflush(stdout))
 		die("write failure on standard output: %s", strerror(errno));
 	if (ferror(stdout))
@@ -307,6 +290,7 @@ static void handle_internal_command(int argc, const char **argv)
 		{ "report",	cmd_report,	0 },
 		{ "bench",	cmd_bench,	0 },
 		{ "stat",	cmd_stat,	0 },
+		{ "periodic",   cmd_periodic,   0 },
 		{ "timechart",	cmd_timechart,	0 },
 		{ "top",	cmd_top,	0 },
 		{ "annotate",	cmd_annotate,	0 },
@@ -332,7 +316,7 @@ static void handle_internal_command(int argc, const char **argv)
 		}
 	}
 
-	/* Turn "perf cmd --help" into "perf help cmd" */
+	
 	if (argc > 1 && !strcmp(argv[1], "--help")) {
 		argv[1] = argv[0];
 		argv[0] = cmd = "help";
@@ -354,26 +338,16 @@ static void execv_dashed_external(const char **argv)
 
 	strbuf_addf(&cmd, "perf-%s", argv[0]);
 
-	/*
-	 * argv[0] must be the perf command, but the argv array
-	 * belongs to the caller, and may be reused in
-	 * subsequent loop iterations. Save argv[0] and
-	 * restore it on error.
-	 */
 	tmp = argv[0];
 	argv[0] = cmd.buf;
 
-	/*
-	 * if we fail because the command is not found, it is
-	 * OK to return. Otherwise, we just pass along the status code.
-	 */
 	status = run_command_v_opt(argv, 0);
 	if (status != -ERR_RUN_COMMAND_EXEC) {
 		if (IS_RUN_COMMAND_ERR(status))
 			die("unable to run '%s'", argv[0]);
 		exit(-status);
 	}
-	errno = ENOENT; /* as if we called execvp */
+	errno = ENOENT; 
 
 	argv[0] = tmp;
 
@@ -385,16 +359,12 @@ static int run_argv(int *argcp, const char ***argv)
 	int done_alias = 0;
 
 	while (1) {
-		/* See if it's an internal command */
+		
 		handle_internal_command(*argcp, *argv);
 
-		/* .. then try the external ones */
+		
 		execv_dashed_external(*argv);
 
-		/* It could be an alias -- this works around the insanity
-		 * of overriding "perf log" with "perf show" by having
-		 * alias.log = show
-		 */
 		if (done_alias || !handle_alias(argcp, argv))
 			break;
 		done_alias = 1;
@@ -428,18 +398,8 @@ int main(int argc, const char **argv)
 	cmd = perf_extract_argv0_path(argv[0]);
 	if (!cmd)
 		cmd = "perf-help";
-	/* get debugfs mount point from /proc/mounts */
+	
 	debugfs_mount(NULL);
-	/*
-	 * "perf-xxxx" is the same as "perf xxxx", but we obviously:
-	 *
-	 *  - cannot take flags in between the "perf" and the "xxxx".
-	 *  - cannot execute it externally (since it would just do
-	 *    the same thing over again)
-	 *
-	 * So we just directly call the internal command handler, and
-	 * die if that one cannot handle it.
-	 */
 	if (!prefixcmp(cmd, "perf-")) {
 		cmd += 5;
 		argv[0] = cmd;
@@ -447,7 +407,7 @@ int main(int argc, const char **argv)
 		die("cannot handle %s internally", cmd);
 	}
 
-	/* Look for flags.. */
+	
 	argv++;
 	argc--;
 	handle_options(&argv, &argc, NULL);
@@ -458,7 +418,7 @@ int main(int argc, const char **argv)
 		if (!prefixcmp(argv[0], "--"))
 			argv[0] += 2;
 	} else {
-		/* The user didn't specify a command; give them help */
+		
 		printf("\n usage: %s\n\n", perf_usage_string);
 		list_common_cmds_help();
 		printf("\n %s\n\n", perf_more_info_string);
@@ -466,18 +426,7 @@ int main(int argc, const char **argv)
 	}
 	cmd = argv[0];
 
-	/*
-	 * We use PATH to find perf commands, but we prepend some higher
-	 * precedence paths: the "--exec-path" option, the PERF_EXEC_PATH
-	 * environment, and the $(perfexecdir) from the Makefile at build
-	 * time.
-	 */
 	setup_path();
-	/*
-	 * Block SIGWINCH notifications so that the thread that wants it can
-	 * unblock and get syscalls like select interrupted instead of waiting
-	 * forever while the signal goes to some other non interested thread.
-	 */
 	pthread__block_sigwinch();
 
 	while (1) {

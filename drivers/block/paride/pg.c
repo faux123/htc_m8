@@ -114,12 +114,6 @@
 
 */
 
-/* Changes:
-
-	1.01	GRG 1998.06.16	Bug fixes
-	1.02    GRG 1998.09.24  Added jumbo support
-
-*/
 
 #define PG_VERSION      "1.02"
 #define PG_MAJOR	97
@@ -131,11 +125,6 @@
 #endif
 
 #include <linux/types.h>
-/* Here are things one can override from the insmod command.
-   Most are autoprobed by paride unless set here.  Verbose is 0
-   by default.
-
-*/
 
 static bool verbose = 0;
 static int major = PG_MAJOR;
@@ -152,7 +141,6 @@ static int pg_drive_count;
 
 enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_DLY};
 
-/* end of parameters */
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -162,7 +150,7 @@ enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_DLY};
 #include <linux/mtio.h>
 #include <linux/pg.h>
 #include <linux/device.h>
-#include <linux/sched.h>	/* current, TASK_* */
+#include <linux/sched.h>	
 #include <linux/mutex.h>
 #include <linux/jiffies.h>
 
@@ -178,7 +166,7 @@ module_param_array(drive3, int, NULL, 0);
 
 #include "paride.h"
 
-#define PG_SPIN_DEL     50	/* spin delay in micro-seconds  */
+#define PG_SPIN_DEL     50	
 #define PG_SPIN         200
 #define PG_TMO		HZ
 #define PG_RESET_TMO	10*HZ
@@ -206,29 +194,28 @@ static int pg_detect(void);
 #define PG_NAMELEN      8
 
 struct pg {
-	struct pi_adapter pia;	/* interface to paride layer */
+	struct pi_adapter pia;	
 	struct pi_adapter *pi;
-	int busy;		/* write done, read expected */
-	int start;		/* jiffies at command start */
-	int dlen;		/* transfer size requested */
-	unsigned long timeout;	/* timeout requested */
-	int status;		/* last sense key */
-	int drive;		/* drive */
-	unsigned long access;	/* count of active opens ... */
-	int present;		/* device present ? */
+	int busy;		
+	int start;		
+	int dlen;		
+	unsigned long timeout;	
+	int status;		
+	int drive;		
+	unsigned long access;	
+	int present;		
 	char *bufptr;
-	char name[PG_NAMELEN];	/* pg0, pg1, ... */
+	char name[PG_NAMELEN];	
 };
 
 static struct pg devices[PG_UNITS];
 
 static int pg_identify(struct pg *dev, int log);
 
-static char pg_scratch[512];	/* scratch block buffer */
+static char pg_scratch[512];	
 
 static struct class *pg_class;
 
-/* kernel glue structures */
 
 static const struct file_operations pg_fops = {
 	.owner = THIS_MODULE,
@@ -329,7 +316,7 @@ static int pg_command(struct pg *dev, char *cmd, int dlen, unsigned long tmo)
 
 	write_reg(dev, 4, dlen % 256);
 	write_reg(dev, 5, dlen / 256);
-	write_reg(dev, 7, 0xa0);	/* ATAPI packet command */
+	write_reg(dev, 7, 0xa0);	
 
 	if (pg_wait(dev, STAT_BUSY, STAT_DRQ, tmo, "command DRQ"))
 		goto fail;
@@ -457,10 +444,6 @@ static int pg_identify(struct pg *dev, int log)
 	return 0;
 }
 
-/*
- * returns  0, with id set if drive is detected
- *	   -1, if drive detection failed
- */
 static int pg_probe(struct pg *dev)
 {
 	if (dev->drive == -1) {
@@ -681,7 +664,7 @@ static int __init pg_init(void)
 		}
 		goto out;
 	}
-	major = err;	/* In case the user specified `major=0' (dynamic) */
+	major = err;	
 	pg_class = class_create(THIS_MODULE, "pg");
 	if (IS_ERR(pg_class)) {
 		err = PTR_ERR(pg_class);

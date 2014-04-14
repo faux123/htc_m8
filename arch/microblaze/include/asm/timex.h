@@ -11,6 +11,6 @@
 
 #include <asm-generic/timex.h>
 
-#define CLOCK_TICK_RATE 1000 /* Timer input freq. */
+#define CLOCK_TICK_RATE 1000 
 
-#endif /* _ASM_TIMEX_H */
+#endif 

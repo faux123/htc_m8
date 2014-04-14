@@ -8,9 +8,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-/*
- * Very basic string functions
- */
 
 #include "boot.h"
 
@@ -65,7 +62,6 @@ unsigned int atou(const char *s)
 	return i;
 }
 
-/* Works only for digits and letters, but small and fast */
 #define TOLOWER(x) ((x) | 0x20)
 
 static unsigned int simple_guess_base(const char *cp)
@@ -80,12 +76,6 @@ static unsigned int simple_guess_base(const char *cp)
 	}
 }
 
-/**
- * simple_strtoull - convert a string to an unsigned long long
- * @cp: The start of the string
- * @endp: A pointer to the end of the parsed string will be placed here
- * @base: The number base to use
- */
 
 unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
 {
@@ -112,24 +102,15 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
 	return result;
 }
 
-/**
- * strlen - Find the length of a string
- * @s: The string to be sized
- */
 size_t strlen(const char *s)
 {
 	const char *sc;
 
 	for (sc = s; *sc != '\0'; ++sc)
-		/* nothing */;
+		;
 	return sc - s;
 }
 
-/**
- * strstr - Find the first substring in a %NUL terminated string
- * @s1: The string to be searched
- * @s2: The string to search for
- */
 char *strstr(const char *s1, const char *s2)
 {
 	size_t l1, l2;

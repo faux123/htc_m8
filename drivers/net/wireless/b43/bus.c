@@ -25,16 +25,15 @@
 #include "b43.h"
 #include "bus.h"
 
-/* BCMA */
 #ifdef CONFIG_B43_BCMA
 static int b43_bus_bcma_bus_may_powerdown(struct b43_bus_dev *dev)
 {
-	return 0; /* bcma_bus_may_powerdown(dev->bdev->bus); */
+	return 0; 
 }
 static int b43_bus_bcma_bus_powerup(struct b43_bus_dev *dev,
 					  bool dynamic_pctl)
 {
-	return 0; /* bcma_bus_powerup(dev->sdev->bus, dynamic_pctl); */
+	return 0; 
 }
 static int b43_bus_bcma_device_is_enabled(struct b43_bus_dev *dev)
 {
@@ -107,11 +106,6 @@ struct b43_bus_dev *b43_bus_dev_bcma_init(struct bcma_device *core)
 	dev->dma_dev = core->dma_dev;
 	dev->irq = core->irq;
 
-	/*
-	dev->board_vendor = core->bus->boardinfo.vendor;
-	dev->board_type = core->bus->boardinfo.type;
-	dev->board_rev = core->bus->boardinfo.rev;
-	*/
 
 	dev->chip_id = core->bus->chipinfo.id;
 	dev->chip_rev = core->bus->chipinfo.rev;
@@ -124,9 +118,8 @@ struct b43_bus_dev *b43_bus_dev_bcma_init(struct bcma_device *core)
 
 	return dev;
 }
-#endif /* CONFIG_B43_BCMA */
+#endif 
 
-/* SSB */
 #ifdef CONFIG_B43_SSB
 static int b43_bus_ssb_bus_may_powerdown(struct b43_bus_dev *dev)
 {
@@ -223,7 +216,7 @@ struct b43_bus_dev *b43_bus_dev_ssb_init(struct ssb_device *sdev)
 
 	return dev;
 }
-#endif /* CONFIG_B43_SSB */
+#endif 
 
 void *b43_bus_get_wldev(struct b43_bus_dev *dev)
 {

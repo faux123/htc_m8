@@ -17,7 +17,6 @@
 #include <linux/io.h>
 #include <variant/hardware.h>
 
-/* DMA global */
 
 #define S6_DMA_INTSTAT0		0x000
 #define S6_DMA_INTSTAT1		0x004
@@ -70,7 +69,6 @@
 #define S6_DMA_DPORTCTRLGRP_ENA		31
 
 
-/* DMA per channel */
 
 #define DMA_CHNL(dmac, n)	((dmac) + 0x1000 + (n) * 0x100)
 #define DMA_INDEX_CHNL(addr)	(((addr) >> 8) & 0xF)
@@ -108,7 +106,6 @@
 #define S6_DMA_CUR_DST		0x028
 #define S6_DMA_TIMESTAMP	0x030
 
-/* DMA channel lists */
 
 #define S6_DPDMA_CHAN(stream, channel)	(4 * (stream) + (channel))
 #define S6_DPDMA_NB	16
@@ -126,7 +123,6 @@
 
 #define S6_LMSDMA_NB	12
 
-/* controller access */
 
 #define S6_DMAC_NB	4
 #define S6_DMAC_INDEX(dmac)	(((unsigned)(dmac) >> 18) % S6_DMAC_NB)
@@ -140,7 +136,6 @@ struct s6dmac_ctrl {
 extern struct s6dmac_ctrl s6dmac_ctrl[S6_DMAC_NB];
 
 
-/* DMA control, per channel */
 
 static inline int s6dmac_fifo_full(u32 dmac, int chan)
 {
@@ -222,7 +217,7 @@ static inline void s6dmac_disable_chan(u32 dmac, int chan)
 }
 
 static inline void s6dmac_set_stride_skip(u32 dmac, int chan,
-	int comchunk,		/* 0: disable scatter/gather */
+	int comchunk,		
 	int srcskip, int dstskip)
 {
 	writel(comchunk, DMA_CHNL(dmac, chan) + S6_DMA_CMONCHUNK);
@@ -231,16 +226,16 @@ static inline void s6dmac_set_stride_skip(u32 dmac, int chan,
 }
 
 static inline void s6dmac_enable_chan(u32 dmac, int chan,
-	int prio,               /* 0 (highest) .. 3 (lowest) */
-	int periphxfer,         /* <0: disable p.req.line, 0..1: mode */
-	int srcinc, int dstinc, /* 0: dont increment src/dst address */
-	int comchunk,		/* 0: disable scatter/gather */
+	int prio,               
+	int periphxfer,         
+	int srcinc, int dstinc, 
+	int comchunk,		
 	int srcskip, int dstskip,
-	int burstsize,		/* 4 for I2S, 7 for everything else */
-	int bandwidthconserve,  /* <0: disable, 0..1: select */
-	int lowwmark,           /* 0..15 */
-	int timestamp,		/* 0: disable timestamp */
-	int enable)		/* 0: disable for now */
+	int burstsize,		
+	int bandwidthconserve,  
+	int lowwmark,           
+	int timestamp,		
+	int enable)		
 {
 	writel(1, DMA_CHNL(dmac, chan) + S6_DMA_TERMCNTNB);
 	writel(0, DMA_CHNL(dmac, chan) + S6_DMA_TERMCNTTMO);
@@ -262,7 +257,6 @@ static inline void s6dmac_enable_chan(u32 dmac, int chan,
 }
 
 
-/* DMA control, per engine */
 
 static inline unsigned _dmac_addr_index(u32 dmac)
 {
@@ -287,12 +281,6 @@ static inline void _s6dmac_disable_error_irqs(u32 dmac, u32 mask)
 	writel(mask << S6_DMA_INT1_CHANNEL, dmac + S6_DMA_INTCLEAR1);
 }
 
-/*
- * request channel from specified engine
- * with chan<0, accept any channel
- * further parameters see s6dmac_enable_chan
- * returns < 0 upon error, channel nb otherwise
- */
 static inline int s6dmac_request_chan(u32 dmac, int chan,
 	int prio,
 	int periphxfer,
@@ -349,11 +337,6 @@ static inline u32 s6dmac_channel_enabled(u32 dmac, int chan)
 			(1 << S6_DMA_CHNCTRL_ENABLE);
 }
 
-/*
- * group 1-4 data port channels
- * with port=0..3, nrch=1-4 channels,
- * frrep=0/1 (dis- or enable frame repeat)
- */
 static inline void s6dmac_dp_setup_group(u32 dmac, int port,
 			int nrch, int frrep)
 {
@@ -384,4 +367,4 @@ extern void s6dmac_disable_error_irqs(u32 dmac, u32 mask);
 extern u32 s6dmac_int_sources(u32 dmac, u32 channel);
 extern void s6dmac_release_chan(u32 dmac, int chan);
 
-#endif /* __ASM_XTENSA_S6000_DMAC_H */
+#endif 

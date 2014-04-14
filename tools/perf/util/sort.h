@@ -43,12 +43,6 @@ extern struct sort_entry sort_sym_from;
 extern struct sort_entry sort_sym_to;
 extern enum sort_type sort__first_dimension;
 
-/**
- * struct hist_entry - histogram entry
- *
- * @row_offset - offset from the first callchain expanded to appear on screen
- * @nr_rows - rows expanded in callchain, recalculated on folding/unfolding
- */
 struct hist_entry {
 	struct rb_node		rb_node_in;
 	struct rb_node		rb_node;
@@ -63,7 +57,7 @@ struct hist_entry {
 	s32			cpu;
 	u32			nr_events;
 
-	/* XXX These two should move to some tree widget lib */
+	
 	u16			row_offset;
 	u16			nr_rows;
 
@@ -95,9 +89,6 @@ enum sort_type {
 	SORT_MISPREDICT,
 };
 
-/*
- * configurable sorting bits
- */
 
 struct sort_entry {
 	struct list_head list;
@@ -120,4 +111,4 @@ extern int sort_dimension__add(const char *);
 void sort_entry__setup_elide(struct sort_entry *self, struct strlist *list,
 			     const char *list_name, FILE *fp);
 
-#endif	/* __PERF_SORT_H */
+#endif	

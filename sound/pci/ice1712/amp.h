@@ -28,13 +28,12 @@
 					       "{Chaintech,AV-710},"
 
 #if 0
-#define VT1724_SUBDEVICE_AUDIO2000	0x12142417	/* Advanced Micro Peripherals Ltd AUDIO2000 */
+#define VT1724_SUBDEVICE_AUDIO2000	0x12142417	
 #else
-#define VT1724_SUBDEVICE_AUDIO2000	0x00030003	/* a dummy ID for AMP Audio2000 */
+#define VT1724_SUBDEVICE_AUDIO2000	0x00030003	
 #endif
-#define VT1724_SUBDEVICE_AV710		0x12142417	/* AV710 - the same ID with Audio2000! */
+#define VT1724_SUBDEVICE_AV710		0x12142417	
 
-/* WM8728 on I2C for AV710 */
 #define WM_DEV		0x36
 
 #define WM_ATTEN_L	0x00
@@ -45,4 +44,4 @@
 extern struct snd_ice1712_card_info  snd_vt1724_amp_cards[];
 
 
-#endif /* __SOUND_AMP_H */
+#endif 

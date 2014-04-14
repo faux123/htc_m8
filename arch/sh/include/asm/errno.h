@@ -3,4 +3,4 @@
 
 #include <asm-generic/errno.h>
 
-#endif /* __ASM_SH_ERRNO_H */
+#endif 

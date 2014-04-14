@@ -37,22 +37,18 @@ extern void sn_io_init(void);
 
 static struct list_head sn_sysdata_list;
 
-/* sysdata list struct */
 struct sysdata_el {
 	struct list_head entry;
 	void *sysdata;
 };
 
-int sn_ioif_inited;		/* SN I/O infrastructure initialized? */
+int sn_ioif_inited;		
 
-int sn_acpi_rev;		/* SN ACPI revision */
+int sn_acpi_rev;		
 EXPORT_SYMBOL_GPL(sn_acpi_rev);
 
-struct sn_pcibus_provider *sn_pci_provider[PCIIO_ASIC_MAX_TYPES];	/* indexed by asic type */
+struct sn_pcibus_provider *sn_pci_provider[PCIIO_ASIC_MAX_TYPES];	
 
-/*
- * Hooks and struct for unsupported pci providers
- */
 
 static dma_addr_t
 sn_default_pci_map(struct pci_dev *pdev, unsigned long paddr, size_t size, int type)
@@ -79,10 +75,6 @@ static struct sn_pcibus_provider sn_pci_default_provider = {
 	.bus_fixup = sn_default_pci_bus_fixup,
 };
 
-/*
- * Retrieve the DMA Flush List given nasid, widget, and device.
- * This list is needed to implement the WAR - Flush DMA data on PIO Reads.
- */
 static inline u64
 sal_get_device_dmaflush_list(u64 nasid, u64 widget_num, u64 device_num,
 			     u64 address)
@@ -98,10 +90,6 @@ sal_get_device_dmaflush_list(u64 nasid, u64 widget_num, u64 device_num,
 	return ret_stuff.status;
 }
 
-/*
- * sn_pcidev_info_get() - Retrieve the pcidev_info struct for the specified
- *			  device.
- */
 inline struct pcidev_info *
 sn_pcidev_info_get(struct pci_dev *dev)
 {
@@ -115,12 +103,6 @@ sn_pcidev_info_get(struct pci_dev *dev)
 	return NULL;
 }
 
-/* Older PROM flush WAR
- *
- * 01/16/06 -- This war will be in place until a new official PROM is released.
- * Additionally note that the struct sn_flush_device_war also has to be
- * removed from arch/ia64/sn/include/xtalk/hubdev.h
- */
 
 static s64 sn_device_fixup_war(u64 nasid, u64 widget, int device,
 			       struct sn_flush_device_common *common)
@@ -148,10 +130,6 @@ static s64 sn_device_fixup_war(u64 nasid, u64 widget, int device,
 	return isrv.status;
 }
 
-/*
- * sn_common_hubdev_init() - This routine is called to initialize the HUB data
- *			     structure for each node in the system.
- */
 void __init
 sn_common_hubdev_init(struct hubdev_info *hubdev)
 {
@@ -161,8 +139,8 @@ sn_common_hubdev_init(struct hubdev_info *hubdev)
 	s64 status;
 	int widget, device, size;
 
-	/* Attach the error interrupt handlers */
-	if (hubdev->hdi_nasid & 1)	/* If TIO */
+	
+	if (hubdev->hdi_nasid & 1)	
 		ice_error_init(hubdev);
 	else
 		hub_error_init(hubdev);
@@ -221,9 +199,6 @@ void sn_pci_unfixup_slot(struct pci_dev *dev)
 	pci_dev_put(dev);
 }
 
-/*
- * sn_pci_fixup_slot()
- */
 void sn_pci_fixup_slot(struct pci_dev *dev, struct pcidev_info *pcidev_info,
 		       struct sn_irq_info *sn_irq_info)
 {
@@ -233,15 +208,11 @@ void sn_pci_fixup_slot(struct pci_dev *dev, struct pcidev_info *pcidev_info,
 	struct pci_dev *host_pci_dev;
 	unsigned int bus_no, devfn;
 
-	pci_dev_get(dev); /* for the sysdata pointer */
+	pci_dev_get(dev); 
 
-	/* Add pcidev_info to list in pci_controller.platform_data */
+	
 	list_add_tail(&pcidev_info->pdi_list,
 		      &(SN_PLATFORM_DATA(dev->bus)->pcidev_info));
-	/*
-	 * Using the PROMs values for the PCI host bus, get the Linux
-	 * PCI host_pci_dev struct and set up host bus linkages
- 	 */
 
 	bus_no = (pcidev_info->pdi_slot_host_handle >> 32) & 0xff;
 	devfn = pcidev_info->pdi_slot_host_handle & 0xffffffff;
@@ -260,7 +231,7 @@ void sn_pci_fixup_slot(struct pci_dev *dev, struct pcidev_info *pcidev_info,
 		SN_PCIDEV_BUSPROVIDER(dev) = &sn_pci_default_provider;
 	}
 
-	/* Only set up IRQ stuff if this device has a host bus context */
+	
 	if (bs && sn_irq_info->irq_irq) {
 		pcidev_info->pdi_sn_irq_info = sn_irq_info;
 		dev->irq = pcidev_info->pdi_sn_irq_info->irq_irq;
@@ -271,11 +242,6 @@ void sn_pci_fixup_slot(struct pci_dev *dev, struct pcidev_info *pcidev_info,
 	}
 }
 
-/*
- * sn_common_bus_fixup - Perform platform specific bus fixup.
- *			 Execute the ASIC specific fixup routine
- *			 for this bus.
- */
 void
 sn_common_bus_fixup(struct pci_bus *bus,
 		    struct pcibus_bussoft *prom_bussoft_ptr)
@@ -289,10 +255,6 @@ sn_common_bus_fixup(struct pci_bus *bus,
 	struct sn_platform_data *sn_platform_data;
 
 	controller = PCI_CONTROLLER(bus);
-	/*
-	 * Per-provider fixup.  Copies the bus soft structure from prom
-	 * to local area and links SN_PCIBUS_BUSSOFT().
-	 */
 
 	if (prom_bussoft_ptr->bs_asic_type >= PCIIO_ASIC_MAX_TYPES) {
 		printk(KERN_WARNING "sn_common_bus_fixup: Unsupported asic type, %d",
@@ -301,7 +263,7 @@ sn_common_bus_fixup(struct pci_bus *bus,
 	}
 
 	if (prom_bussoft_ptr->bs_asic_type == PCIIO_ASIC_TYPE_PPB)
-		return;	/* no further fixup necessary */
+		return;	
 
 	provider = sn_pci_provider[prom_bussoft_ptr->bs_asic_type];
 	if (provider == NULL)
@@ -314,10 +276,6 @@ sn_common_bus_fixup(struct pci_bus *bus,
 	else
 		provider_soft = NULL;
 
-	/*
-	 * Generic bus fixup goes here.  Don't reference prom_bussoft_ptr
-	 * after this point.
-	 */
 	controller->platform_data = kzalloc(sizeof(struct sn_platform_data),
 					    GFP_KERNEL);
 	BUG_ON(controller->platform_data == NULL);
@@ -332,10 +290,6 @@ sn_common_bus_fixup(struct pci_bus *bus,
 	SN_PCIBUS_BUSSOFT(bus)->bs_xwidget_info =
 	    &(hubdev_info->hdi_xwidget_info[SN_PCIBUS_BUSSOFT(bus)->bs_xid]);
 
-	/*
-	 * If the node information we obtained during the fixup phase is
-	 * invalid then set controller->node to -1 (undetermined)
-	 */
 	if (controller->node >= num_online_nodes()) {
 		struct pcibus_bussoft *b = SN_PCIBUS_BUSSOFT(bus);
 
@@ -379,10 +333,6 @@ void sn_bus_free_sysdata(void)
 	return;
 }
 
-/*
- * hubdev_init_node() - Creates the HUB data structure and link them to it's
- *			own NODE specific data area.
- */
 void __init hubdev_init_node(nodepda_t * npda, cnodeid_t node)
 {
 	struct hubdev_info *hubdev_info;
@@ -391,7 +341,7 @@ void __init hubdev_init_node(nodepda_t * npda, cnodeid_t node)
 
 	size = sizeof(struct hubdev_info);
 
-	if (node >= num_online_nodes())	/* Headless/memless IO nodes */
+	if (node >= num_online_nodes())	
 		pg = NODE_DATA(0);
 	else
 		pg = NODE_DATA(node);
@@ -429,7 +379,7 @@ void sn_generate_path(struct pci_bus *pci_bus, char *address)
 		'0'+RACK_GET_NUM(MODULE_GET_RACK(moduleid)),
 		MODULE_GET_BTCHAR(moduleid), MODULE_GET_BPOS(moduleid));
 
-	/* Tollhouse requires slot id to be displayed */
+	
 	bricktype = MODULE_GET_BTYPE(moduleid);
 	if ((bricktype == L1_BRICKTYPE_191010) ||
 	    (bricktype == L1_BRICKTYPE_1932))
@@ -447,13 +397,6 @@ sn_pci_fixup_bus(struct pci_bus *bus)
 		sn_bus_fixup(bus);
 }
 
-/*
- * sn_io_early_init - Perform early IO (and some non-IO) initialization.
- *		      In particular, setup the sn_pci_provider[] array.
- *		      This needs to be done prior to any bus scanning
- *		      (acpi_scan_init()) in the ACPI case, as the SN
- *		      bus fixup code will reference the array.
- */
 static int __init
 sn_io_early_init(void)
 {
@@ -462,7 +405,7 @@ sn_io_early_init(void)
 	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
 		return 0;
 
-	/* we set the acpi revision to that of the DSDT table OEM rev. */
+	
 	{
 		struct acpi_table_header *header = NULL;
 
@@ -471,10 +414,6 @@ sn_io_early_init(void)
 		sn_acpi_rev = header->oem_revision;
 	}
 
-	/*
-	 * prime sn_pci_provider[].  Individual provider init routines will
-	 * override their respective default entries.
-	 */
 
 	for (i = 0; i < PCIIO_ASIC_MAX_TYPES; i++)
 		sn_pci_provider[i] = &sn_pci_default_provider;
@@ -483,9 +422,6 @@ sn_io_early_init(void)
 	tioca_init_provider();
 	tioce_init_provider();
 
-	/*
-	 * This is needed to avoid bounce limit checks in the blk layer
-	 */
 	ia64_max_iommu_merge_mask = ~PAGE_MASK;
 
 	sn_irq_lh_init();
@@ -511,9 +447,6 @@ sn_io_early_init(void)
 
 arch_initcall(sn_io_early_init);
 
-/*
- * sn_io_late_init() - Perform any final platform specific IO initialization.
- */
 
 int __init
 sn_io_late_init(void)
@@ -527,11 +460,6 @@ sn_io_late_init(void)
 	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
 		return 0;
 
-	/*
-	 * Setup closest node in pci_controller->node for
-	 * PIC, TIOCP, TIOCE (TIOCA does it during bus fixup using
-	 * info from the PROM).
-	 */
 	bus = NULL;
 	while ((bus = pci_find_next_bus(bus)) != NULL) {
 		bussoft = SN_PCIBUS_BUSSOFT(bus);
@@ -540,11 +468,11 @@ sn_io_late_init(void)
 		if ((bussoft->bs_asic_type == PCIIO_ASIC_TYPE_TIOCP) ||
 		    (bussoft->bs_asic_type == PCIIO_ASIC_TYPE_TIOCE) ||
 		    (bussoft->bs_asic_type == PCIIO_ASIC_TYPE_PIC)) {
-			/* PCI Bridge: find nearest node with CPUs */
+			
 			int e = sn_hwperf_get_nearest_node(cnode, NULL,
 							   &near_cnode);
 			if (e < 0) {
-				near_cnode = (cnodeid_t)-1; /* use any node */
+				near_cnode = (cnodeid_t)-1; 
 				printk(KERN_WARNING "sn_io_late_init: failed "
 				       "to find near node with CPUs for "
 				       "node %d, err=%d\n", cnode, e);
@@ -553,7 +481,7 @@ sn_io_late_init(void)
 		}
 	}
 
-	sn_ioif_inited = 1;	/* SN I/O infrastructure now initialized */
+	sn_ioif_inited = 1;	
 
 	return 0;
 }

@@ -14,9 +14,6 @@
 
 static int GetStatus(int card, boardInfo *);
 
-/*
- * Process private IOCTL messages (typically from scctrl)
- */
 int sc_ioctl(int card, scs_ioctl *data)
 {
 	int		status;
@@ -31,7 +28,7 @@ int sc_ioctl(int card, scs_ioctl *data)
 		return -ENOMEM;
 
 	switch (data->command) {
-	case SCIOCRESET:	/* Perform a hard reset of the adapter */
+	case SCIOCRESET:	
 	{
 		pr_debug("%s: SCIOCRESET: ioctl received\n",
 			 sc_adapter[card]->devicename);
@@ -59,9 +56,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 			return -1;
 		}
 
-		/*
-		 * Get the SRec from user space
-		 */
 		if (copy_from_user(srec, data->dataptr, SCIOC_SRECSIZE)) {
 			kfree(rcvmsg);
 			kfree(srec);
@@ -106,9 +100,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: SCIOSETSWITCH: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the switch type from user space
-		 */
 		if (copy_from_user(&switchtype, data->dataptr, sizeof(char))) {
 			kfree(rcvmsg);
 			return -EFAULT;
@@ -138,9 +129,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: SCIOGETSWITCH: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the switch type from the board
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0,
 					  ceReqCallGetSwitchType, 0, 0, NULL, rcvmsg, SAR_TIMEOUT);
 		if (!status && !(rcvmsg->rsp_status)) {
@@ -156,9 +144,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 
 		switchtype = rcvmsg->msg_data.byte_array[0];
 
-		/*
-		 * Package the switch type and send to user space
-		 */
 		if (copy_to_user(data->dataptr, &switchtype,
 				 sizeof(char))) {
 			kfree(rcvmsg);
@@ -179,9 +164,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 			kfree(rcvmsg);
 			return -ENOMEM;
 		}
-		/*
-		 * Get the spid from the board
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0, ceReqCallGetSPID,
 					  data->channel, 0, NULL, rcvmsg, SAR_TIMEOUT);
 		if (!status) {
@@ -196,9 +178,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		}
 		strlcpy(spid, rcvmsg->msg_data.byte_array, SCIOC_SPIDSIZE);
 
-		/*
-		 * Package the switch type and send to user space
-		 */
 		if (copy_to_user(data->dataptr, spid, SCIOC_SPIDSIZE)) {
 			kfree(spid);
 			kfree(rcvmsg);
@@ -215,9 +194,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: DCBIOSETSPID: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the spid from user space
-		 */
 		spid = memdup_user(data->dataptr, SCIOC_SPIDSIZE);
 		if (IS_ERR(spid)) {
 			kfree(rcvmsg);
@@ -250,9 +226,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: SCIOGETDN: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the dn from the board
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0, ceReqCallGetMyNumber,
 					  data->channel, 0, NULL, rcvmsg, SAR_TIMEOUT);
 		if (!status) {
@@ -274,9 +247,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		strlcpy(dn, rcvmsg->msg_data.byte_array, SCIOC_DNSIZE);
 		kfree(rcvmsg);
 
-		/*
-		 * Package the dn and send to user space
-		 */
 		if (copy_to_user(data->dataptr, dn, SCIOC_DNSIZE)) {
 			kfree(dn);
 			return -EFAULT;
@@ -290,9 +260,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: SCIOSETDN: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the spid from user space
-		 */
 		dn = memdup_user(data->dataptr, SCIOC_DNSIZE);
 		if (IS_ERR(dn)) {
 			kfree(rcvmsg);
@@ -324,10 +291,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 
 		pr_debug("%s: SCIOTRACE: ioctl received\n",
 			 sc_adapter[card]->devicename);
-/*		sc_adapter[card]->trace = !sc_adapter[card]->trace;
-		pr_debug("%s: SCIOCTRACE: tracing turned %s\n",
-		sc_adapter[card]->devicename,
-		sc_adapter[card]->trace ? "ON" : "OFF"); */
 		break;
 
 	case SCIOCSTAT:
@@ -360,9 +323,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 		pr_debug("%s: SCIOGETSPEED: ioctl received\n",
 			 sc_adapter[card]->devicename);
 
-		/*
-		 * Get the speed from the board
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0,
 					  ceReqCallGetCallType, data->channel, 0, NULL, rcvmsg, SAR_TIMEOUT);
 		if (!status && !(rcvmsg->rsp_status)) {
@@ -380,9 +340,6 @@ int sc_ioctl(int card, scs_ioctl *data)
 
 		kfree(rcvmsg);
 
-		/*
-		 * Package the switch type and send to user space
-		 */
 
 		if (copy_to_user(data->dataptr, &speed, sizeof(char)))
 			return -EFAULT;
@@ -414,9 +371,6 @@ static int GetStatus(int card, boardInfo *bi)
 	RspMessage rcvmsg;
 	int i, status;
 
-	/*
-	 * Fill in some of the basic info about the board
-	 */
 	bi->modelid = sc_adapter[card]->model;
 	strcpy(bi->serial_no, sc_adapter[card]->hwconfig.serial_no);
 	strcpy(bi->part_no, sc_adapter[card]->hwconfig.part_no);
@@ -428,9 +382,6 @@ static int GetStatus(int card, boardInfo *bi)
 	strcpy(bi->load_ver, sc_adapter[card]->load_ver);
 	strcpy(bi->proc_ver, sc_adapter[card]->proc_ver);
 
-	/*
-	 * Get the current PhyStats and LnkStats
-	 */
 	status = send_and_receive(card, CEPID, ceReqTypePhy, ceReqClass2,
 				  ceReqPhyStatus, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
 	if (!status) {
@@ -449,9 +400,6 @@ static int GetStatus(int card, boardInfo *bi)
 		}
 	}
 
-	/*
-	 * Get the call types for each channel
-	 */
 	for (i = 0; i < sc_adapter[card]->nChannels; i++) {
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0,
 					  ceReqCallGetCallType, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
@@ -467,13 +415,7 @@ static int GetStatus(int card, boardInfo *bi)
 		}
 	}
 
-	/*
-	 * If PRI, get the call states and service states for each channel
-	 */
 	if (sc_adapter[card]->model == PRI_BOARD) {
-		/*
-		 * Get the call states
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeStat, ceReqClass2,
 					  ceReqPhyChCallState, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
 		if (!status) {
@@ -482,9 +424,6 @@ static int GetStatus(int card, boardInfo *bi)
 					rcvmsg.msg_data.byte_array[i];
 		}
 
-		/*
-		 * Get the service states
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeStat, ceReqClass2,
 					  ceReqPhyChServState, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
 		if (!status) {
@@ -493,9 +432,6 @@ static int GetStatus(int card, boardInfo *bi)
 					rcvmsg.msg_data.byte_array[i];
 		}
 
-		/*
-		 * Get the link stats for the channels
-		 */
 		for (i = 1; i <= PRI_CHANNELS; i++) {
 			status = send_and_receive(card, CEPID, ceReqTypeLnk, ceReqClass0,
 						  ceReqLnkGetStats, i, 0, NULL, &rcvmsg, SAR_TIMEOUT);
@@ -511,9 +447,6 @@ static int GetStatus(int card, boardInfo *bi)
 			}
 		}
 
-		/*
-		 * Link stats for the D channel
-		 */
 		status = send_and_receive(card, CEPID, ceReqTypeLnk, ceReqClass0,
 					  ceReqLnkGetStats, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
 		if (!status) {
@@ -526,13 +459,7 @@ static int GetStatus(int card, boardInfo *bi)
 		return 0;
 	}
 
-	/*
-	 * If BRI or POTS, Get SPID, DN and call types for each channel
-	 */
 
-	/*
-	 * Get the link stats for the channels
-	 */
 	status = send_and_receive(card, CEPID, ceReqTypeLnk, ceReqClass0,
 				  ceReqLnkGetStats, 0, 0, NULL, &rcvmsg, SAR_TIMEOUT);
 	if (!status) {
@@ -558,9 +485,6 @@ static int GetStatus(int card, boardInfo *bi)
 			(unsigned long)rcvmsg.msg_data.byte_array[44];
 	}
 
-	/*
-	 * Get the SPIDs
-	 */
 	for (i = 0; i < BRI_CHANNELS; i++) {
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0,
 					  ceReqCallGetSPID, i + 1, 0, NULL, &rcvmsg, SAR_TIMEOUT);
@@ -568,9 +492,6 @@ static int GetStatus(int card, boardInfo *bi)
 			strcpy(bi->status.bristats[i].spid, rcvmsg.msg_data.byte_array);
 	}
 
-	/*
-	 * Get the DNs
-	 */
 	for (i = 0; i < BRI_CHANNELS; i++) {
 		status = send_and_receive(card, CEPID, ceReqTypeCall, ceReqClass0,
 					  ceReqCallGetMyNumber, i + 1, 0, NULL, &rcvmsg, SAR_TIMEOUT);

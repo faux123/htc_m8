@@ -140,10 +140,6 @@ static void nuc900_irq_mask(struct irq_data *d)
 		group_irq_disable(group_irq);
 }
 
-/*
- * By the w90p910 spec,any irq,only write 1
- * to REG_AIC_EOSCR for ACK
- */
 
 static void nuc900_irq_ack(struct irq_data *d)
 {

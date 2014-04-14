@@ -3,7 +3,6 @@
 
 #ifdef __KERNEL__
 
-/* Let gcc decide whether to inline or use the out of line functions */
 
 #define __HAVE_ARCH_STRCPY
 extern char *strcpy(char *dest, const char *src);
@@ -44,10 +43,6 @@ static __always_inline void *__memcpy(void *to, const void *from, size_t n)
 	return to;
 }
 
-/*
- * This looks ugly, but the compiler can optimize it totally,
- * as the count is constant.
- */
 static __always_inline void *__constant_memcpy(void *to, const void *from,
 					       size_t n)
 {
@@ -86,7 +81,7 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
 	esi = (long)from;
 	edi = (long)to;
 	if (n >= 5 * 4) {
-		/* large block: use rep prefix */
+		
 		int ecx;
 		asm volatile("rep ; movsl"
 			     : "=&c" (ecx), "=&D" (edi), "=&S" (esi)
@@ -94,7 +89,7 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
 			     : "memory"
 		);
 	} else {
-		/* small block: don't clobber ecx + smaller code */
+		
 		if (n >= 4 * 4)
 			asm volatile("movsl"
 				     : "=&D"(edi), "=&S"(esi)
@@ -117,7 +112,7 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
 				     : "memory");
 	}
 	switch (n % 4) {
-		/* tail */
+		
 	case 0:
 		return to;
 	case 1:
@@ -147,9 +142,6 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
 
 #include <asm/mmx.h>
 
-/*
- *	This CPU favours 3DNow strongly (eg AMD Athlon)
- */
 
 static inline void *__constant_memcpy3d(void *to, const void *from, size_t len)
 {
@@ -172,9 +164,6 @@ static inline void *__memcpy3d(void *to, const void *from, size_t len)
 
 #else
 
-/*
- *	No 3D Now!
- */
 
 #ifndef CONFIG_KMEMCHECK
 
@@ -187,10 +176,6 @@ static inline void *__memcpy3d(void *to, const void *from, size_t len)
 	 : __memcpy((t), (f), (n)))
 #endif
 #else
-/*
- * kmemcheck becomes very happy if we use the REP instructions unconditionally,
- * because it means that we know both memory operands in advance.
- */
 #define memcpy(t, f, n) __memcpy((t), (f), (n))
 #endif
 
@@ -215,14 +200,8 @@ static inline void *__memset_generic(void *s, char c, size_t count)
 	return s;
 }
 
-/* we might want to write optimized versions of these later */
 #define __constant_count_memset(s, c, count) __memset_generic((s), (c), (count))
 
-/*
- * memset(x, 0, y) is a reasonably common thing to do, so we want to fill
- * things 32 bits at a time even when we don't know the size of the
- * area at compile-time..
- */
 static __always_inline
 void *__constant_c_memset(void *s, unsigned long c, size_t count)
 {
@@ -241,18 +220,12 @@ void *__constant_c_memset(void *s, unsigned long c, size_t count)
 	return s;
 }
 
-/* Added by Gertjan van Wingerde to make minix and sysv module work */
 #define __HAVE_ARCH_STRNLEN
 extern size_t strnlen(const char *s, size_t count);
-/* end of additional stuff */
 
 #define __HAVE_ARCH_STRSTR
 extern char *strstr(const char *cs, const char *ct);
 
-/*
- * This looks horribly ugly, but the compiler can optimize it totally,
- * as we by now know that both pattern and count is constant..
- */
 static __always_inline
 void *__constant_c_and_count_memset(void *s, unsigned long pattern,
 				    size_t count)
@@ -285,7 +258,7 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
 	{
 		int d0, d1;
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 0
-		/* Workaround for broken gcc 4.0 */
+		
 		register unsigned long eax asm("%eax") = pattern;
 #else
 		unsigned long eax = pattern;
@@ -331,12 +304,9 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
 	 : __memset((s), (c), (count)))
 #endif
 
-/*
- * find the first occurrence of byte 'c', or 1 past the area if none
- */
 #define __HAVE_ARCH_MEMSCAN
 extern void *memscan(void *addr, int c, size_t size);
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_X86_STRING_32_H */
+#endif 

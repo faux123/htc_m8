@@ -1,4 +1,3 @@
-/* Wrapper for DMA channel allocator that starts clocks etc */
 
 #include <linux/kernel.h>
 #include <linux/spinlock.h>

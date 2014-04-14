@@ -13,10 +13,6 @@
 #include <linux/cred.h>
 #include "internal.h"
 
-/*
- * determine the security context within which we access the cache from within
- * the kernel
- */
 int cachefiles_get_security_ID(struct cachefiles_cache *cache)
 {
 	struct cred *new;
@@ -49,9 +45,6 @@ error:
 	return ret;
 }
 
-/*
- * see if mkdir and create can be performed in the root directory
- */
 static int cachefiles_check_cache_dir(struct cachefiles_cache *cache,
 				      struct dentry *root)
 {
@@ -74,12 +67,6 @@ static int cachefiles_check_cache_dir(struct cachefiles_cache *cache,
 	return ret;
 }
 
-/*
- * check the security details of the on-disk cache
- * - must be called with security override in force
- * - must return with a security override in force - even in the case of an
- *   error
- */
 int cachefiles_determine_cache_security(struct cachefiles_cache *cache,
 					struct dentry *root,
 					const struct cred **_saved_cred)
@@ -89,16 +76,12 @@ int cachefiles_determine_cache_security(struct cachefiles_cache *cache,
 
 	_enter("");
 
-	/* duplicate the cache creds for COW (the override is currently in
-	 * force, so we can use prepare_creds() to do this) */
 	new = prepare_creds();
 	if (!new)
 		return -ENOMEM;
 
 	cachefiles_end_secure(cache, *_saved_cred);
 
-	/* use the cache root dir's security context as the basis with
-	 * which create files */
 	ret = set_create_files_as(new, root->d_inode);
 	if (ret < 0) {
 		abort_creds(new);

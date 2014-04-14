@@ -1,16 +1,3 @@
-/**************************************************************************************************
- * Procedure:    Init boot code/firmware code/data session
- *
- * Description: This routine will initialize firmware. If any error occurs during the initialization
- * 		process, the routine shall terminate immediately and return fail.
- *		NIC driver should call NdisOpenFile only from MiniportInitialize.
- *
- * Arguments:   The pointer of the adapter
-
- * Returns:
- *        NDIS_STATUS_FAILURE - the following initialization process should be terminated
- *        NDIS_STATUS_SUCCESS - if firmware initialization process success
-**************************************************************************************************/
 
 #include "r8192U.h"
 #include "r8192U_hw.h"
@@ -25,17 +12,13 @@ void firmware_init_param(struct net_device *dev)
 	pfirmware->cmdpacket_frag_thresold = GET_COMMAND_PACKET_FRAG_THRESHOLD(MAX_TRANSMIT_BUFFER_SIZE);
 }
 
-/*
- * segment the img and use the ptr and length to remember info on each segment
- *
- */
 bool fw_download_code(struct net_device *dev, u8 *code_virtual_address, u32 buffer_len)
 {
 	struct r8192_priv   *priv = ieee80211_priv(dev);
 	bool 		    rt_status = true;
 	u16		    frag_threshold;
 	u16		    frag_length, frag_offset = 0;
-	//u16		    total_size;
+	
 	int		    i;
 
 	rt_firmware	    *pfirmware = priv->pFirmware;
@@ -45,7 +28,7 @@ bool fw_download_code(struct net_device *dev, u8 *code_virtual_address, u32 buff
 	u8                  bLastIniPkt;
 
 	firmware_init_param(dev);
-	//Fragmentation might be required
+	
 	frag_threshold = pfirmware->cmdpacket_frag_thresold;
 	do {
 		if((buffer_len - frag_offset) > frag_threshold) {
@@ -58,9 +41,6 @@ bool fw_download_code(struct net_device *dev, u8 *code_virtual_address, u32 buff
 
 		}
 
-		/* Allocate skb buffer to contain firmware info and tx descriptor info
-		 * add 4 to avoid packet appending overflow.
-		 * */
 		#ifdef RTL8192U
 		skb  = dev_alloc_skb(USB_HWDESC_HEADER_LEN + frag_length + 4);
 		#else
@@ -76,10 +56,6 @@ bool fw_download_code(struct net_device *dev, u8 *code_virtual_address, u32 buff
 		skb_reserve(skb, USB_HWDESC_HEADER_LEN);
 		#endif
 		seg_ptr = skb->data;
-		/*
-		 * Transform from little endian to big endian
-		 * and pending  zero
-		 */
 		for(i=0 ; i < frag_length; i+=4) {
 			*seg_ptr++ = ((i+0)<frag_length)?code_virtual_address[i+3]:0;
 			*seg_ptr++ = ((i+1)<frag_length)?code_virtual_address[i+2]:0;
@@ -120,9 +96,9 @@ fwSendNullPacket(
 	unsigned char	    *ptr_buf;
 	bool	bLastInitPacket = false;
 
-	//PlatformAcquireSpinLock(Adapter, RT_TX_SPINLOCK);
+	
 
-	//Get TCB and local buffer from common pool. (It is shared by CmdQ, MgntQ, and USB coalesce DataQ)
+	
 	skb  = dev_alloc_skb(Length+ 4);
 	memcpy((unsigned char *)(skb->cb),&dev,sizeof(dev));
 	tcb_desc = (cb_desc*)(skb->cb + MAX_DEV_ADDR_SIZE);
@@ -142,31 +118,18 @@ fwSendNullPacket(
 			priv->ieee80211->softmac_hard_start_xmit(skb,dev);
 		}
 
-	//PlatformReleaseSpinLock(Adapter, RT_TX_SPINLOCK);
+	
 	return rtStatus;
 }
 
 
-//-----------------------------------------------------------------------------
-// Procedure:    Check whether main code is download OK. If OK, turn on CPU
-//
-// Description:   CPU register locates in different page against general register.
-//			    Switch to CPU register in the begin and switch back before return
-//
-//
-// Arguments:   The pointer of the adapter
-//
-// Returns:
-//        NDIS_STATUS_FAILURE - the following initialization process should be terminated
-//        NDIS_STATUS_SUCCESS - if firmware initialization process success
-//-----------------------------------------------------------------------------
 bool CPUcheck_maincodeok_turnonCPU(struct net_device *dev)
 {
 	bool		rt_status = true;
 	int		check_putcodeOK_time = 200000, check_bootOk_time = 200000;
 	u32		CPU_status = 0;
 
-	/* Check whether put code OK */
+	
 	do {
 		CPU_status = read_nic_dword(dev, CPU_GEN);
 
@@ -182,12 +145,12 @@ bool CPUcheck_maincodeok_turnonCPU(struct net_device *dev)
 		RT_TRACE(COMP_FIRMWARE, "Download Firmware: Put code ok!\n");
 	}
 
-	/* Turn On CPU */
+	
 	CPU_status = read_nic_dword(dev, CPU_GEN);
 	write_nic_byte(dev, CPU_GEN, (u8)((CPU_status|CPU_GEN_PWR_STB_CPU)&0xff));
 	mdelay(1000);
 
-	/* Check whether CPU boot OK */
+	
 	do {
 		CPU_status = read_nic_dword(dev, CPU_GEN);
 
@@ -216,7 +179,7 @@ bool CPUcheck_firmware_ready(struct net_device *dev)
 	int		check_time = 200000;
 	u32		CPU_status = 0;
 
-	/* Check Firmware Ready */
+	
 	do {
 		CPU_status = read_nic_dword(dev, CPU_GEN);
 
@@ -260,28 +223,20 @@ bool init_firmware(struct net_device *dev)
 	RT_TRACE(COMP_FIRMWARE, " PlatformInitFirmware()==>\n");
 
 	if (pfirmware->firmware_status == FW_STATUS_0_INIT ) {
-		/* it is called by reset */
+		
 		rst_opt = OPT_SYSTEM_RESET;
 		starting_state = FW_INIT_STEP0_BOOT;
-		// TODO: system reset
+		
 
 	}else if(pfirmware->firmware_status == FW_STATUS_5_READY) {
-		/* it is called by Initialize */
+		
 		rst_opt = OPT_FIRMWARE_RESET;
 		starting_state = FW_INIT_STEP2_DATA;
 	}else {
 		 RT_TRACE(COMP_FIRMWARE, "PlatformInitFirmware: undefined firmware state\n");
 	}
 
-	/*
-	 * Download boot, main, and data image for System reset.
-	 * Download data image for firmware reseta
-	 */
 	for(init_step = starting_state; init_step <= FW_INIT_STEP2_DATA; init_step++) {
-		/*
-		 * Open Image file, and map file to contineous memory if open file success.
-		 * or read image file from array. Default load from IMG file
-		 */
 		if(rst_opt == OPT_SYSTEM_RESET) {
 			rc = request_firmware(&fw_entry, fw_name[init_step],&priv->udev->dev);
 			if(rc < 0 ) {
@@ -312,18 +267,12 @@ bool init_firmware(struct net_device *dev)
 			}
 			pfirmware->firmware_buf_size = file_length;
 		}else if(rst_opt == OPT_FIRMWARE_RESET ) {
-			/* we only need to download data.img here */
+			
 			mapped_file = pfirmware->firmware_buf;
 			file_length = pfirmware->firmware_buf_size;
 		}
 
-		/* Download image file */
-		/* The firmware download process is just as following,
-		 * 1. that is each packet will be segmented and inserted to the wait queue.
-		 * 2. each packet segment will be put in the skb_buff packet.
-		 * 3. each skb_buff packet data content will already include the firmware info
-		 *   and Tx descriptor info
-		 * */
+		
 		rt_status = fw_download_code(dev,mapped_file,file_length);
 		if(rst_opt == OPT_SYSTEM_RESET) {
 			release_firmware(fw_entry);
@@ -335,13 +284,9 @@ bool init_firmware(struct net_device *dev)
 
 		switch(init_step) {
 			case FW_INIT_STEP0_BOOT:
-				/* Download boot
-				 * initialize command descriptor.
-				 * will set polling bit when firmware code is also configured
-				 */
 				pfirmware->firmware_status = FW_STATUS_1_MOVE_BOOT_CODE;
 #ifdef RTL8190P
-				// To initialize IMEM, CPU move code  from 0x80000080, hence, we send 0x80 byte packet
+				
 				rt_status = fwSendNullPacket(dev, RTL8190_CPU_START_OFFSET);
 				if(rt_status != true)
 				{
@@ -349,18 +294,14 @@ bool init_firmware(struct net_device *dev)
 					goto  download_firmware_fail;
 				}
 #endif
-				//mdelay(1000);
-				/*
-				 * To initialize IMEM, CPU move code  from 0x80000080,
-				 * hence, we send 0x80 byte packet
-				 */
+				
 				break;
 
 			case FW_INIT_STEP1_MAIN:
-				/* Download firmware code. Wait until Boot Ready and Turn on CPU */
+				
 				pfirmware->firmware_status = FW_STATUS_2_MOVE_MAIN_CODE;
 
-				/* Check Put Code OK and Turn On CPU */
+				
 				rt_status = CPUcheck_maincodeok_turnonCPU(dev);
 				if(rt_status != TRUE) {
 					RT_TRACE(COMP_ERR, "CPUcheck_maincodeok_turnonCPU fail!\n");
@@ -371,7 +312,7 @@ bool init_firmware(struct net_device *dev)
 				break;
 
 			case FW_INIT_STEP2_DATA:
-				/* download initial data code */
+				
 				pfirmware->firmware_status = FW_STATUS_4_MOVE_DATA_CODE;
 				mdelay(1);
 
@@ -381,14 +322,14 @@ bool init_firmware(struct net_device *dev)
 					goto download_firmware_fail;
 				}
 
-				/* wait until data code is initialized ready.*/
+				
 				pfirmware->firmware_status = FW_STATUS_5_READY;
 				break;
 		}
 	}
 
 	RT_TRACE(COMP_FIRMWARE, "Firmware Download Success\n");
-	//assert(pfirmware->firmware_status == FW_STATUS_5_READY, ("Firmware Download Fail\n"));
+	
 
 	return rt_status;
 

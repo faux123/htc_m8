@@ -11,12 +11,6 @@
 #ifndef __ASM_MACH_ATH79_KERNEL_ENTRY_H
 #define __ASM_MACH_ATH79_KERNEL_ENTRY_H
 
-	/*
-	 * Some bootloaders set the 'Kseg0 coherency algorithm' to
-	 * 'Cacheable, noncoherent, write-through, no write allocate'
-	 * and this cause performance issues. Let's go and change it to
-	 * 'Cacheable, noncoherent, write-back, write allocate'
-	 */
 	.macro	kernel_entry_setup
 	mfc0	t0, CP0_CONFIG
 	li	t1, ~CONF_CM_CMASK
@@ -29,4 +23,4 @@
 	.macro	smp_slave_setup
 	.endm
 
-#endif /* __ASM_MACH_ATH79_KERNEL_ENTRY_H */
+#endif 

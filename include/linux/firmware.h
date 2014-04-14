@@ -23,8 +23,6 @@ struct builtin_fw {
 	unsigned long size;
 };
 
-/* We have to play tricks here much like stringify() to get the
-   __COUNTER__ macro to be expanded as we want it */
 #define __fw_concat1(x, y) x##y
 #define __fw_concat(x, y) __fw_concat1(x, y)
 
@@ -36,6 +34,8 @@ struct builtin_fw {
 	__used __section(.builtin_fw) = { name, blob, size }
 
 #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
+int request_firmware_direct(const char *name, struct device *device,
+			    phys_addr_t addr, size_t size);
 int request_firmware(const struct firmware **fw, const char *name,
 		     struct device *device);
 int request_firmware_nowait(
@@ -45,6 +45,12 @@ int request_firmware_nowait(
 
 void release_firmware(const struct firmware *fw);
 #else
+static inline int request_firmware_direct(const char *name,
+					  struct device *device,
+					  phys_addr_t addr, size_t size)
+{
+	return -EINVAL;
+}
 static inline int request_firmware(const struct firmware **fw,
 				   const char *name,
 				   struct device *device)

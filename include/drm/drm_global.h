@@ -24,9 +24,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
 
 #ifndef _DRM_GLOBAL_H_
 #define _DRM_GLOBAL_H_

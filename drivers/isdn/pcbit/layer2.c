@@ -9,20 +9,8 @@
  * the GNU General Public License, incorporated herein by reference.
  */
 
-/*
- * 19991203 - Fernando Carvalho - takion@superbofh.org
- * Hacked to compile with egcs and run with current version of isdn modules
- */
 
-/*
- *        Based on documentation provided by Inesc:
- *        - "Interface com bus do PC para o PCBIT e PCBIT-D", Inesc, Jan 93
- */
 
-/*
- *        TODO: better handling of errors
- *              re-write/remove debug printks
- */
 
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -46,9 +34,6 @@
 #undef DEBUG_FRAG
 
 
-/*
- *  Prototypes
- */
 
 static void pcbit_transmit(struct pcbit_dev *dev);
 
@@ -67,9 +52,6 @@ pcbit_sched_delivery(struct pcbit_dev *dev)
 }
 
 
-/*
- *  Called from layer3
- */
 
 int
 pcbit_l2_write(struct pcbit_dev *dev, ulong msg, ushort refnum,
@@ -134,16 +116,13 @@ pcbit_tx_update(struct pcbit_dev *dev, ushort len)
 
 }
 
-/*
- * called by interrupt service routine or by write_2
- */
 
 static void
 pcbit_transmit(struct pcbit_dev *dev)
 {
 	struct frame_buf *frame = NULL;
 	unsigned char unacked;
-	int flen;               /* fragment frame length including all headers */
+	int flen;               
 	int free;
 	int count,
 		cp_len;
@@ -174,7 +153,7 @@ pcbit_transmit(struct pcbit_dev *dev)
 
 		if (frame->copied == 0) {
 
-			/* Type 0 frame */
+			
 
 			ulong	msg;
 
@@ -188,9 +167,6 @@ pcbit_transmit(struct pcbit_dev *dev)
 
 			msg = frame->msg;
 
-			/*
-			 *  Board level 2 header
-			 */
 
 			pcbit_writew(dev, flen - FRAME_HDR_LEN);
 
@@ -198,41 +174,38 @@ pcbit_transmit(struct pcbit_dev *dev)
 
 			pcbit_writeb(dev, GET_MSG_PROC(msg));
 
-			/* TH */
+			
 			pcbit_writew(dev, frame->hdr_len + PREHDR_LEN);
 
-			/* TD */
+			
 			pcbit_writew(dev, frame->dt_len);
 
 
-			/*
-			 *  Board level 3 fixed-header
-			 */
 
-			/* LEN = TH */
+			
 			pcbit_writew(dev, frame->hdr_len + PREHDR_LEN);
 
-			/* XX */
+			
 			pcbit_writew(dev, 0);
 
-			/* C + S */
+			
 			pcbit_writeb(dev, GET_MSG_CMD(msg));
 			pcbit_writeb(dev, GET_MSG_SCMD(msg));
 
-			/* NUM */
+			
 			pcbit_writew(dev, frame->refnum);
 
 			count = FRAME_HDR_LEN + PREHDR_LEN;
 		} else {
-			/* Type 1 frame */
+			
 
 			flen = 2 + (frame->skb->len - frame->copied);
 
 			if (flen > free)
 				flen = free;
 
-			/* TT */
-			tt = ((ushort) (flen - 2)) | 0x8000U;	/* Type 1 */
+			
+			tt = ((ushort) (flen - 2)) | 0x8000U;	
 			pcbit_writew(dev, tt);
 
 			count = 2;
@@ -247,7 +220,7 @@ pcbit_transmit(struct pcbit_dev *dev)
 				       cp_len);
 			frame->copied += cp_len;
 		}
-		/* bookkeeping */
+		
 		dev->free -= flen;
 		pcbit_tx_update(dev, flen);
 
@@ -258,7 +231,7 @@ pcbit_transmit(struct pcbit_dev *dev)
 			dev->write_queue = frame->next;
 
 			if (frame->skb != NULL) {
-				/* free frame */
+				
 				dev_kfree_skb(frame->skb);
 			}
 			kfree(frame);
@@ -276,9 +249,6 @@ pcbit_transmit(struct pcbit_dev *dev)
 }
 
 
-/*
- *  deliver a queued frame to the upper layer
- */
 
 void
 pcbit_deliver(struct work_struct *work)
@@ -316,9 +286,6 @@ pcbit_deliver(struct work_struct *work)
 	spin_unlock_irqrestore(&dev->lock, flags);
 }
 
-/*
- * Reads BANK 2 & Reassembles
- */
 
 static void
 pcbit_receive(struct pcbit_dev *dev)
@@ -341,12 +308,12 @@ pcbit_receive(struct pcbit_dev *dev)
 		pcbit_l2_error(dev);
 		return;
 	}
-	if (!(tt & 0x8000U)) {  /* Type 0 */
+	if (!(tt & 0x8000U)) {  
 		type1 = 0;
 
 		if (dev->read_frame) {
 			printk(KERN_DEBUG "pcbit_receive: Type 0 frame and read_frame != NULL\n");
-			/* discard previous queued frame */
+			
 			kfree_skb(dev->read_frame->skb);
 			kfree(dev->read_frame);
 			dev->read_frame = NULL;
@@ -368,20 +335,10 @@ pcbit_receive(struct pcbit_dev *dev)
 			pcbit_l2_error(dev);
 			return;
 		}
-		/*
-		 * we discard cpu & proc on receiving
-		 * but we read it to update the pointer
-		 */
 
 		frame->hdr_len = pcbit_readw(dev);
 		frame->dt_len = pcbit_readw(dev);
 
-		/*
-		 * 0 sized packet
-		 * I don't know if they are an error or not...
-		 * But they are very frequent
-		 * Not documented
-		 */
 
 		if (frame->hdr_len == 0) {
 			kfree(frame);
@@ -391,7 +348,7 @@ pcbit_receive(struct pcbit_dev *dev)
 			pcbit_firmware_bug(dev);
 			return;
 		}
-		/* sanity check the length values */
+		
 		if (frame->hdr_len > 1024 || frame->dt_len > 2048) {
 #ifdef DEBUG
 			printk(KERN_DEBUG "length problem: ");
@@ -403,7 +360,7 @@ pcbit_receive(struct pcbit_dev *dev)
 			kfree(frame);
 			return;
 		}
-		/* minimum frame read */
+		
 
 		frame->skb = dev_alloc_skb(frame->hdr_len + frame->dt_len +
 					   ((frame->hdr_len + 15) & ~15));
@@ -413,18 +370,18 @@ pcbit_receive(struct pcbit_dev *dev)
 			kfree(frame);
 			return;
 		}
-		/* 16 byte alignment for IP */
+		
 		if (frame->dt_len)
 			skb_reserve(frame->skb, (frame->hdr_len + 15) & ~15);
 
 	} else {
-		/* Type 1 */
+		
 		type1 = 1;
 		tt &= 0x7fffU;
 
 		if (!(frame = dev->read_frame)) {
 			printk("Type 1 frame and no frame queued\n");
-			/* usually after an error: toss frame */
+			
 			dev->readptr += tt;
 			if (dev->readptr > dev->sh_mem + BANK2 + BANKLEN)
 				dev->readptr -= BANKLEN;
@@ -455,11 +412,6 @@ pcbit_receive(struct pcbit_dev *dev)
 	spin_unlock_irqrestore(&dev->lock, flags);
 }
 
-/*
- *  The board sends 0 sized frames
- *  They are TDATA_CONFs that get messed up somehow
- *  gotta send a fake acknowledgment to the upper layer somehow
- */
 
 static __inline__ void
 pcbit_fake_conf(struct pcbit_dev *dev, struct pcbit_chan *chan)
@@ -520,7 +472,7 @@ pcbit_irq_handler(int interrupt, void *devptr)
 		dev->interrupt = 0;
 		return IRQ_HANDLED;
 	}
-	if (info & 0x40U) {     /* E bit set */
+	if (info & 0x40U) {     
 #ifdef DEBUG
 		printk(KERN_DEBUG "pcbit_irq_handler: E bit on\n");
 #endif
@@ -621,7 +573,7 @@ pcbit_l2_err_recover(unsigned long data)
 	dev->free = 511;
 	dev->l2_state = L2_ERROR;
 
-	/* this is an hack... */
+	
 	pcbit_firmware_bug(dev);
 
 	dev->writeptr = dev->sh_mem;
@@ -654,12 +606,6 @@ pcbit_l2_error(struct pcbit_dev *dev)
 	}
 }
 
-/*
- * Description:
- * if board acks frames
- *   update dev->free
- *   call pcbit_transmit to write possible queued frames
- */
 
 static void
 pcbit_recv_ack(struct pcbit_dev *dev, unsigned char ack)
@@ -670,7 +616,7 @@ pcbit_recv_ack(struct pcbit_dev *dev, unsigned char ack)
 
 	unacked = (dev->send_seq + (8 - dev->unack_seq)) & 0x07;
 
-	/* dev->unack_seq < ack <= dev->send_seq; */
+	
 
 	if (unacked) {
 
@@ -688,7 +634,7 @@ pcbit_recv_ack(struct pcbit_dev *dev, unsigned char ack)
 				pcbit_l2_error(dev);
 			}
 		}
-		/* ack is acceptable */
+		
 
 
 		i = dev->unack_seq;

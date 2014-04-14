@@ -51,15 +51,12 @@ static void se7343_irq_demux(unsigned int irq, struct irq_desc *desc)
 	}
 }
 
-/*
- * Initialize IRQ setting
- */
 void __init init_7343se_IRQ(void)
 {
 	int i, irq;
 
-	__raw_writew(0, PA_CPLD_IMSK);	/* disable all irqs */
-	__raw_writew(0x2000, 0xb03fffec);	/* mrshpc irq enable */
+	__raw_writew(0, PA_CPLD_IMSK);	
+	__raw_writew(0x2000, 0xb03fffec);	
 
 	for (i = 0; i < SE7343_FPGA_IRQ_NR; i++) {
 		irq = create_irq();

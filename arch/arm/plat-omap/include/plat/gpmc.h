@@ -11,7 +11,6 @@
 #ifndef __OMAP2_GPMC_H
 #define __OMAP2_GPMC_H
 
-/* Maximum Number of Chip Selects */
 #define GPMC_CS_NUM		8
 
 #define GPMC_CS_CONFIG1		0x00
@@ -25,7 +24,6 @@
 #define GPMC_CS_NAND_ADDRESS	0x20
 #define GPMC_CS_NAND_DATA	0x24
 
-/* Control Commands */
 #define GPMC_CONFIG_RDY_BSY	0x00000001
 #define GPMC_CONFIG_DEV_SIZE	0x00000002
 #define GPMC_CONFIG_DEV_TYPE	0x00000003
@@ -33,9 +31,9 @@
 #define GPMC_CONFIG_WP		0x00000005
 
 #define GPMC_GET_IRQ_STATUS	0x00000006
-#define GPMC_PREFETCH_FIFO_CNT	0x00000007 /* bytes available in FIFO for r/w */
-#define GPMC_PREFETCH_COUNT	0x00000008 /* remaining bytes to be read/write*/
-#define GPMC_STATUS_BUFFER	0x00000009 /* 1: buffer is available to write */
+#define GPMC_PREFETCH_FIFO_CNT	0x00000007 
+#define GPMC_PREFETCH_COUNT	0x00000008 
+#define GPMC_STATUS_BUFFER	0x00000009 
 
 #define GPMC_NAND_COMMAND	0x0000000a
 #define GPMC_NAND_ADDRESS	0x0000000b
@@ -43,10 +41,9 @@
 
 #define GPMC_ENABLE_IRQ		0x0000000d
 
-/* ECC commands */
-#define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
-#define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
-#define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+#define GPMC_ECC_READ		0 
+#define GPMC_ECC_WRITE		1 
+#define GPMC_ECC_READSYN	2 
 
 #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
 #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
@@ -87,48 +84,44 @@
 #define PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
 
 enum omap_ecc {
-		/* 1-bit ecc: stored at end of spare area */
-	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
-	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
-		/* 1-bit ecc: stored at beginning of spare area as romcode */
-	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
+		
+	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, 
+	OMAP_ECC_HAMMING_CODE_HW, 
+		
+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, 
 };
 
-/*
- * Note that all values in this struct are in nanoseconds except sync_clk
- * (which is in picoseconds), while the register values are in gpmc_fck cycles.
- */
 struct gpmc_timings {
-	/* Minimum clock period for synchronous mode (in picoseconds) */
+	
 	u32 sync_clk;
 
-	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
-	u16 cs_on;		/* Assertion time */
-	u16 cs_rd_off;		/* Read deassertion time */
-	u16 cs_wr_off;		/* Write deassertion time */
+	
+	u16 cs_on;		
+	u16 cs_rd_off;		
+	u16 cs_wr_off;		
 
-	/* ADV signal timings corresponding to GPMC_CONFIG3 */
-	u16 adv_on;		/* Assertion time */
-	u16 adv_rd_off;		/* Read deassertion time */
-	u16 adv_wr_off;		/* Write deassertion time */
+	
+	u16 adv_on;		
+	u16 adv_rd_off;		
+	u16 adv_wr_off;		
 
-	/* WE signals timings corresponding to GPMC_CONFIG4 */
-	u16 we_on;		/* WE assertion time */
-	u16 we_off;		/* WE deassertion time */
+	
+	u16 we_on;		
+	u16 we_off;		
 
-	/* OE signals timings corresponding to GPMC_CONFIG4 */
-	u16 oe_on;		/* OE assertion time */
-	u16 oe_off;		/* OE deassertion time */
+	
+	u16 oe_on;		
+	u16 oe_off;		
 
-	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
-	u16 page_burst_access;	/* Multiple access word delay */
-	u16 access;		/* Start-cycle to first data valid delay */
-	u16 rd_cycle;		/* Total read cycle time */
-	u16 wr_cycle;		/* Total write cycle time */
+	
+	u16 page_burst_access;	
+	u16 access;		
+	u16 rd_cycle;		
+	u16 wr_cycle;		
 
-	/* The following are only on OMAP3430 */
-	u16 wr_access;		/* WRACCESSTIME */
-	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+	
+	u16 wr_access;		
+	u16 wr_data_mux_bus;	
 };
 
 extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);

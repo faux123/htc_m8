@@ -12,14 +12,13 @@
 #include <linux/debug_locks.h>
 #include <linux/delay.h>
 #include <linux/export.h>
+#include <linux/bug.h>
+#include <linux/reboot.h>
 
 void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
 			  struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-	/*
-	 * Make sure we are not reinitializing a held lock:
-	 */
 	debug_check_no_locks_freed((void *)lock, sizeof(*lock));
 	lockdep_init_map(&lock->dep_map, name, key, 0);
 #endif
@@ -35,9 +34,6 @@ void __rwlock_init(rwlock_t *lock, const char *name,
 		   struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-	/*
-	 * Make sure we are not reinitializing a held lock:
-	 */
 	debug_check_no_locks_freed((void *)lock, sizeof(*lock));
 	lockdep_init_map(&lock->dep_map, name, key, 0);
 #endif
@@ -49,6 +45,26 @@ void __rwlock_init(rwlock_t *lock, const char *name,
 
 EXPORT_SYMBOL(__rwlock_init);
 
+static int spin_dump_panic_call(struct notifier_block *this,
+		unsigned long event, void *ptr)
+{
+#if defined(CONFIG_HTC_DEBUG_WATCHDOG)
+	void msm_watchdog_bark(void);
+	static int barked = 0;
+	if (!barked) {
+		barked = 1;
+
+		pr_info("%s: Force Watchdog bark ...\r\n", __func__);
+		msm_watchdog_bark();
+
+		mdelay(10000);
+		pr_info("%s: Force Watchdog bark does not work, "
+				"falling back to normal process.\r\n", __func__);
+	}
+#endif
+	return NOTIFY_DONE;
+}
+
 static void spin_dump(raw_spinlock_t *lock, const char *msg)
 {
 	struct task_struct *owner = NULL;
@@ -58,12 +74,20 @@ static void spin_dump(raw_spinlock_t *lock, const char *msg)
 	printk(KERN_EMERG "BUG: spinlock %s on CPU#%d, %s/%d\n",
 		msg, raw_smp_processor_id(),
 		current->comm, task_pid_nr(current));
-	printk(KERN_EMERG " lock: %p, .magic: %08x, .owner: %s/%d, "
+	printk(KERN_EMERG " lock: %pS, .magic: %08x, .owner: %s/%d, "
 			".owner_cpu: %d\n",
 		lock, lock->magic,
 		owner ? owner->comm : "<none>",
 		owner ? task_pid_nr(owner) : -1,
 		lock->owner_cpu);
+
+	if (PANIC_CORRUPTION) {
+		static struct notifier_block panic_block = {
+			.notifier_call	= spin_dump_panic_call,
+		};
+		atomic_notifier_chain_register(&panic_notifier_list, &panic_block);
+		BUG();
+	}
 	dump_stack();
 }
 
@@ -106,24 +130,20 @@ static inline void debug_spin_unlock(raw_spinlock_t *lock)
 static void __spin_lock_debug(raw_spinlock_t *lock)
 {
 	u64 i;
-	u64 loops = loops_per_jiffy * HZ;
-	int print_once = 1;
+	u64 loops = (loops_per_jiffy * HZ);
 
-	for (;;) {
-		for (i = 0; i < loops; i++) {
-			if (arch_spin_trylock(&lock->raw_lock))
-				return;
-			__delay(1);
-		}
-		/* lockup suspected: */
-		if (print_once) {
-			print_once = 0;
-			spin_dump(lock, "lockup");
-#ifdef CONFIG_SMP
-			trigger_all_cpu_backtrace();
-#endif
-		}
+	for (i = 0; i < loops; i++) {
+		if (arch_spin_trylock(&lock->raw_lock))
+			return;
+		__delay(1);
 	}
+	
+	spin_dump(lock, "lockup");
+#ifdef CONFIG_SMP
+	trigger_all_cpu_backtrace();
+#endif
+
+	arch_spin_lock(&lock->raw_lock);
 }
 
 void do_raw_spin_lock(raw_spinlock_t *lock)
@@ -141,9 +161,6 @@ int do_raw_spin_trylock(raw_spinlock_t *lock)
 	if (ret)
 		debug_spin_lock_after(lock);
 #ifndef CONFIG_SMP
-	/*
-	 * Must not happen on UP:
-	 */
 	SPIN_BUG_ON(!ret, lock, "trylock failure on UP");
 #endif
 	return ret;
@@ -168,7 +185,7 @@ static void rwlock_bug(rwlock_t *lock, const char *msg)
 
 #define RWLOCK_BUG_ON(cond, lock, msg) if (unlikely(cond)) rwlock_bug(lock, msg)
 
-#if 0		/* __write_lock_debug() can lock up - maybe this can too? */
+#if 0		
 static void __read_lock_debug(rwlock_t *lock)
 {
 	u64 i;
@@ -181,7 +198,7 @@ static void __read_lock_debug(rwlock_t *lock)
 				return;
 			__delay(1);
 		}
-		/* lockup suspected: */
+		
 		if (print_once) {
 			print_once = 0;
 			printk(KERN_EMERG "BUG: read-lock lockup on CPU#%d, "
@@ -205,9 +222,6 @@ int do_raw_read_trylock(rwlock_t *lock)
 	int ret = arch_read_trylock(&lock->raw_lock);
 
 #ifndef CONFIG_SMP
-	/*
-	 * Must not happen on UP:
-	 */
 	RWLOCK_BUG_ON(!ret, lock, "trylock failure on UP");
 #endif
 	return ret;
@@ -243,7 +257,7 @@ static inline void debug_write_unlock(rwlock_t *lock)
 	lock->owner_cpu = -1;
 }
 
-#if 0		/* This can cause lockups */
+#if 0		
 static void __write_lock_debug(rwlock_t *lock)
 {
 	u64 i;
@@ -256,7 +270,7 @@ static void __write_lock_debug(rwlock_t *lock)
 				return;
 			__delay(1);
 		}
-		/* lockup suspected: */
+		
 		if (print_once) {
 			print_once = 0;
 			printk(KERN_EMERG "BUG: write-lock lockup on CPU#%d, "
@@ -283,9 +297,6 @@ int do_raw_write_trylock(rwlock_t *lock)
 	if (ret)
 		debug_write_lock_after(lock);
 #ifndef CONFIG_SMP
-	/*
-	 * Must not happen on UP:
-	 */
 	RWLOCK_BUG_ON(!ret, lock, "trylock failure on UP");
 #endif
 	return ret;

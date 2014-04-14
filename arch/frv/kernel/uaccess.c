@@ -13,10 +13,6 @@
 #include <linux/module.h>
 #include <asm/uaccess.h>
 
-/*****************************************************************************/
-/*
- * copy a null terminated string from userspace
- */
 long strncpy_from_user(char *dst, const char __user *src, long count)
 {
 	unsigned long max;
@@ -51,24 +47,18 @@ long strncpy_from_user(char *dst, const char __user *src, long count)
 		*p = ch;
 	}
 
-	err = p - dst; /* return length excluding NUL */
+	err = p - dst; 
 
  error:
 	if (count > 0)
-		memset(p, 0, count); /* clear remainder of buffer [security] */
+		memset(p, 0, count); 
 
 	return err;
 
-} /* end strncpy_from_user() */
+} 
 
 EXPORT_SYMBOL(strncpy_from_user);
 
-/*****************************************************************************/
-/*
- * Return the size of a string (including the ending 0)
- *
- * Return 0 on exception, a value greater than N if too long
- */
 long strnlen_user(const char __user *src, long count)
 {
 	const char __user *p;
@@ -93,8 +83,8 @@ long strnlen_user(const char __user *src, long count)
 			break;
 	}
 
-	return p - src + 1; /* return length including NUL */
+	return p - src + 1; 
 
-} /* end strnlen_user() */
+} 
 
 EXPORT_SYMBOL(strnlen_user);

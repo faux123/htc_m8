@@ -35,7 +35,7 @@
 #include <net/route.h>
 #include <asm/uaccess.h>
 
-#include "ipddp.h"		/* Our stuff */
+#include "ipddp.h"		
 
 static const char version[] = KERN_INFO "ipddp.c:v0.01 8/28/97 Bradford W. Johnson <johns393@maroon.tc.umn.edu>\n";
 
@@ -48,7 +48,6 @@ static int ipddp_mode = IPDDP_ENCAP;
 static int ipddp_mode = IPDDP_DECAP;
 #endif
 
-/* Index to functions, as function prototypes. */
 static netdev_tx_t ipddp_xmit(struct sk_buff *skb,
 				    struct net_device *dev);
 static int ipddp_create(struct ipddp_route *new_rt);
@@ -80,18 +79,13 @@ static struct net_device * __init ipddp_init(void)
 	if (version_printed++ == 0)
                 printk(version);
 
-	/* Initialize the device structure. */
+	
 	dev->netdev_ops = &ipddp_netdev_ops;
 
-        dev->type = ARPHRD_IPDDP;       	/* IP over DDP tunnel */
+        dev->type = ARPHRD_IPDDP;       	
         dev->mtu = 585;
         dev->flags |= IFF_NOARP;
 
-        /*
-         *      The worst case header we will need is currently a
-         *      ethernet header (14 bytes) and a ddp header (sizeof ddpehdr+1)
-         *      We send over SNAP so that takes another 8 bytes.
-         */
         dev->hard_header_len = 14+8+sizeof(struct ddpehdr)+1;
 
 	err = register_netdev(dev);
@@ -100,7 +94,7 @@ static struct net_device * __init ipddp_init(void)
 		return ERR_PTR(err);
 	}
 
-	/* Let the user now what mode we are in */
+	
 	if(ipddp_mode == IPDDP_ENCAP)
 		printk("%s: Appletalk-IP Encap. mode by Bradford W. Johnson <johns393@maroon.tc.umn.edu>\n", 
 			dev->name);
@@ -112,9 +106,6 @@ static struct net_device * __init ipddp_init(void)
 }
 
 
-/*
- * Transmit LLAP/ELAP frame using aarp_send_ddp.
- */
 static netdev_tx_t ipddp_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	__be32 paddr = skb_rtable(skb)->rt_gateway;
@@ -124,9 +115,6 @@ static netdev_tx_t ipddp_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	spin_lock(&ipddp_route_lock);
 
-	/*
-         * Find appropriate route to use, based only on IP number.
-         */
         for(rt = ipddp_route_list; rt != NULL; rt = rt->next)
         {
                 if(rt->ip == paddr)
@@ -140,30 +128,21 @@ static netdev_tx_t ipddp_xmit(struct sk_buff *skb, struct net_device *dev)
         our_addr = atalk_find_dev_addr(rt->dev);
 
 	if(ipddp_mode == IPDDP_DECAP)
-		/* 
-		 * Pull off the excess room that should not be there.
-		 * This is due to a hard-header problem. This is the
-		 * quick fix for now though, till it breaks.
-		 */
 		skb_pull(skb, 35-(sizeof(struct ddpehdr)+1));
 
-	/* Create the Extended DDP header */
+	
 	ddp = (struct ddpehdr *)skb->data;
         ddp->deh_len_hops = htons(skb->len + (1<<10));
         ddp->deh_sum = 0;
 
-	/*
-         * For Localtalk we need aarp_send_ddp to strip the
-         * long DDP header and place a shot DDP header on it.
-         */
         if(rt->dev->type == ARPHRD_LOCALTLK)
         {
-                ddp->deh_dnet  = 0;   /* FIXME more hops?? */
+                ddp->deh_dnet  = 0;   
                 ddp->deh_snet  = 0;
         }
         else
         {
-                ddp->deh_dnet  = rt->at.s_net;   /* FIXME more hops?? */
+                ddp->deh_dnet  = rt->at.s_net;   
                 ddp->deh_snet  = our_addr->s_net;
         }
         ddp->deh_dnode = rt->at.s_node;
@@ -171,9 +150,9 @@ static netdev_tx_t ipddp_xmit(struct sk_buff *skb, struct net_device *dev)
         ddp->deh_dport = 72;
         ddp->deh_sport = 72;
 
-        *((__u8 *)(ddp+1)) = 22;        	/* ddp type = IP */
+        *((__u8 *)(ddp+1)) = 22;        	
 
-        skb->protocol = htons(ETH_P_ATALK);     /* Protocol has changed */
+        skb->protocol = htons(ETH_P_ATALK);     
 
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += skb->len;
@@ -185,10 +164,6 @@ static netdev_tx_t ipddp_xmit(struct sk_buff *skb, struct net_device *dev)
         return NETDEV_TX_OK;
 }
 
-/*
- * Create a routing entry. We first verify that the
- * record does not already exist. If it does we return -EEXIST
- */
 static int ipddp_create(struct ipddp_route *new_rt)
 {
         struct ipddp_route *rt = kmalloc(sizeof(*rt), GFP_KERNEL);
@@ -219,10 +194,6 @@ static int ipddp_create(struct ipddp_route *new_rt)
         return 0;
 }
 
-/*
- * Delete a route, we only delete a FULL match.
- * If route does not exist we return -ENOENT.
- */
 static int ipddp_delete(struct ipddp_route *rt)
 {
         struct ipddp_route **r = &ipddp_route_list;
@@ -247,9 +218,6 @@ static int ipddp_delete(struct ipddp_route *rt)
         return -ENOENT;
 }
 
-/*
- * Find a routing entry, we only return a FULL match
- */
 static struct ipddp_route* __ipddp_find_route(struct ipddp_route *rt)
 {
         struct ipddp_route *f;

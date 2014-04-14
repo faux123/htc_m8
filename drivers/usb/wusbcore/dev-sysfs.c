@@ -115,7 +115,7 @@ static struct attribute *wusb_dev_attrs[] = {
 };
 
 static struct attribute_group wusb_dev_attr_group = {
-	.name = NULL,	/* we want them in the same directory */
+	.name = NULL,	
 	.attrs = wusb_dev_attrs,
 };
 

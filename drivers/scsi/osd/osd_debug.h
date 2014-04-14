@@ -24,7 +24,6 @@
 #define OSD_DEBUG(fmt, a...) do {} while (0)
 #endif
 
-/* u64 has problems with printk this will cast it to unsigned long long */
 #define _LLU(x) (unsigned long long)(x)
 
-#endif /* ndef __OSD_DEBUG_H__ */
+#endif 

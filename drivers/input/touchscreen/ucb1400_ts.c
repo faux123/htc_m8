@@ -28,13 +28,12 @@
 #include <linux/interrupt.h>
 #include <linux/ucb1400.h>
 
-#define UCB1400_TS_POLL_PERIOD	10 /* ms */
+#define UCB1400_TS_POLL_PERIOD	10 
 
 static bool adcsync;
-static int ts_delay = 55; /* us */
-static int ts_delay_pressure;	/* us */
+static int ts_delay = 55; 
+static int ts_delay_pressure;	
 
-/* Switch to interrupt mode. */
 static void ucb1400_ts_mode_int(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -43,10 +42,6 @@ static void ucb1400_ts_mode_int(struct ucb1400_ts *ucb)
 			UCB_TS_CR_MODE_INT);
 }
 
-/*
- * Switch to pressure mode, and read pressure.  We don't need to wait
- * here, since both plates are being driven.
- */
 static unsigned int ucb1400_ts_read_pressure(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -59,12 +54,6 @@ static unsigned int ucb1400_ts_read_pressure(struct ucb1400_ts *ucb)
 	return ucb1400_adc_read(ucb->ac97, UCB_ADC_INP_TSPY, adcsync);
 }
 
-/*
- * Switch to X position mode and measure Y plate.  We switch the plate
- * configuration in pressure mode, then switch to position mode.  This
- * gives a faster response time.  Even so, we need to wait about 55us
- * for things to stabilise.
- */
 static unsigned int ucb1400_ts_read_xpos(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -82,12 +71,6 @@ static unsigned int ucb1400_ts_read_xpos(struct ucb1400_ts *ucb)
 	return ucb1400_adc_read(ucb->ac97, UCB_ADC_INP_TSPY, adcsync);
 }
 
-/*
- * Switch to Y position mode and measure X plate.  We switch the plate
- * configuration in pressure mode, then switch to position mode.  This
- * gives a faster response time.  Even so, we need to wait about 55us
- * for things to stabilise.
- */
 static int ucb1400_ts_read_ypos(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -105,10 +88,6 @@ static int ucb1400_ts_read_ypos(struct ucb1400_ts *ucb)
 	return ucb1400_adc_read(ucb->ac97, UCB_ADC_INP_TSPX, adcsync);
 }
 
-/*
- * Switch to X plate resistance mode.  Set MX to ground, PX to
- * supply.  Measure current.
- */
 static unsigned int ucb1400_ts_read_xres(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -117,10 +96,6 @@ static unsigned int ucb1400_ts_read_xres(struct ucb1400_ts *ucb)
 	return ucb1400_adc_read(ucb->ac97, 0, adcsync);
 }
 
-/*
- * Switch to Y plate resistance mode.  Set MY to ground, PY to
- * supply.  Measure current.
- */
 static unsigned int ucb1400_ts_read_yres(struct ucb1400_ts *ucb)
 {
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR,
@@ -179,13 +154,6 @@ static void ucb1400_clear_pending_irq(struct ucb1400_ts *ucb)
 			"ucb1400: unexpected IE_STATUS = %#x\n", isr);
 }
 
-/*
- * A restriction with interrupts exists when using the ucb1400, as
- * the codec read/write routines may sleep while waiting for codec
- * access completion and uses semaphores for access control to the
- * AC97 bus. Therefore the driver is forced to use threaded interrupt
- * handler.
- */
 static irqreturn_t ucb1400_irq(int irqnr, void *devid)
 {
 	struct ucb1400_ts *ucb = devid;
@@ -197,7 +165,7 @@ static irqreturn_t ucb1400_irq(int irqnr, void *devid)
 
 	ucb1400_clear_pending_irq(ucb);
 
-	/* Start with a small delay before checking pendown state */
+	
 	msleep(UCB1400_TS_POLL_PERIOD);
 
 	while (!ucb->stopped && !(penup = ucb1400_ts_pen_up(ucb))) {
@@ -217,7 +185,7 @@ static irqreturn_t ucb1400_irq(int irqnr, void *devid)
 	ucb1400_ts_event_release(ucb->ts_idev);
 
 	if (!ucb->stopped) {
-		/* Switch back to interrupt mode. */
+		
 		ucb1400_ts_mode_int(ucb);
 		ucb1400_ts_irq_enable(ucb);
 	}
@@ -227,7 +195,7 @@ static irqreturn_t ucb1400_irq(int irqnr, void *devid)
 
 static void ucb1400_ts_stop(struct ucb1400_ts *ucb)
 {
-	/* Signal IRQ thread to stop polling and disable the handler. */
+	
 	ucb->stopped = true;
 	mb();
 	wake_up(&ucb->ts_wait);
@@ -237,10 +205,9 @@ static void ucb1400_ts_stop(struct ucb1400_ts *ucb)
 	ucb1400_reg_write(ucb->ac97, UCB_TS_CR, 0);
 }
 
-/* Must be called with ts->lock held */
 static void ucb1400_ts_start(struct ucb1400_ts *ucb)
 {
-	/* Tell IRQ thread that it may poll the device. */
+	
 	ucb->stopped = false;
 	mb();
 
@@ -270,10 +237,6 @@ static void ucb1400_ts_close(struct input_dev *idev)
 #define NO_IRQ	0
 #endif
 
-/*
- * Try to probe our interrupt, rather than relying on lots of
- * hard-coded machine dependencies.
- */
 static int __devinit ucb1400_ts_detect_irq(struct ucb1400_ts *ucb,
 					   struct platform_device *pdev)
 {
@@ -281,17 +244,17 @@ static int __devinit ucb1400_ts_detect_irq(struct ucb1400_ts *ucb,
 
 	mask = probe_irq_on();
 
-	/* Enable the ADC interrupt. */
+	
 	ucb1400_reg_write(ucb->ac97, UCB_IE_RIS, UCB_IE_ADC);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_FAL, UCB_IE_ADC);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_CLEAR, 0xffff);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_CLEAR, 0);
 
-	/* Cause an ADC interrupt. */
+	
 	ucb1400_reg_write(ucb->ac97, UCB_ADC_CR, UCB_ADC_ENA);
 	ucb1400_reg_write(ucb->ac97, UCB_ADC_CR, UCB_ADC_ENA | UCB_ADC_START);
 
-	/* Wait for the conversion to complete. */
+	
 	timeout = jiffies + HZ/2;
 	while (!(ucb1400_reg_read(ucb->ac97, UCB_ADC_DATA) &
 						UCB_ADC_DAT_VALID)) {
@@ -304,13 +267,13 @@ static int __devinit ucb1400_ts_detect_irq(struct ucb1400_ts *ucb,
 	}
 	ucb1400_reg_write(ucb->ac97, UCB_ADC_CR, 0);
 
-	/* Disable and clear interrupt. */
+	
 	ucb1400_reg_write(ucb->ac97, UCB_IE_RIS, 0);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_FAL, 0);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_CLEAR, 0xffff);
 	ucb1400_reg_write(ucb->ac97, UCB_IE_CLEAR, 0);
 
-	/* Read triggered interrupt. */
+	
 	ucb->irq = probe_irq_off(mask);
 	if (ucb->irq < 0 || ucb->irq == NO_IRQ)
 		return -ENODEV;
@@ -330,7 +293,7 @@ static int __devinit ucb1400_ts_probe(struct platform_device *pdev)
 		goto err;
 	}
 
-	/* Only in case the IRQ line wasn't supplied, try detecting it */
+	
 	if (ucb->irq < 0) {
 		error = ucb1400_ts_detect_irq(ucb, pdev);
 		if (error) {
@@ -354,11 +317,6 @@ static int __devinit ucb1400_ts_probe(struct platform_device *pdev)
 	ucb->ts_idev->evbit[0]		= BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
 	ucb->ts_idev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
-	/*
-	 * Enable ADC filter to prevent horrible jitter on Colibri.
-	 * This also further reduces jitter on boards where ADCSYNC
-	 * pin is connected.
-	 */
 	fcsr = ucb1400_reg_read(ucb->ac97, UCB_FCSR);
 	ucb1400_reg_write(ucb->ac97, UCB_FCSR, fcsr | UCB_FCSR_AVE);
 

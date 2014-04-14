@@ -1,10 +1,3 @@
-/*
- *  linux/arch/arm/mach-shark/pci.c
- *
- *  PCI bios-type initialisation for PCI machines
- *
- *  Bits taken from various places.
- */
 #include <linux/kernel.h>
 #include <linux/pci.h>
 #include <linux/init.h>

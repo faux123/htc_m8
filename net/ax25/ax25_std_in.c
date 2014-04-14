@@ -34,11 +34,6 @@
 #include <linux/mm.h>
 #include <linux/interrupt.h>
 
-/*
- *	State machine for state 1, Awaiting Connection State.
- *	The handling of the timer(s) is in file ax25_std_timer.c.
- *	Handling of state 0 and connection release is in ax25.c.
- */
 static int ax25_std_state1_machine(ax25_cb *ax25, struct sk_buff *skb, int frametype, int pf, int type)
 {
 	switch (frametype) {
@@ -72,7 +67,7 @@ static int ax25_std_state1_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 			if (ax25->sk != NULL) {
 				bh_lock_sock(ax25->sk);
 				ax25->sk->sk_state = TCP_ESTABLISHED;
-				/* For WAIT_SABM connections we will produce an accept ready socket here */
+				
 				if (!sock_flag(ax25->sk, SOCK_DEAD))
 					ax25->sk->sk_state_change(ax25->sk);
 				bh_unlock_sock(ax25->sk);
@@ -98,11 +93,6 @@ static int ax25_std_state1_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 	return 0;
 }
 
-/*
- *	State machine for state 2, Awaiting Release State.
- *	The handling of the timer(s) is in file ax25_std_timer.c
- *	Handling of state 0 and connection release is in ax25.c.
- */
 static int ax25_std_state2_machine(ax25_cb *ax25, struct sk_buff *skb, int frametype, int pf, int type)
 {
 	switch (frametype) {
@@ -136,11 +126,6 @@ static int ax25_std_state2_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 	return 0;
 }
 
-/*
- *	State machine for state 3, Connected State.
- *	The handling of the timer(s) is in file ax25_std_timer.c
- *	Handling of state 0 and connection release is in ax25.c.
- */
 static int ax25_std_state3_machine(ax25_cb *ax25, struct sk_buff *skb, int frametype, int ns, int nr, int pf, int type)
 {
 	int queued = 0;
@@ -227,7 +212,7 @@ static int ax25_std_state3_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 			ax25->vr = (ax25->vr + 1) % ax25->modulus;
 			queued = ax25_rx_iframe(ax25, skb);
 			if (ax25->condition & AX25_COND_OWN_RX_BUSY)
-				ax25->vr = ns;	/* ax25->vr - 1 */
+				ax25->vr = ns;	
 			ax25->condition &= ~AX25_COND_REJECT;
 			if (pf) {
 				ax25_std_enquiry_response(ax25);
@@ -261,11 +246,6 @@ static int ax25_std_state3_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 	return queued;
 }
 
-/*
- *	State machine for state 4, Timer Recovery State.
- *	The handling of the timer(s) is in file ax25_std_timer.c
- *	Handling of state 0 and connection release is in ax25.c.
- */
 static int ax25_std_state4_machine(ax25_cb *ax25, struct sk_buff *skb, int frametype, int ns, int nr, int pf, int type)
 {
 	int queued = 0;
@@ -382,7 +362,7 @@ static int ax25_std_state4_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 			ax25->vr = (ax25->vr + 1) % ax25->modulus;
 			queued = ax25_rx_iframe(ax25, skb);
 			if (ax25->condition & AX25_COND_OWN_RX_BUSY)
-				ax25->vr = ns;	/* ax25->vr - 1 */
+				ax25->vr = ns;	
 			ax25->condition &= ~AX25_COND_REJECT;
 			if (pf) {
 				ax25_std_enquiry_response(ax25);
@@ -416,9 +396,6 @@ static int ax25_std_state4_machine(ax25_cb *ax25, struct sk_buff *skb, int frame
 	return queued;
 }
 
-/*
- *	Higher level upcall for a LAPB frame
- */
 int ax25_std_frame_in(ax25_cb *ax25, struct sk_buff *skb, int type)
 {
 	int queued = 0, frametype, ns, nr, pf;

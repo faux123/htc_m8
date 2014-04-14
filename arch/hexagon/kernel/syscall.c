@@ -1,7 +1,7 @@
 /*
  * Hexagon system calls
  *
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -30,10 +30,6 @@
 #include <asm/mman.h>
 #include <asm/registers.h>
 
-/*
- * System calls with architecture-specific wrappers.
- * See signal.c for signal-related system call wrappers.
- */
 
 asmlinkage int sys_execve(char __user *ufilename,
 			  const char __user *const __user *argv,
@@ -65,10 +61,6 @@ asmlinkage int sys_clone(unsigned long clone_flags, unsigned long newsp,
 		       (int __user *)child_tidp);
 }
 
-/*
- * Do a system call from the kernel, so as to have a proper pt_regs
- * and recycle the sys_execvpe infrustructure.
- */
 int kernel_execve(const char *filename,
 		  const char *const argv[], const char *const envp[])
 {

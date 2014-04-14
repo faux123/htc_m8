@@ -29,9 +29,6 @@
 #include <asm/amigaints.h>
 
 
-    /*
-     *  The Buddha has 2 IDE interfaces, the Catweasel has 3, X-Surf has 2
-     */
 
 #define BUDDHA_NUM_HWIFS	2
 #define CATWEASEL_NUM_HWIFS	3
@@ -39,16 +36,13 @@
 
 #define MAX_NUM_HWIFS		3
 
-    /*
-     *  Bases of the IDE interfaces (relative to the board address)
-     */
 
 #define BUDDHA_BASE1	0x800
 #define BUDDHA_BASE2	0xa00
 #define BUDDHA_BASE3	0xc00
 
-#define XSURF_BASE1     0xb000 /* 2.5" Interface */
-#define XSURF_BASE2     0xd000 /* 3.5" Interface */
+#define XSURF_BASE1     0xb000 
+#define XSURF_BASE2     0xd000 
 
 static u_int buddha_bases[CATWEASEL_NUM_HWIFS] __initdata = {
     BUDDHA_BASE1, BUDDHA_BASE2, BUDDHA_BASE3
@@ -58,18 +52,12 @@ static u_int xsurf_bases[XSURF_NUM_HWIFS] __initdata = {
      XSURF_BASE1, XSURF_BASE2
 };
 
-    /*
-     *  Offsets from one of the above bases
-     */
 
 #define BUDDHA_CONTROL	0x11a
 
-    /*
-     *  Other registers
-     */
 
-#define BUDDHA_IRQ1	0xf00		/* MSB = 1, Harddisk is source of */
-#define BUDDHA_IRQ2	0xf40		/* interrupt */
+#define BUDDHA_IRQ1	0xf00		
+#define BUDDHA_IRQ2	0xf40		
 #define BUDDHA_IRQ3	0xf80
 
 #define XSURF_IRQ1      0x7e
@@ -83,12 +71,9 @@ static int xsurf_irqports[XSURF_NUM_HWIFS] __initdata = {
     XSURF_IRQ1, XSURF_IRQ2
 };
 
-#define BUDDHA_IRQ_MR	0xfc0		/* master interrupt enable */
+#define BUDDHA_IRQ_MR	0xfc0		
 
 
-    /*
-     *  Board information
-     */
 
 typedef enum BuddhaType_Enum {
     BOARD_BUDDHA, BOARD_CATWEASEL, BOARD_XSURF
@@ -96,9 +81,6 @@ typedef enum BuddhaType_Enum {
 
 static const char *buddha_board_name[] = { "Buddha", "Catweasel", "X-Surf" };
 
-    /*
-     *  Check and acknowledge the interrupt status
-     */
 
 static int buddha_test_irq(ide_hwif_t *hwif)
 {
@@ -152,9 +134,6 @@ static const struct ide_port_info buddha_port_info = {
 	.chipset		= ide_generic,
 };
 
-    /*
-     *  Probe for a Buddha or Catweasel IDE interface
-     */
 
 static int __init buddha_init(void)
 {
@@ -200,8 +179,8 @@ fail_base2:
 		}	  
 		buddha_board = ZTWO_VADDR(board);
 		
-		/* write to BUDDHA_IRQ_MR to enable the board IRQ */
-		/* X-Surf doesn't have this.  IRQs are always on */
+		
+		
 		if (type != BOARD_XSURF)
 			z_writeb(0, buddha_board+BUDDHA_IRQ_MR);
 
@@ -217,7 +196,7 @@ fail_base2:
 				irq_port = buddha_board + buddha_irqports[i];
 			} else {
 				base = buddha_board + xsurf_bases[i];
-				/* X-Surf has no CS1* (Control/AltStat) */
+				
 				ctl = 0;
 				irq_port = buddha_board + xsurf_irqports[i];
 			}

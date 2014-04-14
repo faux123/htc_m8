@@ -34,8 +34,6 @@
 #include "dsp.h"
 #include "dsp_hwec.h"
 
-/* uncomment for debugging */
-/*#define PIPELINE_DEBUG*/
 
 struct dsp_pipeline_entry {
 	struct mISDN_dsp_element *elem;
@@ -50,7 +48,6 @@ struct dsp_element_entry {
 
 static LIST_HEAD(dsp_elements);
 
-/* sysfs */
 static struct class *elements_class;
 
 static ssize_t
@@ -282,8 +279,6 @@ int dsp_pipeline_build(struct dsp_pipeline *pipeline, const char *cfg)
 				pipeline_entry->elem = elem;
 
 				if (elem == dsp_hwec) {
-					/* This is a hack to make the hwec
-					   available as a pipeline module */
 					dsp_hwec_enable(container_of(pipeline,
 								     struct dsp, pipeline), args);
 					list_add_tail(&pipeline_entry->list,

@@ -37,13 +37,12 @@ static struct smc_config flash_config __initdata = {
 	.byte_write		= 1,
 };
 
-/* system flash definition */
 
 static struct mtd_partition flash_parts_system[] = {
 	{
 		.name           = "u-boot",
 		.offset         = 0x00000000,
-		.size           = 0x00020000,           /* 128 KiB */
+		.size           = 0x00020000,           
 		.mask_flags     = MTD_WRITEABLE,
 	},
 	{
@@ -54,7 +53,7 @@ static struct mtd_partition flash_parts_system[] = {
 	{
 		.name		= "splash",
 		.offset		= 0x007e0000,
-		.size		= 0x00010000,		/* 64KiB */
+		.size		= 0x00010000,		
 	},
 	{
 		.name           = "env",
@@ -86,7 +85,6 @@ static struct platform_device flash_device_system = {
 	},
 };
 
-/* data flash definition */
 
 static struct mtd_partition flash_parts_data[] = {
 	{
@@ -118,7 +116,6 @@ static struct platform_device flash_device_data = {
 	},
 };
 
-/* This needs to be called after the SMC has been initialized */
 static int __init mimc200_flash_init(void)
 {
 	int ret;

@@ -24,7 +24,7 @@
 #include "islpci_mgt.h"
 #include "islpci_dev.h"
 
-#include <net/iw_handler.h>	/* New driver API */
+#include <net/iw_handler.h>	
 
 #define SUPPORTED_WIRELESS_EXT                  19
 
@@ -45,4 +45,4 @@ int prism54_set_mac_address(struct net_device *, void *);
 
 extern const struct iw_handler_def prism54_handler_def;
 
-#endif				/* _ISL_IOCTL_H */
+#endif				

@@ -20,5 +20,5 @@ struct htcpld_core_platform_data {
 	unsigned int                      num_chip;
 };
 
-#endif /* __LINUX_HTCPLD_H */
+#endif 
 

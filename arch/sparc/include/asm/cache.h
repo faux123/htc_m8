@@ -25,16 +25,7 @@
 #ifdef CONFIG_SPARC32
 #include <asm/asi.h>
 
-/* Direct access to the instruction cache is provided through and
- * alternate address space.  The IDC bit must be off in the ICCR on
- * HyperSparcs for these accesses to work.  The code below does not do
- * any checking, the caller must do so.  These routines are for
- * diagnostics only, but could end up being useful.  Use with care.
- * Also, you are asking for trouble if you execute these in one of the
- * three instructions following a %asr/%psr access or modification.
- */
 
-/* First, cache-tag access. */
 static inline unsigned int get_icache_tag(int setnum, int tagnum)
 {
 	unsigned int vaddr, retval;
@@ -56,9 +47,6 @@ static inline void put_icache_tag(int setnum, int tagnum, unsigned int entry)
 			     "memory");
 }
 
-/* Second cache-data access.  The data is returned two-32bit quantities
- * at a time.
- */
 static inline void get_icache_data(int setnum, int tagnum, int subblock,
 				       unsigned int *data)
 {
@@ -88,18 +76,10 @@ static inline void put_icache_data(int setnum, int tagnum, int subblock,
 			     "stda %%g2, [%2] %3\n\t" : :
 			     "r" (value1), "r" (value2), 
 			     "r" (vaddr), "i" (ASI_M_TXTC_DATA) :
-			     "g2", "g3", "memory" /* no joke */);
+			     "g2", "g3", "memory" );
 }
 
-/* Different types of flushes with the ICACHE.  Some of the flushes
- * affect both the ICACHE and the external cache.  Others only clear
- * the ICACHE entries on the cpu itself.  V8's (most) allow
- * granularity of flushes on the packet (element in line), whole line,
- * and entire cache (ie. all lines) level.  The ICACHE only flushes are
- * ROSS HyperSparc specific and are in ross.h
- */
 
-/* Flushes which clear out both the on-chip and external caches */
 static inline void flush_ei_page(unsigned int addr)
 {
 	__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
@@ -134,6 +114,6 @@ static inline void flush_ei_user(unsigned int addr)
 			     "r" (addr), "i" (ASI_M_FLUSH_USER) :
 			     "memory");
 }
-#endif /* CONFIG_SPARC32 */
+#endif 
 
-#endif /* !(_SPARC_CACHE_H) */
+#endif 

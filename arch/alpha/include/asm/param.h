@@ -1,9 +1,6 @@
 #ifndef _ASM_ALPHA_PARAM_H
 #define _ASM_ALPHA_PARAM_H
 
-/* ??? Gross.  I don't want to parameterize this, and supposedly the
-   hardware ignores reprogramming.  We also need userland buy-in to the 
-   change in HZ, since this is visible in the wait4 resources etc.  */
 
 #ifdef __KERNEL__
 #define HZ		CONFIG_HZ
@@ -18,10 +15,10 @@
 #define NOGROUP		(-1)
 #endif
 
-#define MAXHOSTNAMELEN	64	/* max length of hostname */
+#define MAXHOSTNAMELEN	64	
 
 #ifdef __KERNEL__
-# define CLOCKS_PER_SEC	HZ	/* frequency at which times() counts */
+# define CLOCKS_PER_SEC	HZ	
 #endif
 
-#endif /* _ASM_ALPHA_PARAM_H */
+#endif 

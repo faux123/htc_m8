@@ -1,12 +1,6 @@
 #ifndef __MACH_MXC_SDMA_H__
 #define __MACH_MXC_SDMA_H__
 
-/**
- * struct sdma_script_start_addrs - SDMA script start pointers
- *
- * start addresses of the different functions in the physical
- * address space of the SDMA engine.
- */
 struct sdma_script_start_addrs {
 	s32 ap_2_ap_addr;
 	s32 ap_2_bp_addr;
@@ -45,15 +39,9 @@ struct sdma_script_start_addrs {
 	s32 ram_code_start_addr;
 };
 
-/**
- * struct sdma_platform_data - platform specific data for SDMA engine
- *
- * @fw_name		The firmware name
- * @script_addrs	SDMA scripts addresses in SDMA ROM
- */
 struct sdma_platform_data {
 	char *fw_name;
 	struct sdma_script_start_addrs *script_addrs;
 };
 
-#endif /* __MACH_MXC_SDMA_H__ */
+#endif 

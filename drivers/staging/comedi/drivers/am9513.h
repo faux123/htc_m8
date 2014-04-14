@@ -26,11 +26,7 @@
 
 #if 0
 
-/*
- *	Before including this file, the following need to be defined:
- */
 #define Am9513_8BITBUS xxx
-/* or */
 #define Am9513_16BITBUS xxx
 
 #define Am9513_output_control(a)	xxx
@@ -40,9 +36,6 @@
 
 #endif
 
-/*
- *
- */
 
 #ifdef Am9513_8BITBUS
 
@@ -60,7 +53,7 @@
 		val |= Am9513_input_data();			\
 	} while (0)
 
-#else /* Am9513_16BITBUS */
+#else 
 
 #define Am9513_write_register(reg, val)				\
 	do {							\

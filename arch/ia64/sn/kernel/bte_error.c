@@ -17,22 +17,9 @@
 #include <asm/sn/bte.h>
 #include <asm/param.h>
 
-/*
- * Bte error handling is done in two parts.  The first captures
- * any crb related errors.  Since there can be multiple crbs per
- * interface and multiple interfaces active, we need to wait until
- * all active crbs are completed.  This is the first job of the
- * second part error handler.  When all bte related CRBs are cleanly
- * completed, it resets the interfaces and gets them ready for new
- * transfers to be queued.
- */
 
 void bte_error_handler(unsigned long);
 
-/*
- * Wait until all BTE related CRBs are completed
- * and then reset the interfaces.
- */
 int shub1_bte_error_handler(unsigned long _nodepda)
 {
 	struct nodepda_s *err_nodepda = (struct nodepda_s *)_nodepda;
@@ -40,8 +27,8 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 	nasid_t nasid;
 	int i;
 	int valid_crbs;
-	ii_imem_u_t imem;	/* II IMEM Register */
-	ii_icrb0_d_u_t icrbd;	/* II CRB Register D */
+	ii_imem_u_t imem;	
+	ii_icrb0_d_u_t icrbd;	
 	ii_ibcr_u_t ibcr;
 	ii_icmr_u_t icmr;
 	ii_ieclr_u_t ieclr;
@@ -56,28 +43,11 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 		return 1;
 	}
 
-	/* Determine information about our hub */
+	
 	nasid = cnodeid_to_nasid(err_nodepda->bte_if[0].bte_cnode);
 
-	/*
-	 * A BTE transfer can use multiple CRBs.  We need to make sure
-	 * that all the BTE CRBs are complete (or timed out) before
-	 * attempting to clean up the error.  Resetting the BTE while
-	 * there are still BTE CRBs active will hang the BTE.
-	 * We should look at all the CRBs to see if they are allocated
-	 * to the BTE and see if they are still active.  When none
-	 * are active, we can continue with the cleanup.
-	 *
-	 * We also want to make sure that the local NI port is up.
-	 * When a router resets the NI port can go down, while it
-	 * goes through the LLP handshake, but then comes back up.
-	 */
 	icmr.ii_icmr_regval = REMOTE_HUB_L(nasid, IIO_ICMR);
 	if (icmr.ii_icmr_fld_s.i_crb_mark != 0) {
-		/*
-		 * There are errors which still need to be cleaned up by
-		 * hubiio_crb_error_handler
-		 */
 		mod_timer(recovery_timer, jiffies + (HZ * 5));
 		BTE_PRINTK(("eh:%p:%d Marked Giving up\n", err_nodepda,
 			    smp_processor_id()));
@@ -89,7 +59,7 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 
 		for (i = 0; i < IIO_NUM_CRBS; i++) {
 			if (!((1 << i) & valid_crbs)) {
-				/* This crb was not marked as valid, ignore */
+				
 				continue;
 			}
 			icrbd.ii_icrb0_d_regval =
@@ -105,12 +75,12 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 	}
 
 	BTE_PRINTK(("eh:%p:%d Cleaning up\n", err_nodepda, smp_processor_id()));
-	/* Re-enable both bte interfaces */
+	
 	imem.ii_imem_regval = REMOTE_HUB_L(nasid, IIO_IMEM);
 	imem.ii_imem_fld_s.i_b0_esd = imem.ii_imem_fld_s.i_b1_esd = 1;
 	REMOTE_HUB_S(nasid, IIO_IMEM, imem.ii_imem_regval);
 
-	/* Clear BTE0/1 error bits */
+	
 	ieclr.ii_ieclr_regval = 0;
 	if (err_nodepda->bte_if[0].bh_error != BTE_SUCCESS)
 		ieclr.ii_ieclr_fld_s.i_e_bte_0 = 1;
@@ -118,7 +88,7 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 		ieclr.ii_ieclr_fld_s.i_e_bte_1 = 1;
 	REMOTE_HUB_S(nasid, IIO_IECLR, ieclr.ii_ieclr_regval);
 
-	/* Reinitialize both BTE state machines. */
+	
 	ibcr.ii_ibcr_regval = REMOTE_HUB_L(nasid, IIO_IBCR);
 	ibcr.ii_ibcr_fld_s.i_soft_reset = 1;
 	REMOTE_HUB_S(nasid, IIO_IBCR, ibcr.ii_ibcr_regval);
@@ -127,10 +97,6 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 	return 0;
 }
 
-/*
- * Wait until all BTE related CRBs are completed
- * and then reset the interfaces.
- */
 int shub2_bte_error_handler(unsigned long _nodepda)
 {
 	struct nodepda_s *err_nodepda = (struct nodepda_s *)_nodepda;
@@ -142,9 +108,6 @@ int shub2_bte_error_handler(unsigned long _nodepda)
 
 	nasid = cnodeid_to_nasid(err_nodepda->bte_if[0].bte_cnode);
 
-	/*
-	 * Verify that all the BTEs are complete
-	 */
 	for (i = 0; i < BTES_PER_NODE; i++) {
 		bte = &err_nodepda->bte_if[i];
 		status = BTE_LNSTAT_LOAD(bte);
@@ -166,10 +129,6 @@ int shub2_bte_error_handler(unsigned long _nodepda)
 	return 0;
 }
 
-/*
- * Wait until all BTE related CRBs are completed
- * and then reset the interfaces.
- */
 void bte_error_handler(unsigned long _nodepda)
 {
 	struct nodepda_s *err_nodepda = (struct nodepda_s *)_nodepda;
@@ -184,10 +143,6 @@ void bte_error_handler(unsigned long _nodepda)
 
 	spin_lock_irqsave(recovery_lock, irq_flags);
 
-	/*
-	 * Lock all interfaces on this node to prevent new transfers
-	 * from being queued.
-	 */
 	for (i = 0; i < BTES_PER_NODE; i++) {
 		if (err_nodepda->bte_if[i].cleanup_active) {
 			continue;
@@ -213,7 +168,7 @@ void bte_error_handler(unsigned long _nodepda)
 	for (i = 0; i < BTES_PER_NODE; i++) {
 		bh_error = err_nodepda->bte_if[i].bh_error;
 		if (bh_error != BTE_SUCCESS) {
-			/* There is an error which needs to be notified */
+			
 			notify = err_nodepda->bte_if[i].most_rcnt_na;
 			BTE_PRINTK(("cnode %d bte %d error=0x%lx\n",
 				    err_nodepda->bte_if[i].bte_cnode,
@@ -232,10 +187,6 @@ void bte_error_handler(unsigned long _nodepda)
 	spin_unlock_irqrestore(recovery_lock, irq_flags);
 }
 
-/*
- * First part error handler.  This is called whenever any error CRB interrupt
- * is generated by the II.
- */
 void
 bte_crb_error_handler(cnodeid_t cnode, int btenum,
                       int crbnum, ioerror_t * ioe, int bteop)
@@ -245,11 +196,6 @@ bte_crb_error_handler(cnodeid_t cnode, int btenum,
 
 	bte = &(NODEPDA(cnode)->bte_if[btenum]);
 
-	/*
-	 * The caller has already figured out the error type, we save that
-	 * in the bte handle structure for the thread exercising the
-	 * interface to consume.
-	 */
 	bte->bh_error = ioe->ie_errortype + BTEFAIL_OFFSET;
 	bte->bte_error_count++;
 

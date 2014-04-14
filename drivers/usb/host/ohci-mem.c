@@ -7,7 +7,6 @@
  * This file is licenced under the GPL.
  */
 
-/*-------------------------------------------------------------------------*/
 
 /*
  * OHCI deals with three types of memory:
@@ -21,7 +20,6 @@
  * No memory seen by this driver (or any HCD) may be paged out.
  */
 
-/*-------------------------------------------------------------------------*/
 
 static void ohci_hcd_init (struct ohci_hcd *ohci)
 {
@@ -30,22 +28,21 @@ static void ohci_hcd_init (struct ohci_hcd *ohci)
 	INIT_LIST_HEAD (&ohci->pending);
 }
 
-/*-------------------------------------------------------------------------*/
 
 static int ohci_mem_init (struct ohci_hcd *ohci)
 {
 	ohci->td_cache = dma_pool_create ("ohci_td",
 		ohci_to_hcd(ohci)->self.controller,
 		sizeof (struct td),
-		32 /* byte alignment */,
-		0 /* no page-crossing issues */);
+		32 ,
+		0 );
 	if (!ohci->td_cache)
 		return -ENOMEM;
 	ohci->ed_cache = dma_pool_create ("ohci_ed",
 		ohci_to_hcd(ohci)->self.controller,
 		sizeof (struct ed),
-		16 /* byte alignment */,
-		0 /* no page-crossing issues */);
+		16 ,
+		0 );
 	if (!ohci->ed_cache) {
 		dma_pool_destroy (ohci->td_cache);
 		return -ENOMEM;
@@ -65,9 +62,7 @@ static void ohci_mem_cleanup (struct ohci_hcd *ohci)
 	}
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* ohci "done list" processing needs this mapping */
 static inline struct td *
 dma_to_td (struct ohci_hcd *hc, dma_addr_t td_dma)
 {
@@ -80,7 +75,6 @@ dma_to_td (struct ohci_hcd *hc, dma_addr_t td_dma)
 	return td;
 }
 
-/* TDs ... */
 static struct td *
 td_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
 {
@@ -89,11 +83,11 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
 
 	td = dma_pool_alloc (hc->td_cache, mem_flags, &dma);
 	if (td) {
-		/* in case hc fetches it, make it look dead */
+		
 		memset (td, 0, sizeof *td);
 		td->hwNextTD = cpu_to_hc32 (hc, dma);
 		td->td_dma = dma;
-		/* hashed in td_fill */
+		
 	}
 	return td;
 }
@@ -112,9 +106,7 @@ td_free (struct ohci_hcd *hc, struct td *td)
 	dma_pool_free (hc->td_cache, td, td->td_dma);
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* EDs ... */
 static struct ed *
 ed_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
 {

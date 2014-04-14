@@ -25,7 +25,7 @@ l_yes:
 	return true;
 }
 
-#endif /* __KERNEL__ */
+#endif 
 
 #ifdef CONFIG_X86_64
 typedef u64 jump_label_t;

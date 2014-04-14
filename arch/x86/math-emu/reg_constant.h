@@ -22,4 +22,4 @@ extern FPU_REG const CONST_INF;
 extern FPU_REG const CONST_MINF;
 extern FPU_REG const CONST_QNaN;
 
-#endif /* _REG_CONSTANT_H_ */
+#endif 

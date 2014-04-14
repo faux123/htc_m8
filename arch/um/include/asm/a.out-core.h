@@ -16,12 +16,9 @@
 
 #include <linux/user.h>
 
-/*
- * fill in the user structure for an a.out core dump
- */
 static inline void aout_dump_thread(struct pt_regs *regs, struct user *u)
 {
 }
 
-#endif /* __KERNEL__ */
-#endif /* __UM_A_OUT_CORE_H */
+#endif 
+#endif 

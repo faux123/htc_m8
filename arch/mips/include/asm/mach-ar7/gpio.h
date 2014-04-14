@@ -32,7 +32,6 @@
 
 #define gpio_cansleep __gpio_cansleep
 
-/* Board specific GPIO functions */
 int ar7_gpio_enable(unsigned gpio);
 int ar7_gpio_disable(unsigned gpio);
 

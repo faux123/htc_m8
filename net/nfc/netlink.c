@@ -680,11 +680,6 @@ static struct notifier_block nl_notifier = {
 	.notifier_call  = nfc_genl_rcv_nl_event,
 };
 
-/**
- * nfc_genl_init() - Initialize netlink interface
- *
- * This initialization function registers the nfc netlink family.
- */
 int __init nfc_genl_init(void)
 {
 	int rc;
@@ -701,11 +696,6 @@ int __init nfc_genl_init(void)
 	return rc;
 }
 
-/**
- * nfc_genl_exit() - Deinitialize netlink interface
- *
- * This exit function unregisters the nfc netlink family.
- */
 void nfc_genl_exit(void)
 {
 	netlink_unregister_notifier(&nl_notifier);

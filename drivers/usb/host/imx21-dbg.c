@@ -16,7 +16,6 @@
  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* this file is part of imx21-hcd.c */
 
 #ifndef DEBUG
 

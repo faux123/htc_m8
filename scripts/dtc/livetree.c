@@ -20,23 +20,31 @@
 
 #include "dtc.h"
 
-/*
- * Tree building functions
- */
 
 void add_label(struct label **labels, char *label)
 {
 	struct label *new;
 
-	/* Make sure the label isn't already there */
-	for_each_label(*labels, new)
-		if (streq(new->label, label))
+	
+	for_each_label_withdel(*labels, new)
+		if (streq(new->label, label)) {
+			new->deleted = 0;
 			return;
+		}
 
 	new = xmalloc(sizeof(*new));
+	memset(new, 0, sizeof(*new));
 	new->label = label;
 	new->next = *labels;
 	*labels = new;
+}
+
+void delete_labels(struct label **labels)
+{
+	struct label *label;
+
+	for_each_label(*labels, label)
+		label->deleted = 1;
 }
 
 struct property *build_property(char *name, struct data val)
@@ -47,6 +55,18 @@ struct property *build_property(char *name, struct data val)
 
 	new->name = name;
 	new->val = val;
+
+	return new;
+}
+
+struct property *build_property_delete(char *name)
+{
+	struct property *new = xmalloc(sizeof(*new));
+
+	memset(new, 0, sizeof(*new));
+
+	new->name = name;
+	new->deleted = 1;
 
 	return new;
 }
@@ -91,6 +111,17 @@ struct node *build_node(struct property *proplist, struct node *children)
 	return new;
 }
 
+struct node *build_node_delete(void)
+{
+	struct node *new = xmalloc(sizeof(*new));
+
+	memset(new, 0, sizeof(*new));
+
+	new->deleted = 1;
+
+	return new;
+}
+
 struct node *name_node(struct node *node, char *name)
 {
 	assert(node->name == NULL);
@@ -106,48 +137,59 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
 	struct node *new_child, *old_child;
 	struct label *l;
 
-	/* Add new node labels to old node */
-	for_each_label(new_node->labels, l)
+	old_node->deleted = 0;
+
+	
+	for_each_label_withdel(new_node->labels, l)
 		add_label(&old_node->labels, l->label);
 
-	/* Move properties from the new node to the old node.  If there
-	 * is a collision, replace the old value with the new */
 	while (new_node->proplist) {
-		/* Pop the property off the list */
+		
 		new_prop = new_node->proplist;
 		new_node->proplist = new_prop->next;
 		new_prop->next = NULL;
 
-		/* Look for a collision, set new value if there is */
-		for_each_property(old_node, old_prop) {
+		if (new_prop->deleted) {
+			delete_property_by_name(old_node, new_prop->name);
+			free(new_prop);
+			continue;
+		}
+
+		
+		for_each_property_withdel(old_node, old_prop) {
 			if (streq(old_prop->name, new_prop->name)) {
-				/* Add new labels to old property */
-				for_each_label(new_prop->labels, l)
+				
+				for_each_label_withdel(new_prop->labels, l)
 					add_label(&old_prop->labels, l->label);
 
 				old_prop->val = new_prop->val;
+				old_prop->deleted = 0;
 				free(new_prop);
 				new_prop = NULL;
 				break;
 			}
 		}
 
-		/* if no collision occurred, add property to the old node. */
+		
 		if (new_prop)
 			add_property(old_node, new_prop);
 	}
 
-	/* Move the override child nodes into the primary node.  If
-	 * there is a collision, then merge the nodes. */
 	while (new_node->children) {
-		/* Pop the child node off the list */
+		
 		new_child = new_node->children;
 		new_node->children = new_child->next_sibling;
 		new_child->parent = NULL;
 		new_child->next_sibling = NULL;
 
-		/* Search for a collision.  Merge if there is */
-		for_each_child(old_node, old_child) {
+		if (new_child->deleted) {
+			delete_node_by_name(old_node, new_child->name);
+			free(new_child);
+			continue;
+		}
+
+		
+		for_each_child_withdel(old_node, old_child) {
 			if (streq(old_child->name, new_child->name)) {
 				merge_nodes(old_child, new_child);
 				new_child = NULL;
@@ -155,13 +197,11 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
 			}
 		}
 
-		/* if no collision occurred, add child to the old node. */
+		
 		if (new_child)
 			add_child(old_node, new_child);
 	}
 
-	/* The new node contents are now merged into the old node.  Free
-	 * the new node. */
 	free(new_node);
 
 	return old_node;
@@ -188,6 +228,25 @@ void add_property(struct node *node, struct property *prop)
 	*p = prop;
 }
 
+void delete_property_by_name(struct node *node, char *name)
+{
+	struct property *prop = node->proplist;
+
+	while (prop) {
+		if (!strcmp(prop->name, name)) {
+			delete_property(prop);
+			return;
+		}
+		prop = prop->next;
+	}
+}
+
+void delete_property(struct property *prop)
+{
+	prop->deleted = 1;
+	delete_labels(&prop->labels);
+}
+
 void add_child(struct node *parent, struct node *child)
 {
 	struct node **p;
@@ -200,6 +259,32 @@ void add_child(struct node *parent, struct node *child)
 		p = &((*p)->next_sibling);
 
 	*p = child;
+}
+
+void delete_node_by_name(struct node *parent, char *name)
+{
+	struct node *node = parent->children;
+
+	while (node) {
+		if (!strcmp(node->name, name)) {
+			delete_node(node);
+			return;
+		}
+		node = node->next_sibling;
+	}
+}
+
+void delete_node(struct node *node)
+{
+	struct property *prop;
+	struct node *child;
+
+	node->deleted = 1;
+	for_each_child(node, child)
+		delete_node(child);
+	for_each_property(node, prop)
+		delete_property(prop);
+	delete_labels(&node->labels);
 }
 
 struct reserve_info *build_reserve_entry(uint64_t address, uint64_t size)
@@ -254,9 +339,6 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 	return bi;
 }
 
-/*
- * Tree accessor functions
- */
 
 const char *get_unitname(struct node *node)
 {
@@ -353,8 +435,11 @@ struct node *get_node_by_path(struct node *tree, const char *path)
 	const char *p;
 	struct node *child;
 
-	if (!path || ! (*path))
+	if (!path || ! (*path)) {
+		if (tree->deleted)
+			return NULL;
 		return tree;
+	}
 
 	while (path[0] == '/')
 		path++;
@@ -397,8 +482,11 @@ struct node *get_node_by_phandle(struct node *tree, cell_t phandle)
 
 	assert((phandle != 0) && (phandle != -1));
 
-	if (tree->phandle == phandle)
+	if (tree->phandle == phandle) {
+		if (tree->deleted)
+			return NULL;
 		return tree;
+	}
 
 	for_each_child(tree, child) {
 		node = get_node_by_phandle(child, phandle);
@@ -419,7 +507,7 @@ struct node *get_node_by_ref(struct node *tree, const char *ref)
 
 cell_t get_node_phandle(struct node *root, struct node *node)
 {
-	static cell_t phandle = 1; /* FIXME: ick, static local */
+	static cell_t phandle = 1; 
 
 	if ((node->phandle != 0) && (node->phandle != -1))
 		return node->phandle;
@@ -441,9 +529,6 @@ cell_t get_node_phandle(struct node *root, struct node *node)
 			     build_property("phandle",
 					    data_append_cell(empty_data, phandle)));
 
-	/* If the node *does* have a phandle property, we must
-	 * be dealing with a self-referencing phandle, which will be
-	 * fixed up momentarily in the caller */
 
 	return node->phandle;
 }
@@ -466,7 +551,7 @@ uint32_t guess_boot_cpuid(struct node *tree)
 	if (!reg || (reg->val.len != sizeof(uint32_t)))
 		return 0;
 
-	/* FIXME: Sanity check node? */
+	
 
 	return propval_cell(reg);
 }
@@ -535,7 +620,7 @@ static void sort_properties(struct node *node)
 	int n = 0, i = 0;
 	struct property *prop, **tbl;
 
-	for_each_property(node, prop)
+	for_each_property_withdel(node, prop)
 		n++;
 
 	if (n == 0)
@@ -543,7 +628,7 @@ static void sort_properties(struct node *node)
 
 	tbl = xmalloc(n * sizeof(*tbl));
 
-	for_each_property(node, prop)
+	for_each_property_withdel(node, prop)
 		tbl[i++] = prop;
 
 	qsort(tbl, n, sizeof(*tbl), cmp_prop);
@@ -571,7 +656,7 @@ static void sort_subnodes(struct node *node)
 	int n = 0, i = 0;
 	struct node *subnode, **tbl;
 
-	for_each_child(node, subnode)
+	for_each_child_withdel(node, subnode)
 		n++;
 
 	if (n == 0)
@@ -579,7 +664,7 @@ static void sort_subnodes(struct node *node)
 
 	tbl = xmalloc(n * sizeof(*tbl));
 
-	for_each_child(node, subnode)
+	for_each_child_withdel(node, subnode)
 		tbl[i++] = subnode;
 
 	qsort(tbl, n, sizeof(*tbl), cmp_subnode);
@@ -598,7 +683,7 @@ static void sort_node(struct node *node)
 
 	sort_properties(node);
 	sort_subnodes(node);
-	for_each_child(node, c)
+	for_each_child_withdel(node, c)
 		sort_node(c);
 }
 

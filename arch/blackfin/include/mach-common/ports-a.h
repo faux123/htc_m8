@@ -1,6 +1,3 @@
-/*
- * Port A Masks
- */
 
 #ifndef __BFIN_PERIPHERAL_PORT_A__
 #define __BFIN_PERIPHERAL_PORT_A__

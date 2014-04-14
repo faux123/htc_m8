@@ -1,6 +1,3 @@
-/*
- * Interface between ext3 and JBD
- */
 
 #include "ext3.h"
 

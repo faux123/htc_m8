@@ -24,10 +24,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
 	return 0;
 }
 
-/*
- * If the arch doesn't supply something else, assume that hugepage
- * size aligned regions are ok without further preparation.
- */
 static inline int prepare_hugepage_range(struct file *file,
 					 unsigned long addr, unsigned long len)
 {
@@ -106,4 +102,4 @@ static inline void arch_release_hugepage(struct page *page)
 {
 }
 
-#endif /* _ASM_TILE_HUGETLB_H */
+#endif 

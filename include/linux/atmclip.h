@@ -1,4 +1,3 @@
-/* atmclip.h - Classical IP over ATM */
  
 /* Written 1995-1998 by Werner Almesberger, EPFL LRC/ICA */
  
@@ -10,12 +9,12 @@
 #include <linux/atmioc.h>
 
 
-#define RFC1483LLC_LEN	8		/* LLC+OUI+PID = 8 */
-#define RFC1626_MTU	9180		/* RFC1626 default MTU */
+#define RFC1483LLC_LEN	8		
+#define RFC1626_MTU	9180		
 
-#define CLIP_DEFAULT_IDLETIMER 1200	/* 20 minutes, see RFC1755 */
-#define CLIP_CHECK_INTERVAL	 10	/* check every ten seconds */
+#define CLIP_DEFAULT_IDLETIMER 1200	
+#define CLIP_CHECK_INTERVAL	 10	
 
-#define	SIOCMKCLIP	_IO('a',ATMIOC_CLIP)	/* create IP interface */
+#define	SIOCMKCLIP	_IO('a',ATMIOC_CLIP)	
 
 #endif

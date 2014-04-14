@@ -18,7 +18,6 @@
  *
  */
 
-/* This file included from timer.c */
 
 #include <linux/compat.h>
 
@@ -88,8 +87,6 @@ static int snd_timer_user_status_compat(struct file *file,
 	return 0;
 }
 
-/*
- */
 
 enum {
 	SNDRV_TIMER_IOCTL_INFO32 = _IOR('T', 0x11, struct snd_timer_info32),

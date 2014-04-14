@@ -67,19 +67,13 @@ enum Power_Mgnt {
 };
 
 
-/*
-	BIT[2:0] = HW state
-	BIT[3] = Protocol PS state, 0: register active state,
-				    1: register sleep state
-	BIT[4] = sub-state
-*/
 
 #define		PS_DPS				BIT(0)
 #define		PS_LCLK				(PS_DPS)
 #define	PS_RF_OFF			BIT(1)
 #define	PS_ALL_ON			BIT(2)
 #define	PS_ST_ACTIVE		BIT(3)
-#define	PS_LP				BIT(4)	/* low performance */
+#define	PS_LP				BIT(4)	
 
 #define	PS_STATE_MASK		(0x0F)
 #define	PS_STATE_HW_MASK	(0x07)
@@ -103,7 +97,7 @@ enum Power_Mgnt {
 
 struct reportpwrstate_parm {
 	unsigned char mode;
-	unsigned char state; /* the CPWM value */
+	unsigned char state; 
 	unsigned short rsvd;
 };
 
@@ -114,18 +108,16 @@ static inline void _enter_pwrlock(struct semaphore *plock)
 
 struct	pwrctrl_priv {
 	struct semaphore lock;
-	/*volatile*/ u8 rpwm; /* requested power state for fw */
-	/* fw current power state. updated when 1. read from HCPWM or
-	 * 2. driver lowers power level */
-	/*volatile*/ u8 cpwm;
-	/*volatile*/ u8 tog; /* toggling */
-	/*volatile*/ u8 cpwm_tog; /* toggling */
-	/*volatile*/ u8 tgt_rpwm; /* wanted power state */
+	 u8 rpwm; 
+	 u8 cpwm;
+	 u8 tog; 
+	 u8 cpwm_tog; 
+	 u8 tgt_rpwm; 
 	uint pwr_mode;
 	uint smart_ps;
 	uint alives;
-	uint ImrContent;	/* used to store original imr. */
-	uint bSleep; /* sleep -> active is different from active -> sleep. */
+	uint ImrContent;	
+	uint bSleep; 
 
 	_workitem SetPSModeWorkItem;
 	_workitem rpwm_workitem;
@@ -148,4 +140,4 @@ void r8712_set_ps_mode(struct _adapter *padapter, uint ps_mode,
 			uint smart_ps);
 void r8712_set_rpwm(struct _adapter *padapter, u8 val8);
 
-#endif  /* __RTL871X_PWRCTRL_H_ */
+#endif  

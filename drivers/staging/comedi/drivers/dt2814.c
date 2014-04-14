@@ -20,24 +20,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 */
-/*
-Driver: dt2814
-Description: Data Translation DT2814
-Author: ds
-Status: complete
-Devices: [Data Translation] DT2814 (dt2814)
-
-Configuration options:
-  [0] - I/O port base address
-  [1] - IRQ
-
-This card has 16 analog inputs multiplexed onto a 12 bit ADC.  There
-is a minimally useful onboard clock.  The base frequency for the
-clock is selected by jumpers, and the clock divider can be selected
-via programmed I/O.  Unfortunately, the clock divider can only be
-a power of 10, from 1 to 10^7, of which only 3 or 4 are useful.  In
-addition, the clock does not seem to be very accurate.
-*/
 
 #include <linux/interrupt.h>
 #include "../comedidev.h"
@@ -50,9 +32,6 @@ addition, the clock does not seem to be very accurate.
 #define DT2814_CSR 0
 #define DT2814_DATA 1
 
-/*
- * flags
- */
 
 #define DT2814_FINISH 0x80
 #define DT2814_ERR 0x40
@@ -94,7 +73,7 @@ struct dt2814_private {
 #define devpriv ((struct dt2814_private *)dev->private)
 
 #define DT2814_TIMEOUT 10
-#define DT2814_MAX_SPEED 100000	/* Arbitrary 10 khz limit */
+#define DT2814_MAX_SPEED 100000	
 
 static int dt2814_ai_insn_read(struct comedi_device *dev,
 			       struct comedi_subdevice *s,
@@ -134,9 +113,9 @@ static int dt2814_ns_to_timer(unsigned int *ns, unsigned int flags)
 	int i;
 	unsigned int f;
 
-	/* XXX ignores flags */
+	
 
-	f = 10000;		/* ns */
+	f = 10000;		
 	for (i = 0; i < 8; i++) {
 		if ((2 * (*ns)) < (f * 11))
 			break;
@@ -154,7 +133,7 @@ static int dt2814_ai_cmdtest(struct comedi_device *dev,
 	int err = 0;
 	int tmp;
 
-	/* step 1: make sure trigger sources are trivially valid */
+	
 
 	tmp = cmd->start_src;
 	cmd->start_src &= TRIG_NOW;
@@ -184,17 +163,15 @@ static int dt2814_ai_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 1;
 
-	/* step 2: make sure trigger sources are
-	 * unique and mutually compatible */
 
-	/* note that mutual compatibility is not an issue here */
+	
 	if (cmd->stop_src != TRIG_TIMER && cmd->stop_src != TRIG_EXT)
 		err++;
 
 	if (err)
 		return 2;
 
-	/* step 3: make sure arguments are trivially compatible */
+	
 
 	if (cmd->start_arg != 0) {
 		cmd->start_arg = 0;
@@ -218,7 +195,7 @@ static int dt2814_ai_cmdtest(struct comedi_device *dev,
 			err++;
 		}
 	} else {
-		/* TRIG_NONE */
+		
 		if (cmd->stop_arg != 0) {
 			cmd->stop_arg = 0;
 			err++;
@@ -228,7 +205,7 @@ static int dt2814_ai_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 3;
 
-	/* step 4: fix up any arguments */
+	
 
 	tmp = cmd->scan_begin_arg;
 	dt2814_ns_to_timer(&cmd->scan_begin_arg, cmd->flags & TRIG_ROUND_MASK);
@@ -336,13 +313,13 @@ static int dt2814_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	dev->read_subdev = s;
 	s->type = COMEDI_SUBD_AI;
 	s->subdev_flags = SDF_READABLE | SDF_GROUND | SDF_CMD_READ;
-	s->n_chan = 16;		/* XXX */
+	s->n_chan = 16;		
 	s->len_chanlist = 1;
 	s->insn_read = dt2814_ai_insn_read;
 	s->do_cmd = dt2814_ai_cmd;
 	s->do_cmdtest = dt2814_ai_cmdtest;
 	s->maxdata = 0xfff;
-	s->range_table = &range_unknown;	/* XXX */
+	s->range_table = &range_unknown;	
 
 	return 0;
 }
@@ -383,8 +360,6 @@ static irqreturn_t dt2814_interrupt(int irq, void *d)
 		int i;
 
 		outb(0, dev->iobase + DT2814_CSR);
-		/* note: turning off timed mode triggers another
-		   sample. */
 
 		for (i = 0; i < DT2814_TIMEOUT; i++) {
 			if (inb(dev->iobase + DT2814_CSR) & DT2814_FINISH)

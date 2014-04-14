@@ -19,11 +19,6 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
-GPIO11 - backlight
-GPIO12 - screen blanking
-GPIO13 - screen blanking
-*/
 
 #include <linux/platform_device.h>
 #include <linux/module.h>

@@ -12,12 +12,8 @@
 #ifndef _ASM_CACHEFLUSH_H
 #define _ASM_CACHEFLUSH_H
 
-/* Keep includes the same across arches.  */
 #include <linux/mm.h>
 
-/*
- * virtually-indexed cache management (our cache is physically indexed)
- */
 #define flush_cache_all()			do {} while(0)
 #define flush_cache_mm(mm)			do {} while(0)
 #define flush_cache_dup_mm(mm)			do {} while(0)
@@ -28,10 +24,6 @@
 #define flush_dcache_mmap_lock(mapping)		do {} while(0)
 #define flush_dcache_mmap_unlock(mapping)	do {} while(0)
 
-/*
- * physically-indexed cache management
- * - see arch/frv/lib/cache.S
- */
 extern void frv_dcache_writeback(unsigned long start, unsigned long size);
 extern void frv_cache_invalidate(unsigned long start, unsigned long size);
 extern void frv_icache_invalidate(unsigned long start, unsigned long size);
@@ -46,7 +38,6 @@ static inline void __flush_cache_all(void)
 		     );
 }
 
-/* dcache/icache coherency... */
 #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
 #ifdef CONFIG_MMU
 extern void flush_dcache_page(struct page *page);
@@ -89,10 +80,6 @@ static inline void flush_icache_page(struct vm_area_struct *vma, struct page *pa
 	flush_icache_user_range(vma, page, page_to_phys(page), PAGE_SIZE);
 }
 
-/*
- * permit ptrace to access another process's address space through the icache
- * and the dcache
- */
 #define copy_to_user_page(vma, page, vaddr, dst, src, len)	\
 do {								\
 	memcpy((dst), (src), (len));				\
@@ -102,4 +89,4 @@ do {								\
 #define copy_from_user_page(vma, page, vaddr, dst, src, len)	\
 	memcpy((dst), (src), (len))
 
-#endif /* _ASM_CACHEFLUSH_H */
+#endif 

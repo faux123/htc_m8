@@ -4,9 +4,6 @@
  *  Copyright (C) 1994-1996  Linus Torvalds & authors
  */
 
-/*
- *  This file contains the ARM architecture specific IDE code.
- */
 
 #ifndef __ASMARM_IDE_H
 #define __ASMARM_IDE_H
@@ -18,6 +15,6 @@
 #define __ide_mm_outsw(port,addr,len)	writesw(port,addr,len)
 #define __ide_mm_outsl(port,addr,len)	writesl(port,addr,len)
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __ASMARM_IDE_H */
+#endif 

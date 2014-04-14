@@ -61,10 +61,6 @@ static void extent_trunc(struct inode *inode, struct extent_position *epos,
 	}
 }
 
-/*
- * Truncate the last extent to match i_size. This function assumes
- * that preallocation extent is already truncated.
- */
 void udf_truncate_tail_extent(struct inode *inode)
 {
 	struct extent_position epos = {};
@@ -78,7 +74,7 @@ void udf_truncate_tail_extent(struct inode *inode)
 	if (iinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB ||
 	    inode->i_size == iinfo->i_lenExtents)
 		return;
-	/* Are we going to delete the file anyway? */
+	
 	if (inode->i_nlink == 0)
 		return;
 
@@ -89,7 +85,7 @@ void udf_truncate_tail_extent(struct inode *inode)
 	else
 		BUG();
 
-	/* Find the last extent in the file */
+	
 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
 		etype = netype;
 		lbcount += elen;
@@ -113,8 +109,6 @@ void udf_truncate_tail_extent(struct inode *inode)
 			break;
 		}
 	}
-	/* This inode entry is in-memory only and thus we don't have to mark
-	 * the inode dirty */
 	iinfo->i_lenExtents = inode->i_size;
 	brelse(epos.bh);
 }
@@ -142,7 +136,7 @@ void udf_discard_prealloc(struct inode *inode)
 
 	epos.block = iinfo->i_location;
 
-	/* Find the last extent in the file */
+	
 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
 		etype = netype;
 		lbcount += elen;
@@ -171,8 +165,6 @@ void udf_discard_prealloc(struct inode *inode)
 			mark_buffer_dirty_inode(epos.bh, inode);
 		}
 	}
-	/* This inode entry is in-memory only and thus we don't have to mark
-	 * the inode dirty */
 	iinfo->i_lenExtents = lbcount;
 	brelse(epos.bh);
 }
@@ -195,11 +187,6 @@ static void udf_update_alloc_ext_desc(struct inode *inode,
 	mark_buffer_dirty_inode(epos->bh, inode);
 }
 
-/*
- * Truncate extents of inode to inode->i_size. This function can be used only
- * for making file shorter. For making file longer, udf_extend_file() has to
- * be used.
- */
 void udf_truncate_extents(struct inode *inode)
 {
 	struct extent_position epos;
@@ -223,7 +210,7 @@ void udf_truncate_extents(struct inode *inode)
 	byte_offset = (offset << sb->s_blocksize_bits) +
 		(inode->i_size & (sb->s_blocksize - 1));
 	if (etype == -1) {
-		/* We should extend the file? */
+		
 		WARN_ON(byte_offset);
 		return;
 	}
@@ -245,8 +232,6 @@ void udf_truncate_extents(struct inode *inode)
 		if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
 			udf_write_aext(inode, &epos, &neloc, nelen, 0);
 			if (indirect_ext_len) {
-				/* We managed to free all extents in the
-				 * indirect extent - free it too */
 				BUG_ON(!epos.bh);
 				udf_free_blocks(sb, inode, &epos.block,
 						0, indirect_ext_len);

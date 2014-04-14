@@ -9,10 +9,6 @@
  * the GNU General Public License, incorporated herein by reference.
  */
 
-/*
- * 19991203 - Fernando Carvalho - takion@superbofh.org
- * Hacked to compile with egcs and run with current version of isdn modules
- */
 
 #ifndef LAYER2_H
 #define LAYER2_H
@@ -21,10 +17,10 @@
 
 #include <asm/byteorder.h>
 
-#define BANK1 0x0000U /* PC -> Board */
-#define BANK2 0x01ffU /* Board -> PC */
-#define BANK3 0x03feU /* Att Board */
-#define BANK4 0x03ffU /* Att PC */
+#define BANK1 0x0000U 
+#define BANK2 0x01ffU 
+#define BANK3 0x03feU 
+#define BANK4 0x03ffU 
 
 #define BANKLEN 0x01FFU
 
@@ -35,9 +31,7 @@
 
 
 
-/* TAM - XX - C - S  - NUM */
 #define PREHDR_LEN 8
-/* TT  - M  - I - TH - TD  */
 #define FRAME_HDR_LEN  8
 
 #define MSG_CONN_REQ		0x08000100
@@ -83,11 +77,6 @@
 
 #define MSG_DEBUG_188           0x0000ff00
 
-/*
-
-  long  4 3 2 1
-  Intel 1 2 3 4
-*/
 
 #ifdef __LITTLE_ENDIAN
 #define SET_MSG_SCMD(msg, ch)	(msg = (msg & 0xffffff00) | (((ch) & 0xff)))
@@ -109,7 +98,7 @@
 #define SCHED_READ    0x01
 #define SCHED_WRITE   0x02
 
-#define SET_RUN_TIMEOUT 2 * HZ /* 2 seconds */
+#define SET_RUN_TIMEOUT 2 * HZ 
 
 struct frame_buf {
 	ulong msg;
@@ -166,9 +155,6 @@ static __inline__ struct pcbit_dev *finddev(int id)
 }
 
 
-/*
- *  Support routines for reading and writing in the board
- */
 
 static __inline__ void pcbit_writeb(struct pcbit_dev *dev, unsigned char dt)
 {

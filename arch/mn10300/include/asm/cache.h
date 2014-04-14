@@ -23,11 +23,6 @@
 
 #define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 
-/* data cache purge registers
- * - read from the register to unconditionally purge that cache line
- * - write address & 0xffffff00 to conditionally purge that cache line
- *   - clear LSB to request invalidation as well
- */
 #define DCACHE_PURGE(WAY, ENTRY) \
 	__SYSREG(0xc8400000 + (WAY) * L1_CACHE_WAYDISP + \
 		 (ENTRY) * L1_CACHE_BYTES, u32)
@@ -41,7 +36,6 @@
 #define DCACHE_PURGE_WAY3(ENTRY) \
 	__SYSREG(0xc8400000 + 3 * L1_CACHE_WAYDISP + (ENTRY) * L1_CACHE_BYTES, u32)
 
-/* instruction cache access registers */
 #define ICACHE_DATA(WAY, ENTRY, OFF) \
 	__SYSREG(0xc8000000 + (WAY) * L1_CACHE_WAYDISP + \
 		(ENTRY) * L1_CACHE_BYTES + (OFF) * 4, u32)
@@ -49,7 +43,6 @@
 	__SYSREG(0xc8100000 + (WAY) * L1_CACHE_WAYDISP + \
 		(ENTRY) * L1_CACHE_BYTES, u32)
 
-/* data cache access registers */
 #define DCACHE_DATA(WAY, ENTRY, OFF) \
 	__SYSREG(0xc8200000 + (WAY) * L1_CACHE_WAYDISP + \
 		(ENTRY) * L1_CACHE_BYTES + (OFF) * 4, u32)
@@ -57,4 +50,4 @@
 	__SYSREG(0xc8300000 + (WAY) * L1_CACHE_WAYDISP + \
 		(ENTRY) * L1_CACHE_BYTES, u32)
 
-#endif /* _ASM_CACHE_H */
+#endif 

@@ -27,7 +27,7 @@
 #include <linux/major.h>
 #include <linux/types.h>
 #include <linux/errno.h>
-#include <linux/delay.h>	/* guess what */
+#include <linux/delay.h>	
 #include <linux/fs.h>
 #include <linux/mm.h>
 #include <linux/init.h>
@@ -35,18 +35,17 @@
 #include <linux/mutex.h>
 #include <linux/firmware.h>
 #include <linux/platform_device.h>
-#include <linux/uaccess.h>	/* For put_user and get_user */
+#include <linux/uaccess.h>	
 
 #include <asm/atarihw.h>
 #include <asm/traps.h>
 
 #include <asm/dsp56k.h>
 
-/* minor devices */
-#define DSP56K_DEV_56001        0    /* The only device so far */
+#define DSP56K_DEV_56001        0    
 
-#define TIMEOUT    10   /* Host port timeout in number of tries */
-#define MAXIO    2048   /* Maximum number of words before sleep */
+#define TIMEOUT    10   
+#define MAXIO    2048   
 #define DSP56K_MAX_BINARY_LENGTH (3*64*1024)
 
 #define DSP56K_TX_INT_ON	dsp56k_host_interface.icr |=  DSP56K_ICR_TREQ
@@ -107,7 +106,7 @@ static int dsp56k_reset(void)
 {
 	u_char status;
 	
-	/* Power down the DSP */
+	
 	sound_ym.rd_data_reg_sel = 14;
 	status = sound_ym.rd_data_reg_sel & 0xef;
 	sound_ym.wd_data = status;
@@ -115,7 +114,7 @@ static int dsp56k_reset(void)
   
 	udelay(10);
   
-	/* Power up the DSP */
+	
 	sound_ym.rd_data_reg_sel = 14;
 	sound_ym.wd_data = sound_ym.rd_data_reg_sel & 0xef;
 
@@ -152,14 +151,14 @@ static int dsp56k_upload(u_char __user *bin, int len)
 		return -EINVAL;
 	}
 	for (i = 0; i < fw->size; i = i + 3) {
-		/* tx_wait(10); */
+		
 		dsp56k_host_interface.data.b[1] = fw->data[i];
 		dsp56k_host_interface.data.b[2] = fw->data[i + 1];
 		dsp56k_host_interface.data.b[3] = fw->data[i + 2];
 	}
 	release_firmware(fw);
 	for (; i < 512; i++) {
-		/* tx_wait(10); */
+		
 		dsp56k_host_interface.data.b[1] = 0;
 		dsp56k_host_interface.data.b[2] = 0;
 		dsp56k_host_interface.data.b[3] = 0;
@@ -173,7 +172,7 @@ static int dsp56k_upload(u_char __user *bin, int len)
 	}
 
 	tx_wait(10);
-	dsp56k_host_interface.data.l = 3;    /* Magic execute */
+	dsp56k_host_interface.data.l = 3;    
 
 	return 0;
 }
@@ -191,18 +190,18 @@ static ssize_t dsp56k_read(struct file *file, char __user *buf, size_t count,
 
 		long n;
 
-		/* Don't do anything if nothing is to be done */
+		
 		if (!count) return 0;
 
 		n = 0;
 		switch (dsp56k.rx_wsize) {
-		case 1:  /* 8 bit */
+		case 1:  
 		{
 			handshake(count, dsp56k.maxio, dsp56k.timeout, DSP56K_RECEIVE,
 				  put_user(dsp56k_host_interface.data.b[3], buf+n++));
 			return n;
 		}
-		case 2:  /* 16 bit */
+		case 2:  
 		{
 			short __user *data;
 
@@ -212,7 +211,7 @@ static ssize_t dsp56k_read(struct file *file, char __user *buf, size_t count,
 				  put_user(dsp56k_host_interface.data.w[1], data+n++));
 			return 2*n;
 		}
-		case 3:  /* 24 bit */
+		case 3:  
 		{
 			count /= 3;
 			handshake(count, dsp56k.maxio, dsp56k.timeout, DSP56K_RECEIVE,
@@ -221,7 +220,7 @@ static ssize_t dsp56k_read(struct file *file, char __user *buf, size_t count,
 				  put_user(dsp56k_host_interface.data.b[3], buf+n++));
 			return 3*n;
 		}
-		case 4:  /* 32 bit */
+		case 4:  
 		{
 			long __user *data;
 
@@ -253,18 +252,18 @@ static ssize_t dsp56k_write(struct file *file, const char __user *buf, size_t co
 	{
 		long n;
 
-		/* Don't do anything if nothing is to be done */
+		
 		if (!count) return 0;
 
 		n = 0;
 		switch (dsp56k.tx_wsize) {
-		case 1:  /* 8 bit */
+		case 1:  
 		{
 			handshake(count, dsp56k.maxio, dsp56k.timeout, DSP56K_TRANSMIT,
 				  get_user(dsp56k_host_interface.data.b[3], buf+n++));
 			return n;
 		}
-		case 2:  /* 16 bit */
+		case 2:  
 		{
 			const short __user *data;
 
@@ -274,7 +273,7 @@ static ssize_t dsp56k_write(struct file *file, const char __user *buf, size_t co
 				  get_user(dsp56k_host_interface.data.w[1], data+n++));
 			return 2*n;
 		}
-		case 3:  /* 24 bit */
+		case 3:  
 		{
 			count /= 3;
 			handshake(count, dsp56k.maxio, dsp56k.timeout, DSP56K_TRANSMIT,
@@ -283,7 +282,7 @@ static ssize_t dsp56k_write(struct file *file, const char __user *buf, size_t co
 				  get_user(dsp56k_host_interface.data.b[3], buf+n++));
 			return 3*n;
 		}
-		case 4:  /* 32 bit */
+		case 4:  
 		{
 			const long __user *data;
 
@@ -326,7 +325,7 @@ static long dsp56k_ioctl(struct file *file, unsigned int cmd,
 				return -EFAULT;
 		
 			if (len == 0) {
-				return -EINVAL;      /* nothing to upload?!? */
+				return -EINVAL;      
 			}
 			if (len > DSP56K_MAX_BINARY_LENGTH) {
 				return -EINVAL;
@@ -401,10 +400,6 @@ static long dsp56k_ioctl(struct file *file, unsigned int cmd,
 	}
 }
 
-/* As of 2.1.26 this should be dsp56k_poll,
- * but how do I then check device minor number?
- * Do I need this function at all???
- */
 #if 0
 static unsigned int dsp56k_poll(struct file *file, poll_table *wait)
 {
@@ -413,7 +408,7 @@ static unsigned int dsp56k_poll(struct file *file, poll_table *wait)
 	switch(dev)
 	{
 	case DSP56K_DEV_56001:
-		/* poll_wait(file, ???, wait); */
+		
 		return POLLIN | POLLRDNORM | POLLOUT;
 
 	default:
@@ -445,7 +440,7 @@ static int dsp56k_open(struct inode *inode, struct file *file)
 		DSP56K_TX_INT_OFF;
 		DSP56K_RX_INT_OFF;
 
-		/* Zero host flags */
+		
 		dsp56k_host_interface.icr &= ~DSP56K_ICR_HF0;
 		dsp56k_host_interface.icr &= ~DSP56K_ICR_HF1;
 
@@ -487,7 +482,6 @@ static const struct file_operations dsp56k_fops = {
 };
 
 
-/****** Init and module functions ******/
 
 static char banner[] __initdata = KERN_INFO "DSP56k driver installed\n";
 

@@ -38,6 +38,7 @@
 #include <linux/serial.h>
 #include <linux/serial_reg.h>
 #include <linux/bitops.h>
+#include <asm/system.h>
 #include <asm/io.h>
 
 #include <pcmcia/cistpl.h>
@@ -50,7 +51,6 @@
 
 
 
-/* ======================== Module parameters ======================== */
 
 
 MODULE_AUTHOR("Marcel Holtmann <marcel@holtmann.org>");
@@ -59,7 +59,6 @@ MODULE_LICENSE("GPL");
 
 
 
-/* ======================== Local structures ======================== */
 
 
 typedef struct btuart_info_t {
@@ -67,7 +66,7 @@ typedef struct btuart_info_t {
 
 	struct hci_dev *hdev;
 
-	spinlock_t lock;	/* For serializing operations */
+	spinlock_t lock;	
 
 	struct sk_buff_head txq;
 	unsigned long tx_state;
@@ -84,19 +83,15 @@ static void btuart_release(struct pcmcia_device *link);
 static void btuart_detach(struct pcmcia_device *p_dev);
 
 
-/* Maximum baud rate */
 #define SPEED_MAX  115200
 
-/* Default baud rate: 57600, 115200, 230400 or 460800 */
 #define DEFAULT_BAUD_RATE  115200
 
 
-/* Transmit states  */
 #define XMIT_SENDING	1
 #define XMIT_WAKEUP	2
 #define XMIT_WAITING	8
 
-/* Receiver states */
 #define RECV_WAIT_PACKET_TYPE	0
 #define RECV_WAIT_EVENT_HEADER	1
 #define RECV_WAIT_ACL_HEADER	2
@@ -105,20 +100,19 @@ static void btuart_detach(struct pcmcia_device *p_dev);
 
 
 
-/* ======================== Interrupt handling ======================== */
 
 
 static int btuart_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
 {
 	int actual = 0;
 
-	/* Tx FIFO should be empty */
+	
 	if (!(inb(iobase + UART_LSR) & UART_LSR_THRE))
 		return 0;
 
-	/* Fill FIFO with current frame */
+	
 	while ((fifo_size-- > 0) && (actual < len)) {
-		/* Transmit next byte */
+		
 		outb(buf[actual], iobase + UART_TX);
 		actual++;
 	}
@@ -152,7 +146,7 @@ static void btuart_write_wakeup(btuart_info_t *info)
 		if (!(skb = skb_dequeue(&(info->txq))))
 			break;
 
-		/* Send frame */
+		
 		len = btuart_write(iobase, 16, skb->data, skb->len);
 		set_bit(XMIT_WAKEUP, &(info->tx_state));
 
@@ -186,7 +180,7 @@ static void btuart_receive(btuart_info_t *info)
 	do {
 		info->hdev->stat.byte_rx++;
 
-		/* Allocate packet */
+		
 		if (info->rx_skb == NULL) {
 			info->rx_state = RECV_WAIT_PACKET_TYPE;
 			info->rx_count = 0;
@@ -219,7 +213,7 @@ static void btuart_receive(btuart_info_t *info)
 				break;
 
 			default:
-				/* Unknown packet */
+				
 				BT_ERR("Unknown HCI packet with type 0x%02x received", bt_cb(info->rx_skb)->pkt_type);
 				info->hdev->stat.err_rx++;
 				clear_bit(HCI_RUNNING, &(info->hdev->flags));
@@ -275,7 +269,7 @@ static void btuart_receive(btuart_info_t *info)
 
 		}
 
-		/* Make sure we don't stay here too long */
+		
 		if (boguscount++ > 16)
 			break;
 
@@ -292,7 +286,7 @@ static irqreturn_t btuart_interrupt(int irq, void *dev_inst)
 	irqreturn_t r = IRQ_NONE;
 
 	if (!info || !info->hdev)
-		/* our irq handler is shared */
+		
 		return IRQ_NONE;
 
 	iobase = info->p_dev->resource[0]->start;
@@ -303,7 +297,7 @@ static irqreturn_t btuart_interrupt(int irq, void *dev_inst)
 	while (iir) {
 		r = IRQ_HANDLED;
 
-		/* Clear interrupt */
+		
 		lsr = inb(iobase + UART_LSR);
 
 		switch (iir) {
@@ -311,12 +305,12 @@ static irqreturn_t btuart_interrupt(int irq, void *dev_inst)
 			BT_ERR("RLSI");
 			break;
 		case UART_IIR_RDI:
-			/* Receive interrupt */
+			
 			btuart_receive(info);
 			break;
 		case UART_IIR_THRI:
 			if (lsr & UART_LSR_THRE) {
-				/* Transmitter ready for data */
+				
 				btuart_write_wakeup(info);
 			}
 			break;
@@ -325,7 +319,7 @@ static irqreturn_t btuart_interrupt(int irq, void *dev_inst)
 			break;
 		}
 
-		/* Make sure we don't stay here too long */
+		
 		if (boguscount++ > 100)
 			break;
 
@@ -343,8 +337,8 @@ static void btuart_change_speed(btuart_info_t *info, unsigned int speed)
 {
 	unsigned long flags;
 	unsigned int iobase;
-	int fcr;		/* FIFO control reg */
-	int lcr;		/* Line control reg */
+	int fcr;		
+	int lcr;		
 	int divisor;
 
 	if (!info) {
@@ -356,34 +350,29 @@ static void btuart_change_speed(btuart_info_t *info, unsigned int speed)
 
 	spin_lock_irqsave(&(info->lock), flags);
 
-	/* Turn off interrupts */
+	
 	outb(0, iobase + UART_IER);
 
 	divisor = SPEED_MAX / speed;
 
 	fcr = UART_FCR_ENABLE_FIFO | UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT;
 
-	/* 
-	 * Use trigger level 1 to avoid 3 ms. timeout delay at 9600 bps, and
-	 * almost 1,7 ms at 19200 bps. At speeds above that we can just forget
-	 * about this timeout since it will always be fast enough. 
-	 */
 
 	if (speed < 38400)
 		fcr |= UART_FCR_TRIGGER_1;
 	else
 		fcr |= UART_FCR_TRIGGER_14;
 
-	/* Bluetooth cards use 8N1 */
+	
 	lcr = UART_LCR_WLEN8;
 
-	outb(UART_LCR_DLAB | lcr, iobase + UART_LCR);	/* Set DLAB */
-	outb(divisor & 0xff, iobase + UART_DLL);	/* Set speed */
+	outb(UART_LCR_DLAB | lcr, iobase + UART_LCR);	
+	outb(divisor & 0xff, iobase + UART_DLL);	
 	outb(divisor >> 8, iobase + UART_DLM);
-	outb(lcr, iobase + UART_LCR);	/* Set 8N1  */
-	outb(fcr, iobase + UART_FCR);	/* Enable FIFO's */
+	outb(lcr, iobase + UART_LCR);	
+	outb(fcr, iobase + UART_FCR);	
 
-	/* Turn on interrupts */
+	
 	outb(UART_IER_RLSI | UART_IER_RDI | UART_IER_THRI, iobase + UART_IER);
 
 	spin_unlock_irqrestore(&(info->lock), flags);
@@ -391,14 +380,13 @@ static void btuart_change_speed(btuart_info_t *info, unsigned int speed)
 
 
 
-/* ======================== HCI interface ======================== */
 
 
 static int btuart_hci_flush(struct hci_dev *hdev)
 {
-	btuart_info_t *info = hci_get_drvdata(hdev);
+	btuart_info_t *info = (btuart_info_t *)(hdev->driver_data);
 
-	/* Drop TX queue */
+	
 	skb_queue_purge(&(info->txq));
 
 	return 0;
@@ -434,7 +422,7 @@ static int btuart_hci_send_frame(struct sk_buff *skb)
 		return -ENODEV;
 	}
 
-	info = hci_get_drvdata(hdev);
+	info = (btuart_info_t *)(hdev->driver_data);
 
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
@@ -448,13 +436,18 @@ static int btuart_hci_send_frame(struct sk_buff *skb)
 		break;
 	};
 
-	/* Prepend skb with frame type */
+	
 	memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
 	skb_queue_tail(&(info->txq), skb);
 
 	btuart_write_wakeup(info);
 
 	return 0;
+}
+
+
+static void btuart_hci_destruct(struct hci_dev *hdev)
+{
 }
 
 
@@ -465,7 +458,6 @@ static int btuart_hci_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned lon
 
 
 
-/* ======================== Card services HCI interaction ======================== */
 
 
 static int btuart_open(btuart_info_t *info)
@@ -482,7 +474,7 @@ static int btuart_open(btuart_info_t *info)
 	info->rx_count = 0;
 	info->rx_skb = NULL;
 
-	/* Initialize HCI device */
+	
 	hdev = hci_alloc_dev();
 	if (!hdev) {
 		BT_ERR("Can't allocate HCI device");
@@ -492,38 +484,41 @@ static int btuart_open(btuart_info_t *info)
 	info->hdev = hdev;
 
 	hdev->bus = HCI_PCCARD;
-	hci_set_drvdata(hdev, info);
+	hdev->driver_data = info;
 	SET_HCIDEV_DEV(hdev, &info->p_dev->dev);
 
 	hdev->open     = btuart_hci_open;
 	hdev->close    = btuart_hci_close;
 	hdev->flush    = btuart_hci_flush;
 	hdev->send     = btuart_hci_send_frame;
+	hdev->destruct = btuart_hci_destruct;
 	hdev->ioctl    = btuart_hci_ioctl;
+
+	hdev->owner = THIS_MODULE;
 
 	spin_lock_irqsave(&(info->lock), flags);
 
-	/* Reset UART */
+	
 	outb(0, iobase + UART_MCR);
 
-	/* Turn off interrupts */
+	
 	outb(0, iobase + UART_IER);
 
-	/* Initialize UART */
-	outb(UART_LCR_WLEN8, iobase + UART_LCR);	/* Reset DLAB */
+	
+	outb(UART_LCR_WLEN8, iobase + UART_LCR);	
 	outb((UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2), iobase + UART_MCR);
 
-	/* Turn on interrupts */
-	// outb(UART_IER_RLSI | UART_IER_RDI | UART_IER_THRI, iobase + UART_IER);
+	
+	
 
 	spin_unlock_irqrestore(&(info->lock), flags);
 
 	btuart_change_speed(info, DEFAULT_BAUD_RATE);
 
-	/* Timeout before it is safe to send the first HCI packet */
+	
 	msleep(1000);
 
-	/* Register HCI device */
+	
 	if (hci_register_dev(hdev) < 0) {
 		BT_ERR("Can't register HCI device");
 		info->hdev = NULL;
@@ -548,15 +543,17 @@ static int btuart_close(btuart_info_t *info)
 
 	spin_lock_irqsave(&(info->lock), flags);
 
-	/* Reset UART */
+	
 	outb(0, iobase + UART_MCR);
 
-	/* Turn off interrupts */
+	
 	outb(0, iobase + UART_IER);
 
 	spin_unlock_irqrestore(&(info->lock), flags);
 
-	hci_unregister_dev(hdev);
+	if (hci_unregister_dev(hdev) < 0)
+		BT_ERR("Can't unregister HCI device %s", hdev->name);
+
 	hci_free_dev(hdev);
 
 	return 0;
@@ -566,7 +563,7 @@ static int btuart_probe(struct pcmcia_device *link)
 {
 	btuart_info_t *info;
 
-	/* Create new info device */
+	
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -634,15 +631,10 @@ static int btuart_config(struct pcmcia_device *link)
 	int i;
 	int try;
 
-	/* First pass: look for a config entry that looks normal.
-	   Two tries: without IO aliases, then with aliases */
 	for (try = 0; try < 2; try++)
 		if (!pcmcia_loop_config(link, btuart_check_config, &try))
 			goto found_port;
 
-	/* Second pass: try to find an entry that isn't picky about
-	   its base address, then try to grab any standard serial port
-	   address, and finally try to get any free port. */
 	if (!pcmcia_loop_config(link, btuart_check_config_notpicky, NULL))
 		goto found_port;
 
@@ -678,8 +670,8 @@ static void btuart_release(struct pcmcia_device *link)
 	pcmcia_disable_device(link);
 }
 
-static const struct pcmcia_device_id btuart_ids[] = {
-	/* don't use this driver. Use serial_cs + hci_uart instead */
+static struct pcmcia_device_id btuart_ids[] = {
+	
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, btuart_ids);

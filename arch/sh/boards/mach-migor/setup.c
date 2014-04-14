@@ -34,13 +34,6 @@
 #include <mach/migor.h>
 #include <cpu/sh7722.h>
 
-/* Address     IRQ  Size  Bus  Description
- * 0x00000000       64MB  16   NOR Flash (SP29PL256N)
- * 0x0c000000       64MB  64   SDRAM (2xK4M563233G)
- * 0x10000000  IRQ0       16   Ethernet (SMC91C111)
- * 0x14000000  IRQ4       16   USB 2.0 Host Controller (M66596)
- * 0x18000000       8GB    8   NAND Flash (K9K8G08U0A)
- */
 
 static struct smc91x_platdata smc91x_info = {
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
@@ -54,7 +47,7 @@ static struct resource smc91x_eth_resources[] = {
 		.flags  = IORESOURCE_MEM,
 	},
 	[1] = {
-		.start  = 32, /* IRQ0 */
+		.start  = 32, 
 		.flags  = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	},
 };
@@ -69,7 +62,7 @@ static struct platform_device smc91x_eth_device = {
 };
 
 static struct sh_keysc_info sh_keysc_info = {
-	.mode = SH_KEYSC_MODE_2, /* KEYOUT0->4, KEYIN1->5 */
+	.mode = SH_KEYSC_MODE_2, 
 	.scan_timing = 3,
 	.delay = 5,
 	.keycodes = {
@@ -95,7 +88,7 @@ static struct resource sh_keysc_resources[] = {
 
 static struct platform_device sh_keysc_device = {
 	.name           = "sh_keysc",
-	.id             = 0, /* "keysc0" clock */
+	.id             = 0, 
 	.num_resources  = ARRAY_SIZE(sh_keysc_resources),
 	.resource       = sh_keysc_resources,
 	.dev	= {
@@ -109,7 +102,7 @@ static struct mtd_partition migor_nor_flash_partitions[] =
 		.name = "uboot",
 		.offset = 0,
 		.size = (1 * 1024 * 1024),
-		.mask_flags = MTD_WRITEABLE,	/* Read-only */
+		.mask_flags = MTD_WRITEABLE,	
 	},
 	{
 		.name = "rootfs",
@@ -178,7 +171,7 @@ static void migor_nand_flash_cmd_ctl(struct mtd_info *mtd, int cmd,
 
 static int migor_nand_flash_ready(struct mtd_info *mtd)
 {
-	return gpio_get_value(GPIO_PTA1); /* NAND_RBn */
+	return gpio_get_value(GPIO_PTA1); 
 }
 
 static struct platform_nand_data migor_nand_flash_data = {
@@ -248,7 +241,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
 		.clock_divider = 2,
 		.lcd_modes = migor_lcd_modes,
 		.num_modes = ARRAY_SIZE(migor_lcd_modes),
-		.panel_cfg = { /* 7.0 inch */
+		.panel_cfg = { 
 			.width = 152,
 			.height = 91,
 		},
@@ -263,14 +256,14 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
 		.lcd_modes = migor_lcd_modes,
 		.num_modes = ARRAY_SIZE(migor_lcd_modes),
 		.panel_cfg = {
-			.width = 49,	/* 2.4 inch */
+			.width = 49,	
 			.height = 37,
 			.setup_sys = migor_lcd_qvga_setup,
 		},
 		.sys_bus_cfg = {
 			.ldmt2r = 0x06000a09,
 			.ldmt3r = 0x180e3418,
-			/* set 1s delay to encourage fsync() */
+			
 			.deferred_io_msec = 1000,
 		},
 	}
@@ -280,7 +273,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
 static struct resource migor_lcdc_resources[] = {
 	[0] = {
 		.name	= "LCDC",
-		.start	= 0xfe940000, /* P4-only space */
+		.start	= 0xfe940000, 
 		.end	= 0xfe942fff,
 		.flags	= IORESOURCE_MEM,
 	},
@@ -306,14 +299,11 @@ static void camera_power_on(int is_tw)
 {
 	mutex_lock(&camera_lock);
 
-	/* Use 10 MHz VIO_CKO instead of 24 MHz to work
-	 * around signal quality issues on Panel Board V2.1.
-	 */
 	camera_clk = clk_get(NULL, "video_clk");
 	clk_set_rate(camera_clk, 10000000);
-	clk_enable(camera_clk);	/* start VIO_CKO */
+	clk_enable(camera_clk);	
 
-	/* use VIO_RST to take camera out of reset */
+	
 	mdelay(10);
 	if (is_tw) {
 		gpio_set_value(GPIO_PTT2, 0);
@@ -324,12 +314,12 @@ static void camera_power_on(int is_tw)
 	gpio_set_value(GPIO_PTT3, 0);
 	mdelay(10);
 	gpio_set_value(GPIO_PTT3, 1);
-	mdelay(10); /* wait to let chip come out of reset */
+	mdelay(10); 
 }
 
 static void camera_power_off(void)
 {
-	clk_disable(camera_clk); /* stop VIO_CKO */
+	clk_disable(camera_clk); 
 	clk_put(camera_clk);
 
 	gpio_set_value(GPIO_PTT3, 0);
@@ -372,13 +362,13 @@ static struct resource migor_ceu_resources[] = {
 		.flags  = IORESOURCE_IRQ,
 	},
 	[2] = {
-		/* place holder for contiguous memory */
+		
 	},
 };
 
 static struct platform_device migor_ceu_device = {
 	.name		= "sh_mobile_ceu",
-	.id             = 0, /* "ceu0" clock */
+	.id             = 0, 
 	.num_resources	= ARRAY_SIZE(migor_ceu_resources),
 	.resource	= migor_ceu_resources,
 	.dev	= {
@@ -420,7 +410,7 @@ static struct i2c_board_info migor_i2c_devices[] = {
 	},
 	{
 		I2C_BOARD_INFO("migor_ts", 0x51),
-		.irq = 38, /* IRQ6 */
+		.irq = 38, 
 	},
 	{
 		I2C_BOARD_INFO("wm8978", 0x1a),
@@ -492,24 +482,24 @@ extern char migor_sdram_leave_end;
 
 static int __init migor_devices_setup(void)
 {
-	/* register board specific self-refresh code */
+	
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
 					&migor_sdram_enter_start,
 					&migor_sdram_enter_end,
 					&migor_sdram_leave_start,
 					&migor_sdram_leave_end);
-	/* Let D11 LED show STATUS0 */
+	
 	gpio_request(GPIO_FN_STATUS0, NULL);
 
-	/* Lit D12 LED show PDSTATUS */
+	
 	gpio_request(GPIO_FN_PDSTATUS, NULL);
 
-	/* SMC91C111 - Enable IRQ0, Setup CS4 for 16-bit fast access */
+	
 	gpio_request(GPIO_FN_IRQ0, NULL);
 	__raw_writel(0x00003400, BSC_CS4BCR);
 	__raw_writel(0x00110080, BSC_CS4WCR);
 
-	/* KEYSC */
+	
 	gpio_request(GPIO_FN_KEYOUT0, NULL);
 	gpio_request(GPIO_FN_KEYOUT1, NULL);
 	gpio_request(GPIO_FN_KEYOUT2, NULL);
@@ -521,13 +511,13 @@ static int __init migor_devices_setup(void)
 	gpio_request(GPIO_FN_KEYIN4, NULL);
 	gpio_request(GPIO_FN_KEYOUT5_IN5, NULL);
 
-	/* NAND Flash */
+	
 	gpio_request(GPIO_FN_CS6A_CE2B, NULL);
 	__raw_writel((__raw_readl(BSC_CS6ABCR) & ~0x0600) | 0x0200, BSC_CS6ABCR);
 	gpio_request(GPIO_PTA1, NULL);
 	gpio_direction_input(GPIO_PTA1);
 
-	/* SDHI */
+	
 	gpio_request(GPIO_FN_SDHICD, NULL);
 	gpio_request(GPIO_FN_SDHIWP, NULL);
 	gpio_request(GPIO_FN_SDHID3, NULL);
@@ -537,11 +527,11 @@ static int __init migor_devices_setup(void)
 	gpio_request(GPIO_FN_SDHICMD, NULL);
 	gpio_request(GPIO_FN_SDHICLK, NULL);
 
-	/* Touch Panel */
+	
 	gpio_request(GPIO_FN_IRQ6, NULL);
 
-	/* LCD Panel */
-#ifdef CONFIG_SH_MIGOR_QVGA /* LCDC - QVGA - Enable SYS Interface signals */
+	
+#ifdef CONFIG_SH_MIGOR_QVGA 
 	gpio_request(GPIO_FN_LCDD17, NULL);
 	gpio_request(GPIO_FN_LCDD16, NULL);
 	gpio_request(GPIO_FN_LCDD15, NULL);
@@ -562,10 +552,10 @@ static int __init migor_devices_setup(void)
 	gpio_request(GPIO_FN_LCDCS, NULL);
 	gpio_request(GPIO_FN_LCDRD, NULL);
 	gpio_request(GPIO_FN_LCDWR, NULL);
-	gpio_request(GPIO_PTH2, NULL); /* LCD_DON */
+	gpio_request(GPIO_PTH2, NULL); 
 	gpio_direction_output(GPIO_PTH2, 1);
 #endif
-#ifdef CONFIG_SH_MIGOR_RTA_WVGA /* LCDC - WVGA - Enable RGB Interface signals */
+#ifdef CONFIG_SH_MIGOR_RTA_WVGA 
 	gpio_request(GPIO_FN_LCDD15, NULL);
 	gpio_request(GPIO_FN_LCDD14, NULL);
 	gpio_request(GPIO_FN_LCDD13, NULL);
@@ -592,7 +582,7 @@ static int __init migor_devices_setup(void)
 	gpio_request(GPIO_FN_LCDDON, NULL);
 #endif
 
-	/* CEU */
+	
 	gpio_request(GPIO_FN_VIO_CLK2, NULL);
 	gpio_request(GPIO_FN_VIO_VD2, NULL);
 	gpio_request(GPIO_FN_VIO_HD2, NULL);
@@ -607,31 +597,27 @@ static int __init migor_devices_setup(void)
 	gpio_request(GPIO_FN_VIO_D9, NULL);
 	gpio_request(GPIO_FN_VIO_D8, NULL);
 
-	gpio_request(GPIO_PTT3, NULL); /* VIO_RST */
+	gpio_request(GPIO_PTT3, NULL); 
 	gpio_direction_output(GPIO_PTT3, 0);
-	gpio_request(GPIO_PTT2, NULL); /* TV_IN_EN */
+	gpio_request(GPIO_PTT2, NULL); 
 	gpio_direction_output(GPIO_PTT2, 1);
-	gpio_request(GPIO_PTT0, NULL); /* CAM_EN */
+	gpio_request(GPIO_PTT0, NULL); 
 #ifdef CONFIG_SH_MIGOR_RTA_WVGA
 	gpio_direction_output(GPIO_PTT0, 0);
 #else
 	gpio_direction_output(GPIO_PTT0, 1);
 #endif
-	__raw_writew(__raw_readw(PORT_MSELCRB) | 0x2000, PORT_MSELCRB); /* D15->D8 */
+	__raw_writew(__raw_readw(PORT_MSELCRB) | 0x2000, PORT_MSELCRB); 
 
 	platform_resource_setup_memory(&migor_ceu_device, "ceu", 4 << 20);
 
-	/* SIU: Port B */
+	
 	gpio_request(GPIO_FN_SIUBOLR, NULL);
 	gpio_request(GPIO_FN_SIUBOBT, NULL);
 	gpio_request(GPIO_FN_SIUBISLD, NULL);
 	gpio_request(GPIO_FN_SIUBOSLD, NULL);
 	gpio_request(GPIO_FN_SIUMCKB, NULL);
 
-	/*
-	 * The original driver sets SIUB OLR/OBT, ILR/IBT, and SIUA OLR/OBT to
-	 * output. Need only SIUB, set to output for master mode (table 34.2)
-	 */
 	__raw_writew(__raw_readw(PORT_MSELCRA) | 1, PORT_MSELCRA);
 
 	i2c_register_board_info(0, migor_i2c_devices,
@@ -641,20 +627,11 @@ static int __init migor_devices_setup(void)
 }
 arch_initcall(migor_devices_setup);
 
-/* Return the board specific boot mode pin configuration */
 static int migor_mode_pins(void)
 {
-	/* MD0=1, MD1=1, MD2=0: Clock Mode 3
-	 * MD3=0: 16-bit Area0 Bus Width
-	 * MD5=1: Little Endian
-	 * TSTMD=1, MD8=0: Test Mode Disabled
-	 */
 	return MODE_PIN0 | MODE_PIN1 | MODE_PIN5;
 }
 
-/*
- * The Machine Vector
- */
 static struct sh_machine_vector mv_migor __initmv = {
 	.mv_name		= "Migo-R",
 	.mv_mode_pins		= migor_mode_pins,

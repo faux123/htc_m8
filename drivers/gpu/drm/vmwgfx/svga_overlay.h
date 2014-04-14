@@ -23,24 +23,16 @@
  *
  **********************************************************/
 
-/*
- * svga_overlay.h --
- *
- *    Definitions for video-overlay support.
- */
 
 #ifndef _SVGA_OVERLAY_H_
 #define _SVGA_OVERLAY_H_
 
 #include "svga_reg.h"
 
-/*
- * Video formats we support
- */
 
-#define VMWARE_FOURCC_YV12 0x32315659 /* 'Y' 'V' '1' '2' */
-#define VMWARE_FOURCC_YUY2 0x32595559 /* 'Y' 'U' 'Y' '2' */
-#define VMWARE_FOURCC_UYVY 0x59565955 /* 'U' 'Y' 'V' 'Y' */
+#define VMWARE_FOURCC_YV12 0x32315659 
+#define VMWARE_FOURCC_YUY2 0x32595559 
+#define VMWARE_FOURCC_UYVY 0x59565955 
 
 typedef enum {
    SVGA_OVERLAY_FORMAT_INVALID = 0,
@@ -54,12 +46,8 @@ typedef enum {
 #define SVGA_ESCAPE_VMWARE_VIDEO             0x00020000
 
 #define SVGA_ESCAPE_VMWARE_VIDEO_SET_REGS    0x00020001
-        /* FIFO escape layout:
-         * Type, Stream Id, (Register Id, Value) pairs */
 
 #define SVGA_ESCAPE_VMWARE_VIDEO_FLUSH       0x00020002
-        /* FIFO escape layout:
-         * Type, Stream Id */
 
 typedef
 struct SVGAEscapeVideoSetRegs {
@@ -68,7 +56,7 @@ struct SVGAEscapeVideoSetRegs {
       uint32 streamId;
    } header;
 
-   /* May include zero or more items. */
+   
    struct {
       uint32 registerId;
       uint32 value;
@@ -82,10 +70,6 @@ struct SVGAEscapeVideoFlush {
 } SVGAEscapeVideoFlush;
 
 
-/*
- * Struct definitions for the video overlay commands built on
- * SVGAFifoCmdEscape.
- */
 typedef
 struct {
    uint32 command;
@@ -116,30 +100,14 @@ struct {
 } SVGAFifoEscapeCmdVideoSetAllRegs;
 
 
-/*
- *----------------------------------------------------------------------
- *
- * VMwareVideoGetAttributes --
- *
- *      Computes the size, pitches and offsets for YUV frames.
- *
- * Results:
- *      TRUE on success; otherwise FALSE on failure.
- *
- * Side effects:
- *      Pitches and offsets for the given YUV frame are put in 'pitches'
- *      and 'offsets' respectively. They are both optional though.
- *
- *----------------------------------------------------------------------
- */
 
 static inline bool
-VMwareVideoGetAttributes(const SVGAOverlayFormat format,    /* IN */
-                         uint32 *width,                     /* IN / OUT */
-                         uint32 *height,                    /* IN / OUT */
-                         uint32 *size,                      /* OUT */
-                         uint32 *pitches,                   /* OUT (optional) */
-                         uint32 *offsets)                   /* OUT (optional) */
+VMwareVideoGetAttributes(const SVGAOverlayFormat format,    
+                         uint32 *width,                     
+                         uint32 *height,                    
+                         uint32 *size,                      
+                         uint32 *pitches,                   
+                         uint32 *offsets)                   
 {
     int tmp;
 
@@ -198,4 +166,4 @@ VMwareVideoGetAttributes(const SVGAOverlayFormat format,    /* IN */
     return true;
 }
 
-#endif /* _SVGA_OVERLAY_H_ */
+#endif 

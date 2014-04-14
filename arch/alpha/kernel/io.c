@@ -1,6 +1,3 @@
-/*
- * Alpha IO and memory functions.
- */
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -8,9 +5,6 @@
 #include <linux/module.h>
 #include <asm/io.h>
 
-/* Out-of-line versions of the i/o routines that redirect into the 
-   platform-specific version.  Note that "platform-specific" may mean
-   "generic", which bumps through the machine vector.  */
 
 unsigned int
 ioread8(void __iomem *addr)
@@ -207,9 +201,6 @@ EXPORT_SYMBOL(writel);
 EXPORT_SYMBOL(writeq);
 
 
-/*
- * Read COUNT 8-bit bytes from port PORT into memory starting at SRC.
- */
 void ioread8_rep(void __iomem *port, void *dst, unsigned long count)
 {
 	while ((unsigned long)dst & 0x3) {
@@ -246,13 +237,6 @@ void insb(unsigned long port, void *dst, unsigned long count)
 EXPORT_SYMBOL(ioread8_rep);
 EXPORT_SYMBOL(insb);
 
-/*
- * Read COUNT 16-bit words from port PORT into memory starting at
- * SRC.  SRC must be at least short aligned.  This is used by the
- * IDE driver to read disk sectors.  Performance is important, but
- * the interfaces seems to be slow: just using the inlined version
- * of the inw() breaks things.
- */
 void ioread16_rep(void __iomem *port, void *dst, unsigned long count)
 {
 	if (unlikely((unsigned long)dst & 0x3)) {
@@ -287,12 +271,6 @@ EXPORT_SYMBOL(ioread16_rep);
 EXPORT_SYMBOL(insw);
 
 
-/*
- * Read COUNT 32-bit words from port PORT into memory starting at
- * SRC. Now works with any alignment in SRC. Performance is important,
- * but the interfaces seems to be slow: just using the inlined version
- * of the inl() breaks things.
- */
 void ioread32_rep(void __iomem *port, void *dst, unsigned long count)
 {
 	if (unlikely((unsigned long)dst & 0x3)) {
@@ -302,7 +280,7 @@ void ioread32_rep(void __iomem *port, void *dst, unsigned long count)
 			dst += 4;
 		}
 	} else {
-		/* Buffer 32-bit aligned.  */
+		
 		while (count--) {
 			*(unsigned int *)dst = ioread32(port);
 			dst += 4;
@@ -319,12 +297,6 @@ EXPORT_SYMBOL(ioread32_rep);
 EXPORT_SYMBOL(insl);
 
 
-/*
- * Like insb but in the opposite direction.
- * Don't worry as much about doing aligned memory transfers:
- * doing byte reads the "slow" way isn't nearly as slow as
- * doing byte writes the slow way (no r-m-w cycle).
- */
 void iowrite8_rep(void __iomem *port, const void *xsrc, unsigned long count)
 {
 	const unsigned char *src = xsrc;
@@ -341,12 +313,6 @@ EXPORT_SYMBOL(iowrite8_rep);
 EXPORT_SYMBOL(outsb);
 
 
-/*
- * Like insw but in the opposite direction.  This is used by the IDE
- * driver to write disk sectors.  Performance is important, but the
- * interfaces seems to be slow: just using the inlined version of the
- * outw() breaks things.
- */
 void iowrite16_rep(void __iomem *port, const void *src, unsigned long count)
 {
 	if (unlikely((unsigned long)src & 0x3)) {
@@ -381,12 +347,6 @@ EXPORT_SYMBOL(iowrite16_rep);
 EXPORT_SYMBOL(outsw);
 
 
-/*
- * Like insl but in the opposite direction.  This is used by the IDE
- * driver to write disk sectors.  Works with any alignment in SRC.
- * Performance is important, but the interfaces seems to be slow:
- * just using the inlined version of the outl() breaks things.
- */
 void iowrite32_rep(void __iomem *port, const void *src, unsigned long count)
 {
 	if (unlikely((unsigned long)src & 0x3)) {
@@ -396,7 +356,7 @@ void iowrite32_rep(void __iomem *port, const void *src, unsigned long count)
 			src += 4;
 		}
 	} else {
-		/* Buffer 32-bit aligned.  */
+		
 		while (count--) {
 			iowrite32(*(unsigned int *)src, port);
 			src += 4;
@@ -413,14 +373,8 @@ EXPORT_SYMBOL(iowrite32_rep);
 EXPORT_SYMBOL(outsl);
 
 
-/*
- * Copy data from IO memory space to "real" memory space.
- * This needs to be optimized.
- */
 void memcpy_fromio(void *to, const volatile void __iomem *from, long count)
 {
-	/* Optimize co-aligned transfers.  Everything else gets handled
-	   a byte at a time. */
 
 	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7)) {
 		count -= 8;
@@ -467,15 +421,9 @@ void memcpy_fromio(void *to, const volatile void __iomem *from, long count)
 EXPORT_SYMBOL(memcpy_fromio);
 
 
-/*
- * Copy data from "real" memory space to IO memory space.
- * This needs to be optimized.
- */
 void memcpy_toio(volatile void __iomem *to, const void *from, long count)
 {
-	/* Optimize co-aligned transfers.  Everything else gets handled
-	   a byte at a time. */
-	/* FIXME -- align FROM.  */
+	
 
 	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7)) {
 		count -= 8;
@@ -522,34 +470,29 @@ void memcpy_toio(volatile void __iomem *to, const void *from, long count)
 EXPORT_SYMBOL(memcpy_toio);
 
 
-/*
- * "memset" on IO memory space.
- */
 void _memset_c_io(volatile void __iomem *to, unsigned long c, long count)
 {
-	/* Handle any initial odd byte */
+	
 	if (count > 0 && ((u64)to & 1)) {
 		__raw_writeb(c, to);
 		to++;
 		count--;
 	}
 
-	/* Handle any initial odd halfword */
+	
 	if (count >= 2 && ((u64)to & 2)) {
 		__raw_writew(c, to);
 		to += 2;
 		count -= 2;
 	}
 
-	/* Handle any initial odd word */
+	
 	if (count >= 4 && ((u64)to & 4)) {
 		__raw_writel(c, to);
 		to += 4;
 		count -= 4;
 	}
 
-	/* Handle all full-sized quadwords: we're aligned
-	   (or have a small count) */
 	count -= 8;
 	if (count >= 0) {
 		do {
@@ -560,21 +503,21 @@ void _memset_c_io(volatile void __iomem *to, unsigned long c, long count)
 	}
 	count += 8;
 
-	/* The tail is word-aligned if we still have count >= 4 */
+	
 	if (count >= 4) {
 		__raw_writel(c, to);
 		to += 4;
 		count -= 4;
 	}
 
-	/* The tail is half-word aligned if we have count >= 2 */
+	
 	if (count >= 2) {
 		__raw_writew(c, to);
 		to += 2;
 		count -= 2;
 	}
 
-	/* And finally, one last byte.. */
+	
 	if (count) {
 		__raw_writeb(c, to);
 	}
@@ -583,8 +526,6 @@ void _memset_c_io(volatile void __iomem *to, unsigned long c, long count)
 
 EXPORT_SYMBOL(_memset_c_io);
 
-/* A version of memcpy used by the vga console routines to move data around
-   arbitrarily between screen and main memory.  */
 
 void
 scr_memcpyw(u16 *d, const u16 *s, unsigned int count)
@@ -596,8 +537,6 @@ scr_memcpyw(u16 *d, const u16 *s, unsigned int count)
 
 	if (s_isio) {
 		if (d_isio) {
-			/* FIXME: Should handle unaligned ops and
-			   operation widening.  */
 
 			count /= 2;
 			while (count--) {

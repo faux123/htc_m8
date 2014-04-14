@@ -3,4 +3,4 @@
 
 #include <asm-generic/hardirq.h>
 
-#endif /* _ASM_SCORE_HARDIRQ_H */
+#endif 

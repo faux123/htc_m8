@@ -5,4 +5,4 @@
 #include <asm-generic/kmap_types.h>
 
 #endif
-#endif /* __KERNEL__ */
+#endif 

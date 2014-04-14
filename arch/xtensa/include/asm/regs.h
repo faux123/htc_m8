@@ -25,7 +25,6 @@
 #ifndef _XTENSA_REGS_H
 #define _XTENSA_REGS_H
 
-/*  Special registers.  */
 
 #define LBEG		0
 #define LEND		1
@@ -68,13 +67,11 @@
 #define CCOMPARE	240
 #define MISC		244
 
-/*  Special names for read-only and write-only interrupt registers.  */
 
 #define INTREAD		226
 #define INTSET		226
 #define INTCLEAR	227
 
-/*  EXCCAUSE register fields  */
 
 #define EXCCAUSE_EXCCAUSE_SHIFT	0
 #define EXCCAUSE_EXCCAUSE_MASK	0x3F
@@ -109,7 +106,6 @@
 #define EXCCAUSE_COPROCESSOR6_DISABLED		38
 #define EXCCAUSE_COPROCESSOR7_DISABLED		39
 
-/*  PS register fields.  */
 
 #define PS_WOE_BIT		18
 #define PS_CALLINC_SHIFT	16
@@ -123,7 +119,6 @@
 #define PS_INTLEVEL_SHIFT	0
 #define PS_INTLEVEL_MASK	0x0000000F
 
-/*  DBREAKCn register fields.  */
 
 #define DBREAKC_MASK_BIT		0
 #define DBREAKC_MASK_MASK		0x0000003F
@@ -132,14 +127,13 @@
 #define DBREAKC_STOR_BIT		31
 #define DBREAKC_STOR_MASK		0x80000000
 
-/*  DEBUGCAUSE register fields.  */
 
-#define DEBUGCAUSE_DEBUGINT_BIT		5	/* External debug interrupt */
-#define DEBUGCAUSE_BREAKN_BIT		4	/* BREAK.N instruction */
-#define DEBUGCAUSE_BREAK_BIT		3	/* BREAK instruction */
-#define DEBUGCAUSE_DBREAK_BIT		2	/* DBREAK match */
-#define DEBUGCAUSE_IBREAK_BIT		1	/* IBREAK match */
-#define DEBUGCAUSE_ICOUNT_BIT		0	/* ICOUNT would incr. to zero */
+#define DEBUGCAUSE_DEBUGINT_BIT		5	
+#define DEBUGCAUSE_BREAKN_BIT		4	
+#define DEBUGCAUSE_BREAK_BIT		3	
+#define DEBUGCAUSE_DBREAK_BIT		2	
+#define DEBUGCAUSE_IBREAK_BIT		1	
+#define DEBUGCAUSE_ICOUNT_BIT		0	
 
-#endif /* _XTENSA_SPECREG_H */
+#endif 
 
