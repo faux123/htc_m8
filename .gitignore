@@ -84,3 +84,11 @@ GTAGS
 *.orig
 *~
 \#*#
+
+mkgsm.sh
+mkspr.sh
+mkvzw.sh
+out/
+out_spr/
+out_vzw/
+
