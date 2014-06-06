@@ -63,6 +63,7 @@ include/config
 include/linux/version.h
 include/generated
 arch/*/include/generated
+arch/arm/boot/zImage-dtb
 
 # stgit generated dirs
 patches-*
@@ -91,4 +92,6 @@ mkvzw.sh
 out/
 out_spr/
 out_vzw/
+mkgpe.sh
+out_gpe/
 
