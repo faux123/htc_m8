@@ -14,10 +14,6 @@
 static LIST_HEAD(syscore_ops_list);
 static DEFINE_MUTEX(syscore_ops_lock);
 
-/**
- * register_syscore_ops - Register a set of system core operations.
- * @ops: System core operations to register.
- */
 void register_syscore_ops(struct syscore_ops *ops)
 {
 	mutex_lock(&syscore_ops_lock);
@@ -26,10 +22,6 @@ void register_syscore_ops(struct syscore_ops *ops)
 }
 EXPORT_SYMBOL_GPL(register_syscore_ops);
 
-/**
- * unregister_syscore_ops - Unregister a set of system core operations.
- * @ops: System core operations to unregister.
- */
 void unregister_syscore_ops(struct syscore_ops *ops)
 {
 	mutex_lock(&syscore_ops_lock);
@@ -39,19 +31,15 @@ void unregister_syscore_ops(struct syscore_ops *ops)
 EXPORT_SYMBOL_GPL(unregister_syscore_ops);
 
 #ifdef CONFIG_PM_SLEEP
-/**
- * syscore_suspend - Execute all the registered system core suspend callbacks.
- *
- * This function is executed with one CPU on-line and disabled interrupts.
- */
 int syscore_suspend(void)
 {
 	struct syscore_ops *ops;
+	ktime_t calltime, delta, rettime;
 	int ret = 0;
 
 	pr_debug("Checking wakeup interrupts\n");
 
-	/* Return error code if there are any wakeup interrupts pending. */
+	
 	ret = check_wakeup_irqs();
 	if (ret)
 		return ret;
@@ -61,11 +49,25 @@ int syscore_suspend(void)
 
 	list_for_each_entry_reverse(ops, &syscore_ops_list, node)
 		if (ops->suspend) {
-			if (initcall_debug)
+			if (initcall_debug == 1)
 				pr_info("PM: Calling %pF\n", ops->suspend);
+			else if (initcall_debug > 1) {
+				calltime =  ktime_get();
+			}
 			ret = ops->suspend();
 			if (ret)
 				goto err_out;
+			if (initcall_debug > 1) {
+				unsigned long long duration;
+
+				rettime = ktime_get();
+				delta = ktime_sub(rettime, calltime);
+				duration = (unsigned long long)ktime_to_ns(delta) >> 10;
+
+				if (duration >= initcall_debug)
+					pr_info("call %pF+ returned after %Ld usecs\n", ops->suspend,
+						duration);
+			}
 			WARN_ONCE(!irqs_disabled(),
 				"Interrupts enabled after %pF\n", ops->suspend);
 		}
@@ -83,33 +85,40 @@ int syscore_suspend(void)
 }
 EXPORT_SYMBOL_GPL(syscore_suspend);
 
-/**
- * syscore_resume - Execute all the registered system core resume callbacks.
- *
- * This function is executed with one CPU on-line and disabled interrupts.
- */
 void syscore_resume(void)
 {
 	struct syscore_ops *ops;
+	ktime_t calltime, delta, rettime;
 
 	WARN_ONCE(!irqs_disabled(),
 		"Interrupts enabled before system core resume.\n");
 
 	list_for_each_entry(ops, &syscore_ops_list, node)
 		if (ops->resume) {
-			if (initcall_debug)
+			if (initcall_debug == 1)
 				pr_info("PM: Calling %pF\n", ops->resume);
+			else if (initcall_debug > 1) {
+				calltime =  ktime_get();
+			}
 			ops->resume();
+			if (initcall_debug > 1) {
+				unsigned long long duration;
+
+				rettime = ktime_get();
+				delta = ktime_sub(rettime, calltime);
+				duration = (unsigned long long)ktime_to_ns(delta) >> 10;
+
+				if (duration >= initcall_debug)
+					pr_info("call %pF+ returned after %Ld usecs\n", ops->resume,
+						duration);
+			}
 			WARN_ONCE(!irqs_disabled(),
 				"Interrupts enabled after %pF\n", ops->resume);
 		}
 }
 EXPORT_SYMBOL_GPL(syscore_resume);
-#endif /* CONFIG_PM_SLEEP */
+#endif 
 
-/**
- * syscore_shutdown - Execute all the registered system core shutdown callbacks.
- */
 void syscore_shutdown(void)
 {
 	struct syscore_ops *ops;
@@ -118,7 +127,7 @@ void syscore_shutdown(void)
 
 	list_for_each_entry_reverse(ops, &syscore_ops_list, node)
 		if (ops->shutdown) {
-			if (initcall_debug)
+			if (initcall_debug == 1)
 				pr_info("PM: Calling %pF\n", ops->shutdown);
 			ops->shutdown();
 		}
