@@ -49,7 +49,7 @@ DECLARE_EVENT_CLASS(writeback_work_class,
 		struct device *dev = bdi->dev;
 		if (!dev)
 			dev = default_backing_dev_info.dev;
-		strncpy(__entry->name, dev_name(dev), 32);
+		strncpy(__entry->name, dev_name(dev), sizeof(__entry->name) - 1);
 		__entry->nr_pages = work->nr_pages;
 		__entry->sb_dev = work->sb ? work->sb->s_dev : 0;
 		__entry->sync_mode = work->sync_mode;
@@ -100,7 +100,7 @@ DECLARE_EVENT_CLASS(writeback_class,
 		__array(char, name, 32)
 	),
 	TP_fast_assign(
-		strncpy(__entry->name, dev_name(bdi->dev), 32);
+		strncpy(__entry->name, dev_name(bdi->dev), sizeof(__entry->name) - 1);
 	),
 	TP_printk("bdi %s",
 		  __entry->name
@@ -137,7 +137,7 @@ DECLARE_EVENT_CLASS(wbc_class,
 	),
 
 	TP_fast_assign(
-		strncpy(__entry->name, dev_name(bdi->dev), 32);
+		strncpy(__entry->name, dev_name(bdi->dev), sizeof(__entry->name) - 1);
 		__entry->nr_to_write	= wbc->nr_to_write;
 		__entry->pages_skipped	= wbc->pages_skipped;
 		__entry->sync_mode	= wbc->sync_mode;
@@ -184,7 +184,7 @@ TRACE_EVENT(writeback_queue_io,
 	),
 	TP_fast_assign(
 		unsigned long *older_than_this = work->older_than_this;
-		strncpy(__entry->name, dev_name(wb->bdi->dev), 32);
+		strncpy(__entry->name, dev_name(wb->bdi->dev), sizeof(__entry->name) - 1);
 		__entry->older	= older_than_this ?  *older_than_this : 0;
 		__entry->age	= older_than_this ?
 				  (jiffies - *older_than_this) * 1000 / HZ : -1;
@@ -193,8 +193,8 @@ TRACE_EVENT(writeback_queue_io,
 	),
 	TP_printk("bdi %s: older=%lu age=%ld enqueue=%d reason=%s",
 		__entry->name,
-		__entry->older,	/* older_than_this in jiffies */
-		__entry->age,	/* older_than_this in relative milliseconds */
+		__entry->older,	
+		__entry->age,	
 		__entry->moved,
 		__print_symbolic(__entry->reason, WB_WORK_REASON)
 	)
@@ -282,12 +282,12 @@ TRACE_EVENT(bdi_dirty_ratelimit,
 		  "dirty_ratelimit=%lu task_ratelimit=%lu "
 		  "balanced_dirty_ratelimit=%lu",
 		  __entry->bdi,
-		  __entry->write_bw,		/* write bandwidth */
-		  __entry->avg_write_bw,	/* avg write bandwidth */
-		  __entry->dirty_rate,		/* bdi dirty rate */
-		  __entry->dirty_ratelimit,	/* base ratelimit */
-		  __entry->task_ratelimit, /* ratelimit with position control */
-		  __entry->balanced_dirty_ratelimit /* the balanced ratelimit */
+		  __entry->write_bw,		
+		  __entry->avg_write_bw,	
+		  __entry->dirty_rate,		
+		  __entry->dirty_ratelimit,	
+		  __entry->task_ratelimit, 
+		  __entry->balanced_dirty_ratelimit 
 	)
 );
 
@@ -365,10 +365,10 @@ TRACE_EVENT(balance_dirty_pages,
 		  __entry->task_ratelimit,
 		  __entry->dirtied,
 		  __entry->dirtied_pause,
-		  __entry->paused,	/* ms */
-		  __entry->pause,	/* ms */
-		  __entry->period,	/* ms */
-		  __entry->think	/* ms */
+		  __entry->paused,	
+		  __entry->pause,	
+		  __entry->period,	
+		  __entry->think	
 	  )
 );
 
@@ -428,7 +428,7 @@ DECLARE_EVENT_CLASS(writeback_single_inode_template,
 
 	TP_fast_assign(
 		strncpy(__entry->name,
-			dev_name(inode_to_bdi(inode)->dev), 32);
+			dev_name(inode_to_bdi(inode)->dev), sizeof(__entry->name) - 1);
 		__entry->ino		= inode->i_ino;
 		__entry->state		= inode->i_state;
 		__entry->dirtied_when	= inode->dirtied_when;
@@ -464,7 +464,6 @@ DEFINE_EVENT(writeback_single_inode_template, writeback_single_inode,
 	TP_ARGS(inode, wbc, nr_to_write)
 );
 
-#endif /* _TRACE_WRITEBACK_H */
+#endif 
 
-/* This part must be outside protection */
 #include <trace/define_trace.h>

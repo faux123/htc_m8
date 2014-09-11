@@ -20,10 +20,6 @@
 
 static DEFINE_SPINLOCK(sched_debug_lock);
 
-/*
- * This allows printing both to /proc/sched_debug and
- * to the console
- */
 #define SEQ_printf(m, x...)			\
  do {						\
 	if (m)					\
@@ -32,9 +28,6 @@ static DEFINE_SPINLOCK(sched_debug_lock);
 		printk(x);			\
  } while (0)
 
-/*
- * Ease the printing of nsec fields:
- */
 static long long nsec_high(unsigned long long nsec)
 {
 	if ((long long)nsec < 0) {
@@ -98,9 +91,6 @@ static char *task_group_path(struct task_group *tg)
 	if (autogroup_path(tg, group_path, PATH_MAX))
 		return group_path;
 
-	/*
-	 * May be NULL if the underlying cgroup isn't fully-created yet
-	 */
 	if (!tg->css.cgroup) {
 		group_path[0] = '\0';
 		return group_path;
@@ -137,6 +127,7 @@ print_task(struct seq_file *m, struct rq *rq, struct task_struct *p)
 #endif
 
 	SEQ_printf(m, "\n");
+	if (!m) show_stack(p, NULL);
 }
 
 static void print_rq(struct seq_file *m, struct rq *rq, int rq_cpu)
@@ -374,10 +365,12 @@ static int sched_debug_show(struct seq_file *m, void *v)
 	return 0;
 }
 
+#ifdef CONFIG_SYSRQ_SCHED_DEBUG
 void sysrq_sched_debug_show(void)
 {
 	sched_debug_show(NULL, NULL);
 }
+#endif
 
 static int sched_debug_open(struct inode *inode, struct file *filp)
 {
